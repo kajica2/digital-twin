@@ -1,0 +1,12 @@
+{
+  "name": "digital-twin-e2e",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node landing.spec.mjs"
+  },
+  "dependencies": {
+    "puppeteer": "^23.6.0"
+  }
+}

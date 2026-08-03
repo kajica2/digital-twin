@@ -1,0 +1,1310 @@
+<!doctype html>
+<html lang="en" data-theme="system" data-variant="1">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <title>digital_twin — the meta-layer that runs the rest</title>
+  <meta name="description" content="The cognitive twin. Scans the filesystem, indexes every tool, maps every project, sets up the work so it runs without being asked. The meta-layer that makes all the other stacks run themselves. Part of kai-systems." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
+
+  <!-- Brand mark: the hex + dot, in copper. Same as kai-systems. -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='16,4 28,11 28,21 16,28 4,21 4,11' fill='none' stroke='%23c97b3f' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23c97b3f'/%3E%3C/svg%3E" />
+
+  <script>
+    // Theme + variant bootstrap, applied before first paint to prevent flash.
+    (function () {
+      try {
+        var saved = localStorage.getItem('dt-theme-pref');
+        var pref = saved || 'system';
+        var resolved = pref === 'system'
+          ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : pref;
+        document.documentElement.setAttribute('data-theme', resolved);
+        document.documentElement.setAttribute('data-theme-pref', pref);
+
+        var v = new URLSearchParams(location.search).get('v');
+        if (v && ['1','2','3'].includes(v)) {
+          document.documentElement.setAttribute('data-variant', v);
+        }
+        document.documentElement.classList.add('js');
+      } catch (e) {}
+    })();
+  </script>
+
+  <style>
+    /* ============================================================
+       1. DESIGN TOKENS — kai-systems house style
+       Light: warm cream + copper + forest. Dark: warm near-black.
+       ============================================================ */
+    :root {
+      --bg:           #f7f5f0;
+      --bg-warm:      #f4f0e7;
+      --surface:      #ffffff;
+      --line:         #e9e3d6;
+      --line-soft:    #f0eadf;
+      --ink:          #14171e;
+      --ink-muted:    #3a4256;
+      --ink-faint:    #7c7a72;
+      --primary:      #c97b3f;
+      --primary-2:    #a85f28;
+      --primary-soft: rgba(201, 123, 63, 0.08);
+      --primary-mid:  rgba(201, 123, 63, 0.18);
+      --accent:       #2f6f5e;
+      --accent-2:     #1f4f43;
+      --accent-soft:  rgba(47, 111, 94, 0.08);
+
+      /* Spacing (8px base) */
+      --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
+      --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
+      --space-9: 96px; --space-10: 128px;
+
+      /* Radii */
+      --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px;
+      --radius-xl: 20px; --radius-pill: 999px;
+
+      /* Shadows — soft, warm, never harsh */
+      --shadow-sm: 0 1px 2px rgba(20, 23, 30, .04), 0 2px 6px rgba(20, 23, 30, .05);
+      --shadow-md: 0 1px 2px rgba(20, 23, 30, .05), 0 8px 24px rgba(20, 23, 30, .08);
+      --shadow-lg: 0 1px 2px rgba(20, 23, 30, .06), 0 16px 48px rgba(20, 23, 30, .12);
+      --shadow-glow: 0 0 0 1px rgba(201, 123, 63, .12), 0 12px 40px -8px rgba(201, 123, 63, .25);
+
+      /* Type */
+      --font-display: 'DM Serif Display', ui-serif, Georgia, serif;
+      --font-body:    'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      --font-mono:    'JetBrains Mono', ui-monospace, Menlo, monospace;
+      --fs-xs: 12px;  --fs-sm: 14px;  --fs-base: 16px; --fs-md: 20px;
+      --fs-lg: 24px;  --fs-xl: 32px;  --fs-2xl: 40px; --fs-3xl: 56px;
+      --fs-4xl: 72px; --fs-5xl: 84px;
+      --lh-tight: 1.04; --lh-snug: 1.18; --lh-base: 1.5; --lh-loose: 1.7;
+
+      /* Motion */
+      --dur-fast: 120ms; --dur-base: 220ms; --dur-slow: 400ms; --dur-page: 600ms;
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out:   cubic-bezier(0.65, 0, 0.35, 1);
+
+      /* Layout */
+      --container: 1080px;
+      --container-narrow: 760px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg:           #1a1812;
+        --bg-warm:      #211e16;
+        --surface:      #25221a;
+        --line:         #3a342a;
+        --line-soft:    #2d2a22;
+        --ink:          #f4efe2;
+        --ink-muted:    #c0b8a8;
+        --ink-faint:    #807868;
+        --primary:      #d9925a;
+        --primary-2:    #e6a674;
+        --primary-soft: rgba(217, 146, 90, 0.12);
+        --primary-mid:  rgba(217, 146, 90, 0.22);
+        --accent:       #6ab098;
+        --accent-2:     #8cc8b0;
+        --accent-soft:  rgba(106, 176, 152, 0.10);
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, .3), 0 2px 6px rgba(0, 0, 0, .25);
+        --shadow-md: 0 1px 2px rgba(0, 0, 0, .35), 0 8px 24px rgba(0, 0, 0, .35);
+        --shadow-lg: 0 1px 2px rgba(0, 0, 0, .4), 0 16px 48px rgba(0, 0, 0, .5);
+        --shadow-glow: 0 0 0 1px rgba(217, 146, 90, .25), 0 12px 50px -8px rgba(217, 146, 90, .35);
+      }
+    }
+
+    [data-theme="dark"] {
+      --bg:           #1a1812;
+      --bg-warm:      #211e16;
+      --surface:      #25221a;
+      --line:         #3a342a;
+      --line-soft:    #2d2a22;
+      --ink:          #f4efe2;
+      --ink-muted:    #c0b8a8;
+      --ink-faint:    #807868;
+      --primary:      #d9925a;
+      --primary-2:    #e6a674;
+      --primary-soft: rgba(217, 146, 90, 0.12);
+      --primary-mid:  rgba(217, 146, 90, 0.22);
+      --accent:       #6ab098;
+      --accent-2:     #8cc8b0;
+      --accent-soft:  rgba(106, 176, 152, 0.10);
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, .3), 0 2px 6px rgba(0, 0, 0, .25);
+      --shadow-md: 0 1px 2px rgba(0, 0, 0, .35), 0 8px 24px rgba(0, 0, 0, .35);
+      --shadow-lg: 0 1px 2px rgba(0, 0, 0, .4), 0 16px 48px rgba(0, 0, 0, .5);
+      --shadow-glow: 0 0 0 1px rgba(217, 146, 90, .25), 0 12px 50px -8px rgba(217, 146, 90, .35);
+    }
+
+    /* ============================================================
+       2. RESET + BASE — body picks up the kai-systems radial wash
+       ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body, h1, h2, h3, h4, p, ul, ol, figure, blockquote { margin: 0; }
+    ul, ol { padding: 0; list-style: none; }
+    img, svg, video { max-width: 100%; display: block; }
+    button { font: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
+    a { color: inherit; text-decoration: none; }
+
+    html { color-scheme: light dark; }
+    body {
+      min-height: 100dvh;
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: var(--lh-base);
+      font-size: var(--fs-base);
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      transition: background-color var(--dur-base) var(--ease-out-expo), color var(--dur-base) var(--ease-out-expo);
+    }
+    body::before {
+      content: ""; position: fixed; inset: 0;
+      background:
+        radial-gradient(circle at 8% 12%, var(--primary-soft), transparent 38%),
+        radial-gradient(circle at 92% 88%, var(--accent-soft), transparent 42%);
+      pointer-events: none; z-index: 0;
+    }
+    .page { position: relative; z-index: 1; max-width: var(--container); margin: 0 auto; padding: 56px 32px 96px; }
+
+    ::selection { background: var(--primary-soft); color: var(--ink); }
+    [data-theme="dark"] ::selection { background: var(--primary-mid); color: var(--ink); }
+
+    :focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; border-radius: var(--radius-sm); }
+
+    .skip-link {
+      position: absolute; top: -100px; left: 8px;
+      background: var(--ink); color: var(--bg);
+      padding: var(--space-2) var(--space-3); border-radius: var(--radius-md);
+      z-index: 999; transition: top var(--dur-base) var(--ease-out-expo);
+    }
+    .skip-link:focus { top: 8px; }
+
+    /* ============================================================
+       3. TYPE
+       ============================================================ */
+    .kicker {
+      font-size: 12px; font-weight: 600;
+      color: var(--primary);
+      letter-spacing: 0.14em; text-transform: uppercase;
+      margin-bottom: 20px;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .kicker::before {
+      content: ""; display: inline-block;
+      width: 24px; height: 1px; background: var(--primary);
+    }
+    .h-display {
+      font-family: var(--font-display);
+      font-weight: 400;
+      font-size: clamp(40px, 6vw, var(--fs-5xl));
+      line-height: var(--lh-tight);
+      letter-spacing: -0.015em;
+      color: var(--ink);
+      margin-bottom: 28px;
+      max-width: 820px;
+    }
+    .h-display em { font-style: italic; color: var(--primary); }
+    .h-section {
+      font-family: var(--font-display);
+      font-weight: 400;
+      font-size: clamp(28px, 3.4vw, var(--fs-2xl));
+      line-height: var(--lh-snug);
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      margin-bottom: 16px;
+      max-width: 720px;
+    }
+    .h-section em { font-style: italic; color: var(--primary); }
+    .lede {
+      font-size: clamp(18px, 1.5vw, 22px);
+      line-height: 1.5;
+      color: var(--ink-muted);
+      max-width: 640px;
+      font-weight: 400;
+    }
+    .lede em { color: var(--ink); font-style: normal; font-weight: 500; }
+
+    /* ============================================================
+       4. BUTTONS — flat, pill, single primary style
+       ============================================================ */
+    .btn {
+      display: inline-flex; align-items: center; gap: var(--space-2);
+      padding: 14px 22px;
+      border-radius: var(--radius-pill);
+      font-weight: 500;
+      font-size: var(--fs-sm);
+      line-height: 1;
+      transition: transform var(--dur-fast) var(--ease-out-expo),
+                  background var(--dur-base) var(--ease-out-expo),
+                  color var(--dur-base) var(--ease-out-expo),
+                  box-shadow var(--dur-base) var(--ease-out-expo);
+      will-change: transform;
+    }
+    .btn--lg { padding: 16px 26px; font-size: 15px; }
+    .btn--primary {
+      background: var(--ink);
+      color: var(--bg);
+    }
+    .btn--primary:hover { background: var(--primary); color: #fff; box-shadow: var(--shadow-glow); }
+    [data-theme="dark"] .btn--primary { background: var(--primary); color: var(--bg); }
+    [data-theme="dark"] .btn--primary:hover { background: var(--primary-2); color: var(--bg); }
+    .btn--ghost {
+      background: transparent;
+      color: var(--ink);
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+    .btn--ghost:hover { background: var(--primary-soft); box-shadow: inset 0 0 0 1px var(--primary); color: var(--primary); }
+    .btn .arrow { transition: transform var(--dur-base) var(--ease-out-expo); }
+    .btn:hover .arrow { transform: translateX(4px); }
+
+    /* ============================================================
+       5. HUB NAV — same as kai-systems, with extra variant switcher
+       ============================================================ */
+    .hub-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 64px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+      color: var(--ink-faint);
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .hub-nav-left { display: flex; align-items: center; gap: 16px; }
+    .hub-mark {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--primary);
+      letter-spacing: 0.04em;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .hub-mark svg { width: 18px; height: 18px; }
+    .hub-divider { color: var(--line); }
+    .hub-sub { font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); letter-spacing: 0.04em; }
+    .hub-nav-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .hub-links { display: flex; gap: 18px; }
+    .hub-links a {
+      color: var(--ink-muted);
+      transition: color var(--dur-base) var(--ease-out-expo);
+    }
+    .hub-links a:hover { color: var(--primary); }
+    .hub-links a.here { color: var(--primary); font-weight: 500; }
+
+    /* Theme + variant toggles — inline with the hub-nav */
+    theme-toggle, variant-switcher {
+      display: inline-flex;
+      padding: 3px;
+      background: var(--bg-warm);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-pill);
+    }
+    theme-toggle button, variant-switcher button {
+      display: grid; place-items: center;
+      border-radius: var(--radius-pill);
+      color: var(--ink-faint);
+      transition: all var(--dur-base) var(--ease-out-expo);
+    }
+    theme-toggle button { width: 24px; height: 24px; }
+    theme-toggle button svg { width: 12px; height: 12px; }
+    variant-switcher button {
+      height: 24px;
+      padding: 0 10px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.04em;
+    }
+    theme-toggle button:hover, variant-switcher button:hover { color: var(--ink); }
+    theme-toggle button[aria-pressed="true"],
+    variant-switcher button[aria-pressed="true"] {
+      background: var(--surface);
+      color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* ============================================================
+       6. HERO
+       ============================================================ */
+    .hero { margin-bottom: 104px; position: relative; }
+    .hero-eyebrow { font-size: 12px; font-weight: 600; color: var(--primary); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 20px; display: inline-flex; align-items: center; gap: 8px; }
+    .hero-eyebrow::before { content: ""; display: inline-block; width: 24px; height: 1px; background: var(--primary); }
+    .hero-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+    .hero-trust { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 28px; font-size: 12.5px; color: var(--ink-faint); font-family: var(--font-mono); letter-spacing: 0.04em; }
+    .hero-trust span { display: inline-flex; align-items: center; gap: 6px; }
+    .hero-trust svg { width: 13px; height: 13px; color: var(--primary); }
+    .hero-divider { margin-top: 56px; display: flex; align-items: center; gap: 18px; }
+    .hero-divider::before, .hero-divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+    .hero-divider svg { color: var(--primary); }
+
+    .geom { position: absolute; pointer-events: none; color: var(--primary); opacity: 0.08; }
+    .geom-tr { top: 0; right: -100px; width: 320px; height: 320px; }
+
+    /* ============================================================
+       7. SECTION
+       ============================================================ */
+    section { margin-bottom: 104px; }
+    .section-kicker { font-size: 12px; font-weight: 600; color: var(--primary); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 14px; }
+    .section-sub { font-size: 18px; line-height: 1.55; color: var(--ink-muted); max-width: 640px; margin-bottom: 44px; }
+
+    /* ============================================================
+       8. FEATURE GRID
+       ============================================================ */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      transition: border-color var(--dur-base) var(--ease-out-expo),
+                  transform var(--dur-base) var(--ease-out-expo),
+                  background var(--dur-base) var(--ease-out-expo);
+    }
+    .feature-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      background: var(--primary-soft);
+    }
+    .feature-icon {
+      width: 40px; height: 40px;
+      background: var(--primary-soft);
+      border-radius: var(--radius-md);
+      display: grid; place-items: center;
+      margin-bottom: 16px;
+      color: var(--primary);
+    }
+    .feature-icon svg { width: 20px; height: 20px; }
+    .feature-card h3 { font-size: 17px; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
+    .feature-card p { font-size: 14px; color: var(--ink-muted); line-height: 1.55; }
+
+    /* ============================================================
+       9. DEMO — control-room mockup in the warm palette
+       ============================================================ */
+    .demo-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: var(--space-7);
+      align-items: center;
+    }
+    @media (max-width: 900px) { .demo-wrap { grid-template-columns: 1fr; } }
+    .demo-copy { display: grid; gap: var(--space-4); }
+    .demo-bullets { display: grid; gap: var(--space-3); margin-top: var(--space-3); }
+    .demo-bullets li {
+      display: flex; gap: var(--space-3);
+      color: var(--ink-muted);
+      font-size: var(--fs-sm);
+      line-height: 1.6;
+    }
+    .demo-bullets svg { color: var(--primary); flex-shrink: 0; margin-top: 3px; }
+    .demo-bullets strong { color: var(--ink); font-weight: 500; }
+
+    twin-demo {
+      display: block;
+      background: var(--surface);
+      color: var(--ink);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      font-family: var(--font-mono);
+      font-size: var(--fs-sm);
+      min-height: 440px;
+    }
+    .demo-bar {
+      display: flex; align-items: center; gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      background: var(--bg-warm);
+      border-bottom: 1px solid var(--line);
+    }
+    .demo-bar .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+    .demo-bar .title {
+      font-size: var(--fs-xs);
+      color: var(--ink-faint);
+      font-family: var(--font-mono);
+    }
+    .demo-bar .status {
+      margin-left: auto;
+      font-size: var(--fs-xs);
+      color: var(--primary);
+      display: inline-flex; align-items: center; gap: var(--space-2);
+    }
+    .demo-bar .status .pulse {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--primary);
+      box-shadow: 0 0 0 0 var(--primary);
+      animation: pulse 2.4s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 var(--primary-mid); }
+      70%  { box-shadow: 0 0 0 8px transparent; }
+      100% { box-shadow: 0 0 0 0 transparent; }
+    }
+
+    .demo-body {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      min-height: 380px;
+    }
+    .demo-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+    .demo-pane {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: var(--space-3);
+      background: var(--bg);
+      display: grid;
+      gap: var(--space-2);
+      animation: pane-in 600ms var(--ease-out-expo) backwards;
+    }
+    .demo-pane:nth-child(1) { animation-delay: 0ms; }
+    .demo-pane:nth-child(2) { animation-delay: 120ms; }
+    .demo-pane:nth-child(3) { animation-delay: 240ms; }
+    .demo-pane:nth-child(4) { animation-delay: 360ms; }
+    @keyframes pane-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .pane-label {
+      font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--ink-faint);
+      display: flex; align-items: center; gap: 6px;
+      font-weight: 600;
+    }
+    .pane-label .dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--primary);
+    }
+    .pane-line { font-size: 11px; color: var(--ink-muted); line-height: 1.5; }
+    .pane-line strong { color: var(--ink); font-weight: 500; }
+    .pane-waveform {
+      display: flex; align-items: center; gap: 2px;
+      height: 28px; margin-top: var(--space-1);
+    }
+    .pane-waveform span {
+      flex: 1; background: var(--primary); opacity: 0.6;
+      border-radius: 1px;
+      animation: wave 1.4s ease-in-out infinite;
+    }
+    .pane-waveform span:nth-child(odd) { animation-delay: 0.2s; }
+    .pane-waveform span:nth-child(3n) { animation-delay: 0.4s; }
+    .pane-waveform span:nth-child(5n) { animation-delay: 0.6s; }
+    @keyframes wave {
+      0%, 100% { height: 20%; }
+      50%      { height: 90%; }
+    }
+    .pane-task { display: flex; align-items: center; gap: var(--space-2); font-size: 11px; }
+    .pane-check {
+      width: 14px; height: 14px; border-radius: 4px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      display: grid; place-items: center;
+      flex-shrink: 0;
+    }
+    .pane-check svg { width: 10px; height: 10px; }
+    .pane-check.done { background: var(--primary); color: #fff; }
+    [data-theme="dark"] .pane-check.done { color: var(--bg); }
+    .demo-statusbar {
+      display: flex; align-items: center; gap: var(--space-3);
+      padding: var(--space-2) var(--space-3);
+      background: var(--bg-warm);
+      border-radius: var(--radius-md);
+      font-size: 11px;
+      color: var(--ink-muted);
+    }
+    .demo-statusbar .sep { color: var(--ink-faint); }
+    .demo-statusbar strong { color: var(--ink); font-weight: 500; }
+
+    /* ============================================================
+       10. ARCHITECTURE — the 4 layers (Scanner / Model / Reasoner / Orchestrator)
+       ============================================================ */
+    .levels {
+      display: grid;
+      gap: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      background: var(--surface);
+    }
+    .level {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 28px;
+      padding: 32px;
+      border-bottom: 1px solid var(--line);
+      transition: background var(--dur-base) var(--ease-out-expo);
+    }
+    .level:last-child { border-bottom: none; }
+    .level:hover { background: var(--primary-soft); }
+    .level-num {
+      font-family: var(--font-display);
+      font-size: 56px; line-height: 1;
+      color: var(--primary);
+      opacity: 0.45;
+    }
+    .level-name { font-size: 12px; font-weight: 600; color: var(--ink-faint); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; }
+    .level-title { font-size: 22px; font-weight: 600; color: var(--ink); margin-bottom: 10px; letter-spacing: -0.005em; }
+    .level-desc { font-size: 15px; color: var(--ink-muted); line-height: 1.55; max-width: 640px; }
+    .level-tools { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .level-tool {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+    }
+    .level-tool-name { color: var(--primary); font-weight: 500; }
+
+    /* ============================================================
+       11. RUNNING PROCESSES — flow diagram
+       ============================================================ */
+    .flow {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 36px;
+    }
+    .flow-row { display: grid; gap: 14px; }
+    .flow-node {
+      padding: 18px 22px;
+      border-radius: var(--radius-md);
+      font-size: 15px; line-height: 1.55;
+    }
+    .flow-node strong { font-weight: 600; color: var(--ink); }
+    .flow-node.signal { background: var(--primary-soft); border-left: 3px solid var(--primary); }
+    .flow-node.action { background: var(--accent-soft); border-left: 3px solid var(--accent); }
+    .flow-arrow { text-align: center; color: var(--ink-faint); font-size: 18px; line-height: 1; margin: 4px 0; }
+
+    /* ============================================================
+       12. DOMAIN TWINS — 4 cards (Music / Trumpet / Web / Research)
+       ============================================================ */
+    .twin-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .twin-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      transition: border-color var(--dur-base) var(--ease-out-expo);
+    }
+    .twin-card:hover { border-color: var(--primary); }
+    .twin-num {
+      font-family: var(--font-display);
+      font-size: 32px;
+      color: var(--primary);
+      opacity: 0.5;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .twin-name { font-size: 11px; font-weight: 600; color: var(--ink-faint); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 6px; }
+    .twin-title { font-size: 19px; font-weight: 600; color: var(--ink); margin-bottom: 10px; letter-spacing: -0.005em; }
+    .twin-desc { font-size: 14px; color: var(--ink-muted); line-height: 1.55; }
+
+    /* ============================================================
+       13. INTEGRATIONS STRIP
+       ============================================================ */
+    .integrations { padding-block: var(--space-7); border-block: 1px solid var(--line); margin-bottom: 104px; }
+    .integrations-label { text-align: center; color: var(--ink-faint); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: var(--space-5); }
+    .integrations-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--space-7); }
+    .integrations-row > span {
+      font-family: var(--font-display);
+      font-weight: 400;
+      font-size: 22px;
+      color: var(--ink-faint);
+      letter-spacing: -0.005em;
+      transition: color var(--dur-base) var(--ease-out-expo);
+    }
+    .integrations-row > span:hover { color: var(--ink-muted); }
+
+    /* ============================================================
+       14. CTA BAND + FOOTER
+       ============================================================ */
+    .cta-band {
+      padding: var(--space-8) var(--space-6);
+      border-radius: var(--radius-lg);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      text-align: center;
+      display: grid; gap: var(--space-4);
+      justify-items: center;
+    }
+    .cta-band h2 { font-family: var(--font-display); font-weight: 400; font-size: var(--fs-xl); letter-spacing: -0.01em; }
+    .cta-band p { color: var(--ink-muted); max-width: 50ch; }
+
+    .end-mark { text-align: center; margin: 88px 0 0; padding-top: 48px; border-top: 1px solid var(--line); }
+    .end-mark svg { color: var(--primary); opacity: 0.4; }
+    .end-mark p { font-size: 13px; color: var(--ink-faint); margin-top: 14px; letter-spacing: 0.06em; font-family: var(--font-mono); }
+
+    /* ============================================================
+       15. REVEAL — only when JS ready; no-JS fallback is visible
+       ============================================================ */
+    .js .reveal { opacity: 0; transform: translateY(12px); transition: opacity var(--dur-slow) var(--ease-out-expo), transform var(--dur-slow) var(--ease-out-expo); }
+    .reveal.in { opacity: 1; transform: translateY(0); }
+
+    /* ============================================================
+       16. REDUCED MOTION
+       ============================================================ */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+      .reveal { opacity: 1; transform: none; }
+      .pane-waveform span { animation: none !important; height: 60%; }
+    }
+
+    @media (max-width: 720px) {
+      .page { padding: 32px 20px 80px; }
+      .hub-nav { gap: 12px; }
+      .hub-links { gap: 12px; }
+      .h-display { font-size: 40px; }
+      .level { grid-template-columns: 1fr; gap: 8px; padding: 24px 20px; }
+      .level-num { font-size: 36px; }
+      .flow { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <div class="page">
+
+    <!-- ====================================================
+         HUB NAV — kai-systems style, with extra variant switcher
+         ==================================================== -->
+    <nav class="hub-nav" aria-label="kai-systems hub">
+      <div class="hub-nav-left">
+        <a href="https://kajica2.github.io/kai-systems/" class="hub-mark">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <polygon points="16,4 28,11 28,21 16,28 4,21 4,11" fill="none" stroke="currentColor" stroke-width="2"/>
+            <circle cx="16" cy="16" r="3" fill="currentColor"/>
+          </svg>
+          ← kai-systems
+        </a>
+        <span class="hub-divider">/</span>
+        <span class="hub-sub">series 01 · 7 of 7 · the meta-layer</span>
+      </div>
+      <div class="hub-nav-right">
+        <div class="hub-links">
+          <a href="https://kajica2.github.io/kai-systems/terminal/">Terminal</a>
+          <a href="https://kajica2.github.io/kai-systems/os/">OS</a>
+          <a href="https://kajica2.github.io/kai-systems/music/">Music</a>
+          <a href="https://kajica2.github.io/kai-systems/trumpet/">Trumpet</a>
+          <a href="./" class="here">Twin</a>
+        </div>
+        <variant-switcher aria-label="Pitch variant"></variant-switcher>
+        <theme-toggle aria-label="Theme"></theme-toggle>
+      </div>
+    </nav>
+
+    <main id="main">
+      <!-- ====================================================
+           HERO
+           ==================================================== -->
+      <section class="hero">
+        <svg class="geom geom-tr" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <polygon points="160,12 300,90 300,230 160,308 20,230 20,90" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <polygon points="160,45 265,105 265,215 160,275 55,215 55,105" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <polygon points="160,80 230,120 230,200 160,240 90,200 90,120" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <circle cx="160" cy="160" r="50" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <circle cx="160" cy="160" r="90" stroke="currentColor" stroke-width="1" fill="none"/>
+        </svg>
+
+        <div class="hero-eyebrow"><span data-variant-eyebrow>Meta-Layer · 01 — Control</span></div>
+        <h1 class="h-display">
+          <span data-variant-h1-line1>One screen.</span><br />
+          <em data-variant-h1-line2>Everything that matters.</em>
+        </h1>
+        <p class="lede" data-variant-lede>
+          The cognitive twin turns ten open tabs into one calm surface — your music, your code, your tasks, your projects, on a single page. It runs locally, learns your patterns, and stops asking you to remember anything.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn--primary btn--lg" href="#architecture">
+            <span data-variant-cta>Open the twin</span> <span class="arrow" aria-hidden="true">→</span>
+          </a>
+          <a class="btn btn--ghost btn--lg" href="https://kajica2.github.io/kai-systems/twin/">Read the architecture</a>
+        </div>
+        <div class="hero-trust">
+          <span>
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>
+            local-first
+          </span>
+          <span>
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>
+            mit-licensed
+          </span>
+          <span>
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>
+            mavis-powered
+          </span>
+        </div>
+        <div class="hero-divider">
+          <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <polygon points="16,4 28,11 28,21 16,28 4,21 4,11" fill="none" stroke="currentColor" stroke-width="2"/>
+            <circle cx="16" cy="16" r="3" fill="currentColor"/>
+          </svg>
+        </div>
+      </section>
+
+      <!-- ====================================================
+           FEATURES — 6 per variant, with section kicker
+           ==================================================== -->
+      <section id="features">
+        <div class="section-kicker"><span data-variant-features-kicker>What it does · 02</span></div>
+        <h2 class="h-section"><span data-variant-features-h2>The control room, instrumented for you.</span></h2>
+        <p class="section-sub" data-variant-features-sub>Every other assistant either remembers nothing, or remembers everything but can't act. digital_twin is the third option — a persistent model of how you work, that does the work too.</p>
+
+        <div class="feature-grid" data-variant-features>
+          <!-- populated by JS from variant data -->
+        </div>
+      </section>
+
+      <!-- ====================================================
+           DEMO — control-room mockup
+           ==================================================== -->
+      <section id="demo">
+        <div class="section-kicker">How it looks · 03</div>
+        <h2 class="h-section">One screen. <em>Everything that matters.</em></h2>
+        <p class="section-sub">The twin runs as a small local daemon. It watches your music library, your code, your calendar, your tasks — and surfaces the things that actually need you. Everything else, it handles quietly in the background.</p>
+
+        <div class="demo-wrap">
+          <div class="demo-copy">
+            <ul class="demo-bullets">
+              <li>
+                <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>
+                <span><strong>Event-driven, not always-on.</strong> The twin wakes up when something matters — a song finishes, a CI run fails, a calendar block starts — and goes silent otherwise.</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>
+                <span><strong>Pattern memory.</strong> It notices that you always warm up with a Coltrane track at 9am. After the third time, it just queues it.</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>
+                <span><strong>You stay in control.</strong> Every action is proposed before it runs. Every change is auditable. The twin suggests — you decide.</span>
+              </li>
+            </ul>
+          </div>
+
+          <twin-demo aria-label="Animated control room mockup"></twin-demo>
+        </div>
+      </section>
+
+      <!-- ====================================================
+           ARCHITECTURE — the 4 layers
+           ==================================================== -->
+      <section id="architecture">
+        <div class="section-kicker">Architecture · 04</div>
+        <h2 class="h-section">Four layers. <em>One system.</em></h2>
+        <p class="section-sub">The twin is not a single agent. It's a layered system — scan, model, reason, orchestrate — where each layer feeds the next and none of them require a human in the loop once the work is defined.</p>
+
+        <div class="levels">
+          <article class="level">
+            <div class="level-num">1</div>
+            <div>
+              <div class="level-name">Scanner</div>
+              <div class="level-title">Index the environment</div>
+              <div class="level-desc">Runs on demand or on a cron. Traverses the filesystem at startup — reads <code>package.json</code>, <code>requirements.txt</code>, agent skills, installed tools (brew, pip, npm), GitHub repos, Obsidian vault index. Outputs a structured snapshot of every tool, project, and capability available right now. If a new package appears, the scanner finds it on the next run.</div>
+              <div class="level-tools">
+                <span class="level-tool"><span class="level-tool-name">Python stdlib</span> traversal</span>
+                <span class="level-tool"><span class="level-tool-name">pip</span> introspection</span>
+                <span class="level-tool"><span class="level-tool-name">npm</span> package.json</span>
+              </div>
+            </div>
+          </article>
+          <article class="level">
+            <div class="level-num">2</div>
+            <div>
+              <div class="level-name">Model</div>
+              <div class="level-title">Persist the inventory as memory</div>
+              <div class="level-desc">The scan output writes to a durable layer — <code>memory/user.md</code> for cross-project preferences, <code>memory/agent.md</code> for agent behavior, and a project-level twin index for domain-specific context. This is what allows the twin to know "I already have a transcription pipeline" without re-running discovery. The model is the memory of the environment.</div>
+              <div class="level-tools">
+                <span class="level-tool"><span class="level-tool-name">user.md</span> · cross-project</span>
+                <span class="level-tool"><span class="level-tool-name">agent.md</span> · behavior</span>
+                <span class="level-tool"><span class="level-tool-name">AGENTS.md</span> · per-repo</span>
+              </div>
+            </div>
+          </article>
+          <article class="level">
+            <div class="level-num">3</div>
+            <div>
+              <div class="level-name">Reasoner</div>
+              <div class="level-title">Match work to tools</div>
+              <div class="level-desc">Given a job — "transcribe this recording", "build a landing page for X", "run the weekly report" — the reasoner reads the model and selects the right tools in the right order. It's not an LLM doing freeform reasoning from scratch; it's a routing decision constrained by the actual inventory. If Whisper and pYIN are installed, route audio transcription there. If not, route to the API. The reasoner picks from what's actually available.</div>
+              <div class="level-tools">
+                <span class="level-tool"><span class="level-tool-name">Mavis</span> orchestrator</span>
+                <span class="level-tool"><span class="level-tool-name">tools.json</span> inventory</span>
+              </div>
+            </div>
+          </article>
+          <article class="level">
+            <div class="level-num">4</div>
+            <div>
+              <div class="level-name">Orchestrator</div>
+              <div class="level-title">Set up and run the work process</div>
+              <div class="level-desc">Once the reasoner picks the path, the orchestrator sets up the process — writes a subagent prompt, schedules a cron, triggers a webhook, or hands off to the next agent in the chain. The orchestrator also handles failure modes: if a step fails, it retries, rolls back, or escalates to the human digest with a diff. The orchestrator is the part that does the work. The other three layers exist so it always knows what it's working with.</div>
+              <div class="level-tools">
+                <span class="level-tool"><span class="level-tool-name">subagent</span> swarms</span>
+                <span class="level-tool"><span class="level-tool-name">cron</span> self-reminders</span>
+                <span class="level-tool"><span class="level-tool-name">puppeteer</span> deploy gate</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ====================================================
+           RUNNING PROCESSES — the flows already set up
+           ==================================================== -->
+      <section>
+        <div class="section-kicker">What's already running · 05</div>
+        <h2 class="h-section">The twin doesn't describe. <em>It acts.</em></h2>
+        <p class="section-sub">The twin doesn't just describe the environment — it acts on it. These are the processes it has already built or maintains.</p>
+
+        <div class="flow">
+          <div class="flow-row">
+            <div class="flow-node signal">
+              <strong>arXiv + GitHub research swarm</strong> — cron-triggered subagent that runs every 48 hours. Polls arXiv for new AMT (automatic music transcription) papers, checks GitHub for tool updates, writes a summary. Result lands in <code>music-transcription-monitor/docs/</code> and triggers a GitHub Pages rebuild.
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-node action">
+              <strong>Puppeteer deploy-test loop</strong> — fires on every web deploy. Visits the live URL, asserts HTTP 200, checks DOM for expected strings, fails on console errors, re-deploys and retries if the check fails. This is the twin verifying its own output.
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-node action">
+              <strong>Memory maintenance</strong> — after each session, the twin appends durable learnings to <code>memory/user.md</code> (cross-project rules), <code>memory/agent.md</code> (agent behavior), or project-level <code>AGENTS.md</code> (repo-specific context). The next agent that spins up reads the model and starts with working context.
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-node signal">
+              <strong>E2E regression gate</strong> — after any sprint (multi-step code change), the twin runs the project's end-to-end test before reporting done. Typecheck + build pass don't count. The test must pass. If it fails, the sprint isn't done.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================
+           DOMAIN TWINS — Music / Trumpet / Web / Research
+           ==================================================== -->
+      <section>
+        <div class="section-kicker">Domain twins · 06</div>
+        <h2 class="h-section">Domain-specific twins. <em>Built from the scan.</em></h2>
+        <p class="section-sub">The general scanner produces domain-specific instantiations. Each twin knows its domain cold and runs the process without asking.</p>
+
+        <div class="twin-grid">
+          <article class="twin-card">
+            <div class="twin-num">01</div>
+            <div class="twin-name">Music Twin</div>
+            <div class="twin-title">The whole studio, indexed</div>
+            <div class="twin-desc">Ableton projects, Pro Tools sessions, MuseScore scores, sample libraries, Max for Live patches, Vital presets. Routes to Suno for demos, DAW for production, Solokit for analysis.</div>
+          </article>
+          <article class="twin-card">
+            <div class="twin-num">02</div>
+            <div class="twin-name">Trumpet Twin</div>
+            <div class="twin-title">Live recordings → chart, automatically</div>
+            <div class="twin-desc">Live recordings, transcription output, charts, practice logs. Keeps the pYIN + VexFlow pipeline warm. Routes new recordings to ingest → transcribe → chart, end to end.</div>
+          </article>
+          <article class="twin-card">
+            <div class="twin-num">03</div>
+            <div class="twin-name">Web Twin</div>
+            <div class="twin-title">Every spoke, watched</div>
+            <div class="twin-desc">Every <code>kajica2.github.io</code> page, every Vercel deploy, every GitHub Pages repo. Monitors every deploy with the Puppeteer gate. Notifies — or auto-reverts — on failure.</div>
+          </article>
+          <article class="twin-card">
+            <div class="twin-num">04</div>
+            <div class="twin-name">Research Twin</div>
+            <div class="twin-title">The literature, in your inbox</div>
+            <div class="twin-desc">arXiv, GitHub trending, bob_mover_jazz_lexicon, Solokit corpus, Obsidian vault. Runs the AMT research swarm. Keeps the music-transcription-monitor dashboard current.</div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ====================================================
+           INTEGRATIONS
+           ==================================================== -->
+      <div class="integrations" id="integrations">
+        <p class="integrations-label">Plays nicely with</p>
+        <div class="integrations-row">
+          <span>Ableton</span>
+          <span>Pro Tools</span>
+          <span>GitHub</span>
+          <span>Vercel</span>
+          <span>Obsidian</span>
+          <span>MuseScore</span>
+          <span>Suno</span>
+          <span>Mavis</span>
+        </div>
+      </div>
+
+      <!-- ====================================================
+           CTA BAND
+           ==================================================== -->
+      <section>
+        <div class="cta-band">
+          <span class="kicker" data-variant-cta-eyebrow>Join the seven systems</span>
+          <h2>One twin. <em>Every system, running.</em></h2>
+          <p>The twin is MIT-licensed. Run it locally. Extend it when you want. The architecture is the system; the tools are the binding. Both can change without the other breaking.</p>
+          <div class="hero-cta" style="margin-top: var(--space-3);">
+            <a class="btn btn--primary btn--lg" href="https://github.com/kajica2/digital_twin">
+              <span data-variant-cta>Open the twin</span> <span class="arrow" aria-hidden="true">→</span>
+            </a>
+            <a class="btn btn--ghost btn--lg" href="https://kajica2.github.io/kai-systems/twin/">Read the deep dive</a>
+          </div>
+        </div>
+      </section>
+
+      <div class="end-mark">
+        <svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <polygon points="16,4 28,11 28,21 16,28 4,21 4,11" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="16" cy="16" r="3" fill="currentColor"/>
+        </svg>
+        <p>design once · runs forever</p>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============================================================
+       WEB COMPONENTS + VARIANT DATA
+       ============================================================ -->
+  <script>
+    /* ---------- Variant data (the A/B test pitches) ---------- */
+    const VARIANTS = {
+      '1': {
+        label: 'Control',
+        eyebrow: 'Meta-Layer · 01 — Control',
+        h1line1: 'One screen.',
+        h1line2: 'Everything that matters.',
+        lede: 'The cognitive twin turns ten open tabs into one calm surface — your music, your code, your tasks, your projects, on a single page. It runs locally, learns your patterns, and stops asking you to remember anything.',
+        cta: 'Open the twin',
+        ctaEyebrow: 'Open the control room',
+        featuresKicker: 'What it does · 02',
+        featuresH2: 'The control room, instrumented for you.',
+        featuresSub: 'Every other assistant either remembers nothing, or remembers everything but can\u2019t act. digital_twin is the third option — a persistent model of how you work, that does the work too.',
+        features: [
+          { icon: 'scan',     title: 'Scanner',         desc: 'Walks the filesystem at startup. Reads package.json, requirements.txt, agent skills, installed tools, GitHub repos, Obsidian vault. Outputs a structured snapshot of everything you have right now.' },
+          { icon: 'memory',   title: 'Model',           desc: 'Persists the inventory as memory — user.md for cross-project, agent.md for behavior, AGENTS.md for repo-specific. The model is the memory of the environment.' },
+          { icon: 'route',    title: 'Reasoner',        desc: 'Matches work to tools. Given a job, reads the model and picks the right tools in the right order. Not freeform reasoning from scratch — routing constrained by the actual inventory.' },
+          { icon: 'orch',     title: 'Orchestrator',    desc: 'Sets up and runs the process. Writes subagent prompts, schedules crons, triggers webhooks. Handles failure: retry, rollback, escalate to the human digest with a diff.' },
+          { icon: 'wave',     title: 'Pattern memory',  desc: 'Notices that you always warm up with a Coltrane track at 9am. After the third time, it just queues it. Quiet intelligence, not chatty helpfulness.' },
+          { icon: 'lock',     title: 'Local-first',     desc: 'Your data, your disk, your machine. The twin is yours — not a service that knows your whole life. Sync is opt-in, not default.' }
+        ]
+      },
+      '2': {
+        label: 'Persona',
+        eyebrow: 'Meta-Layer · 01 — Persona',
+        h1line1: 'A version of you.',
+        h1line2: 'That never sleeps.',
+        lede: 'It knows your stack, your taste, your schedule, your weird preferences. It drafts in your voice. It surfaces what you forgot. It reads the room — when to speak, when to be silent. A persistent counterpart, not another chatbot.',
+        cta: 'Meet the twin',
+        ctaEyebrow: 'Meet your counterpart',
+        featuresKicker: 'What it carries · 02',
+        featuresH2: 'Not a chatbot. <em>A counterpart.</em>',
+        featuresSub: 'A chatbot answers questions. The twin finishes the sentence. It carries the context you don\u2019t want to re-explain every morning — across weeks, across projects, across moods.',
+        features: [
+          { icon: 'brain',    title: 'Persistent memory',     desc: 'Not session memory. Not "last 10 messages" memory. Real, weeks-long memory that survives restarts, devices, and gaps in attention.' },
+          { icon: 'pen',      title: 'Style transfer',        desc: 'Drafts in your voice. Not a generic "professional tone" — your voice, your cadence, your tells. Trained on your past writing.' },
+          { icon: 'bell',     title: 'Proactive suggestions', desc: 'Forgets less than you do. Reminds you about the thing you mentioned once, three weeks ago, in passing. The twin was listening.' },
+          { icon: 'moon',     title: 'Quiet hours',           desc: 'Knows when to be silent. Reads the calendar, the Do Not Disturb, the fact that you\u2019re in the middle of a session. Surfaces only what you\u2019d want surfaced.' },
+          { icon: 'compass',  title: 'Context, not just facts',desc: 'Knows your WHY. Not just "you have a meeting at 3" — "you have a meeting at 3 with the person who has the answer to the problem you mentioned last Friday."' },
+          { icon: 'lock',     title: 'Private by design',     desc: 'The twin runs on your machine. Your memory, your patterns, your weird preferences — none of it trains someone else\u2019s model.' }
+        ]
+      },
+      '3': {
+        label: 'Architecture',
+        eyebrow: 'Meta-Layer · 01 — Architecture',
+        h1line1: 'Four layers.',
+        h1line2: 'One philosophy.',
+        lede: 'Five jobs, twelve tools, one worked example. The twin is composed, not monolithic. Each layer does one thing well. Each tool is replaceable. The structure is the system — the tools are just the current binding.',
+        cta: 'See the architecture',
+        ctaEyebrow: 'Read the architecture',
+        featuresKicker: 'What it\u2019s made of · 02',
+        featuresH2: 'A toolkit, <em>not a monolith.</em>',
+        featuresSub: 'The twin is composed, not monolithic. Each layer is a small focused worker with one job, one wire protocol, and a replaceable model. Build your team. Reorganize when you want.',
+        features: [
+          { icon: 'scan',     title: 'Scanner',         desc: 'Traverses the environment. Filesystem, installed packages, GitHub repos, agent skills. One job: answer "what do I have right now?" with a structured inventory.' },
+          { icon: 'memory',   title: 'Model',           desc: 'Persists the inventory as memory. Three layers: user.md for cross-project preferences, agent.md for behavior, AGENTS.md for repo-specific context. The model is the durable twin.' },
+          { icon: 'route',    title: 'Reasoner',        desc: 'Routes work to tools. Reads the model, picks the right combination. Constrained routing, not freeform LLM reasoning. If the tool isn\u2019t installed, it routes around it.' },
+          { icon: 'orch',     title: 'Orchestrator',    desc: 'Sets up and runs the process. Subagent prompts, cron schedules, webhooks, Puppeteer gates. The orchestrator does the work — the other three layers let it know what to work with.' },
+          { icon: 'swap',     title: 'Replaceable tools', desc: 'Every tool is a binding, not a lock-in. Swap Whisper for faster-whisper, Magenta RT2 for Lyria, Mavis for Coder. The wire protocol doesn\u2019t care which model powers the agent.' },
+          { icon: 'plug',     title: 'Standard interface', desc: 'All agents speak the same wire — a typed event envelope over WebSocket. Write a new agent in an afternoon. Plug it in. The twin routes for you.' }
+        ]
+      }
+    };
+
+    /* ---------- <theme-toggle> ---------- */
+    class ThemeToggle extends HTMLElement {
+      connectedCallback() {
+        this.render();
+        this.syncFromDom();
+        this.addEventListener('click', this.onClick);
+        matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+          if (this.pref === 'system') this.apply('system');
+        });
+      }
+      get pref() { return document.documentElement.getAttribute('data-theme-pref') || 'system'; }
+      syncFromDom() {
+        const current = document.documentElement.getAttribute('data-theme');
+        [...this.querySelectorAll('button')].forEach(b => {
+          b.setAttribute('aria-pressed', String(b.dataset.value === this.pref));
+        });
+      }
+      onClick = (e) => {
+        const btn = e.target.closest('button[data-value]');
+        if (!btn) return;
+        this.apply(btn.dataset.value);
+      };
+      apply(pref) {
+        try { localStorage.setItem('dt-theme-pref', pref); } catch {}
+        document.documentElement.setAttribute('data-theme-pref', pref);
+        const resolved = pref === 'system'
+          ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : pref;
+        document.documentElement.setAttribute('data-theme', resolved);
+        this.syncFromDom();
+      }
+      render() {
+        this.innerHTML = `
+          <button data-value="system" aria-label="System theme" title="System">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="12" height="9" rx="1.5"/>
+              <path d="M5 14h6M8 12v2"/>
+            </svg>
+          </button>
+          <button data-value="light" aria-label="Light theme" title="Light">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="8" cy="8" r="3"/>
+              <path d="M8 1.5v1.5M8 13v1.5M1.5 8h1.5M13 8h1.5M3.3 3.3l1 1M11.7 11.7l1 1M3.3 12.7l1-1M11.7 4.3l1-1"/>
+            </svg>
+          </button>
+          <button data-value="dark" aria-label="Dark theme" title="Dark">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 9.5A5.5 5.5 0 1 1 6.5 3a4.5 5.5 0 0 0 6.5 6.5Z"/>
+            </svg>
+          </button>
+        `;
+      }
+    }
+    customElements.define('theme-toggle', ThemeToggle);
+
+    /* ---------- <variant-switcher> ---------- */
+    class VariantSwitcher extends HTMLElement {
+      connectedCallback() {
+        this.render();
+        this.syncFromDom();
+        this.addEventListener('click', this.onClick);
+      }
+      syncFromDom() {
+        const current = document.documentElement.getAttribute('data-variant') || '1';
+        [...this.querySelectorAll('button')].forEach(b => {
+          b.setAttribute('aria-pressed', String(b.dataset.value === current));
+        });
+      }
+      onClick = (e) => {
+        const btn = e.target.closest('button[data-value]');
+        if (!btn) return;
+        this.apply(btn.dataset.value);
+      };
+      apply(v) {
+        const url = new URL(location.href);
+        url.searchParams.set('v', v);
+        history.replaceState({}, '', url);
+        document.documentElement.setAttribute('data-variant', v);
+        applyVariant(v);
+        this.syncFromDom();
+      }
+      render() {
+        this.innerHTML = Object.entries(VARIANTS).map(([k, v]) =>
+          `<button data-value="${k}" title="${v.label} pitch">v${k}</button>`
+        ).join('');
+      }
+    }
+    customElements.define('variant-switcher', VariantSwitcher);
+
+    /* ---------- SVG icon library ---------- */
+    const ICONS = {
+      scan:    '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+      memory:  '<path d="M12 2a8 8 0 0 0-8 8c0 5 8 12 8 12s8-7 8-12a8 8 0 0 0-8-8Z"/><circle cx="12" cy="10" r="2.5"/>',
+      route:   '<circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="12" cy="18" r="3"/><path d="M9 7l3 9M15 7l-3 9"/>',
+      orch:    '<path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>',
+      wave:    '<path d="M3 12c2 0 2-6 4-6s2 12 4 12 2-9 4-9 2 6 4 6"/>',
+      lock:    '<rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+      brain:   '<path d="M9 4a3 3 0 0 0-3 3v1a3 3 0 0 0-2 5.7V16a3 3 0 0 0 6 0M15 4a3 3 0 0 1 3 3v1a3 3 0 0 1 2 5.7V16a3 3 0 0 1-6 0M9 7v9M15 7v9"/>',
+      pen:     '<path d="M14 4 4 14l-1 4 4-1L17 7l-3-3Z"/><path d="m12 6 3 3"/>',
+      bell:    '<path d="M6 9a6 6 0 0 1 12 0c0 4 1.5 5 2 6H4c.5-1 2-2 2-6Z"/><path d="M10 19a2 2 0 0 0 4 0"/>',
+      moon:    '<path d="M20 14A8 8 0 0 1 8 4a8 8 0 1 0 12 10Z"/>',
+      compass: '<circle cx="12" cy="12" r="9"/><path d="m15 9-2 6-4 2 2-6 4-2Z"/>',
+      swap:    '<path d="M4 7h13l-3-3M20 17H7l3 3"/>',
+      plug:    '<path d="M9 3v4M15 3v4M7 7h10v4a5 5 0 0 1-10 0V7ZM12 16v5"/>'
+    };
+    function iconSVG(name) {
+      const p = ICONS[name] || ICONS.scan;
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+    }
+
+    /* ---------- Apply variant to DOM ---------- */
+    function applyVariant(v) {
+      const data = VARIANTS[v];
+      if (!data) return;
+      const set = (sel, val) => {
+        const els = document.querySelectorAll(sel);
+        els.forEach(el => { el.innerHTML = val; });
+      };
+      set('[data-variant-eyebrow]', data.eyebrow);
+      set('[data-variant-h1-line1]', data.h1line1);
+      set('[data-variant-h1-line2]', data.h1line2);
+      set('[data-variant-lede]', data.lede);
+      set('[data-variant-cta]', data.cta);
+      set('[data-variant-cta-eyebrow]', data.ctaEyebrow);
+      set('[data-variant-features-kicker]', data.featuresKicker);
+
+      const fh2 = document.querySelector('[data-variant-features-h2]');
+      if (fh2) fh2.innerHTML = data.featuresH2;
+      const fsub = document.querySelector('[data-variant-features-sub]');
+      if (fsub) fsub.textContent = data.featuresSub;
+
+      const grid = document.querySelector('[data-variant-features]');
+      if (grid) {
+        grid.innerHTML = data.features.map(f => `
+          <article class="feature-card reveal">
+            <div class="feature-icon" aria-hidden="true">${iconSVG(f.icon)}</div>
+            <h3>${f.title}</h3>
+            <p>${f.desc}</p>
+          </article>
+        `).join('');
+        grid.querySelectorAll('.reveal').forEach(el => revealIO.observe(el));
+      }
+    }
+
+    /* ---------- <twin-demo> — animated control room mockup ---------- */
+    class TwinDemo extends HTMLElement {
+      connectedCallback() {
+        this.render();
+        this.startTask();
+      }
+      render() {
+        this.innerHTML = `
+          <div class="demo-bar" aria-hidden="true">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            <span class="title">~/twin — online · local</span>
+            <span class="status"><span class="pulse"></span> live</span>
+          </div>
+          <div class="demo-body">
+            <div class="demo-row">
+              <div class="demo-pane">
+                <div class="pane-label"><span class="dot"></span> today</div>
+                <div class="pane-line"><strong>09:00</strong> — morning warm-up</div>
+                <div class="pane-line"><strong>10:30</strong> — deep work block</div>
+                <div class="pane-line"><strong>14:00</strong> — chaos_magick review</div>
+              </div>
+              <div class="demo-pane">
+                <div class="pane-label"><span class="dot"></span> now playing</div>
+                <div class="pane-line"><strong>Coltrane — Naima</strong></div>
+                <div class="pane-line" style="font-size:10px;opacity:0.7">Bb minor · 76 BPM</div>
+                <div class="pane-waveform" aria-hidden="true">
+                  ${Array.from({length: 18}, () => '<span></span>').join('')}
+                </div>
+              </div>
+              <div class="demo-pane">
+                <div class="pane-label"><span class="dot"></span> code</div>
+                <div class="pane-task">
+                  <span class="pane-check" data-task="1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m4 8 3 3 5-6"/></svg></span>
+                  <span><strong>resona</strong> — fix YIN threshold</span>
+                </div>
+                <div class="pane-task">
+                  <span class="pane-check" data-task="2"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m4 8 3 3 5-6"/></svg></span>
+                  <span><strong>lyra</strong> — wire MRT2 client</span>
+                </div>
+                <div class="pane-task">
+                  <span class="pane-check" data-task="3"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m4 8 3 3 5-6"/></svg></span>
+                  <span><strong>chaos_magick</strong> — Vercel redeploy</span>
+                </div>
+              </div>
+              <div class="demo-pane">
+                <div class="pane-label"><span class="dot"></span> patterns</div>
+                <div class="pane-line">9am <strong>warm-up</strong> ▸ always jazz</div>
+                <div class="pane-line">2pm <strong>focus</strong> ▸ 73min blocks</div>
+                <div class="pane-line">8pm <strong>explore</strong> ▸ new repos</div>
+              </div>
+            </div>
+            <div class="demo-statusbar">
+              <span><strong>twin</strong> 3 agents running</span>
+              <span class="sep">·</span>
+              <span><strong>8</strong> events today</span>
+              <span class="sep">·</span>
+              <span><strong>0.4¢</strong> spent</span>
+              <span class="sep" style="margin-left:auto">local</span>
+            </div>
+          </div>
+        `;
+      }
+      startTask() {
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          this.querySelectorAll('.pane-check').forEach(c => c.classList.add('done'));
+          return;
+        }
+        const checks = this.querySelectorAll('.pane-check');
+        let i = 0;
+        const tick = () => {
+          if (i > 0 && checks[i - 1]) checks[i - 1].classList.add('done');
+          if (i >= checks.length) {
+            setTimeout(() => {
+              checks.forEach(c => c.classList.remove('done'));
+              i = 0;
+              tick();
+            }, 1800);
+            return;
+          }
+          i++;
+          setTimeout(tick, 1600);
+        };
+        setTimeout(tick, 800);
+      }
+    }
+    customElements.define('twin-demo', TwinDemo);
+
+    /* ---------- Scroll reveal ---------- */
+    const revealIO = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          revealIO.unobserve(entry.target);
+        }
+      }
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => revealIO.observe(el));
+    setTimeout(() => {
+      document.querySelectorAll('.reveal:not(.in)').forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.top < window.innerHeight + 200) el.classList.add('in');
+      });
+    }, 1500);
+
+    /* ---------- Magnetic primary CTAs ---------- */
+    const magnets = document.querySelectorAll('.btn--primary.btn--lg');
+    magnets.forEach(btn => {
+      btn.addEventListener('mousemove', (e) => {
+        const r = btn.getBoundingClientRect();
+        const x = (e.clientX - r.left - r.width / 2) * 0.10;
+        const y = (e.clientY - r.top - r.height / 2) * 0.16;
+        btn.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+      });
+      btn.addEventListener('mouseleave', () => { btn.style.transform = ''; });
+    });
+
+    /* ---------- Init: apply current variant ---------- */
+    const initialVariant = document.documentElement.getAttribute('data-variant') || '1';
+    applyVariant(initialVariant);
+  </script>
+</body>
+</html>
