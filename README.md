@@ -1,5 +1,7 @@
 # digital_twin
 
+**→ Live at [kajica2.github.io/digital-twin/](https://kajica2.github.io/digital-twin/)**
+
 A personal AI twin that knows your stack, your taste, your schedule,
 your weird preferences. Built to run locally, learn from patterns, and
 turn ten open tabs into one calm surface.
