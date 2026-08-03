@@ -1,0 +1,16 @@
+{
+  "name": "digital-twin",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Personal AI twin — sprint 0 landing + sprint 1 PWA shell. Static site, no framework.",
+  "scripts": {
+    "serve": "cd pages && python3 -m http.server 5173",
+    "e2e": "cd e2e && node landing.spec.mjs && cd ../e2e && node twin-os.spec.mjs",
+    "e2e:landing": "cd e2e && node landing.spec.mjs",
+    "e2e:twin-os": "cd e2e && node twin-os.spec.mjs",
+    "e2e:live": "cd e2e && E2E_URL=https://kajica2.github.io/digital-twin node landing.spec.mjs && cd ../e2e && E2E_URL=https://kajica2.github.io/digital-twin node twin-os.spec.mjs",
+    "sync-e2e": "node assets/sync-e2e-constants.js",
+    "sync-e2e:apply": "node assets/sync-e2e-constants.js --apply --yes",
+    "verify": "npm run e2e"
+  }
+}

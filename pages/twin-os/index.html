@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="en" data-theme="system">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Twin OS — digital_twin</title>
+  <meta name="description" content="The Twin OS shell. One calm surface for today, songs, and the twin itself. Local-first, no cloud roundtrip." />
+
+  <!-- PWA: installable on macOS, iPadOS, iOS. Sprint 1 stub. -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#c97b3f" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#d9925a" media="(prefers-color-scheme: dark)" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Twin OS" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%23f7f5f0'/%3E%3Cpolygon points='90,28 152,62 152,118 90,152 28,118 28,62' fill='none' stroke='%23c97b3f' stroke-width='6'/%3E%3Ccircle cx='90' cy='90' r='10' fill='%23c97b3f'/%3E%3C/svg%3E" />
+  <script>
+    // Register the service worker (sprint 1 stub). Silently no-op
+    // on http (only works under https / localhost).
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='16,4 28,11 28,21 16,28 4,21 4,11' fill='none' stroke='%23c97b3f' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23c97b3f'/%3E%3C/svg%3E" />
+
+  <script>
+    // Same theme bootstrap as the landing — paired light/dark, no-flash.
+    (function () {
+      try {
+        var saved = localStorage.getItem('dt-theme-pref');
+        var pref = saved || 'system';
+        var resolved = pref === 'system'
+          ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : pref;
+        document.documentElement.setAttribute('data-theme', resolved);
+        document.documentElement.setAttribute('data-theme-pref', pref);
+        document.documentElement.classList.add('js');
+      } catch (e) {}
+    })();
+  </script>
+
+  <style>
+    /* ============================================================
+       1. DESIGN TOKENS — kai-systems house style (mirrors landing)
+       ============================================================ */
+    :root {
+      --bg:           #f7f5f0;
+      --bg-warm:      #f4f0e7;
+      --surface:      #ffffff;
+      --line:         #e9e3d6;
+      --line-soft:    #f0eadf;
+      --ink:          #14171e;
+      --ink-muted:    #3a4256;
+      --ink-faint:    #7c7a72;
+      --primary:      #c97b3f;
+      --primary-soft: rgba(201, 123, 63, 0.08);
+      --primary-mid:  rgba(201, 123, 63, 0.18);
+      --accent:       #2f6f5e;
+      --accent-soft:  rgba(47, 111, 94, 0.08);
+
+      --radius:       14px;
+      --radius-lg:    20px;
+      --shadow-1:     0 1px 2px rgba(20, 23, 30, 0.04), 0 6px 24px -8px rgba(20, 23, 30, 0.08);
+    }
+    [data-theme="dark"] {
+      --bg:           #1a1812;
+      --bg-warm:      #221f17;
+      --surface:      #221f17;
+      --line:         #2e2a20;
+      --line-soft:    #2a261c;
+      --ink:          #f1ecdf;
+      --ink-muted:    #c2bda9;
+      --ink-faint:    #898473;
+      --primary:      #d9925a;
+      --primary-soft: rgba(217, 146, 90, 0.10);
+      --primary-mid:  rgba(217, 146, 90, 0.22);
+      --accent:       #6ab098;
+      --accent-soft:  rgba(106, 176, 152, 0.10);
+      --shadow-1:     0 1px 2px rgba(0, 0, 0, 0.20), 0 8px 32px -8px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+
+    /* Soft brand glow (matches landing) */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(900px 700px at 12% -8%, var(--primary-soft), transparent 60%),
+        radial-gradient(800px 600px at 110% 110%, var(--accent-soft), transparent 60%);
+    }
+
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { border-bottom: 1px solid var(--primary); }
+
+    /* ============================================================
+       2. SHELL CHROME — top bar, side rail, status footer
+       ============================================================ */
+    .shell {
+      position: relative; z-index: 1;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-height: 100vh; min-height: 100dvh;
+    }
+
+    /* Top bar — title + theme toggle, sits above the rail */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 22px;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--bg) 90%, transparent);
+      backdrop-filter: saturate(140%) blur(8px);
+    }
+    .topbar .brand {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      letter-spacing: 0.08em;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+    }
+    .topbar .brand svg { color: var(--primary); }
+    .topbar .brand strong { color: var(--ink); font-weight: 600; }
+
+    /* Main row: rail + canvas */
+    .main {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      min-height: 0;
+    }
+
+    /* Side rail — the three panels */
+    .rail {
+      border-right: 1px solid var(--line);
+      padding: 18px 14px;
+      display: flex; flex-direction: column; gap: 4px;
+      background: var(--bg);
+    }
+    .rail-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      padding: 4px 12px 12px;
+    }
+    .rail-item {
+      appearance: none;
+      background: transparent;
+      border: 1px solid transparent;
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      color: var(--ink-muted);
+      cursor: pointer;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      text-align: left;
+      transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    }
+    .rail-item:hover {
+      background: var(--primary-soft);
+      color: var(--ink);
+    }
+    .rail-item[aria-current="true"] {
+      background: var(--primary-soft);
+      border-color: var(--primary-mid);
+      color: var(--primary);
+    }
+    .rail-item svg { flex-shrink: 0; color: currentColor; }
+
+    .rail-foot {
+      margin-top: auto;
+      padding-top: 18px;
+      border-top: 1px solid var(--line-soft);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      letter-spacing: 0.08em;
+      color: var(--ink-faint);
+      text-transform: uppercase;
+    }
+
+    /* Canvas — the active panel fills this */
+    .canvas {
+      padding: 32px 36px 48px;
+      overflow-y: auto;
+      min-height: 0;
+    }
+
+    /* Status footer */
+    .statusbar {
+      display: flex; align-items: center; gap: 16px;
+      padding: 10px 22px;
+      border-top: 1px solid var(--line);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      color: var(--ink-muted);
+      background: var(--bg);
+    }
+    .statusbar .sep { color: var(--ink-faint); }
+    .statusbar .live { color: var(--accent); display: inline-flex; align-items: center; gap: 6px; }
+    .statusbar .live::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 0 0 currentColor;
+      animation: pulse 2s ease-out infinite;
+    }
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(47, 111, 94, 0.5); }
+      70%  { box-shadow: 0 0 0 8px rgba(47, 111, 94, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(47, 111, 94, 0); }
+    }
+    [data-theme="dark"] .statusbar .live::before {
+      animation-name: pulse-dark;
+    }
+    @keyframes pulse-dark {
+      0%   { box-shadow: 0 0 0 0 rgba(106, 176, 152, 0.5); }
+      70%  { box-shadow: 0 0 0 8px rgba(106, 176, 152, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(106, 176, 152, 0); }
+    }
+    .statusbar .spacer { flex: 1; }
+
+    /* Theme toggle — same pattern as landing */
+    theme-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px;
+      background: var(--bg-warm);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+    }
+    theme-toggle button {
+      appearance: none;
+      background: transparent;
+      border: 0;
+      padding: 6px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      color: var(--ink-faint);
+      font: inherit;
+      font-size: 12px;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    theme-toggle button[aria-pressed="true"] {
+      background: var(--surface);
+      color: var(--ink);
+      box-shadow: var(--shadow-1);
+    }
+    theme-toggle svg { width: 14px; height: 14px; }
+
+    /* ============================================================
+       3. PANEL BASE — shared by all three panels
+       ============================================================ */
+    .panel-head {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .panel-kicker {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      color: var(--primary);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .panel-h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 44px;
+      line-height: 1.06;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      margin: 0;
+      font-weight: 400;
+    }
+    .panel-sub {
+      color: var(--ink-muted);
+      max-width: 540px;
+      margin: 8px 0 0;
+      font-size: 15px;
+    }
+    .panel-section {
+      margin-top: 28px;
+    }
+    .panel-section h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      line-height: 1.2;
+      color: var(--ink);
+      margin: 0 0 14px;
+      font-weight: 400;
+      letter-spacing: -0.005em;
+    }
+    .panel-section .lede {
+      color: var(--ink-muted);
+      font-size: 14px;
+      margin: 0 0 18px;
+      max-width: 580px;
+    }
+
+    /* ============================================================
+       4. TODAY PANEL — agenda + patterns
+       ============================================================ */
+    .agenda {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .agenda-item {
+      display: grid;
+      grid-template-columns: 90px 1fr auto;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--line);
+    }
+    .agenda-item:last-child { border-bottom: 0; }
+    .agenda-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--ink-faint);
+      letter-spacing: 0.04em;
+    }
+    .agenda-label {
+      font-size: 14.5px;
+      color: var(--ink);
+      font-weight: 500;
+    }
+    .agenda-label small {
+      display: block;
+      color: var(--ink-faint);
+      font-weight: 400;
+      font-size: 12.5px;
+      margin-top: 2px;
+    }
+    .agenda-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--ink-faint);
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--bg-warm);
+      border: 1px solid var(--line);
+      letter-spacing: 0.04em;
+    }
+    .agenda-tag[data-kind="now"] {
+      color: var(--primary);
+      background: var(--primary-soft);
+      border-color: var(--primary-mid);
+    }
+
+    /* Pattern list — three observations from the demo */
+    .patterns {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+    .pattern-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 16px 18px;
+    }
+    .pattern-card .when {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--ink-faint);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .pattern-card .what {
+      font-size: 14.5px;
+      color: var(--ink);
+      margin-top: 6px;
+      font-weight: 500;
+    }
+    .pattern-card .conf {
+      font-size: 12.5px;
+      color: var(--accent);
+      margin-top: 4px;
+    }
+
+    /* ============================================================
+       5. SONGS PANEL — placeholder for the indexer output
+       ============================================================ */
+    .song-empty {
+      border: 1px dashed var(--line);
+      border-radius: var(--radius);
+      padding: 28px;
+      color: var(--ink-muted);
+      background: var(--surface);
+      text-align: center;
+    }
+    .song-empty strong { color: var(--ink); }
+    .song-empty code {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--bg-warm);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 2px 7px;
+      font-size: 12.5px;
+    }
+
+    /* ============================================================
+       6. TWIN PANEL — three sub-sections (agents / events / cost)
+       ============================================================ */
+    .twin-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+    }
+    .twin-stat {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 18px 20px;
+    }
+    .twin-stat .stat-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+    }
+    .twin-stat .stat-value {
+      font-family: 'DM Serif Display', serif;
+      font-size: 36px;
+      line-height: 1.1;
+      color: var(--ink);
+      margin-top: 8px;
+    }
+    .twin-stat .stat-sub {
+      font-size: 12.5px;
+      color: var(--ink-muted);
+      margin-top: 6px;
+    }
+
+    /* ============================================================
+       7. RESPONSIVE — collapse to bottom-tabs on narrow viewports
+       ============================================================ */
+    @media (max-width: 720px) {
+      .main {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto;
+      }
+      .rail {
+        order: 2;
+        flex-direction: row;
+        gap: 6px;
+        padding: 8px;
+        border-right: 0;
+        border-top: 1px solid var(--line);
+        background: var(--bg);
+      }
+      .rail-label, .rail-foot { display: none; }
+      .rail-item { flex: 1; justify-content: center; padding: 10px; font-size: 12px; }
+      .canvas { padding: 24px 20px 32px; }
+      .panel-h1 { font-size: 32px; }
+      .agenda-item { grid-template-columns: 70px 1fr; }
+      .agenda-tag { grid-column: 2; justify-self: start; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .statusbar .live::before { animation: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="topbar">
+    <a class="brand" href="../landing.html" aria-label="Back to landing">
+      <svg width="20" height="20" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <polygon points="16,4 28,11 28,21 16,28 4,21 4,11" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <circle cx="16" cy="16" r="3" fill="currentColor"/>
+      </svg>
+      <span>digital_twin · <strong>Twin OS</strong></span>
+    </a>
+    <theme-toggle>
+      <button data-value="light" aria-label="Light theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+        </svg>
+        light
+      </button>
+      <button data-value="system" aria-label="System theme" aria-pressed="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>
+        </svg>
+        system
+      </button>
+      <button data-value="dark" aria-label="Dark theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        dark
+      </button>
+    </theme-toggle>
+  </header>
+
+  <div class="main">
+    <nav class="rail" aria-label="Twin OS panels">
+      <div class="rail-label">panels</div>
+      <button class="rail-item" data-panel="today" aria-current="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <rect x="3" y="4" width="18" height="16" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        Today
+      </button>
+      <button class="rail-item" data-panel="songs">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+        </svg>
+        Songs
+      </button>
+      <button class="rail-item" data-panel="twin">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <polygon points="12,2 22,8 22,16 12,22 2,16 2,8"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+        Twin
+      </button>
+      <div class="rail-foot">v0.1.0 · sprint 1</div>
+    </nav>
+
+    <main class="canvas" id="canvas">
+
+      <!-- TODAY -->
+      <section class="panel" data-panel="today">
+        <div class="panel-head">
+          <div>
+            <div class="panel-kicker">panel 01 · today</div>
+            <h1 class="panel-h1">One calm surface for the day.</h1>
+            <p class="panel-sub">Agenda, patterns, and the things that should already be in motion. The twin's first read of where you are right now.</p>
+          </div>
+        </div>
+
+        <div class="agenda" aria-label="Today's agenda">
+          <div class="agenda-item">
+            <span class="agenda-time">09:00</span>
+            <span class="agenda-label">Morning warm-up <small>horn, long tones, cycle-of-fifths pattern</small></span>
+            <span class="agenda-tag" data-kind="now">suggested</span>
+          </div>
+          <div class="agenda-item">
+            <span class="agenda-time">10:30</span>
+            <span class="agenda-label">Deep work block <small>73-minute focus, kai-system follow-through</small></span>
+            <span class="agenda-tag">scheduled</span>
+          </div>
+          <div class="agenda-item">
+            <span class="agenda-time">14:00</span>
+            <span class="agenda-label">Sprint review <small>digital-twin sprint 1 in flight</small></span>
+            <span class="agenda-tag">scheduled</span>
+          </div>
+          <div class="agenda-item">
+            <span class="agenda-time">20:00</span>
+            <span class="agenda-label">Explore <small>new repos, paper feeds, quiet reading</small></span>
+            <span class="agenda-tag">pattern</span>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <h2>Patterns the twin has noticed</h2>
+          <p class="lede">Three signals from the last 30 days. Each is a quiet observation, not a rule — the twin proposes, you decide.</p>
+          <div class="patterns">
+            <div class="pattern-card">
+              <div class="when">9am</div>
+              <div class="what">Warm-up is always jazz</div>
+              <div class="conf">28 / 30 days</div>
+            </div>
+            <div class="pattern-card">
+              <div class="when">2pm</div>
+              <div class="what">Focus blocks land at 73 min</div>
+              <div class="conf">19 / 30 days</div>
+            </div>
+            <div class="pattern-card">
+              <div class="when">8pm</div>
+              <div class="what">Evening explores new repos</div>
+              <div class="conf">22 / 30 days</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SONGS -->
+      <section class="panel" data-panel="songs" hidden>
+        <div class="panel-head">
+          <div>
+            <div class="panel-kicker">panel 02 · songs</div>
+            <h1 class="panel-h1">A catalog you can actually search.</h1>
+            <p class="panel-sub">The indexer walks your audio directories, reads ID3 + WAV metadata, and writes a searchable catalog. Sprint 1 wires the indexer; sprint 2 surfaces the catalog here.</p>
+          </div>
+        </div>
+
+        <div class="song-empty">
+          <p><strong>Indexer not wired yet.</strong></p>
+          <p>The shell is here. The catalog is the next sprint.</p>
+          <p style="margin-top:14px">
+            <code>lib/songs-indexer.js</code> → <code>data/songs/catalog.json</code>
+          </p>
+        </div>
+      </section>
+
+      <!-- TWIN -->
+      <section class="panel" data-panel="twin" hidden>
+        <div class="panel-head">
+          <div>
+            <div class="panel-kicker">panel 03 · twin</div>
+            <h1 class="panel-h1">The runtime, at a glance.</h1>
+            <p class="panel-sub">Three live counters — agents running, events today, spend — surfaced from the orchestrator. Sprint 1 is the shell; the live numbers arrive when the indexer + scheduler land.</p>
+          </div>
+        </div>
+
+        <div class="twin-grid">
+          <div class="twin-stat">
+            <div class="stat-label">agents running</div>
+            <div class="stat-value">3</div>
+            <div class="stat-sub">scanner · indexer · notifier</div>
+          </div>
+          <div class="twin-stat">
+            <div class="stat-label">events today</div>
+            <div class="stat-value">8</div>
+            <div class="stat-sub">commits · deploys · alerts</div>
+          </div>
+          <div class="twin-stat">
+            <div class="stat-label">spent (so far)</div>
+            <div class="stat-value">$0.04</div>
+            <div class="stat-sub">3 subagent runs, all under $0.02</div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <footer class="statusbar">
+    <span><strong>twin</strong> online</span>
+    <span class="sep">·</span>
+    <span class="live">local</span>
+    <span class="spacer"></span>
+    <span><strong>0.4¢</strong> spent</span>
+    <span class="sep">·</span>
+    <span>8 events today</span>
+  </footer>
+
+</div>
+
+<script>
+  /* ===========================================================
+     Panel switcher — single-page app shell, no framework
+     =========================================================== */
+  (function () {
+    const items = document.querySelectorAll('.rail-item');
+    const panels = document.querySelectorAll('.panel');
+    const setPanel = (name) => {
+      items.forEach(it => it.setAttribute('aria-current', it.dataset.panel === name ? 'true' : 'false'));
+      panels.forEach(p => { p.hidden = p.dataset.panel !== name; });
+      try { history.replaceState(null, '', '#' + name); } catch (e) {}
+    };
+    items.forEach(it => it.addEventListener('click', () => setPanel(it.dataset.panel)));
+    const initial = (location.hash || '#today').slice(1);
+    if (['today','songs','twin'].includes(initial)) setPanel(initial);
+  })();
+
+  /* ===========================================================
+     <theme-toggle> — paired light/system/dark with persistence
+     =========================================================== */
+  class ThemeToggle extends HTMLElement {
+    connectedCallback() {
+      const pref = document.documentElement.getAttribute('data-theme-pref') || 'system';
+      this._setPressed(pref);
+      this.querySelectorAll('button').forEach(b => {
+        b.addEventListener('click', () => {
+          const value = b.dataset.value;
+          try { localStorage.setItem('dt-theme-pref', value); } catch (e) {}
+          const resolved = value === 'system'
+            ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+            : value;
+          document.documentElement.setAttribute('data-theme-pref', value);
+          document.documentElement.setAttribute('data-theme', resolved);
+          this._setPressed(value);
+        });
+      });
+    }
+    _setPressed(pref) {
+      this.querySelectorAll('button').forEach(b => {
+        b.setAttribute('aria-pressed', b.dataset.value === pref ? 'true' : 'false');
+      });
+    }
+  }
+  customElements.define('theme-toggle', ThemeToggle);
+</script>
+</body>
+</html>

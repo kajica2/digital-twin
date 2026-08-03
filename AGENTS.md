@@ -227,3 +227,38 @@ green.
   link to deeper docs. Right now it links to the kai-systems twin
   deep-dive.
 - **Next:** sprint 1 — Twin OS shell + song indexer.
+
+### 2026-08-03 — sprint 1 (kickoff)
+
+- **Shipped:** `pages/twin-os/` — the Twin OS PWA shell.
+  - `index.html` — single-file shell, 3-panel nav (Today / Songs /
+    Twin), kai-systems house style, paired light + dark theme,
+    Web Components for `<theme-toggle>`, URL-hash routing, responsive
+    collapse to bottom-tabs on narrow viewports.
+  - `manifest.webmanifest` — installable PWA (macOS, iPadOS, iOS).
+    Two SVG icons (180×180 + 512×512 maskable), inline data URIs,
+    no asset files.
+  - `sw.js` — service worker stub. Caches the shell on install,
+    pass-through fetch in `activate`. Sprint 2 will add cache-first
+    for static + network-first for the catalog.
+  - `e2e/twin-os.spec.mjs` — Puppeteer smoke test (mirrors
+    `landing.spec.mjs`). Asserts 3 panels, default=Today, panel
+    switcher roundtrips, 4 agenda items, 3 pattern cards, 3 stat
+    cards, theme toggle (3 buttons), 0 console errors, screenshots
+    in light + dark + mobile.
+- **Decisions:** Started with 3-panel nav (Today / Songs / Twin) per
+  the AGENTS.md contract. The landing's `<twin-demo>` shows 4 panes
+  (today / now playing / code / patterns) — folded the patterns pane
+  into Today as a sub-section (it's "your daily patterns", not its own
+  panel) and kept Songs/Twin as their own panels. Songs panel is an
+  explicit empty-state ("Indexer not wired yet — sprint 1 is the
+  shell; sprint 2 surfaces the catalog here") so the contract is
+  clear from the UI itself.
+- **Open:** The landing's CTA still points at `#architecture` (same-
+  page anchor). Sprint 1's release should wire it to
+  `/pages/twin-os/index.html` once the songs indexer is real. Doing
+  it now would ship a CTA that 404s on the songs panel until sprint 2
+  lands.
+- **Next:** sprint 1 part 2 — `lib/songs-indexer.js` +
+  `data/songs/catalog.json`. Walk the audio dirs, read ID3 + WAV
+  metadata, surface the catalog in the Songs panel.
