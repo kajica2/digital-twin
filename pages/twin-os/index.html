@@ -15,8 +15,8 @@
   <meta name="apple-mobile-web-app-title" content="Twin OS" />
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%23f7f5f0'/%3E%3Cpolygon points='90,28 152,62 152,118 90,152 28,118 28,62' fill='none' stroke='%23c97b3f' stroke-width='6'/%3E%3Ccircle cx='90' cy='90' r='10' fill='%23c97b3f'/%3E%3C/svg%3E" />
   <script>
-    // Register the service worker (sprint 1 stub). Silently no-op
-    // on http (only works under https / localhost).
+    // Register the service worker. Silently no-op on http (only works
+    // under https / localhost).
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(() => {});
@@ -427,6 +427,147 @@
       padding: 2px 7px;
       font-size: 12.5px;
     }
+    .song-roots {
+      list-style: none;
+      padding: 0;
+      margin: 14px auto 0;
+      max-width: 520px;
+      text-align: left;
+      display: inline-block;
+    }
+    .song-roots li {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      color: var(--ink-faint);
+      padding: 4px 0;
+      border-bottom: 1px dashed var(--line);
+    }
+    .song-roots li:last-child { border-bottom: 0; }
+
+    .song-meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      color: var(--ink-faint);
+      letter-spacing: 0.04em;
+      margin-bottom: 18px;
+      display: flex; flex-wrap: wrap; gap: 12px 16px;
+    }
+    .song-meta strong {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .song-group {
+      margin-bottom: 28px;
+    }
+    .song-group-head {
+      display: flex; align-items: baseline; gap: 12px;
+      margin-bottom: 12px;
+    }
+    .song-group-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--primary);
+    }
+    .song-group-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      color: var(--ink-faint);
+    }
+
+    .song-list {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .song-row {
+      display: grid;
+      grid-template-columns: 80px 1fr auto auto auto;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--line);
+      font-size: 13.5px;
+    }
+    .song-row:last-child { border-bottom: 0; }
+    .song-row:hover { background: var(--primary-soft); }
+    .song-row .song-fmt {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      padding: 2px 8px;
+      background: var(--bg-warm);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      text-align: center;
+    }
+    .song-row .song-fmt[data-fmt="mp3"] { color: var(--primary); border-color: var(--primary-mid); background: var(--primary-soft); }
+    .song-row .song-fmt[data-fmt="wav"] { color: var(--accent); border-color: rgba(47, 111, 94, 0.20); background: var(--accent-soft); }
+    .song-row .song-title {
+      color: var(--ink);
+      font-weight: 500;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .song-row .song-title small {
+      display: block;
+      color: var(--ink-faint);
+      font-weight: 400;
+      font-size: 12px;
+      margin-top: 2px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .song-row .song-meta-cell {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      color: var(--ink-muted);
+    }
+    .song-row .song-dur {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      color: var(--ink-faint);
+    }
+    .song-search {
+      margin-bottom: 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .song-search input {
+      flex: 1;
+      appearance: none;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font: inherit;
+      font-size: 14px;
+      color: var(--ink);
+    }
+    .song-search input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+    .song-search-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      color: var(--ink-faint);
+    }
+
+    @media (max-width: 720px) {
+      .song-row {
+        grid-template-columns: 56px 1fr;
+        gap: 8px 12px;
+        padding: 10px 14px;
+      }
+      .song-row .song-meta-cell,
+      .song-row .song-dur {
+        grid-column: 2;
+      }
+    }
 
     /* ============================================================
        6. TWIN PANEL — three sub-sections (agents / events / cost)
@@ -546,7 +687,7 @@
         </svg>
         Twin
       </button>
-      <div class="rail-foot">v0.1.0 · sprint 1</div>
+      <div class="rail-foot">v0.2.0 · sprint 2</div>
     </nav>
 
     <main class="canvas" id="canvas">
@@ -613,16 +754,32 @@
           <div>
             <div class="panel-kicker">panel 02 · songs</div>
             <h1 class="panel-h1">A catalog you can actually search.</h1>
-            <p class="panel-sub">The indexer walks your audio directories, reads ID3 + WAV metadata, and writes a searchable catalog. Sprint 1 wires the indexer; sprint 2 surfaces the catalog here.</p>
+            <p class="panel-sub">The indexer walks your audio directories, reads ID3 + WAV metadata, and writes a searchable catalog at <code>/data/songs/catalog.json</code>. Rebuild it with <code>npm run index-songs</code>.</p>
           </div>
         </div>
 
-        <div class="song-empty">
-          <p><strong>Indexer not wired yet.</strong></p>
-          <p>The shell is here. The catalog is the next sprint.</p>
-          <p style="margin-top:14px">
-            <code>lib/songs-indexer.js</code> → <code>data/songs/catalog.json</code>
-          </p>
+        <!-- Empty state: shown until the catalog has items OR the
+             fetch fails. Replaced by the catalog list when populated. -->
+        <div class="song-empty" data-songs-empty hidden>
+          <p><strong>No audio in the configured roots.</strong></p>
+          <p data-songs-empty-detail>The indexer ran but found no <code>.mp3</code> or <code>.wav</code> files in:</p>
+          <ul class="song-roots" data-songs-roots></ul>
+          <p style="margin-top:14px">Update <code>lib/sources.config.json</code> to point at where your audio actually lives, then re-run <code>npm run index-songs</code>.</p>
+        </div>
+
+        <!-- Loading state: shown until the fetch resolves. -->
+        <div class="song-empty" data-songs-loading>
+          <p>Loading catalog…</p>
+        </div>
+
+        <!-- Catalog list: rendered when items exist. -->
+        <div class="song-catalog" data-songs-catalog hidden>
+          <div class="song-meta" data-songs-meta></div>
+          <div class="song-search">
+            <input type="search" placeholder="Filter by title, artist, path…" data-songs-search aria-label="Filter songs" />
+            <span class="song-search-count" data-songs-search-count></span>
+          </div>
+          <div class="song-groups" data-songs-groups></div>
         </div>
       </section>
 
@@ -714,6 +871,179 @@
     }
   }
   customElements.define('theme-toggle', ThemeToggle);
+
+  /* ===========================================================
+     Songs panel — fetch + render catalog from /data/songs/catalog.json
+     =========================================================== */
+  (function () {
+    const CATALOG_URL = '../../data/songs/catalog.json'; // Pages root-relative
+    const loading = document.querySelector('[data-songs-loading]');
+    const empty   = document.querySelector('[data-songs-empty]');
+    const catalog = document.querySelector('[data-songs-catalog]');
+    const meta    = document.querySelector('[data-songs-meta]');
+    const groups  = document.querySelector('[data-songs-groups]');
+    const rootsEl = document.querySelector('[data-songs-roots]');
+
+    if (!loading || !empty || !catalog) return;
+
+    let allItems = [];
+    let allRoots = [];
+
+    function show(node) {
+      [loading, empty, catalog].forEach(n => { if (n) n.hidden = (n !== node); });
+    }
+
+    function fmtDuration(s) {
+      if (s == null || !isFinite(s)) return '—';
+      const m = Math.floor(s / 60);
+      const sec = Math.floor(s % 60);
+      return `${m}:${String(sec).padStart(2, '0')}`;
+    }
+    function fmtSize(bytes) {
+      if (!bytes) return '—';
+      const units = ['B','KB','MB','GB'];
+      let i = 0, n = bytes;
+      while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
+      return `${n.toFixed(n < 10 && i > 0 ? 1 : 0)} ${units[i]}`;
+    }
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[c]));
+    }
+    function basename(p) {
+      return p.split('/').pop();
+    }
+
+    function renderRoots() {
+      if (!rootsEl) return;
+      rootsEl.innerHTML = '';
+      for (const r of allRoots) {
+        const li = document.createElement('li');
+        li.textContent = `${r.path}  (${r.found} found${r.missing ? ', missing' : ''})`;
+        rootsEl.appendChild(li);
+      }
+    }
+
+    function renderMeta() {
+      const totalDuration = allItems.reduce((s, i) => s + (i.durationSec || 0), 0);
+      const formats = [...new Set(allItems.map(i => i.format))].sort();
+      meta.innerHTML =
+        `<span><strong>${allItems.length}</strong> item${allItems.length === 1 ? '' : 's'}</span> ` +
+        `<span><strong>${escapeHtml(formats.join(' / '))}</strong></span> ` +
+        `<span><strong>${escapeHtml(fmtDuration(totalDuration))}</strong> total</span> ` +
+        `<span><strong>${allRoots.length}</strong> root${allRoots.length === 1 ? '' : 's'}</span>`;
+    }
+
+    function renderGroups(filter) {
+      const q = (filter || '').trim().toLowerCase();
+      const matches = q
+        ? allItems.filter(it => {
+            const hay = [
+              basename(it.relPath),
+              it.relPath,
+              it.label,
+              it.tags.title || '',
+              it.tags.artist || '',
+              it.tags.album || '',
+              it.tags.genre || '',
+            ].join(' ').toLowerCase();
+            return hay.includes(q);
+          })
+        : allItems;
+
+      // Group by label
+      const byLabel = new Map();
+      for (const it of matches) {
+        if (!byLabel.has(it.label)) byLabel.set(it.label, []);
+        byLabel.get(it.label).push(it);
+      }
+
+      groups.innerHTML = '';
+      const labels = [...byLabel.keys()].sort();
+      for (const label of labels) {
+        const items = byLabel.get(label);
+        const wrap = document.createElement('div');
+        wrap.className = 'song-group';
+        wrap.innerHTML =
+          `<div class="song-group-head">` +
+            `<span class="song-group-label">${escapeHtml(label)}</span>` +
+            `<span class="song-group-count">${items.length} item${items.length === 1 ? '' : 's'}</span>` +
+          `</div>` +
+          `<div class="song-list"></div>`;
+        const list = wrap.querySelector('.song-list');
+        for (const it of items) {
+          const t = it.tags;
+          const title = t.title || basename(it.relPath).replace(/\.[^.]+$/, '');
+          const subParts = [];
+          if (t.artist) subParts.push(t.artist);
+          if (t.album) subParts.push(t.album);
+          if (t.year) subParts.push(t.year);
+          const sub = subParts.join(' · ');
+          const meta2 = [];
+          if (t.bpm) meta2.push(`${t.bpm} BPM`);
+          if (t.key) meta2.push(t.key);
+          if (it.sampleRate) meta2.push(`${(it.sampleRate / 1000).toFixed(1)} kHz`);
+          if (it.channels) meta2.push(`${it.channels}ch`);
+
+          const row = document.createElement('div');
+          row.className = 'song-row';
+          row.innerHTML =
+            `<span class="song-fmt" data-fmt="${escapeHtml(it.format)}">${escapeHtml(it.format)}</span>` +
+            `<span class="song-title">${escapeHtml(title)}` +
+              (sub ? `<small>${escapeHtml(sub)}</small>` : '') +
+            `</span>` +
+            `<span class="song-meta-cell">${escapeHtml(meta2.join(' · ') || '—')}</span>` +
+            `<span class="song-meta-cell">${escapeHtml(fmtSize(it.size))}</span>` +
+            `<span class="song-dur">${escapeHtml(fmtDuration(it.durationSec))}</span>`;
+          list.appendChild(row);
+        }
+        groups.appendChild(wrap);
+      }
+
+      // update search count
+      const counter = document.querySelector('[data-songs-search-count]');
+      if (counter) counter.textContent = `${matches.length} match${matches.length === 1 ? '' : 'es'}`;
+    }
+
+    function render() {
+      if (!allItems.length) {
+        renderRoots();
+        show(empty);
+      } else {
+        renderMeta();
+        renderGroups('');
+        show(catalog);
+      }
+    }
+
+    // Search input — wire once catalog is shown
+    function wireSearch() {
+      const input = document.querySelector('[data-songs-search]');
+      if (!input) return;
+      let t;
+      input.addEventListener('input', () => {
+        clearTimeout(t);
+        t = setTimeout(() => renderGroups(input.value), 80);
+      });
+    }
+
+    fetch(CATALOG_URL + '?_=' + Date.now(), { cache: 'no-store' })
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(data => {
+        allItems = (data && data.items) || [];
+        allRoots = (data && data.roots) || [];
+        render();
+        wireSearch();
+      })
+      .catch(err => {
+        allRoots = [];
+        renderRoots();
+        const detail = document.querySelector('[data-songs-empty-detail]');
+        if (detail) detail.innerHTML = `Could not load <code>${escapeHtml(CATALOG_URL)}</code> — ${escapeHtml(err.message)}. Run <code>npm run index-songs</code> from the repo root to generate the catalog.`;
+        show(empty);
+      });
+  })();
 </script>
 </body>
 </html>

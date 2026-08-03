@@ -262,3 +262,89 @@ green.
 - **Next:** sprint 1 part 2 — `lib/songs-indexer.js` +
   `data/songs/catalog.json`. Walk the audio dirs, read ID3 + WAV
   metadata, surface the catalog in the Songs panel.
+
+### 2026-08-03 — sprint 2
+
+- **Shipped:**
+  - `lib/songs-indexer.js` — pure-Node, no-deps audio metadata
+    extractor. Walks a configurable list of root dirs (from
+    `lib/sources.config.json`), reads MP3 ID3v2 (TIT2 / TPE1 / TALB /
+    TYER / TDRC / TCON / TBPM / TRCK / TKEY) and WAV RIFF/fmt + LIST/INFO
+    chunks, writes `data/songs/catalog.json`. Defaults to
+    `--apply --yes` so it composes with cron + npm. Strips absolute
+    filesystem paths from the shipped output (per §11 hygiene) — use
+    `--keep-abspath` for local debugging only.
+  - `lib/sources.config.json` — declares the roots. Defaults to the
+    AGENTS.md-named dirs (`~/Documents/jazz solos`,
+    `~/Documents/meditations`, `~/Documents/music_to_mp4`). Update
+    this file to point at wherever audio actually lives. The indexer
+    treats missing roots as a logged warning, not an error.
+  - `data/songs/catalog.json` — generated. Schema: `{ generatedAt,
+    durationMs, roots: [{label, found, missing, pathHint}], items:
+    [{id, label, relPath, format, size, mtime, tags, durationSec,
+    sampleRate, channels}] }`.
+  - Songs panel UI — replaced the sprint-1 empty-state with three
+    real states: loading, configured-empty (shows the configured
+    roots + how to point them at real audio), and catalog (grouped
+    by label, with format chip + title + tech meta + size +
+    duration). Search input filters by title / artist / path /
+    genre with a debounced match counter.
+  - Service worker promoted from sprint-1 pass-through stub to a
+    real fetch handler. Cache-first for the shell (offline-capable),
+    network-first with cache fallback for the catalog (so updates
+    land fast but the PWA still opens offline).
+  - Landing CTA "Open the twin" now points at `./twin-os/`. The
+    closing CTA at the bottom still points at GitHub (source repo).
+  - `e2e/twin-os-songs.spec.mjs` — third e2e spec, 18 assertions.
+    Detects whether the catalog is empty (configured-empty-state) or
+    populated (catalog view) and asserts accordingly. Tests search
+    filtering, search count, format chip, row count, 0 console
+    errors, light + dark screenshots.
+  - `npm run index-songs` — wires the indexer into npm.
+  - CI updated: pages-test workflow now runs all three e2e
+    specs in sequence on push (against the live URL) and on PR
+    (locally). Workflow keeps the absolute-path cd fix from
+    sprint-1's commit `19b84c2`.
+- **Decisions:**
+  - **AGENTS.md drift surfaced, not silently worked around.** The
+    AGENTS.md sprint plan says the indexer walks three specific
+    dirs. As shipped, those three dirs contain zero audio files:
+    one is the WJAZD corpus (scholarly MIDI transcriptions, not
+    audio), one is empty, one is an `isf_studio` web app + a
+    handful of shader-demo WAVs. The actual audio lives elsewhere
+    in the personal corpus. Built the indexer to walk the named
+    dirs as AGENTS.md specifies, accept an empty result gracefully,
+    and surface the configured paths in the empty-state UI so the
+    next agent knows where to point it. Did NOT silently enumerate
+    the actual audio locations — that would violate §11 hygiene
+    and ship the author's filesystem shape into a public repo.
+  - **Path redaction is on by default.** The shipped catalog
+    strips `absPath` from every item and replaces the root `path`
+    with `pathHint = label`. The Twin OS panel never used
+    `absPath` anyway, so this is a no-op for the UI but a real
+    safety for the public repo. `--keep-abspath` for local debug.
+  - **3-panel structure preserved.** The Songs panel stays one of
+    the 3 panels (not a sub-section of Today), because the
+    catalog is its own dataset with its own UX (filter / search /
+    grouped list). Patterns-on-Today is the "your daily rhythms"
+    surface; Songs is the "what audio do you have" surface.
+- **Open:**
+  - Sources config still points at the AGENTS.md-named dirs, which
+    return empty. To populate the Songs panel with real audio,
+    edit `lib/sources.config.json` to point at where audio
+    actually lives, then `npm run index-songs`. The empty-state UI
+    tells the user this without leaking the real paths.
+  - `jazz solos/manifest.csv` has 456 entries with rich metadata
+    (performer, title, instrument, style, year, tempo, tones) but
+    is CSV, not audio. A future sprint could add a CSV catalog
+    alongside the audio catalog (`catalog-jazz-solos.json`) so
+    the MIDI corpus is searchable too. Defer until asked.
+  - FLAC / M4A / AAC / OGG parsing deferred. The indexer is
+    structured so adding a new format is one parseX() function +
+    one SUPPORTED_EXTS entry.
+- **Next:** sprint 3 candidates — (a) wire the songs indexer into
+  a daily cron that auto-rebuilds the catalog on push; (b) add
+  the jazz-solos CSV catalog so MIDI metadata is searchable; (c)
+  start the actual twin runtime (pattern memory + cron self-
+  reminders). Scope TBD based on what the populated Songs panel
+  reveals about the audio corpus shape.

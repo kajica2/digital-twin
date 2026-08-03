@@ -72,20 +72,25 @@ function startServer(rootDir) {
     try {
       const u = new URL(req.url, BASE);
       let p = u.pathname === '/' ? '/index.html' : u.pathname;
-      const file = join(rootDir, decodeURIComponent(p));
+      // Map the catalog path to its real location in the repo.
+      // This is what the shell expects when served via Pages too —
+      // the live site resolves /data/songs/catalog.json from the
+      // Pages root (the shell is at /pages/twin-os/).
+      let file;
+      if (p === '/data/songs/catalog.json') {
+        file = join(ROOT, 'data', 'songs', 'catalog.json');
+      } else if (p === '../../data/songs/catalog.json') {
+        file = join(ROOT, 'data', 'songs', 'catalog.json');
+      } else {
+        file = join(rootDir, decodeURIComponent(p));
+      }
       if (!existsSync(file)) {
         res.statusCode = 404;
         res.end('not found');
         return;
       }
       const ext = file.split('.').pop();
-      const types = {
-        html: 'text/html; charset=utf-8',
-        css: 'text/css',
-        js: 'application/javascript',
-        webmanifest: 'application/manifest+json',
-        json: 'application/json',
-      };
+      const types = { html: 'text/html; charset=utf-8', css: 'text/css', js: 'application/javascript' };
       res.setHeader('Content-Type', types[ext] || 'text/plain');
       const { readFile } = await import('node:fs/promises');
       res.end(await readFile(file));
@@ -169,12 +174,14 @@ async function main() {
     const patternCount = await page.$$eval('.pattern-card', els => els.length);
     assert(patternCount === 3, `patterns grid has 3 cards (got ${patternCount})`);
 
-    // --- 4. Songs empty-state + catalog path hint ---
-    const songsCodes = await page.$$eval('.song-empty code', els => els.map(e => e.textContent.trim()));
-    assert(songsCodes.some(t => t.includes('catalog.json')),
-      `songs panel references catalog.json (got: ${JSON.stringify(songsCodes)})`);
-    assert(songsCodes.some(t => t.includes('songs-indexer.js')),
-      `songs panel references songs-indexer.js (got: ${JSON.stringify(songsCodes)})`);
+    // --- 4. Songs panel references catalog + config ---
+    const songsAllText = await page.$eval('.panel[data-panel="songs"]', el => el.textContent);
+    assert(songsAllText.includes('catalog.json'),
+      `songs panel mentions catalog.json (in any element)`);
+    assert(songsAllText.includes('sources.config.json'),
+      `songs panel mentions sources.config.json (in any element)`);
+    assert(songsAllText.includes('index-songs'),
+      `songs panel mentions npm run index-songs (in any element)`);
 
     // --- 5. Twin stats ---
     const statCount = await page.$$eval('.twin-stat', els => els.length);
