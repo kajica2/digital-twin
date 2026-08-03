@@ -23,7 +23,21 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 const ART = join(__dirname, 'artifacts');
 const PORT = 5173;
-const BASE = `http://127.0.0.1:${PORT}`;
+
+// E2E_URL — when set, the e2e skips the local static server and runs
+// against the deployed URL instead. Used by the GitHub Actions
+// deploy-test loop (see .github/workflows/pages-test.yml) and by
+// humans running the test against the live site.
+//   E2E_URL=https://kajica2.github.io/digital-twin node landing.spec.mjs
+const DEPLOYED_URL = process.env.E2E_URL || null;
+const BASE = DEPLOYED_URL || `http://127.0.0.1:${PORT}`;
+
+// When running against the deployed site, the URL path is
+// /pages/landing.html (because Pages serves from repo root).
+// When running locally, the e2e's static server mounts pages/
+// as the server root, so the path is just /landing.html.
+const PAGE_PATH = DEPLOYED_URL ? '/pages/landing.html' : '/landing.html';
+const pageUrl = (v) => `${BASE}${PAGE_PATH}?v=${v}`;
 
 // Locate Chrome — prefer system Chrome, fall back to puppeteer's bundled
 // Chrome. (puppeteer's chrome-headless-shell is broken on this machine
@@ -86,9 +100,15 @@ async function main() {
   if (existsSync(ART)) await rm(ART, { recursive: true });
   await mkdir(ART, { recursive: true });
 
-  // serve the pages/ directory
-  log(`starting static server on :${PORT} (serving ${join(ROOT, 'pages')})`);
-  const server = await startServer(join(ROOT, 'pages'));
+  // serve the pages/ directory — only when running locally. When
+  // E2E_URL is set, we hit the deployed site instead.
+  let server = null;
+  if (!DEPLOYED_URL) {
+    log(`starting static server on :${PORT} (serving ${join(ROOT, 'pages')})`);
+    server = await startServer(join(ROOT, 'pages'));
+  } else {
+    log(`running against deployed URL: ${BASE}${PAGE_PATH}`);
+  }
 
   const browser = await puppeteer.launch({
     headless: 'new',
@@ -114,7 +134,7 @@ async function main() {
     for (const { v, name } of variants) {
       log(`--- variant v=${v} (${name}) ---`);
       consoleErrors.length = 0;
-      await page.goto(`${BASE}/landing.html?v=${v}`, { waitUntil: 'networkidle0' });
+      await page.goto(pageUrl(v), { waitUntil: 'networkidle0' });
       // wait for variant features to populate
       await page.waitForFunction(() => {
         const g = document.querySelector('[data-variant-features]');
@@ -203,7 +223,7 @@ async function main() {
     // --- variant switcher roundtrip ---
     log('--- variant switcher roundtrip ---');
     consoleErrors.length = 0;
-    await page.goto(`${BASE}/landing.html?v=1`, { waitUntil: 'networkidle0' });
+    await page.goto(pageUrl('1'), { waitUntil: 'networkidle0' });
     await page.waitForSelector('variant-switcher button[data-value="2"]');
     await page.click('variant-switcher button[data-value="2"]');
     await new Promise(r => setTimeout(r, 200));
@@ -238,7 +258,7 @@ async function main() {
     log('--- mobile snapshots (390x844) ---');
     for (const { v, name } of variants) {
       await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true });
-      await page.goto(`${BASE}/landing.html?v=${v}`, { waitUntil: 'networkidle0' });
+      await page.goto(pageUrl(v), { waitUntil: 'networkidle0' });
       await new Promise(r => setTimeout(r, 400));
       await page.screenshot({ path: join(ART, `landing-${name}-mobile.png`), fullPage: true });
       dim(`saved ${join(ART, `landing-${name}-mobile.png`)}`);
@@ -254,7 +274,7 @@ async function main() {
     }
   } finally {
     await browser.close();
-    server.close();
+    if (server) server.close();
   }
   process.exit(failures === 0 ? 0 : 1);
 }

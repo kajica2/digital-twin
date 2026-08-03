@@ -1,0 +1,83 @@
+name: pages-test
+
+# Puppeteer deploy-test loop for digital_twin.
+# Mirrors the AGENTS.md "Puppeteer deploy-test loop" memory rule:
+# the deploy is NOT done until the e2e hits the live URL and passes.
+#
+# Flow:
+#   1. push lands on main
+#   2. GitHub Pages builds + deploys (existing pages-build-and-deploy
+#      workflow, fires automatically because Pages is enabled on main)
+#   3. this workflow polls pages until the deploy is live
+#   4. installs puppeteer in e2e/
+#   5. runs e2e/landing.spec.mjs with E2E_URL=https://kajica2.github.io/digital-twin
+#   6. any failure fails the build → no green check, the deploy is
+#      treated as not-done
+#
+# On PRs (no E2E_URL — Pages isn't built yet for a branch), the
+# e2e runs against the local server on :5173.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: read
+  deployments: read
+
+jobs:
+  e2e:
+    name: Puppeteer deploy-test loop
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install e2e dependencies
+        run: cd e2e && npm install
+
+      - name: Wait for Pages deploy (push only)
+        if: github.event_name == 'push'
+        run: |
+          echo "Waiting for GitHub Pages to deploy..."
+          for i in $(seq 1 60); do
+            status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 \
+              "https://kajica2.github.io/digital-twin/pages/landing.html" || echo "000")
+            if [ "$status" = "200" ]; then
+              echo "Pages is live (attempt $i)"
+              break
+            fi
+            echo "  attempt $i: HTTP $status — retrying in 5s"
+            sleep 5
+          done
+          if [ "$status" != "200" ]; then
+            echo "::error::Pages never came up after 5 minutes"
+            exit 1
+          fi
+
+      - name: Run e2e (deployed URL on push, local on PR)
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            cd e2e && E2E_URL=https://kajica2.github.io/digital-twin node landing.spec.mjs
+          else
+            echo "(PR run — Pages isn't built for branches, e2e runs locally)"
+            cd e2e && node landing.spec.mjs
+          fi
+
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts
+          path: e2e/artifacts/
+          if-no-files-found: ignore
