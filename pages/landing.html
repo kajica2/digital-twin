@@ -522,7 +522,92 @@
     .demo-statusbar strong { color: var(--ink); font-weight: 500; }
 
     /* ============================================================
-       10. ARCHITECTURE — the 4 layers (Scanner / Model / Reasoner / Orchestrator)
+       10. QUICKSTART — copyable pipeline block
+       ============================================================ */
+    copy-block {
+      display: block;
+      position: relative;
+      background: #14171e;
+      color: #e9e3d6;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 6px 24px -8px rgba(20,23,30,0.18);
+    }
+    [data-theme="dark"] copy-block {
+      background: #0a0c0a;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 6px 24px -8px rgba(0,0,0,0.4);
+    }
+    copy-block pre {
+      margin: 0;
+      padding: 28px 32px;
+      background: transparent;
+      color: inherit;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.85;
+      overflow-x: auto;
+      box-shadow: none;
+    }
+    copy-block pre::-webkit-scrollbar { height: 8px; }
+    copy-block pre::-webkit-scrollbar-track { background: transparent; }
+    copy-block pre::-webkit-scrollbar-thumb { background: #3a4256; border-radius: 4px; }
+    [data-theme="dark"] copy-block pre::-webkit-scrollbar-thumb { background: #2a2a2a; }
+    copy-block .cb-label {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: rgba(233, 227, 214, 0.45);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+    copy-block .cb-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.06);
+      color: #e9e3d6;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      transition: background var(--dur-base) var(--ease-out-expo), color var(--dur-base) var(--ease-out-expo);
+    }
+    copy-block .cb-btn:hover { background: rgba(255, 255, 255, 0.12); }
+    copy-block .cb-btn.copied {
+      background: var(--primary);
+      color: #14171e;
+    }
+    copy-block .cb-btn svg { width: 12px; height: 12px; }
+    copy-block .cb-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+    /* syntax tinting — keep it minimal */
+    copy-block .cb-c { color: #6b7398; }      /* comment */
+    copy-block .cb-cmd { color: #c792ea; }    /* command */
+    copy-block .cb-str { color: #c3e88d; }    /* string */
+    copy-block .cb-flag { color: #82aaff; }   /* flag */
+    copy-block .cb-pipe { color: #ffcb6b; }   /* pipe / operator */
+    [data-theme="dark"] copy-block .cb-c { color: #5a5a5a; }
+    [data-theme="dark"] copy-block .cb-cmd { color: #c792ea; }
+    [data-theme="dark"] copy-block .cb-str { color: #c3e88d; }
+    [data-theme="dark"] copy-block .cb-flag { color: #82aaff; }
+    [data-theme="dark"] copy-block .cb-pipe { color: #ffcb6b; }
+
+    .quickstart-hint {
+      display: flex; flex-wrap: wrap; gap: 20px;
+      margin-top: 16px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--ink-faint);
+    }
+    .quickstart-hint span { display: inline-flex; align-items: center; gap: 6px; }
+    .quickstart-hint svg { width: 12px; height: 12px; color: var(--primary); }
+
+    /* ============================================================
+       12. ARCHITECTURE — the 4 layers (Scanner / Model / Reasoner / Orchestrator)
        ============================================================ */
     .levels {
       display: grid;
@@ -564,7 +649,7 @@
     .level-tool-name { color: var(--primary); font-weight: 500; }
 
     /* ============================================================
-       11. RUNNING PROCESSES — flow diagram
+       13. RUNNING PROCESSES — flow diagram
        ============================================================ */
     .flow {
       background: var(--surface);
@@ -584,7 +669,7 @@
     .flow-arrow { text-align: center; color: var(--ink-faint); font-size: 18px; line-height: 1; margin: 4px 0; }
 
     /* ============================================================
-       12. DOMAIN TWINS — 4 cards (Music / Trumpet / Web / Research)
+       14. DOMAIN TWINS — 4 cards (Music / Trumpet / Web / Research)
        ============================================================ */
     .twin-grid {
       display: grid;
@@ -612,7 +697,7 @@
     .twin-desc { font-size: 14px; color: var(--ink-muted); line-height: 1.55; }
 
     /* ============================================================
-       13. INTEGRATIONS STRIP
+       15. INTEGRATIONS STRIP
        ============================================================ */
     .integrations { padding-block: var(--space-7); border-block: 1px solid var(--line); margin-bottom: 104px; }
     .integrations-label { text-align: center; color: var(--ink-faint); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: var(--space-5); }
@@ -628,7 +713,7 @@
     .integrations-row > span:hover { color: var(--ink-muted); }
 
     /* ============================================================
-       14. CTA BAND + FOOTER
+       16. CTA BAND + FOOTER
        ============================================================ */
     .cta-band {
       padding: var(--space-8) var(--space-6);
@@ -647,13 +732,13 @@
     .end-mark p { font-size: 13px; color: var(--ink-faint); margin-top: 14px; letter-spacing: 0.06em; font-family: var(--font-mono); }
 
     /* ============================================================
-       15. REVEAL — only when JS ready; no-JS fallback is visible
+       17. REVEAL — only when JS ready; no-JS fallback is visible
        ============================================================ */
     .js .reveal { opacity: 0; transform: translateY(12px); transition: opacity var(--dur-slow) var(--ease-out-expo), transform var(--dur-slow) var(--ease-out-expo); }
     .reveal.in { opacity: 1; transform: translateY(0); }
 
     /* ============================================================
-       16. REDUCED MOTION
+       18. REDUCED MOTION
        ============================================================ */
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
@@ -803,10 +888,48 @@
       </section>
 
       <!-- ====================================================
+           QUICKSTART — copyable pipeline
+           ==================================================== -->
+      <section id="quickstart">
+        <div class="section-kicker">Quickstart · 04</div>
+        <h2 class="h-section">Three commands. <em>Then it's running.</em></h2>
+        <p class="section-sub">Clone the repo, index the music, open the twin. Every command is copyable. Sprint 1 ships the indexer and the shell; the landing + e2e + design system are sprint 0 and already on disk.</p>
+
+        <copy-block data-label="install">
+<pre><code><span class="cb-c"># clone the repo</span>
+<span class="cb-cmd">git</span> clone https://github.com/kajica2/digital_twin <span class="cb-flag">&amp;&amp;</span> <span class="cb-cmd">cd</span> digital_twin
+
+<span class="cb-c"># install dependencies</span>
+<span class="cb-cmd">npm</span> install
+
+<span class="cb-c"># index your music library (sprint 1)</span>
+<span class="cb-cmd">npm</span> run index-songs
+
+<span class="cb-c"># open the twin shell</span>
+<span class="cb-cmd">open</span> pages/twin-os/index.html</code></pre>
+        </copy-block>
+
+        <div class="quickstart-hint">
+          <span>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 8 3 3 5-6"/></svg>
+            MIT-licensed
+          </span>
+          <span>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 8 3 3 5-6"/></svg>
+            runs on your machine
+          </span>
+          <span>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 8 3 3 5-6"/></svg>
+            your data never leaves the disk
+          </span>
+        </div>
+      </section>
+
+      <!-- ====================================================
            ARCHITECTURE — the 4 layers
            ==================================================== -->
       <section id="architecture">
-        <div class="section-kicker">Architecture · 04</div>
+        <div class="section-kicker">Architecture · 05</div>
         <h2 class="h-section">Four layers. <em>One system.</em></h2>
         <p class="section-sub">The twin is not a single agent. It's a layered system — scan, model, reason, orchestrate — where each layer feeds the next and none of them require a human in the loop once the work is defined.</p>
 
@@ -869,7 +992,7 @@
            RUNNING PROCESSES — the flows already set up
            ==================================================== -->
       <section>
-        <div class="section-kicker">What's already running · 05</div>
+        <div class="section-kicker">What's already running · 06</div>
         <h2 class="h-section">The twin doesn't describe. <em>It acts.</em></h2>
         <p class="section-sub">The twin doesn't just describe the environment — it acts on it. These are the processes it has already built or maintains.</p>
 
@@ -898,7 +1021,7 @@
            DOMAIN TWINS — Music / Trumpet / Web / Research
            ==================================================== -->
       <section>
-        <div class="section-kicker">Domain twins · 06</div>
+        <div class="section-kicker">Domain twins · 07</div>
         <h2 class="h-section">Domain-specific twins. <em>Built from the scan.</em></h2>
         <p class="section-sub">The general scanner produces domain-specific instantiations. Each twin knows its domain cold and runs the process without asking.</p>
 
@@ -1130,6 +1253,75 @@
       }
     }
     customElements.define('variant-switcher', VariantSwitcher);
+
+    /* ---------- <copy-block> — copyable code block with click-to-copy button ---------- */
+    class CopyBlock extends HTMLElement {
+      connectedCallback() {
+        this.render();
+        this.btn.addEventListener('click', this.copy);
+      }
+      disconnectedCallback() {
+        if (this.btn) this.btn.removeEventListener('click', this.copy);
+        if (this._resetTimer) clearTimeout(this._resetTimer);
+      }
+      get text() {
+        // Plain text from the inner <code> (or the pre, if no code).
+        const code = this.querySelector('code') || this.querySelector('pre');
+        return code ? code.textContent.trim() : '';
+      }
+      render() {
+        const label = this.getAttribute('data-label') || 'copy';
+        this.insertAdjacentHTML('beforeend', `
+          <span class="cb-label">${label}</span>
+          <button class="cb-btn" type="button" aria-label="Copy to clipboard">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="5" y="5" width="9" height="9" rx="1.5"/>
+              <path d="M3 11V3a1 1 0 0 1 1-1h8"/>
+            </svg>
+            <span>Copy</span>
+          </button>
+        `);
+        this.btn = this.querySelector('.cb-btn');
+        this.btnText = this.querySelector('.cb-btn span');
+      }
+      copy = async () => {
+        const text = this.text;
+        let ok = false;
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+            ok = true;
+          } else {
+            ok = this.fallbackCopy(text);
+          }
+        } catch (e) {
+          ok = this.fallbackCopy(text);
+        }
+        this.flash(ok);
+      };
+      fallbackCopy(text) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        let ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+        document.body.removeChild(ta);
+        return ok;
+      }
+      flash(ok) {
+        this.btn.classList.add(ok ? 'copied' : 'failed');
+        this.btnText.textContent = ok ? 'Copied' : 'Failed';
+        if (this._resetTimer) clearTimeout(this._resetTimer);
+        this._resetTimer = setTimeout(() => {
+          this.btn.classList.remove('copied', 'failed');
+          this.btnText.textContent = 'Copy';
+        }, 1600);
+      }
+    }
+    customElements.define('copy-block', CopyBlock);
 
     /* ---------- SVG icon library ---------- */
     const ICONS = {

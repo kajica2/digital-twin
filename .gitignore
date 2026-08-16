@@ -15,3 +15,9 @@ e2e/artifacts/
 # Environment
 .env
 .env.local
+
+# Vercel
+.vercel/
+
+# Worktrees (other sessions working in this repo)
+.worktrees/

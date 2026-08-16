@@ -102,17 +102,22 @@ The page reads as a long-form product essay, not a SaaS landing:
    + sub all swap per variant. Feature cards don't.
 3. **Demo** — the control-room mockup. Stays the same across
    variants (the *product* doesn't change, only the pitch does).
-4. **Architecture** — Scanner / Model / Reasoner / Orchestrator. The
+4. **Quickstart** — a copyable pipeline block (`<copy-block>`) with
+   the canonical install + index + open commands. Dark background,
+   mono font, syntax tinting. Copy button in the top-right transitions
+   "Copy" → "Copied" on click and falls back to `execCommand` for
+   non-secure contexts.
+5. **Architecture** — Scanner / Model / Reasoner / Orchestrator. The
    4-layer table the kai-systems twin page already documents. Stays
    the same across variants.
-5. **What's already running** — the 4 flow nodes (arXiv swarm,
+6. **What's already running** — the 4 flow nodes (arXiv swarm,
    Puppeteer gate, memory maintenance, E2E regression gate). Stays
    the same.
-6. **Domain twins** — Music / Trumpet / Web / Research. The 4
+7. **Domain twins** — Music / Trumpet / Web / Research. The 4
    instantiations the kai-systems twin page already names. Stays the
    same.
-7. **Integrations** — the "Plays nicely with" strip in display serif.
-8. **CTA band** — "One twin. Every system, running." Backed by a
+8. **Integrations** — the "Plays nicely with" strip in display serif.
+9. **CTA band** — "One twin. Every system, running." Backed by a
    secondary ghost button linking to the deep-dive on kai-systems.
-9. **End-mark** — the hex mark + "design once · runs forever" — the
-   kai-systems closing line.
+10. **End-mark** — the hex mark + "design once · runs forever" — the
+    kai-systems closing line.

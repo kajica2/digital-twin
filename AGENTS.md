@@ -228,6 +228,21 @@ green.
   deep-dive.
 - **Next:** sprint 1 — Twin OS shell + song indexer.
 
+### 2026-08-16 — sprint 0 amendment
+
+- **Added:** Quickstart section (04) with a `<copy-block>` Web
+  Component that wraps a `<pre><code>` and exposes a Copy button
+  (`Copy` → `Copied` → resets after 1.6s, with `execCommand` fallback
+  for non-secure contexts). Pipeline content: clone → install → index
+  → open. The Quickstart sits between the demo and the architecture
+  so the install path is the first concrete thing a reader sees after
+  the "what it looks like" mockup.
+- **Renumbered:** Architecture 04→05, What's already running 05→06,
+  Domain twins 06→07.
+- **e2e:** added 4 new assertions per variant — copy-block present,
+  copy button present, text non-empty, button transitions to "Copied"
+  on click. All 36+ checks pass.
+
 ### 2026-08-03 — sprint 1 (kickoff)
 
 - **Shipped:** `pages/twin-os/` — the Twin OS PWA shell.

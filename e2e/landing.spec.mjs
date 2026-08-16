@@ -176,6 +176,27 @@ async function main() {
       const flow = await page.$$eval('.flow-node', els => els.length);
       assert(flow === 4, `flow: 4 nodes (got ${flow})`);
 
+      // copyable pipeline block
+      const cb = await page.$('copy-block');
+      assert(!!cb, 'copy-block present');
+      const cbBtn = await page.$('copy-block .cb-btn');
+      assert(!!cbBtn, 'copy-block copy button present');
+      // assert the text content is non-empty
+      const cbText = await page.$eval('copy-block', el => (el.querySelector('code') || el.querySelector('pre')).textContent.trim());
+      assert(cbText.length > 20, `copy-block has non-trivial text (${cbText.length} chars)`);
+      // assert clicking the copy button changes its label to "Copied"
+      // (note: clipboard.writeText may fail in non-secure http://; the
+      // component falls back to execCommand or marks "Failed" — we
+      // assert that the button reacts to a click in some way)
+      const beforeLabel = await page.$eval('copy-block .cb-btn span', el => el.textContent.trim());
+      await page.click('copy-block .cb-btn');
+      await new Promise(r => setTimeout(r, 200));
+      const afterLabel = await page.$eval('copy-block .cb-btn span', el => el.textContent.trim());
+      assert(beforeLabel === 'Copy' && (afterLabel === 'Copied' || afterLabel === 'Failed'),
+        `copy button: "${beforeLabel}" → "${afterLabel}" after click`);
+      // wait for reset
+      await new Promise(r => setTimeout(r, 1700));
+
       // hub-nav present
       const hub = await page.$('.hub-mark');
       assert(!!hub, 'hub-nav present');

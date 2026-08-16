@@ -23,6 +23,32 @@ beyond the browser's built-in support.
 - **Props / attrs:** none — reads `data-variant` from `<html>`.
 - **States:** pressed = active variant, hover, focus-visible.
 
+## `<copy-block>`
+
+- **Purpose:** a copyable code/pipeline block. Wraps a `<pre><code>`
+  with a positioned Copy button. On click, copies the inner code text
+  to the clipboard, flashes "Copied" for 1.6s, and resets.
+- **Props / attrs:** `data-label` (string, optional) — the small
+  uppercase label in the top-right (e.g. `data-label="install"`).
+- **States:** default, hover (button lightens), focus-visible,
+  `copied` (button turns copper with `#14171e` text).
+- **Behavior:** uses `navigator.clipboard.writeText` in secure
+  contexts; falls back to a hidden `<textarea>` + `execCommand('copy')`
+  in non-secure contexts (e.g. `http://localhost`). If both fail,
+  flashes "Failed".
+- **Markup shape:**
+  ```html
+  <copy-block data-label="install">
+  <pre><code># clone the repo
+  git clone https://github.com/kajica2/digital_twin &amp;&amp; cd digital_twin
+  ...
+  </code></pre>
+  </copy-block>
+  ```
+- **Syntax tinting:** span class hooks — `cb-c` (comment), `cb-cmd`
+  (command), `cb-str` (string), `cb-flag` (flag / arg), `cb-pipe`
+  (pipe / operator). All default to kai-systems' editor palette.
+
 ## `<twin-demo>`
 
 - **Purpose:** the animated control-room mockup in the "How it looks"
