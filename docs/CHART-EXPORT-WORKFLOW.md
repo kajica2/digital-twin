@@ -53,7 +53,14 @@ node lib/chart-export.js path/to/song.musicxml --apply --yes
 npm run export-parts -- path/to/song.musicxml
 ```
 
-Same `--apply --yes` convention as `lib/songs-indexer.js`.
+# Full chart package: MusicXML splits + per-part PDFs + muted MP3s + MIDI.
+# Requires mscore on PATH (brew install --cask musescore).
+npm run export-all -- path/to/song.musicxml
+
+# Or run the pieces individually:
+npm run export-parts -- path/to/song.musicxml --apply --yes --render   # adds PDFs + MP3s
+npm run export-midi   -- path/to/song.musicxml --apply --yes           # adds the .mid file
+```
 
 ---
 
