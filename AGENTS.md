@@ -483,3 +483,30 @@ green.
     trumpet-feature part + rhythm-section voicings following the
     conventions in `docs/COLTRANE-SHAW-ENGRAVING.md` §6/§9, then
     runs the export pipeline against the produced MusicXML.
+
+### 2026-09-09 — sprint 0.4.b (tooling + automation)
+
+- **Installed via Homebrew:**
+  - `musescore` (cask, 4.7.5) — `/Applications/MuseScore 4.app` +
+    `/opt/homebrew/bin/mscore`. The CLI wrapper exports PDFs and MP3s
+    directly from MusicXML: `mscore -f input.musicxml -o output.pdf`
+    and `mscore -f input.musicxml -o output.mp3`. Bundles `MS Basic.sf3`
+    — no separate SoundFont install needed for the chart pipeline.
+  - `fluid-synth` (2.6.0) — installed as a fallback for headless
+    MIDI→audio rendering on hosts without MuseScore's bundled sounds.
+- **`lib/chart-export.js` gains `--render`:** invokes `mscore` to
+  produce the full score PDF, per-part PDFs, and the two muted
+  backing tracks. Detection uses **file existence** rather than exit
+  code (MuseScore's Qt shutdown can complete the export and then
+  exit non-zero on macOS — the file IS the source of truth).
+- **`package.json` gains `npm run export-all`:** one command runs
+  the whole pipeline (MusicXML splits → PDFs → MP3s → MIDI). Six-
+  second end-to-end test on a 3-part fixture.
+- **Verified:** `npm run export-all -- /tmp/mini-score.musicxml`
+  produces: 1 × Full_Score.pdf, 3 × per-part PDFs, 2 × muted MP3s,
+  1 × .mid of the whole arrangement, plus the MusicXML inputs
+  preserved. All files validated as real PDFs / MP3s / MIDI via
+  `file` and music21 round-trip.
+- **Open:** None blocking. The pipeline is fully self-sufficient.
+- **Next:** sprint 0.5 — first real Woody Shaw-style chart. The
+  tooling is in place; user supplies the head + changes.

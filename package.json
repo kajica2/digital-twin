@@ -13,6 +13,7 @@
     "index-songs": "node lib/songs-indexer.js --apply --yes",
     "export-parts": "node lib/chart-export.js",
     "export-midi": "node lib/midi-export.js",
+    "export-all": "node lib/chart-export.js --apply --yes --render && node lib/midi-export.js --apply --yes",
     "sync-e2e": "node assets/sync-e2e-constants.js",
     "sync-e2e:apply": "node assets/sync-e2e-constants.js --apply --yes",
     "verify": "npm run e2e"
