@@ -422,3 +422,64 @@ green.
 - **Next:** push `feat/agenda-input`, open PR. Then start the Woody
   Shaw chart sprint (0.4) — head + harmony + rhythm-section voicings
   following the conventions in §6/§9 of the new doc.
+
+### 2026-09-09 — sprint 0.4 (chart export pipeline)
+
+- **Shipped:**
+  - `lib/chart-export.js` — pure-Node, no deps. Splits a MusicXML
+    score into per-instrument MusicXML parts (named per the convention
+    from `docs/COLTRANE-SHAW-ENGRAVING.md` §2), writes a JSON manifest,
+    and produces two muted variants (`No_Trumpet`, `No_Sax`) by removing
+    both the `<part>` elements AND their `<score-part>` declarations
+    from the part-list (orphan declarations would break strict
+    consumers like MuseScore).
+  - `lib/midi-export.js` — pure-Node, no deps. Reads MusicXML, emits
+    a valid SMF 1.0 multi-track MIDI (conductor track + one per part,
+    program-change per channel, note-on/note-off events). The MIDI is
+    the input for Soundslice sync, Synthesia-style highlight videos,
+    DAW re-import, and notation software round-trip.
+  - `docs/CHART-EXPORT-WORKFLOW.md` — canonical reference for the
+    pipeline, including the MuseScore one-click render steps and the
+    Soundslice sync workflow.
+  - `package.json` exposes `npm run export-parts` and
+    `npm run export-midi` matching the existing `--apply --yes` convention
+    from `npm run index-songs`.
+- **Decisions:**
+  - **No PDF / WAV generation inside the scripts.** This machine has
+    no MuseScore / Sibelius / Dorico and no MIDI soundfont synth
+    (no `timidity`, `fluidsynth`, or `mido`). The scripts produce
+    MusicXML inputs + a manifest; the user runs MuseScore (or their
+    DAW) once for the final render. The pipeline's value is in the
+    **automated part-splitting + selective muting**, which is the
+    slow tedious bit when done by hand.
+  - **Staff order matches the engraving doc, not the input order.**
+    The user's MuseScore may have entered the parts in any order;
+    `chart-export.js` reorders them per §2 so the per-instrument
+    filenames (`01_…`, `02_…`) match the band-staff layout.
+  - **Transposition labels are inferred from part-name patterns** —
+    Trumpet → Bb, Alto Sax → Eb, etc. No hard-coded instrument list;
+    unknowns (custom part-names) fall through with C label.
+- **Verified end-to-end:**
+  - `node lib/chart-export.js /tmp/mini-score.musicxml --apply --yes`
+    produces 4 output dirs (PDF, No_Trumpet, No_Sax, Whole) with
+    per-instrument MusicXML parts + manifest + READMEs.
+  - music21 round-trip parse of every output (`parts/*.musicxml`,
+    `score.musicxml` in both muted variants) returns the expected
+    part list.
+  - `node lib/midi-export.js /tmp/mini-score.musicxml --apply --yes`
+    produces a 4-track, 88-byte MIDI that music21 parses back to 4
+    valid tracks.
+- **Open:**
+  - Percussion-channel mapping (channel 9 / GM percussion keys) is
+    not yet applied — drum parts come through as literal MIDI note
+    numbers when the source MusicXML doesn't tag them as channel 9.
+    Sprint 0.5 candidate.
+  - Chord symbol extraction / lyric / rehearsal mark handling —
+    present in MusicXML, not yet parsed. Add when a real chart in
+    the wild shows what's worth deepening.
+- **Next:**
+  - sprint 0.5 — first real chart (Woody Shaw-style). User provides
+    the head + chord changes + form; the agent produces the
+    trumpet-feature part + rhythm-section voicings following the
+    conventions in `docs/COLTRANE-SHAW-ENGRAVING.md` §6/§9, then
+    runs the export pipeline against the produced MusicXML.
