@@ -348,3 +348,77 @@ green.
   start the actual twin runtime (pattern memory + cron self-
   reminders). Scope TBD based on what the populated Songs panel
   reveals about the audio corpus shape.
+
+### 2026-09-09 — sprint 0.1 (boot-core)
+
+- **Shipped:** launchd-driven boot for the Twin OS. Two LaunchAgents:
+  - `com.kaidjuric.digital-twin.server` (`KeepAlive=true`) — serves the
+    repo on `:5173` via `python3 -m http.server 0.0.0.0`, owned by
+    launchd so its lifecycle survives boot.sh exit.
+  - `com.kaidjuric.digital-twin.boot` (`RunAtLoad=true`) — orchestrator:
+    `git pull --ff-only`, ensure server, wait for health, open a
+    visible Terminal tailing the server log, open the Twin OS in the
+    default browser, post a one-line status to Apple Notes under a
+    `twin OS` folder.
+- **Scripts:** `bin/boot.sh`, `bin/notes.applescript`,
+  `bin/terminal-log.applescript`. Stickies AppleScript explored and
+  abandoned — modern macOS does not expose the Stickies document model
+  to AppleScript (`sticky` / `stickies` classes return `not defined`).
+  Apple Notes is the scriptable alternative; same desktop-visible +
+  iCloud-synced behavior.
+
+### 2026-09-09 — sprint 0.2 (agenda-input + muScriptor)
+
+- **Shipped:**
+  - **Today panel textfield** — `form[data-agenda-add]` below the
+    seeded agenda. Submit (Enter / Add button) appends a
+    `.agenda-item[data-user="true"]` row with a × remove control.
+    Persists in `localStorage["dt-agenda-items"]` as
+    `{id, text, addedAt, done}`. Survives reload. Seeded items stay
+    static; user items render after, with a subtle copper highlight.
+  - **Songs panel Tools section** — `.tool-grid` with a MuScriptor
+    card linking to `https://muscriptor.kyutai.org/`. Card describes
+    the output (MIDI, per-instrument sheet-music PDFs, full score,
+    MusicXML) and the local-only command (`uvx muscriptor serve`).
+    Grid layout so future tools slot in next to it.
+- **Decisions:**
+  - Form follows the existing `.song-search` visual pattern (warm
+    cream input, copper focus ring). The Add button uses the copper
+    primary so it reads as a primary action without competing with
+    the rail.
+  - Seeded items kept as static markup instead of merging them into
+    the storage list. This avoids "do I show seeds or user's items?"
+    drift and keeps the first-load visual contract stable.
+  - Text is HTML-escaped before insertion; matches the pattern used
+    in the songs panel.
+
+### 2026-09-09 — sprint 0.3 (engraving reference)
+
+- **Shipped:** `docs/COLTRANE-SHAW-ENGRAVING.md` — 275-line reference
+  encoding the conventions for engraving post-bop / modal jazz scores
+  in the styles of John Coltrane and Woody Shaw. Covers: full-band
+  and jazz-band staff order, part-prep rules (page turns, cue notes,
+  multi-measure rests), section-specific engraving, Coltrane sax
+  conventions (Trane slurs, ghost notes, sheets of sound, altissimo,
+  multiphonics), Shaw trumpet conventions (no 8va, popped highs,
+  acciaccatura grace notes, scoops, half-valve, Harmon mute), full-
+  band implications for rhythm section + horn backgrounds, rhythmic
+  feel notation (metric modulation, double-time feel, laying back),
+  per-section checklist.
+- **Decisions:** The twin's domain is jazz. Standard classical
+  engraving rules do not apply. This doc gives future agents a
+  shared reference so transcriptions / original charts stay
+  consistent regardless of which agent produced them.
+
+### 2026-09-09 — open + next
+
+- **Open:**
+  - Original chart composition in the style of Woody Shaw: not yet
+    started. The reference doc is in place; next sprint will scaffold
+    a chart (trumpet + rhythm) once the head's melody/chords/tempo
+    land.
+  - Branch `feat/agenda-input` has the 0.1/0.2/0.3 commits ready to
+    push + PR.
+- **Next:** push `feat/agenda-input`, open PR. Then start the Woody
+  Shaw chart sprint (0.4) — head + harmony + rhythm-section voicings
+  following the conventions in §6/§9 of the new doc.
