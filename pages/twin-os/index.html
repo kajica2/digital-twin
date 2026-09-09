@@ -407,6 +407,78 @@
       margin-top: 4px;
     }
 
+    /* Add-to-agenda form — textfield + submit, matches .song-search style */
+    .agenda-add {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .agenda-add-input {
+      flex: 1;
+      appearance: none;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font: inherit;
+      font-size: 14px;
+      color: var(--ink);
+    }
+    .agenda-add-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+    .agenda-add-input::placeholder {
+      color: var(--ink-faint);
+    }
+    .agenda-add-btn {
+      appearance: none;
+      background: var(--primary);
+      color: #fff;
+      border: 1px solid var(--primary);
+      border-radius: 10px;
+      padding: 10px 18px;
+      font: inherit;
+      font-size: 13.5px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      transition: filter 0.15s ease, transform 0.05s ease;
+    }
+    .agenda-add-btn:hover { filter: brightness(1.05); }
+    .agenda-add-btn:active { transform: translateY(1px); }
+    .agenda-add-btn:disabled {
+      background: var(--bg-warm);
+      color: var(--ink-faint);
+      border-color: var(--line);
+      cursor: not-allowed;
+    }
+
+    /* User-added items — visually distinct from the seeded ones. */
+    .agenda-item[data-user="true"] {
+      background: var(--primary-soft);
+    }
+    .agenda-item[data-user="true"] .agenda-time {
+      color: var(--primary);
+      font-weight: 500;
+    }
+    .agenda-item-remove {
+      appearance: none;
+      background: transparent;
+      border: 0;
+      color: var(--ink-faint);
+      cursor: pointer;
+      font: inherit;
+      font-size: 18px;
+      line-height: 1;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .agenda-item-remove:hover {
+      background: var(--bg-warm);
+      color: var(--primary);
+    }
+
     /* ============================================================
        5. SONGS PANEL — placeholder for the indexer output
        ============================================================ */
@@ -555,6 +627,77 @@
       font-family: 'JetBrains Mono', monospace;
       font-size: 11.5px;
       color: var(--ink-faint);
+    }
+
+    /* Tools — external music services. Each tool is a card that opens
+       in a new tab. The grid is a single column for now (only one
+       tool) but uses grid so additional tools slot in cleanly. */
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+    }
+    .tool-card {
+      display: block;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 16px 18px;
+      color: var(--ink);
+      text-decoration: none;
+      transition: border-color 0.18s ease, background 0.18s ease, transform 0.05s ease;
+    }
+    .tool-card:hover {
+      border-color: var(--primary-mid);
+      background: var(--primary-soft);
+    }
+    .tool-card:active { transform: translateY(1px); }
+    .tool-card .tool-head {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 8px;
+    }
+    .tool-card .tool-mark {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      color: var(--primary);
+      line-height: 1;
+    }
+    .tool-card .tool-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .tool-card .tool-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      padding: 2px 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      margin-left: auto;
+    }
+    .tool-card .tool-desc {
+      font-size: 13px;
+      color: var(--ink-muted);
+      line-height: 1.55;
+      margin: 6px 0 12px;
+    }
+    .tool-card .tool-desc code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      background: var(--bg-warm);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 1px 6px;
+    }
+    .tool-card .tool-cta {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      color: var(--primary);
+      letter-spacing: 0.04em;
     }
 
     @media (max-width: 720px) {
@@ -726,6 +869,20 @@
         </div>
 
         <div class="panel-section">
+          <form class="agenda-add" data-agenda-add aria-label="Add an agenda item">
+            <input
+              type="text"
+              class="agenda-add-input"
+              data-agenda-input
+              placeholder="Add a note or task — press enter"
+              aria-label="New agenda item"
+              autocomplete="off"
+              maxlength="200" />
+            <button type="submit" class="agenda-add-btn">Add</button>
+          </form>
+        </div>
+
+        <div class="panel-section">
           <h2>Patterns the twin has noticed</h2>
           <p class="lede">Three signals from the last 30 days. Each is a quiet observation, not a rule — the twin proposes, you decide.</p>
           <div class="patterns">
@@ -755,6 +912,23 @@
             <div class="panel-kicker">panel 02 · songs</div>
             <h1 class="panel-h1">A catalog you can actually search.</h1>
             <p class="panel-sub">The indexer walks your audio directories, reads ID3 + WAV metadata, and writes a searchable catalog at <code>/data/songs/catalog.json</code>. Rebuild it with <code>npm run index-songs</code>.</p>
+          </div>
+        </div>
+
+        <!-- Tools — external music services the twin pairs with -->
+        <div class="panel-section" style="margin-top:8px">
+          <h2>Tools</h2>
+          <p class="lede">Pair the catalog with transcription + export services. Each opens in a new tab; nothing leaves this machine until you upload.</p>
+          <div class="tool-grid">
+            <a class="tool-card" href="https://muscriptor.kyutai.org/" target="_blank" rel="noopener" data-tool-muscriptor>
+              <div class="tool-head">
+                <span class="tool-mark" aria-hidden="true">♪</span>
+                <span class="tool-name">MuScriptor</span>
+                <span class="tool-tag">kyutai</span>
+              </div>
+              <p class="tool-desc">Upload audio → get MIDI, per-instrument sheet-music PDFs, full score, and MusicXML. Open-source, MIT-licensed; runs locally via <code>uvx muscriptor serve</code> if you'd rather keep it offline.</p>
+              <span class="tool-cta">open muscriptor.kyutai.org →</span>
+            </a>
           </div>
         </div>
 
@@ -1043,6 +1217,86 @@
         if (detail) detail.innerHTML = `Could not load <code>${escapeHtml(CATALOG_URL)}</code> — ${escapeHtml(err.message)}. Run <code>npm run index-songs</code> from the repo root to generate the catalog.`;
         show(empty);
       });
+  })();
+
+  /* ===========================================================
+     Agenda — load user-added items from localStorage, render,
+     wire the add-form. Seeded items (Morning warm-up, Deep work,
+     Sprint review, Explore) stay as static markup; user items
+     render AFTER, with a small remove control.
+     =========================================================== */
+  (function () {
+    const STORAGE_KEY = 'dt-agenda-items';
+    const form  = document.querySelector('[data-agenda-add]');
+    const input = document.querySelector('[data-agenda-input]');
+    const agenda = document.querySelector('.agenda');
+    if (!form || !input || !agenda) return;
+
+    function load() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) { return []; }
+    }
+    function save(items) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); }
+      catch (e) {}
+    }
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[c]));
+    }
+
+    function renderUserItem(item) {
+      const row = document.createElement('div');
+      row.className = 'agenda-item';
+      row.dataset.user = 'true';
+      row.dataset.id = item.id;
+      row.innerHTML =
+        `<span class="agenda-time">+ added</span>` +
+        `<span class="agenda-label">${escapeHtml(item.text)}` +
+          `<small>added ${escapeHtml(item.addedAt)}</small>` +
+        `</span>` +
+        `<button class="agenda-item-remove" type="button" aria-label="Remove">×</button>`;
+      row.querySelector('.agenda-item-remove').addEventListener('click', () => {
+        const next = load().filter(x => x.id !== item.id);
+        save(next);
+        row.remove();
+      });
+      agenda.appendChild(row);
+    }
+
+    // Initial paint — only paint items not already in the DOM (defensive
+    // against double-init from service-worker cache replays).
+    const existingIds = new Set(
+      Array.from(agenda.querySelectorAll('.agenda-item[data-user="true"]'))
+           .map(n => n.dataset.id)
+    );
+    for (const it of load()) {
+      if (!existingIds.has(it.id)) renderUserItem(it);
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+      const item = {
+        id: 't-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+        text: text.slice(0, 200),
+        addedAt: new Date().toLocaleString(undefined,
+          { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' }),
+        done: false,
+      };
+      const items = load();
+      items.push(item);
+      save(items);
+      renderUserItem(item);
+      input.value = '';
+      input.focus();
+    });
   })();
 </script>
 </body>
