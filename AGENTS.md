@@ -510,3 +510,64 @@ green.
 - **Open:** None blocking. The pipeline is fully self-sufficient.
 - **Next:** sprint 0.5 — first real Woody Shaw-style chart. The
   tooling is in place; user supplies the head + changes.
+
+### 2026-09-12 — sprint 0.5 (cognitive-twin page)
+
+- **Shipped:**
+  - **`pages/cognitive-twin.html`** — single-file narrative page
+    documenting the 4-layer cognitive twin architecture (Scanner /
+    Model / Reasoner / Orchestrator). Sections: hero, click-to-
+    expand layer architecture diagram, 4 running processes, 6
+    domain twins (music, transcription, web, research, …), 12-item
+    toolchain, and the canonical memory model
+    (`memory/user.md` / `memory/agent.md` / `AGENTS.md`).
+    Paired light/dark via CSS custom properties + `prefers-color-
+    scheme` + manual `<theme-toggle>` persisted to
+    `localStorage.ct-theme`. Scroll-spy nav, reading progress bar,
+    copy-to-clipboard on code blocks, click-to-run scanner demo.
+    No frameworks, no build step. Same vanilla-HTML convention as
+    the landing page.
+  - **Six ct-* e2e specs** (`e2e/ct-default.mjs`,
+    `ct-icon.mjs`, `ct-nav.mjs`, `ct-progress.mjs`, `ct-theme.mjs`,
+    `ct-verify.mjs`). Mirror the `landing.spec.mjs` pattern, hit
+    `http://127.0.0.1:5180/cognitive-twin.html` (different port so
+    they can run alongside the launchd `:5173` server).
+    `ct-verify` is the contract spec: 4 layers / 4 twins / 4 arch
+    nodes / 4 processes / 6 domains / 12 tools, plus exercises for
+    layer toggle, twin tab, scanner demo, theme toggle, and 0
+    console errors.
+  - **`lib/songs-indexer.js --add <file>`** — repeatable flag that
+    adds individual audio files to the catalog without walking a
+    configured root. Files land under a synthetic `manual` root
+    (override with `--label <name>`). Reusable for ad-hoc catalog
+    additions; used here to inject a test fixture.
+  - **`assets/mural-prompts/south-america-street-graffiti.md`** —
+    8 Midjourney prompts cataloging the three coherent style
+    groups already in `~/Downloads/midjourney_session (8)/`: B&W
+    asymmetric graphic, mixed-media stencil + blueprint + notation,
+    and cinematic dawn medium-shot.
+- **Decisions:**
+  - **Different port (`:5180` not `:5173`) for ct-* specs** so the
+    launchd Twin OS server keeps its port. Static `python3 -m
+    http.server 5180 --directory pages` works for ad-hoc test
+    runs; production deploy lives on GitHub Pages.
+  - **6 domain twins instead of the 4 originally in the AGENTS.md
+    contract** because the public page wants to surface the full
+    fleet (music + transcription + web + research + 2 reserved).
+    The Twin OS app shell keeps its 3 panels (Today / Songs / Twin)
+    — the 6 are a presentation layer for the page, not a UI
+    commitment.
+- **Verified end-to-end:**
+  - All six ct-* specs pass green on a fresh
+    `python3 -m http.server 5180 --directory pages` server.
+  - `ct-verify` confirms 0 console errors across light + dark, all
+    4 layer-details elements toggle correctly, scanner demo
+    toggles, theme toggle persists across reloads.
+- **Open:**
+  - ct-* specs are not yet wired into `.github/workflows/
+    pages-test.yml`. The current workflow still runs the three
+    `landing.spec.mjs` / `twin-os.spec.mjs` / `twin-os-songs.spec
+    .mjs` specs. Add the six ct-* specs in a follow-up sprint.
+  - Sprint 0.6 (the actual Woody Shaw chart per 0.4.b's "Next")
+    is still parked.
+- **Next:** wire ct-* specs into CI, then resume the chart work.
