@@ -744,3 +744,73 @@ green.
   notation in MusicXML (requires music21 or similar); (c) wire
   the chart export into a watched-folder LaunchAgent that
   auto-rebuilds the chart package on every input change.
+
+### 2026-09-12 — sprint 0.8 (chart export watcher)
+
+- **Shipped:**
+  - **`lib/chart-watcher.js`** — pure-Node, no deps. Polls
+    `chart-inbox/` every 2s for new `.musicxml` files. For each:
+    acquires a lockfile, runs `bin/export-all.sh`, moves the
+    input to `chart-inbox/processed/`, appends a one-line
+    `[start]` / `[done]` / `[fail]` to `logs/chart-watcher.log`.
+    `--once` flag for manual runs. SIGTERM-clean shutdown.
+    Stale lockfiles (>30 min) pruned at startup.
+  - **`bin/chart-watcher.sh`** — LaunchAgent wrapper. Mirrors
+    the `macos-launchd-automation` skill's `start.sh` template:
+    absolute paths, no `cd`, multi-candidate Node resolution
+    (Hermes Node → NVM → Homebrew → system). Drop-in compatible
+    with the existing twin boot / server LaunchAgents.
+  - **`~/Library/LaunchAgents/com.kaidjuric.digital-twin.chart-watcher.plist`**
+    — `RunAtLoad=true`, `KeepAlive=true`, `ThrottleInterval=10`,
+    `EnvironmentVariables.PATH` includes `~/.hermes/node/bin`
+    first. **NOT bootstrapped** — service-state change, awaiting
+    user approval. `plutil -lint` confirmed valid.
+  - **`chart-inbox/`** — drop zone for new `.musicxml` files.
+    `.gitkeep` keeps the dir in the repo; everything else
+    (PDFs, MP3s, MIDI, processed/) is `.gitignore`d as
+    auto-generated.
+  - **`docs/CHART-WATCHER.md`** — install + verify + teardown
+    steps. Includes a copy-paste-able launchctl command sequence.
+- **Decisions:**
+  - **Poll loop, not `fs.watch`.** `fs.watch` / FSEvents under a
+    GUI LaunchAgent has known reliability gaps on macOS — events
+    drop, especially under network filesystem mounts. A 2-second
+    poll is boring, predictable, and matches the twin's "calm,
+    not chatty" ethos.
+  - **Single in-process watcher, no concurrency.** Each export
+    takes ~10s. Serial processing is the right default for a
+    personal twin. To parallelize later, add a worker pool —
+    not now.
+  - **Lockfile-based concurrency guard.** `.processing-<sha1>`
+    in `chart-inbox/` ensures two simultaneous watcher
+    instances (or a stale one) don't double-process a file.
+    Stale locks (>30 min) are pruned at startup so a crash
+    doesn't permanently block a file.
+  - **Move to `processed/`, not delete.** The user can see what
+    shipped. Matches the calm-by-default twin ethos.
+  - **No Slack / IM / desktop notifications.** Logging only.
+    AGENTS.md says "silent unless something matters."
+  - **ThrottleInterval=10 in the plist.** If launchd restarts
+    the watcher (crash), don't let it tight-loop — at least
+    10 seconds between respawns.
+- **Verified end-to-end:**
+  - `cp /tmp/modal-sketch.musicxml chart-inbox/ && node
+    lib/chart-watcher.js --once` → full chart package produced
+    (1 Full_Score.pdf + 4 per-part PDFs + Demo.mp3 + 2 muted
+    MP3s + 5-track MIDI), input moved to `processed/`, all
+    ffprobe-validated. 12.1s wall (matches sprint 0.7 manual
+    run). Zero failures.
+  - `npm run verify` — all 3 e2e specs green, no regressions.
+- **Open:**
+  - LaunchAgent plist is installed but NOT bootstrapped. Awaiting
+    user approval to run `launchctl bootstrap` — irreversible
+    service-state change.
+  - **No retry on failure.** A failed export logs `[fail]` and
+    leaves the input in `chart-inbox/`. Manual intervention
+    required. A simple retry-once-on-failure could be added.
+  - **No concurrency.** Backlog of N files takes N × 10s.
+    Add a worker pool when N > 5 is routine.
+- **Next:** sprint 0.9 candidates — (a) bootstrap the LaunchAgent
+  (after user approval); (b) retry-once-on-failure; (c) the
+  alternate-head chart variant from sprint 0.7's backlog;
+  (d) chord-symbol / slash notation in MusicXML output.
