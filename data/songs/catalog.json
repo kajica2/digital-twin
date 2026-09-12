@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-08-03T13:50:21.723Z",
-  "durationMs": 42,
+  "generatedAt": "2026-09-09T22:51:12.633Z",
+  "durationMs": 12,
   "roots": [
     {
       "label": "jazz-solos",
@@ -19,9 +19,27 @@
       "found": 5,
       "missing": false,
       "pathHint": "music-to-mp4"
+    },
+    {
+      "label": "manual",
+      "found": 1,
+      "missing": false,
+      "pathHint": "manual"
     }
   ],
   "items": [
+    {
+      "id": "manual/test-manual.mp3",
+      "label": "manual",
+      "relPath": "test-manual.mp3",
+      "format": "mp3",
+      "size": 72106,
+      "mtime": "2026-09-09T22:51:10.332Z",
+      "tags": {},
+      "durationSec": null,
+      "sampleRate": null,
+      "channels": null
+    },
     {
       "id": "music-to-mp4/client/dist/demo.wav",
       "label": "music-to-mp4",
