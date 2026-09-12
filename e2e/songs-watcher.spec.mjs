@@ -45,6 +45,22 @@ async function main() {
     const wrapper = join(REPO, 'bin', 'songs-watcher.sh');
     assertTrue('bin/songs-watcher.sh exists', existsSync(wrapper));
 
+    // 1b. Production-path check — LaunchAgent is loaded.
+    // Soft check: if the songs-watcher LaunchAgent isn't running,
+    // we still proceed (the wrapper invocation below is independent).
+    // Hard check would fail the spec when run in CI / fresh dev boxes;
+    // soft check documents the production state without coupling.
+    let agentRunning = false;
+    try {
+        const out = execFileSync('pgrep', ['-fl', 'songs-watcher'], { encoding: 'utf8' });
+        agentRunning = /songs-watcher\.js/.test(out);
+    } catch {}
+    if (agentRunning) {
+        console.log('  (songs-watcher LaunchAgent is running — production path active)');
+    } else {
+        console.log('  (songs-watcher LaunchAgent not running — falling back to direct invocation)');
+    }
+
     // 2. Create a tiny valid WAV (44.1kHz, 16-bit, mono, 0.1s of silence)
     const SONG = `e2e-songs-${Date.now()}`;
     const audioFile = join(INBOX, `${SONG}.wav`);
