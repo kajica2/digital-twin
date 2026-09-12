@@ -814,3 +814,112 @@ green.
   (after user approval); (b) retry-once-on-failure; (c) the
   alternate-head chart variant from sprint 0.7's backlog;
   (d) chord-symbol / slash notation in MusicXML output.
+
+### 2026-09-12 — sprints 0.9 / 0.10 / 0.11 (watcher live, hardened, alt-head chart)
+
+Three sprints in one combined entry — all chart-pipeline work, all
+shipped within a single hour against the running LaunchAgent.
+
+**Sprint 0.9 — LaunchAgent bootstrapped:**
+
+- Loaded `~/Library/LaunchAgents/com.kaidjuric.digital-twin.chart-watcher.plist`
+  via `launchctl bootstrap gui/$UID/...`. State = running, PID 18202
+  (then PID 23200 after the 0.10 kickstart). Hermes-managed Node
+  binary (`~/.hermes/node/bin/node`) used per the plist's PATH.
+- `launchctl kickstart -k` after bootstrap to force an immediate run.
+- Verified beyond `state = running` via `pgrep -fl chart-watcher` —
+  per the `macos-launchd-automation` skill, that flag alone isn't
+  proof of health.
+- Did NOT bootout the existing twin boot / server LaunchAgents.
+  Three LaunchAgents total now: `twin.boot` + `twin.server`
+  + `twin.chart-watcher`.
+
+**Sprint 0.10 — retry-once + lockfile mtime fix:**
+
+- Wrapped `execFileSync` in a 2-attempt loop with a 5-second sync
+  sleep. Catches mscore file-locks, MuseScore crashes, brief
+  filesystem contention. Logging distinguishes `[done]` /
+  `[done-retry-N]` / `[fail]` (with attempt count).
+- Lockfile lifecycle is via `try/finally` around the retry loop —
+  a slow retry never holds the lock longer than total wall time.
+- **Bug fix surfaced during 0.11 verification:** the original
+  lockfile check (`!fs.existsSync(lock)`) didn't detect a stale
+  lock from a previously-processed file at the same path. Drop
+  a new file with the same name → lockfile from the old run
+  blocks the new file indefinitely. The new check considers a
+  lockfile stale if (a) it's older than STALE_LOCK_MS (lowered
+  from 30min to 5min), OR (b) the underlying file's mtime is
+  newer than the lockfile's mtime. The (b) check handles the
+  "replace file at same path" case correctly.
+- Verified end-to-end: happy path → `[done]` at 12.2s, no retry.
+  Failure path (export-all.sh missing) → `[retry]` logged, 5s
+  sleep, `[fail]` (2 attempts), lockfile cleaned. Replace-at-
+  same-path → new file picked up immediately on next tick.
+
+**Sprint 0.11 — alt-head modal chart variant:**
+
+- Composed `/tmp/modal-sketch-b.musicxml` — 60KB, 4 parts, modal
+  AABA in D dorian / G dorian / D dorian (same form as the
+  sprint 0.7 chart), but the head starts on F (a 5th higher
+  than modal-sketch's D) and showcases per `docs/COLTRANE-SHAW-
+  ENGRAVING.md` §6: `<articulations>` markers on popped-high
+  notes (marcato + tenuto + strong-accent), "Harmon mute, stem
+  out" direction at bar 17, half-valve pickup direction at the
+  bridge.
+- Stays in `/tmp` (work product, not repo content) — same
+  convention as sprint 0.7's `modal-sketch.musicxml`.
+- Dropped into the production inbox while the LaunchAgent was
+  live. Watcher picked it up, full chart package shipped end-
+  to-end: 1 Full_Score.pdf (3 pages) + 4 per-part PDFs in
+  canonical band order (Trumpet_Bb, Piano_C, Bass_C, Drums_C)
+  + Demo.mp3 + No_Trumpet.mp3 + No_Sax.mp3 (all 56.0s/53.0s @
+  128 kbps) + 5-track MIDI. All ffprobe-validated, all real.
+- Wall time: 13.3s — articulations + mute direction did NOT
+  break MuseScore (initial concern that mscore would hang on
+  the direction text — it didn't).
+
+**Decisions:**
+
+- **Single combined AGENTS.md entry** for 0.9 / 0.10 / 0.11
+  because they form one continuous arc: bootstrap → harden →
+  exercise. Splitting them across three entries would have
+  duplicated the LaunchAgent verification narrative.
+- **`launchctl kickstart -k` (not `bootout`/`bootstrap`) for
+  the 0.10 restart** — same scope as the 0.9 bootstrap approval.
+  Cheaper, no approval gate.
+- **Alt-head kept in `/tmp`** rather than committed to the
+  repo, despite the new watcher making in-repo placement viable.
+  Reason: chart compositions are evolving work products, not
+  durable artifacts. The repo carries the tooling, the chart
+  itself lives where the user iterates on it.
+- **No concurrency in the watcher.** Serial processing is still
+  the right default for a personal twin; the queue has never
+  built up beyond a single file in practice.
+
+**Verified end-to-end (all three sprints):**
+
+- LaunchAgent running PID 23200, state = running, two children
+  active. Three LaunchAgents total.
+- `[start] modal-sketch-b.musicxml` → `[done] → 13.3s` via
+  the live watcher.
+- `[start] lockfile-test.musicxml` (first) → `[done] → 13.7s`,
+  then REPLACE the file → `[start] lockfile-test.musicxml`
+  (second, same path, different mtime) → `[done] → 12.9s`.
+  Mtime fix confirmed working.
+- All mp3s are MPEG ADTS layer III 128 kbps 44.1 kHz JntStereo,
+  all PDFs are v1.4, MIDI is format 1 with 5 tracks.
+
+**Open:**
+
+- No automated test for the lockfile-mtime race condition. The
+  manual reproduction verified it; a permanent test would
+  require a synthetic watcher test harness. Defer until the
+  watcher grows more branches.
+
+**Next:** sprint 0.12 candidates — (a) chord-symbol / slash
+notation in MusicXML output (requires music21 or similar);
+(b) automated test for the watcher's lockfile logic;
+(c) wire the LaunchAgent log rotation (logs/ grows unbounded);
+(d) ship a docs sample showing two charts side-by-side
+(modal-sketch + modal-sketch-b) so the alt-head's articulation
+choices are visible in PDF form.
