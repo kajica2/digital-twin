@@ -1,12 +1,14 @@
 import puppeteer from 'puppeteer';
 
 // E2E_URL — when set, runs against the deployed GitHub Pages site.
-// Otherwise serves the local `pages/` dir on PORT (default 5180).
+// Otherwise hits the launchd-managed server on PORT (default 5173,
+// serves from the repo root, so the page lives at /pages/...).
 //   E2E_URL=https://kajica2.github.io/digital-twin node ct-nav.mjs
+//   PORT=5180 node ct-nav.mjs                      # ad-hoc python server on pages/
 const DEPLOYED_URL = process.env.E2E_URL || null;
-const PORT = process.env.PORT || '5180';
+const PORT = process.env.PORT || '5173';
 const BASE = DEPLOYED_URL || `http://127.0.0.1:${PORT}`;
-const URL = `${BASE}${DEPLOYED_URL ? '/pages/cognitive-twin.html' : '/cognitive-twin.html'}`;
+const URL = `${BASE}${DEPLOYED_URL ? '/pages/cognitive-twin.html' : '/pages/cognitive-twin.html'}`;
 
 const browser = await puppeteer.launch({
   headless: 'new',
