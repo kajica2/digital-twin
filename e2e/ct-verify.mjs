@@ -1,0 +1,68 @@
+import puppeteer from 'puppeteer';
+
+const URL = process.env.URL || 'http://127.0.0.1:5180/cognitive-twin.html';
+const errors = [];
+
+const browser = await puppeteer.launch({
+  headless: 'new',
+  executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  args: ['--no-sandbox', '--disable-gpu', '--hide-scrollbars'],
+});
+try {
+  const page = await browser.newPage();
+  await page.setViewport({ width: 1280, height: 900, deviceScaleFactor: 1 });
+  page.on('pageerror', e => errors.push('pageerror: ' + e.message));
+  page.on('console', msg => {
+    if (msg.type() === 'error') errors.push('console.error: ' + msg.text());
+  });
+  page.on('requestfailed', req => errors.push('reqfail: ' + req.url() + ' ' + req.failure()?.errorText));
+
+  await page.goto(URL, { waitUntil: 'networkidle0', timeout: 15000 });
+
+  // LIGHT
+  await page.screenshot({ path: '/tmp/ct_light.png', fullPage: true });
+
+  // exercise: layer toggle
+  await page.evaluate(() => showLayer('reasoner'));
+  await new Promise(r => setTimeout(r, 250));
+  const layerVisible = await page.evaluate(() => document.getElementById('layer-reasoner').classList.contains('visible'));
+  console.log('layer-reasoner visible:', layerVisible);
+
+  // exercise: twin tab switch
+  await page.evaluate(() => showTwin('web'));
+  await new Promise(r => setTimeout(r, 250));
+  const twinActive = await page.evaluate(() => document.querySelector('.twin-content.active')?.id);
+  console.log('active twin:', twinActive);
+
+  // exercise: scanner demo
+  await page.evaluate(() => document.getElementById('runScanner').click());
+  await new Promise(r => setTimeout(r, 250));
+  const demoVisible = await page.evaluate(() => document.getElementById('scannerOutput').classList.contains('visible'));
+  console.log('scanner demo visible:', demoVisible);
+
+  // exercise: theme toggle
+  await page.evaluate(() => document.getElementById('themeToggle').click());
+  await new Promise(r => setTimeout(r, 250));
+  const theme = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
+  console.log('theme after toggle:', theme);
+  await page.screenshot({ path: '/tmp/ct_dark.png', fullPage: true });
+
+  // contract checks
+  const checks = await page.evaluate(() => {
+    const requiredIds = ['scan','architecture','processes','instances','toolchain'];
+    const found = requiredIds.map(id => !!document.getElementById(id));
+    const twins = ['twin-music','twin-transcription','twin-web','twin-research'].map(id => !!document.getElementById(id));
+    const layers = ['layer-scanner','layer-model','layer-reasoner','layer-orchestrator'].map(id => !!document.getElementById(id));
+    const archNodes = document.querySelectorAll('.arch-node').length;
+    const processItems = document.querySelectorAll('.process-item').length;
+    const domainCards = document.querySelectorAll('.domain-card').length;
+    const toolItems = document.querySelectorAll('.tool-item').length;
+    return { found, twins, layers, archNodes, processItems, domainCards, toolItems };
+  });
+  console.log('checks:', JSON.stringify(checks));
+
+  console.log('errors:', JSON.stringify(errors, null, 2));
+  console.log('OK');
+} finally {
+  await browser.close();
+}
