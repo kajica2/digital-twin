@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Cognitive Twin — Systems Architecture</title>
+    <meta name="description" content="A cognitive twin architecture that scans, models, reasons, and orchestrates your development environment.">
+    <meta property="og:title" content="The Cognitive Twin — Systems Architecture">
+    <meta property="og:description" content="A map of everything. Working.">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='28'%3E%E2%97%88%3C/text%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #fafaf9;
+            --bg-secondary: #f5f5f4;
+            --bg-tertiary: #e7e5e4;
+            --bg-card: #ffffff;
+            --text-primary: #1c1917;
+            --text-secondary: #57534e;
+            --text-tertiary: #78716c;
+            --border-light: #e7e5e4;
+            --border-medium: #d6d3d1;
+            --accent-scanner: #0ea5e9;
+            --accent-model: #10b981;
+            --accent-reasoner: #f59e0b;
+            --accent-orchestrator: #ef4444;
+            --accent-music: #8b5cf6;
+            --accent-audio: #06b6d4;
+            --accent-agents: #ec4899;
+            --accent-visual: #f97316;
+            --accent-knowledge: #84cc16;
+            --accent-github: #6b7280;
+            --code-bg: #f5f5f4;
+            --code-text: #44403c;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0c0a09;
+            --bg-secondary: #1c1917;
+            --bg-tertiary: #292524;
+            --bg-card: #1c1917;
+            --text-primary: #fafaf9;
+            --text-secondary: #a8a29e;
+            --text-tertiary: #78716c;
+            --border-light: #292524;
+            --border-medium: #44403c;
+            --code-bg: #292524;
+            --code-text: #e7e5e4;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 80px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-scanner), var(--accent-model), var(--accent-reasoner), var(--accent-orchestrator));
+            z-index: 1000;
+            transition: width 0.1s;
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(250, 250, 249, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-light);
+            z-index: 100;
+            transition: all 0.3s;
+        }
+
+        [data-theme="dark"] .nav {
+            background: rgba(12, 10, 9, 0.8);
+        }
+
+        .nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-logo {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-logo::before {
+            content: "◈";
+            color: var(--accent-scanner);
+            font-size: 1.2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .nav-link {
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+            background: var(--bg-secondary);
+        }
+
+        .nav-link.active {
+            color: var(--accent-scanner);
+            background: rgba(14, 165, 233, 0.1);
+        }
+
+        .theme-toggle {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-medium);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            margin-left: 8px;
+            font-size: 1rem;
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        /* Layout */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Hero */
+        .hero {
+            padding: 120px 0 60px;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border-radius: 100px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 24px;
+        }
+
+        .hero-badge::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-scanner);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            max-width: 500px;
+            margin: 0 auto 32px;
+        }
+
+        .hero-desc {
+            color: var(--text-tertiary);
+            font-size: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        /* Section styling */
+        section {
+            padding: 60px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        section:last-of-type {
+            border-bottom: none;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .section-number {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-secondary);
+            color: var(--text-tertiary);
+            white-space: nowrap;
+            margin-top: 4px;
+            min-width: 32px;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .section-title-group {
+            flex: 1;
+        }
+
+        .section-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.01em;
+        }
+
+        .section-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        /* Architecture diagram */
+        .arch-diagram {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin: 40px 0;
+        }
+
+        .arch-node {
+            background: var(--bg-card);
+            border: 2px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .arch-node:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .arch-node.active {
+            border-color: var(--node-color);
+            box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .arch-node[data-layer="scanner"] { --node-color: var(--accent-scanner); }
+        .arch-node[data-layer="model"] { --node-color: var(--accent-model); }
+        .arch-node[data-layer="reasoner"] { --node-color: var(--accent-reasoner); }
+        .arch-node[data-layer="orchestrator"] { --node-color: var(--accent-orchestrator); }
+
+        .arch-node[data-layer="scanner"]:hover,
+        .arch-node[data-layer="scanner"].active { border-color: var(--accent-scanner); }
+        .arch-node[data-layer="model"]:hover,
+        .arch-node[data-layer="model"].active { border-color: var(--accent-model); }
+        .arch-node[data-layer="reasoner"]:hover,
+        .arch-node[data-layer="reasoner"].active { border-color: var(--accent-reasoner); }
+        .arch-node[data-layer="orchestrator"]:hover,
+        .arch-node[data-layer="orchestrator"].active { border-color: var(--accent-orchestrator); }
+
+        .arch-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 1.5rem;
+        }
+
+        .arch-node[data-layer="scanner"] .arch-icon { background: rgba(14, 165, 233, 0.15); color: var(--accent-scanner); }
+        .arch-node[data-layer="model"] .arch-icon { background: rgba(16, 185, 129, 0.15); color: var(--accent-model); }
+        .arch-node[data-layer="reasoner"] .arch-icon { background: rgba(245, 158, 11, 0.15); color: var(--accent-reasoner); }
+        .arch-node[data-layer="orchestrator"] .arch-icon { background: rgba(239, 68, 68, 0.15); color: var(--accent-orchestrator); }
+
+        .arch-name {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .arch-role {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+        }
+
+        .arch-arrow {
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--border-medium);
+            font-size: 1.2rem;
+            z-index: 1;
+        }
+
+        .arch-node:last-child .arch-arrow {
+            display: none;
+        }
+
+        /* Flow animation between nodes */
+        .arch-flow {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 16px 0 32px;
+        }
+
+        .flow-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--border-medium);
+            animation: flow 1.5s infinite;
+        }
+
+        .flow-dot:nth-child(2) { animation-delay: 0.2s; }
+        .flow-dot:nth-child(3) { animation-delay: 0.4s; }
+        .flow-dot:nth-child(4) { animation-delay: 0.6s; }
+
+        @keyframes flow {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.3); }
+        }
+
+        /* Layer detail cards */
+        .layer-details {
+            display: none;
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            margin-top: 24px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .layer-details.visible {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .layer-details h4 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .layer-details p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Domain cards grid */
+        .domain-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin: 32px 0;
+        }
+
+        .domain-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .domain-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+
+        .domain-card[data-domain="music"]::before { background: var(--accent-music); }
+        .domain-card[data-domain="audio"]::before { background: var(--accent-audio); }
+        .domain-card[data-domain="agents"]::before { background: var(--accent-agents); }
+        .domain-card[data-domain="visual"]::before { background: var(--accent-visual); }
+        .domain-card[data-domain="knowledge"]::before { background: var(--accent-knowledge); }
+        .domain-card[data-domain="github"]::before { background: var(--accent-github); }
+
+        .domain-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--border-medium);
+        }
+
+        .domain-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .domain-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .domain-card[data-domain="music"] .domain-icon { background: rgba(139, 92, 246, 0.15); color: var(--accent-music); }
+        .domain-card[data-domain="audio"] .domain-icon { background: rgba(6, 182, 212, 0.15); color: var(--accent-audio); }
+        .domain-card[data-domain="agents"] .domain-icon { background: rgba(236, 72, 153, 0.15); color: var(--accent-agents); }
+        .domain-card[data-domain="visual"] .domain-icon { background: rgba(249, 115, 22, 0.15); color: var(--accent-visual); }
+        .domain-card[data-domain="knowledge"] .domain-icon { background: rgba(132, 204, 22, 0.15); color: var(--accent-knowledge); }
+        .domain-card[data-domain="github"] .domain-icon { background: rgba(107, 114, 128, 0.15); color: var(--accent-github); }
+
+        .domain-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .domain-tools {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            line-height: 1.5;
+        }
+
+        .domain-projects {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .project-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: var(--code-bg);
+            color: var(--code-text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            margin: 2px;
+        }
+
+        /* Process timeline */
+        .process-timeline {
+            position: relative;
+            padding-left: 32px;
+            margin: 32px 0;
+        }
+
+        .process-timeline::before {
+            content: "";
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border-medium);
+        }
+
+        .process-item {
+            position: relative;
+            padding: 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            margin-bottom: 16px;
+            transition: all 0.2s;
+        }
+
+        .process-item:hover {
+            border-color: var(--border-medium);
+            box-shadow: var(--shadow-md);
+        }
+
+        .process-item::before {
+            content: "";
+            position: absolute;
+            left: -26px;
+            top: 28px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 2px solid var(--accent-scanner);
+        }
+
+        .process-item[data-status="running"]::before {
+            background: var(--accent-scanner);
+            animation: pulse 2s infinite;
+        }
+
+        .process-item[data-status="success"]::before {
+            background: var(--accent-model);
+            border-color: var(--accent-model);
+        }
+
+        .process-item[data-status="error"]::before {
+            background: var(--accent-orchestrator);
+            border-color: var(--accent-orchestrator);
+        }
+
+        .process-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .process-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .process-status {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .process-status.scheduled {
+            background: rgba(14, 165, 233, 0.15);
+            color: var(--accent-scanner);
+        }
+
+        .process-status.running {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--accent-reasoner);
+        }
+
+        .process-status.success {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-model);
+        }
+
+        .process-arrow {
+            text-align: center;
+            color: var(--border-medium);
+            font-size: 1.2rem;
+            margin: 8px 0;
+        }
+
+        /* Twin instances */
+        .twin-tabs {
+            display: flex;
+            gap: 8px;
+            margin: 32px 0 24px;
+            flex-wrap: wrap;
+        }
+
+        .twin-tab {
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .twin-tab:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .twin-tab.active {
+            background: var(--accent-scanner);
+            color: white;
+            border-color: var(--accent-scanner);
+        }
+
+        .twin-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .twin-content.active {
+            display: block;
+        }
+
+        .twin-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+        }
+
+        .twin-panel h4 {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Toolchain */
+        .toolchain-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin: 32px 0;
+        }
+
+        .tool-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            transition: all 0.2s;
+        }
+
+        .tool-item:hover {
+            border-color: var(--border-medium);
+            transform: translateX(4px);
+        }
+
+        .tool-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .tool-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .tool-desc {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85em;
+            background: var(--code-bg);
+            color: var(--code-text);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .code-block {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            overflow-x: auto;
+            margin: 16px 0;
+            position: relative;
+        }
+
+        .code-block pre {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--code-text);
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 4px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-medium);
+            background: var(--bg-card);
+            color: var(--text-tertiary);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            opacity: 0;
+        }
+
+        .code-block:hover .copy-btn {
+            opacity: 1;
+        }
+
+        .copy-btn:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .copy-btn.copied {
+            background: var(--accent-model);
+            color: white;
+            border-color: var(--accent-model);
+        }
+
+        /* Footer */
+        .footer {
+            padding: 60px 0;
+            text-align: center;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .footer-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .footer-link:hover {
+            background: var(--bg-tertiary);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .arch-diagram {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .arch-arrow {
+                display: none;
+            }
+            .nav-links {
+                display: none;
+            }
+            .hero {
+                padding-top: 100px;
+            }
+            section {
+                padding: 40px 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .arch-diagram {
+                grid-template-columns: 1fr;
+            }
+            .domain-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-medium);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-tertiary);
+        }
+
+        ::selection {
+            background: rgba(14, 165, 233, 0.2);
+        }
+
+        .tooltip {
+            position: relative;
+        }
+
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 6px 12px;
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            font-size: 0.75rem;
+            border-radius: var(--radius-sm);
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            margin-bottom: 8px;
+        }
+
+        .tooltip:hover::after {
+            opacity: 1;
+        }
+
+        .demo-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: var(--accent-scanner);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 16px;
+        }
+
+        .demo-btn:hover {
+            background: #0284c7;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .demo-output {
+            display: none;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-top: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .demo-output.visible {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        .demo-line {
+            padding: 2px 0;
+        }
+
+        .demo-line.success { color: var(--accent-model); }
+        .demo-line.info { color: var(--accent-scanner); }
+        .demo-line.warn { color: var(--accent-reasoner); }
+    </style>
+</head>
+<body>
+<div class="progress-bar" id="progressBar"></div>
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="#" class="nav-logo">The Cognitive Twin</a>
+        <div class="nav-links">
+            <a href="#scan" class="nav-link">Scan</a>
+            <a href="#architecture" class="nav-link">Architecture</a>
+            <a href="#processes" class="nav-link">Processes</a>
+            <a href="#instances" class="nav-link">Instances</a>
+            <a href="#toolchain" class="nav-link">Toolchain</a>
+        </div>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">◐</button>
+    </div>
+</nav>
+<div class="container">
+    <header class="hero">
+        <div class="hero-badge">Systems Architecture</div>
+        <h1>A map of everything.<br>Working.</h1>
+        <p class="hero-subtitle">The Cognitive Twin</p>
+        <p class="hero-desc">A cognitive twin is designed to scan the environment, index every tool, map every project, and set up the work so it can run with less babysitting. It is built to be the meta-layer that the other stacks are designed to sit on top of.</p>
+    </header>
+
+    <!-- Section 01: System Scan -->
+    <section id="scan">
+        <div class="section-header">
+            <span class="section-number">01</span>
+            <div class="section-title-group">
+                <h2 class="section-title">The System Scan</h2>
+                <p class="section-subtitle">What was found.</p>
+            </div>
+        </div>
+        <p style="color: var(--text-secondary); margin-bottom: 32px; line-height: 1.7;">
+            The environment is a working surface. Not a storage dump — a living pipeline. The twin starts by making an honest inventory of what's actually there, in plain text, so the rest of the layers have something concrete to reason over.
+        </p>
+        <div class="domain-grid">
+            <div class="domain-card" data-domain="music">
+                <div class="domain-header">
+                    <div class="domain-icon">♪</div>
+                    <div class="domain-name">Music Production</div>
+                </div>
+                <div class="domain-tools">
+                    DAW · Notation · Sample library · Sampler · Synth · FX chain · Generative audio
+                </div>
+                <div class="domain-projects">
+                    <span class="project-tag">music-corpus</span>
+                    <span class="project-tag">audio-pipeline</span>
+                    <span class="project-tag">practice-tracker</span>
+                    <span class="project-tag">repertoire-db</span>
+                </div>
+            </div>
+            <div class="domain-card" data-domain="audio">
+                <div class="domain-header">
+                    <div class="domain-icon">🎙</div>
+                    <div class="domain-name">AI Audio</div>
+                </div>
+                <div class="domain-tools">
+                    STT · Audio analysis · Audio editing · LLM APIs · Browser audio · Voice synthesis
+                </div>
+                <div class="domain-projects">
+                    <span class="project-tag">transcription-dashboard</span>
+                    <span class="project-tag">handwriting-ocr</span>
+                    <span class="project-tag">audio-summarizer</span>
+                </div>
+            </div>
+            <div class="domain-card" data-domain="agents">
+                <div class="domain-header">
+                    <div class="domain-icon">🤖</div>
+                    <div class="domain-name">AI Agents</div>
+                </div>
+                <div class="domain-tools">
+                    Code assistant · Coder · Generalist · Reviewer · Verifier
+                </div>
+                <div class="domain-projects">
+                    <span class="project-tag">memory/user.md</span>
+                    <span class="project-tag">memory/agent.md</span>
+                </div>
+            </div>
+            <div class="domain-card" data-domain="visual">
+                <div class="domain-header">
+                    <div class="domain-icon">🎨</div>
+                    <div class="domain-name">Visual / Web</div>
+                </div>
+                <div class="domain-tools">
+                    WebGL · Build tool · UI framework · Image gen · Video gen · NLE · Video upscale
+                </div>
+                <div class="domain-projects">
+                    <span class="project-tag">shader-sketches</span>
+                    <span class="project-tag">gen-art</span>
+                    <span class="project-tag">long-horizon</span>
+                    <span class="project-tag">web-lab</span>
+                </div>
+            </div>
+            <div class="domain-card" data-domain="knowledge">
+                <div class="domain-header">
+                    <div class="domain-icon">📚</div>
+                    <div class="domain-name">Knowledge</div>
+                </div>
+                <div class="domain-tools">
+                    Note system · Reference corpus · Notation · Code assistant
+                </div>
+                <div class="domain-projects">
+                    <span class="project-tag">notes-source.md</span>
+                    <span class="project-tag">notes-status.log</span>
+                </div>
+            </div>
+            <div class="domain-card" data-domain="github">
+                <div class="domain-header">
+                    <div class="domain-icon">⚡</div>
+                    <div class="domain-name">GitHub</div>
+                </div>
+                <div class="domain-tools">
+                    gh CLI · Git · Deploy targets · Static hosting
+                </div>
+                <div class="domain-projects">
+                    <span class="project-tag">series-site</span>
+                    <span class="project-tag">prompt-library</span>
+                    <span class="project-tag">jazz-lexicon</span>
+                </div>
+            </div>
+        </div>
+        <p style="color: var(--text-tertiary); font-style: italic; margin-top: 24px;">
+            "I want to transcribe this recording" should route to the transcription pipeline, not require re-discovering which tools are installed.
+        </p>
+        <button class="demo-btn" id="runScanner">▶ Run Scanner Demo</button>
+        <div class="demo-output" id="scannerOutput">
+            <div class="demo-line info">$ twin scan --environment</div>
+            <div class="demo-line">Scanning filesystem...</div>
+            <div class="demo-line">Found package.json: 12 projects</div>
+            <div class="demo-line">Found requirements.txt: 3 Python envs</div>
+            <div class="demo-line">Found brew list: 47 packages</div>
+            <div class="demo-line success">✓ Scanner complete: 6 domains indexed</div>
+            <div class="demo-line info">Written to memory/twin-index.json</div>
+        </div>
+    </section>
+
+    <!-- Section 02: Architecture -->
+    <section id="architecture">
+        <div class="section-header">
+            <span class="section-number">02</span>
+            <div class="section-title-group">
+                <h2 class="section-title">Architecture</h2>
+                <p class="section-subtitle">Four layers. Each one does one thing.</p>
+            </div>
+        </div>
+        <p style="color: var(--text-secondary); margin-bottom: 32px;">
+            The twin is not a single agent. It's a layered system — scan, model, reason, orchestrate — where each layer feeds the next and none of them require a human in the loop once the work is defined.
+        </p>
+        <div class="arch-flow">
+            <div class="flow-dot"></div>
+            <div class="flow-dot"></div>
+            <div class="flow-dot"></div>
+            <div class="flow-dot"></div>
+        </div>
+        <div class="arch-diagram">
+            <div class="arch-node" data-layer="scanner" onclick="showLayer('scanner')">
+                <div class="arch-icon">🔍</div>
+                <div class="arch-name">Scanner</div>
+                <div class="arch-role">Index the environment</div>
+                <div class="arch-arrow">→</div>
+            </div>
+            <div class="arch-node" data-layer="model" onclick="showLayer('model')">
+                <div class="arch-icon">💾</div>
+                <div class="arch-name">Model</div>
+                <div class="arch-role">Persist as memory</div>
+                <div class="arch-arrow">→</div>
+            </div>
+            <div class="arch-node" data-layer="reasoner" onclick="showLayer('reasoner')">
+                <div class="arch-icon">🧠</div>
+                <div class="arch-name">Reasoner</div>
+                <div class="arch-role">Match work to tools</div>
+                <div class="arch-arrow">→</div>
+            </div>
+            <div class="arch-node" data-layer="orchestrator" onclick="showLayer('orchestrator')">
+                <div class="arch-icon">⚙️</div>
+                <div class="arch-name">Orchestrator</div>
+                <div class="arch-role">Run the work</div>
+            </div>
+        </div>
+        <div class="layer-details" id="layer-scanner">
+            <h4 style="color: var(--accent-scanner);"><span>🔍</span> Scanner — Index the environment</h4>
+            <p>Runs on demand or on a cron. Traverses the filesystem at startup — reads <code>package.json</code>, <code>requirements.txt</code>, agent skills, installed tools (brew, pip, npm), GitHub repos, Obsidian vault index. Outputs a structured snapshot of every tool, project, and capability available right now. If a new package appears, the scanner finds it on the next run.</p>
+        </div>
+        <div class="layer-details" id="layer-model">
+            <h4 style="color: var(--accent-model);"><span>💾</span> Model — Persist the inventory as memory</h4>
+            <p>The scan output writes to a durable layer — <code>memory/user.md</code> for cross-project preferences, <code>memory/agent.md</code> for agent behavior, and a project-level twin index for domain-specific context. This is what allows the twin to know "I already have a transcription pipeline" without re-running discovery. The model is the memory of the environment.</p>
+        </div>
+        <div class="layer-details" id="layer-reasoner">
+            <h4 style="color: var(--accent-reasoner);"><span>🧠</span> Reasoner — Match work to tools</h4>
+            <p>Given a job — "transcribe this recording", "build a landing page for X", "run the weekly report" — the reasoner reads the model and selects the right tools in the right order. It's not an LLM doing freeform reasoning from scratch; it's a routing decision constrained by the actual inventory. If Whisper and pYIN are installed, route audio transcription there. If not, route to the API. The reasoner picks from what's actually available.</p>
+        </div>
+        <div class="layer-details" id="layer-orchestrator">
+            <h4 style="color: var(--accent-orchestrator);"><span>⚙️</span> Orchestrator — Set up and run the work process</h4>
+            <p>Once the reasoner picks the path, the orchestrator sets up the process — writes a subagent prompt, schedules a cron, triggers a webhook, or hands off to the next agent in the chain. The orchestrator also handles failure modes: if a step fails, it retries, rolls back, or escalates to the human digest with a diff. The orchestrator is the part that does the work. The other three layers exist so it always knows what it's working with.</p>
+        </div>
+    </section>
+
+    <!-- Section 03: Designed Processes -->
+    <section id="processes">
+        <div class="section-header">
+            <span class="section-number">03</span>
+            <div class="section-title-group">
+                <h2 class="section-title">Designed Processes</h2>
+                <p class="section-subtitle">What the twin is built to run.</p>
+            </div>
+        </div>
+        <p style="color: var(--text-secondary); margin-bottom: 32px;">
+            The twin doesn't just describe the environment — it acts on it. These are the process templates it runs, the way an operating system runs its daemons.
+        </p>
+        <div class="process-timeline">
+            <div class="process-item" data-status="running">
+                <div class="process-header">
+                    <span class="process-name">Research Swarm</span>
+                    <span class="process-status running">Running</span>
+                </div>
+                <p class="process-desc">Scheduled subagent that polls a paper feed (arXiv, conference proceedings) and a code feed (GitHub trending, releases) on a fixed cadence. Writes a summary into a tracked docs folder; the published site rebuilds on push.</p>
+            </div>
+            <div class="process-arrow">↓</div>
+            <div class="process-item" data-status="success">
+                <div class="process-header">
+                    <span class="process-name">Deploy Gate</span>
+                    <span class="process-status success">Active</span>
+                </div>
+                <p class="process-desc">Fires on every web deploy. Visits the live URL, asserts HTTP 200, checks the rendered DOM for expected strings, fails on console errors, retries the deploy if the check fails. The twin verifies its own output.</p>
+            </div>
+            <div class="process-arrow">↓</div>
+            <div class="process-item" data-status="success">
+                <div class="process-header">
+                    <span class="process-name">Memory Maintenance</span>
+                    <span class="process-status success">Active</span>
+                </div>
+                <p class="process-desc">At the end of a working session, the twin appends durable learnings to <code>memory/user.md</code> (cross-project rules), <code>memory/agent.md</code> (agent behavior), or a project-level <code>AGENTS.md</code> (repo-specific context). The next agent that spins up reads the model and starts with working context.</p>
+            </div>
+            <div class="process-arrow">↓</div>
+            <div class="process-item" data-status="scheduled">
+                <div class="process-header">
+                    <span class="process-name">E2E Regression Gate</span>
+                    <span class="process-status scheduled">Scheduled</span>
+                </div>
+                <p class="process-desc">After any sprint (multi-step code change), the twin runs the project's end-to-end test before reporting done. Typecheck + build passing don't count. The test must pass. If it fails, the sprint isn't done.</p>
+            </div>
+        </div>
+        <p style="color: var(--text-tertiary); font-style: italic; margin-top: 24px;">
+            The twin is not a dashboard. A dashboard shows you what's happening. The twin acts on what it finds. If a scheduled job fails three times in a row, the twin doesn't just tell you — it flags it, rolls back the broken deploy, and puts the diagnostic in your next digest.
+        </p>
+    </section>
+
+    <!-- Section 04: Twin Instances -->
+    <section id="instances">
+        <div class="section-header">
+            <span class="section-number">04</span>
+            <div class="section-title-group">
+                <h2 class="section-title">Twin Instances</h2>
+                <p class="section-subtitle">Domain-specific twins built from the scan.</p>
+            </div>
+        </div>
+        <p style="color: var(--text-secondary); margin-bottom: 32px;">
+            The general scanner produces domain-specific instantiations. Each twin knows its domain cold and runs the work without asking.
+        </p>
+        <div class="twin-tabs">
+            <button class="twin-tab active" data-twin="music" onclick="showTwin('music')">🎵 Music</button>
+            <button class="twin-tab" data-twin="transcription" onclick="showTwin('transcription')">🎙 Transcription</button>
+            <button class="twin-tab" data-twin="web" onclick="showTwin('web')">🌐 Web</button>
+            <button class="twin-tab" data-twin="research" onclick="showTwin('research')">🔬 Research</button>
+        </div>
+        <div class="twin-content active" id="twin-music">
+            <div class="twin-panel">
+                <h4 style="color: var(--accent-music);">🎵 Music Twin</h4>
+                <p style="color: var(--text-secondary); line-height: 1.7;">Index: DAW projects, recording sessions, scores, sample libraries, patches, presets. Knows the full instrument and FX chain. Routes requests to the right environment — generative audio for demos, DAW for production, corpus tools for analysis.</p>
+                <div style="margin-top: 16px;">
+                    <span class="project-tag">Logic Pro</span>
+                    <span class="project-tag">Ableton</span>
+                    <span class="project-tag">Sibelius</span>
+                    <span class="project-tag">pYIN</span>
+                </div>
+            </div>
+        </div>
+        <div class="twin-content" id="twin-transcription">
+            <div class="twin-panel">
+                <h4 style="color: var(--accent-audio);">🎙 Transcription Twin</h4>
+                <p style="color: var(--text-secondary); line-height: 1.7;">Index: live recordings, transcription output, charts, practice logs. Scans the transcription stack directories. Keeps the pitch-detection + notation pipeline warm. Routes new recordings to the ingest → transcribe → chart flow automatically.</p>
+                <div style="margin-top: 16px;">
+                    <span class="project-tag">Whisper</span>
+                    <span class="project-tag">pYIN</span>
+                    <span class="project-tag">MusicXML</span>
+                    <span class="project-tag">LilyPond</span>
+                </div>
+            </div>
+        </div>
+        <div class="twin-content" id="twin-web">
+            <div class="twin-panel">
+                <h4 style="color: var(--accent-visual);">🌐 Web Twin</h4>
+                <p style="color: var(--text-secondary); line-height: 1.7;">Index: all deployed pages, deploy targets, hosting providers. Keeps every spoke linked to the hub. Monitors every deploy with the page-check gate. Notifies (or auto-reverts) on failure.</p>
+                <div style="margin-top: 16px;">
+                    <span class="project-tag">Vercel</span>
+                    <span class="project-tag">GitHub Pages</span>
+                    <span class="project-tag">Cloudflare</span>
+                    <span class="project-tag">Netlify</span>
+                </div>
+            </div>
+        </div>
+        <div class="twin-content" id="twin-research">
+            <div class="twin-panel">
+                <h4 style="color: var(--accent-scanner);">🔬 Research Twin</h4>
+                <p style="color: var(--text-secondary); line-height: 1.7;">
+                    Index: paper feeds, code trending, jazz reference corpus, audio corpora, knowledge base. Runs the research swarm. Keeps a domain-specific dashboard current. Alerts when a new relevant paper or tool appears.
+                </p>
+                <div style="margin-top: 16px;">
+                    <span class="project-tag">arXiv</span>
+                    <span class="project-tag">Papers With Code</span>
+                    <span class="project-tag">GitHub Trending</span>
+                    <span class="project-tag">JSTOR</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 05: Toolchain -->
+    <section id="toolchain">
+        <div class="section-header">
+            <span class="section-number" style="background: var(--bg-tertiary);">⚡</span>
+            <div class="section-title-group">
+                <h2 class="section-title">Toolchain</h2>
+                <p class="section-subtitle">What the twin is built from.</p>
+            </div>
+        </div>
+        <div class="toolchain-grid">
+            <div class="tool-item">
+                <div class="tool-icon">📁</div>
+                <div>
+                    <div class="tool-name">Filesystem Traversal</div>
+                    <div class="tool-desc">stdlib scanning</div>
+                </div>
+            </div>
+            <div class="tool-item">
+                <div class="tool-icon">🐙</div>
+                <div>
+                    <div class="tool-name">GitHub CLI</div>
+                    <div class="tool-desc">Repo & deploy management</div>
+                </div>
+            </div>
+            <div class="tool-item">
+                <div class="tool-icon">🤖</div>
+                <div>
+                    <div class="tool-name">Code Assistant</div>
+                    <div class="tool-desc">+ specialized subagents</div>
+                </div>
+            </div>
+            <div class="tool-item">
+                <div class="tool-icon">🧠</div>
+                <div>
+                    <div class="tool-name">Memory Layers</div>
+                    <div class="tool-desc">user · agent · AGENTS.md</div>
+                </div>
+            </div>
+            <div class="tool-item">
+                <div class="tool-icon">⏰</div>
+                <div>
+                    <div class="tool-name">Scheduled Reminders</div>
+                    <div class="tool-desc">Cron & triggers</div>
+                </div>
+            </div>
+            <div class="tool-item">
+                <div class="tool-icon">🐝</div>
+                <div>
+                    <div class="tool-name">Subagent Swarms</div>
+                    <div class="tool-desc">Parallel task execution</div>
+                </div>
+            </div>
+            <div class="tool-item">
+                <div class="tool-icon">🔒</div>
+                <div>
+                    <div class="tool-name">Deploy Gate</div>
+                    <div class="tool-desc">Headless verification</div>
+                </div>
+            </div>
+            <div class="tool-item">
+                <div class="tool-icon">✓</div>
+                <div>
+                    <div class="tool-name">E2E Regression</div>
+                    <div class="tool-desc">Test runner</div>
+                </div>
+            </div>
+            <div class="tool-item">
+                <div class="tool-icon">🐍</div>
+                <div>
+                    <div class="tool-name">Python Introspection</div>
+                    <div class="tool-desc">Package discovery</div>
+                </div>
+            </div>
+            <div class="tool-item">
+                <div class="tool-icon">📦</div>
+                <div>
+                    <div class="tool-name">npm Parsing</div>
+                    <div class="tool-desc">Manifest reading</div>
+                </div>
+            </div>
+            <div class="tool-item">
+                <div class="tool-icon">⚡</div>
+                <div>
+                    <div class="tool-name">Job Runner</div>
+                    <div class="tool-desc">Scheduled execution</div>
+                </div>
+            </div>
+            <div class="tool-item">
+                <div class="tool-icon">💾</div>
+                <div>
+                    <div class="tool-name">JSON Memory</div>
+                    <div class="tool-desc">Durable state</div>
+                </div>
+            </div>
+        </div>
+        <p style="text-align: center; color: var(--text-tertiary); font-weight: 600; margin-top: 40px; font-size: 1.1rem;">
+            Nine stacks. One philosophy. Zero babysitting.
+        </p>
+    </section>
+</div>
+
+<footer class="footer">
+    <a href="https://github.com/kajica2/digital-twin" target="_blank" class="footer-link">
+        <span>⚡</span> Source &amp; landing live at github.com/kajica2/digital-twin
+    </a>
+</footer>
+
+<script>
+    /* ---------- Theme toggle (with system default + localStorage) ---------- */
+    const html = document.documentElement;
+    const themeKey = 'theme';
+    const savedTheme = localStorage.getItem(themeKey) || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    html.setAttribute('data-theme', savedTheme);
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.textContent = savedTheme === 'dark' ? '☀' : '◐';
+    themeToggle.addEventListener('click', () => {
+        const current = html.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', next);
+        themeToggle.textContent = next === 'dark' ? '☀' : '◐';
+        localStorage.setItem('theme', next);
+    });
+
+    /* ---------- Progress bar (scroll) ---------- */
+    const progressBar = document.getElementById('progressBar');
+    window.addEventListener('scroll', () => {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+        progressBar.style.width = progress + '%';
+    });
+
+    /* ---------- Active nav link ---------- */
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-link');
+    let current = '';
+    window.addEventListener('scroll', () => {
+        const scrollY = window.scrollY;
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            if (scrollY >= sectionTop - 100) {
+                current = section.getAttribute('id');
+            }
+        });
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === '#' + current) {
+                link.classList.add('active');
+            }
+        });
+    });
+    window.dispatchEvent(new Event('scroll'));
+
+    /* ---------- Layer details toggle ---------- */
+    function showLayer(layer) {
+        // Hide all
+        document.querySelectorAll('.arch-node').forEach(el => {
+            el.classList.remove('active');
+        });
+        document.querySelectorAll('.layer-details').forEach(el => {
+            el.classList.remove('visible');
+        });
+        // Show selected
+        const node = document.querySelector(`[data-layer="${layer}"]`);
+        const details = document.getElementById('layer-' + layer);
+        if (details && node) {
+            node.classList.add('active');
+            details.classList.add('visible');
+        }
+    }
+
+    /* ---------- Twin tabs ---------- */
+    function showTwin(twin) {
+        // Hide all
+        document.querySelectorAll('.twin-tab').forEach(tab => tab.classList.remove('active'));
+        // Show selected
+        const tab = document.querySelector(`[data-twin="${twin}"]`);
+        if (tab) tab.classList.add('active');
+        document.querySelectorAll('.twin-content').forEach(content => content.classList.remove('active'));
+        document.getElementById('twin-' + twin).classList.add('active');
+    }
+
+    /* ---------- Scanner demo ---------- */
+    const runScanner = document.getElementById('runScanner');
+    const scannerOutput = document.getElementById('scannerOutput');
+    if (runScanner && scannerOutput) {
+        runScanner.addEventListener('click', () => {
+            scannerOutput.classList.toggle('visible');
+            runScanner.textContent = scannerOutput.classList.contains('visible') ? '⏸ Hide Scanner Output' : '▶ Run Scanner Demo';
+        });
+    }
+
+    /* ---------- Copy buttons for code blocks ---------- */
+    document.querySelectorAll('code').forEach(code => {
+        if (code.textContent.includes('memory/') || code.textContent.includes('AGENTS')) return;
+        code.style.cursor = 'pointer';
+        code.title = 'Click to copy';
+        code.addEventListener('click', () => {
+            navigator.clipboard.writeText(code.textContent);
+            const original = code.textContent;
+            code.textContent = '✓ copied';
+            setTimeout(() => code.textContent = original, 1000);
+        });
+    });
+
+    /* ---------- Smooth scroll for nav links ---------- */
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) target.scrollIntoView({ behavior: 'smooth' });
+        });
+    });
+
+    // Show scanner by default
+    showLayer('scanner');
+</script>
+</body>
+</html>
