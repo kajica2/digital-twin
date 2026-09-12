@@ -41,4 +41,4 @@ fi
 mkdir -p "$REPO/chart-inbox" "$REPO/chart-inbox/processed" "$REPO/logs"
 
 export NODE_NO_WARNINGS=1
-exec "$NODE_BIN" "$REPO/lib/chart-watcher.js" "$@"
+exec "$NODE_BIN" "$REPO/lib/chart-watcher.js" --notify-on-success "$@"

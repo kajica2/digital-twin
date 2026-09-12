@@ -141,13 +141,16 @@ npm run test:watcher
 ```
 
 Runs `lib/chart-watcher.test.js` — pure-Node harness, no deps.
-13 assertions covering: empty inbox, single file, active lockfile
+36 assertions covering: empty inbox, single file, active lockfile
 skip, stale-by-age lockfile unblock, stale-by-mtime lockfile
 unblock (the "replace file at same path" case), mixed states,
-deterministic ordering, non-musicxml extension filtering, and
-lockFor hash stability. Uses `WATCHER_TEST_DIR` env var to point
-the watcher at a scratch dir so no real files in `chart-inbox/`
-are touched.
+deterministic ordering, non-musicxml extension filtering,
+lockFor hash stability, retry path (success on first / success
+on retry / permanent fail), concurrent watcher lockfile blocking,
+and post-success hook (fires on success / not on permanent fail /
+hook failure doesn't break the export). Uses `WATCHER_TEST_DIR`
+env var to point the watcher at a scratch dir so no real files
+in `chart-inbox/` are touched.
 
 ## Limitations
 
@@ -162,3 +165,32 @@ are touched.
   Manual intervention required.
 - **No chord-symbol / slash notation** in the output MusicXML.
   The watcher ships whatever the chart-export pipeline produces.
+
+## Notifications (Apple Notes ping)
+
+When the LaunchAgent wrapper (`bin/chart-watcher.sh`) is used
+with `--notify-on-success` (which is the default — see the
+wrapper script), every successful chart export posts a note to
+the user's Apple Notes account under the `twin OS` folder. The
+note is created via `bin/chart-notes.applescript` using the same
+account/folder resolution pattern as `bin/notes.applescript` from
+sprint 0.1.
+
+To disable: edit `bin/chart-watcher.sh` and remove the
+`--notify-on-success` flag, then `launchctl kickstart -k
+gui/$UID/com.kaidjuric.digital-twin.chart-watcher` to restart.
+
+Notes accumulate (scroll up for history). Per-note content:
+
+```
+chart export
+
+when   <ISO timestamp>
+song   <basename without .musicxml>
+time   <wall time in seconds, 1 decimal>
+try    <attempt count, 1 or 2>
+
+demo    chart-inbox/<song>_Demo.mp3
+full    chart-inbox/<song>_Full_Score.pdf
+parts   chart-inbox/<song>_PDF/parts/
+```
