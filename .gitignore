@@ -20,6 +20,15 @@ logs/
 chart-inbox/*
 !chart-inbox/.gitkeep
 
+# Songs-watcher auto-generated catalog (data/songs/catalog.json is
+# indexer output; safe to delete + regenerate via npm run index-songs
+# or the songs-watcher LaunchAgent).
+data/songs/catalog.json
+
+# Songs-watcher audio-inbox (drop zone + processed/)
+audio-inbox/*
+!audio-inbox/.gitkeep
+
 # Environment
 .env
 .env.local
