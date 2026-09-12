@@ -19,6 +19,8 @@ logs/
 # Keep the inbox itself + .gitkeep so the dir exists in the repo.
 chart-inbox/*
 !chart-inbox/.gitkeep
+# tmp files dropped while the watcher is mid-export
+chart-inbox/*.tmp
 
 # Songs-watcher auto-generated catalog (data/songs/catalog.json is
 # indexer output; safe to delete + regenerate via npm run index-songs
