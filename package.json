@@ -14,9 +14,10 @@
     "export-parts": "node lib/chart-export.js",
     "export-mp3": "node lib/chart-export.js --apply --yes --mp3-only",
     "export-midi": "node lib/midi-export.js",
-    "export-all": "node lib/chart-export.js --apply --yes --render && node lib/midi-export.js --apply --yes",
+    "export-all": "bin/export-all.sh",
     "sync-e2e": "node assets/sync-e2e-constants.js",
     "sync-e2e:apply": "node assets/sync-e2e-constants.js --apply --yes",
-    "verify": "npm run e2e"
+    "verify": "npm run e2e",
+    "test-args": "/tmp/test-npm.sh \"$@\""
   }
 }
