@@ -78,12 +78,7 @@ jobs:
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-theme.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-verify.mjs
           else
-            echo "(PR run — Pages isn't built for branches, e2e runs locally)"
-            # ct-* specs hit the launchd-managed :5173 by default, but on CI
-            # there's no launchd. Spin up a dedicated :5180 server on pages/
-            # and pass PORT=5180 so the specs hit it. The landing / twin-os
-            # specs serve themselves from repo root on :5173 (see their own
-            # PORT default), so they don't need PORT=5180.
+            echo "(PR run - Pages is not built for branches, e2e runs locally)"
             python3 -m http.server 5180 --directory pages &
             SERVER_PID=$!
             sleep 2
@@ -98,6 +93,7 @@ jobs:
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node ct-verify.mjs
             kill $SERVER_PID 2>/dev/null || true
           fi
+          echo "(watcher specs are filesystem-only and require a live chart-watcher LaunchAgent + mscore, neither of which exists on Linux CI runners. Run locally via npm run test:watcher && npm run test:songs-watcher. The watcher.spec.mjs + songs-watcher.spec.mjs files exist in e2e/ for that purpose.)"
 
       - name: Upload screenshots on failure
         if: failure()
