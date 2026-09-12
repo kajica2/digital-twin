@@ -15,6 +15,11 @@ e2e/artifacts/
 # Runtime logs (launchd server / boot / launchd err logs)
 logs/
 
+# Chart-watcher auto-generated outputs (PDFs / MP3s / MIDI / processed/)
+# Keep the inbox itself + .gitkeep so the dir exists in the repo.
+chart-inbox/*
+!chart-inbox/.gitkeep
+
 # Environment
 .env
 .env.local
