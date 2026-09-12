@@ -588,3 +588,75 @@ green.
   parked item. User supplies the head + chord changes + form;
   agent produces the trumpet-feature part + rhythm-section
   voicings following `docs/COLTRANE-SHAW-ENGRAVING.md` §6/§9.
+
+### 2026-09-12 — sprint 0.6 (chart MP3 pipeline)
+
+- **Shipped:**
+  - **`lib/chart-export.js --render` now emits `<song>_Demo.mp3`**
+    — the whole-arrangement audition with all parts playing. This
+    is the shareable single-file artifact (SoundCloud-style demo),
+    distinct from the two muted backing tracks.
+  - **`--mp3-only` flag** — re-renders just the audio set from
+    existing MusicXML splits. Skips the split + mute work. ~50%
+    faster than the full pipeline (4.2s vs 7.8s on the
+    3-part fixture). Exits with code 2 + a one-line fix hint if
+    the required `<song>_Whole/` directory doesn't exist yet.
+  - **`npm run export-mp3`** — wires the audio-only path into
+    npm, matches the existing `--apply --yes` convention from
+    `index-songs` / `export-all`.
+  - **`ffprobe` MP3 verification** baked into the render pass.
+    Each `.mp3` output is checked for non-zero duration and
+    reported with its bitrate. Catches the "MuseScore wrote a
+    0-byte file" failure mode that the file-existence check
+    alone misses. Falls through silently if `ffprobe` isn't on
+    PATH.
+  - **Bug fix:** stale literal `<song>.musicxml` in the
+    `process.stderr.write` summary line — now correctly
+    interpolates `${SONG_BASE}`. Pre-existing cosmetic bug,
+    surfaced by the new render pass.
+  - **`docs/CHART-EXPORT-WORKFLOW.md` rewritten** to reflect
+    the current `--render` pipeline (no more "this machine
+    doesn't have MuseScore" stale note). Documents the new
+    Demo MP3, `--mp3-only`, and the bundled `MS Basic.sf3`
+    soundfont + the optional swap procedure.
+- **Decisions:**
+  - **Bundled `MS Basic.sf3` is the default soundfont.** It's
+    GM-ish but ships with the cask and keeps the pipeline
+    self-sufficient. Documented the soundfont swap as optional
+    (drop a new SF3 into MuseScore's sound dir) — no script
+    changes needed when the user upgrades.
+  - **ffprobe verified, not mandated.** The script logs a
+    warning if ffprobe isn't installed; it doesn't refuse to
+    run. CI / dev machines that lack ffmpeg still get the
+    files written, just without the duration sanity check.
+  - **Demo MP3 is the whole arrangement, not the head-only
+    loop.** Auditions benefit from hearing the full texture —
+    the head + a chorus of comping + bass + drums is the
+    selling artifact. Head-only can be a follow-up if the
+    sprint rhythm requires it.
+  - **`--mp3-only` doesn't require `--render`** — they're
+    independent flags now. `--mp3-only` short-circuits to the
+    audio path; `--render` is still the "do everything from
+    scratch" entry point.
+- **Verified end-to-end:**
+  - `npm run export-all -- /tmp/mini-score.musicxml` →
+    1 Full_Score.pdf + 3 part PDFs + Demo.mp3 + 2 muted MP3s +
+    whole-arrangement .mid, all real (PDF v1.4 / MPEG ADTS layer
+    III 128 kbps 44.1 kHz / multi-track MIDI), 8.0s wall.
+  - `npm run export-mp3 -- /tmp/mini-score.musicxml` → 3 MP3s
+    only, 4.1s wall, ffprobe-validated durations.
+  - `--mp3-only` error path (no prior split) exits with code 2
+    + one-line fix hint.
+  - Full `npm run verify` (all 3 e2e specs) green — no
+    regressions.
+- **Open:**
+  - Sprint 0.6's original charter (first real Woody Shaw chart)
+    is **still parked** — this sprint shipped the audio
+    pipeline work the user asked for. Chart composition is the
+    next ask.
+- **Next:** sprint 0.7 — first real Woody Shaw-style chart.
+    User supplies head + changes + form; agent produces the
+    trumpet-feature part + rhythm-section voicings following
+    `docs/COLTRANE-SHAW-ENGRAVING.md` §6/§9, then runs
+    `npm run export-all` against the produced MusicXML to ship
+    the full chart package with the new Demo MP3.
