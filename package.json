@@ -12,6 +12,7 @@
     "e2e:live": "cd e2e && E2E_URL=https://kajica2.github.io/digital-twin node landing.spec.mjs && cd ../e2e && E2E_URL=https://kajica2.github.io/digital-twin node twin-os.spec.mjs && cd ../e2e && E2E_URL=https://kajica2.github.io/digital-twin node twin-os-songs.spec.mjs",
     "index-songs": "node lib/songs-indexer.js --apply --yes",
     "export-parts": "node lib/chart-export.js",
+    "export-mp3": "node lib/chart-export.js --apply --yes --mp3-only",
     "export-midi": "node lib/midi-export.js",
     "export-all": "node lib/chart-export.js --apply --yes --render && node lib/midi-export.js --apply --yes",
     "sync-e2e": "node assets/sync-e2e-constants.js",

@@ -1,11 +1,13 @@
 # Chart Export & Soundslice Sync — Workflow
 
-> Sprint 0.4. Two new scripts in `lib/` make the chart-export pipeline
-> scriptable. This doc is the canonical reference for going from a
-> MusicXML file to per-instrument PDFs, muted backing tracks, and the
-> MIDI that drives Soundslice highlight videos.
+> Sprint 0.6. The chart-export pipeline now ships a single combined
+> demo MP3 alongside the muted backing tracks, and exposes a
+> `--mp3-only` re-render path for iterating on audio without
+> re-splitting MusicXML. `lib/chart-export.js` + `lib/midi-export.js`
+> remain the two pure-Node scripts. `--render` invokes MuseScore 4
+> (`brew install --cask musescore`) for headless PDF + MP3 export.
 >
-> Last touched: 2026-09-09.
+> Last touched: 2026-09-12.
 
 ---
 
@@ -22,6 +24,7 @@ Given a `*.musicxml` file, it produces:
     02_Trumpet_Bb.musicxml
     03_Piano_C.musicxml
     ...
+    *.pdf                          ← only when --render is passed
 
 <song>_No_Trumpet/
   score.musicxml                   ← whole score, trumpet part removed
@@ -33,7 +36,17 @@ Given a `*.musicxml` file, it produces:
 
 <song>_Whole/
   <song>.musicxml                  ← untouched reference copy
-  <song>.mid                       ← MIDI of the whole arrangement
+```
+
+When `--render` is passed (or the pipeline is run via
+`npm run export-all`), the script additionally produces these audio
+files at the top level next to the input:
+
+```
+<song>_Full_Score.pdf              ← full transposed score
+<song>_No_Trumpet.mp3              ← muted backing track
+<song>_No_Sax.mp3                  ← muted backing track
+<song>_Demo.mp3                    ← whole arrangement with all parts
 ```
 
 The naming convention follows the full-band staff order from
@@ -46,21 +59,32 @@ etc. — labels are inferred from part-name patterns, not hard-coded.
 # dry run (prints the part list, writes nothing)
 node lib/chart-export.js path/to/song.musicxml
 
-# apply
+# apply (writes MusicXML splits + manifest + muted variants)
 node lib/chart-export.js path/to/song.musicxml --apply --yes
 
 # or via npm
 npm run export-parts -- path/to/song.musicxml
-```
 
-# Full chart package: MusicXML splits + per-part PDFs + muted MP3s + MIDI.
+# Full chart package: MusicXML splits + per-part PDFs + Demo/No_Trumpet/No_Sax MP3s + MIDI.
 # Requires mscore on PATH (brew install --cask musescore).
 npm run export-all -- path/to/song.musicxml
 
 # Or run the pieces individually:
 npm run export-parts -- path/to/song.musicxml --apply --yes --render   # adds PDFs + MP3s
 npm run export-midi   -- path/to/song.musicxml --apply --yes           # adds the .mid file
+
+# Audio-only re-render. Skips MusicXML re-splitting, just bounces
+# fresh audio from the existing Whole/ + muted variants. Use this
+# after tweaking a part in MuseScore, or after switching soundfonts.
+# Requires an existing split (run --apply first).
+npm run export-mp3 -- path/to/song.musicxml
+node lib/chart-export.js path/to/song.musicxml --apply --yes --mp3-only
 ```
+
+`--mp3-only` short-circuits the split/mute work — it expects the
+`<song>_Whole/`, `<song>_No_Trumpet/`, and `<song>_No_Sax/`
+directories from a previous `--apply` to already exist. If they
+don't, the script exits with code 2 and a one-line fix hint.
 
 ---
 
@@ -90,33 +114,78 @@ adds the `.mid` file to it.
 
 ---
 
-## 3. Rendering PDFs in MuseScore
+## 3. Rendering PDFs and MP3s with `--render`
 
-This machine does not have MuseScore installed (Sibelius / Finale /
-Dorico work too with the same shape). The `lib/` scripts produce the
-**inputs**; the user runs the notation software once to produce the
-final PDFs / audio.
+The `--render` flag (on by default in `npm run export-all`) invokes
+MuseScore 4 headlessly to produce PDFs and MP3s from the MusicXML
+inputs. This makes the whole chart package scriptable — no manual
+MuseScore steps required.
 
-### Per-instrument PDFs (one file per part)
+### What's produced
 
-1. Open MuseScore. **File → Open**. Pick `parts/02_Trumpet_Bb.musicxml`.
-2. **Layout → Page Settings**: 9×12" or Letter, 0.6–0.75" margins.
-3. **File → Export → PDF**. Save as `02_Trumpet_Bb.pdf` next to the
-   `parts/` folder.
-4. Repeat for each part. Rename per the convention below.
+For every chart, `--render` emits:
 
-Or batch from the full score:
+| File | Source | What it is |
+|------|--------|------------|
+| `<song>_Full_Score.pdf` | input `<song>.musicxml` | All parts in one transposed score |
+| `<song>_PDF/parts/NN_*.pdf` | per-part MusicXML | One PDF per instrument, in its transposed key |
+| `<song>_No_Trumpet.mp3` | `<song>_No_Trumpet/score.musicxml` | Backing track, no trumpets |
+| `<song>_No_Sax.mp3` | `<song>_No_Sax/score.musicxml` | Backing track, no saxes |
+| `<song>_Demo.mp3` | `<song>_Whole/<song>.musicxml` | **Whole arrangement, all parts playing** — the shareable audition |
 
-1. Open the full score (the input `*.musicxml` directly in MuseScore).
-2. **File → Export → Parts…**.
-3. Tick **every** instrument. Pick an output folder. Click **Export**.
+MP3s use MuseScore's bundled `MS Basic.sf3` soundfont (ships with
+the cask install). All MP3 outputs are validated via `ffprobe`
+immediately after MuseScore writes them — the script reports the
+duration and bitrate per file, and prints a warning if any file
+came out empty.
 
-### Full score PDF (all parts together)
+### Requirements
 
-1. Open the input `*.musicxml` in MuseScore.
-2. **File → Export → PDF** → `00_Full_Score.pdf`.
+- `mscore` on PATH (`brew install --cask musescore`)
+- `ffprobe` on PATH (ships with `ffmpeg`, used to validate MP3
+  outputs are real audio with non-trivial duration)
 
-### Naming convention
+### Detection
+
+MuseScore exits with code 0 on success, but on macOS its Qt shutdown
+can complete the export and then exit non-zero (or get SIGTERM'd).
+The MP3/PDF file IS the source of truth, not the exit code. The
+script polls for the file's existence + non-zero size with a 5-second
+timeout per file.
+
+### Soundfont swap (optional)
+
+To use a higher-fidelity SF3 (e.g. FluidR3) instead of the bundled
+`MS Basic.sf3`, drop the `.sf3` file into
+`/Applications/MuseScore 4.app/Contents/Resources/sound/` and rename
+to override the default. The pipeline picks up the new font on the
+next `--render` — no script changes needed.
+
+---
+
+## 4. `--mp3-only` — re-render audio without re-splitting MusicXML
+
+After a chart has been split once, you often want to re-bounce just
+the audio — after editing a part in MuseScore, after switching
+soundfonts, or after MuseScore fixes a rendering bug. `--mp3-only`
+re-runs only the `mscore -f ... -o ...mp3` invocations against the
+existing MusicXML inputs:
+
+```
+[export] demo        → mini-score_Demo.mp3 (112848 bytes, 1.7s, 7.1s @ 128kbps)
+[export] no-trumpet → mini-score_No_Trumpet.mp3 (112848 bytes, 1.7s, 7.1s @ 128kbps)
+[export] no-sax     → mini-score_No_Sax.mp3 (112848 bytes, 0.8s, 7.1s @ 128kbps)
+[export] mscore mp3-only pass complete in 4.2s
+```
+
+Compare to the full pipeline's 7.8s — the audio-only path saves
+~50% of the wall time by skipping the MusicXML re-writes and PDF
+render. The script exits with code 2 and a one-line hint if the
+required `<song>_Whole/<song>.musicxml` is missing.
+
+---
+
+## 5. Naming convention
 
 ```
 00_Full_Score.pdf                ← transposed score (Trumpet in Bb, Alto in Eb)
@@ -135,33 +204,52 @@ naturally.
 
 ---
 
-## 4. Bouncing the muted backing tracks
+## 6. Putting it all together — one chart's worth of outputs
 
-Two `score.musicxml` files are produced automatically:
+After running the full pipeline against `MySong.musicxml`:
 
-- `<song>_No_Trumpet/score.musicxml` — whole score with all trumpet
-  parts removed.
-- `<song>_No_Sax/score.musicxml` — whole score with all sax parts
-  removed.
+```
+MySong.musicxml                                ← original input
 
-### Bounce in MuseScore (simplest)
+MySong_PDF/
+  manifest.json
+  README.md
+  parts/
+    01_Alto_Sax_Eb.musicxml
+    02_Trumpet_Bb.musicxml
+    03_Tenor_Sax_Bb.musicxml
+    04_Piano_C.musicxml
+    05_Bass_C.musicxml
+    06_Drums_C.musicxml
+    01_Alto_Sax_Eb.pdf
+    02_Trumpet_Bb.pdf
+    03_Tenor_Sax_Bb.pdf
+    04_Piano_C.pdf
+    05_Bass_C.pdf
+    06_Drums_C.pdf
 
-1. Open `<song>_No_Trumpet/score.musicxml` in MuseScore.
-2. **File → Export → MP3** (or WAV).
-3. Save as `<song>_No_Trumpet.mp3` next to the source folder.
+MySong_No_Trumpet/score.musicxml
 
-Repeat for the No_Sax variant.
+MySong_No_Sax/score.musicxml
 
-### Bounce in a DAW (more flexible)
+MySong_Whole/
+  MySong.musicxml
+  MySong.mid                                  ← upload to Soundslice
 
-Logic / Reaper / Ableton / GarageBand all import MusicXML natively.
-Open the muted `score.musicxml`, route to a single aux bus, add
-virtual instruments (Keyscape for piano, Trilian for bass, Superior
-Drummer for drums), export the mix.
+# Top-level deliverables:
+MySong_Full_Score.pdf
+MySong_Demo.mp3                               ← whole-arrangement audition
+MySong_No_Trumpet.mp3
+MySong_No_Sax.mp3
+```
+
+The `Demo.mp3` is the single file you share for auditions. The
+two muted MP3s are the backing tracks for the soloist to practice
+over.
 
 ---
 
-## 5. Soundslice sync workflow
+## 7. Soundslice sync workflow
 
 Per the AI-generated Soundslice reference (saved alongside this doc
 for posterity):
@@ -184,7 +272,7 @@ is roughly:
 
 ```bash
 curl -X POST https://www.soundslice.com/api/v1/slices/ \
-  -H "Authorization: Token <api-token>" \
+  -H "Authorization: Token ***" \
   -F "musicxml=@parts/02_Trumpet_Bb.musicxml" \
   -F "audio=@bounce.wav.mp3"
 ```
@@ -195,42 +283,7 @@ the API token, this is a `curl` away.)
 
 ---
 
-## 6. Putting it all together — one chart's worth of outputs
-
-After running both scripts against `MySong.musicxml`:
-
-```
-MySong.musicxml                                ← original input
-
-MySong_PDF/
-  manifest.json
-  README.md
-  parts/
-    01_Alto_Sax_Eb.musicxml
-    02_Trumpet_Bb.musicxml
-    03_Tenor_Sax_Bb.musicxml
-    04_Piano_C.musicxml
-    05_Bass_C.musicxml
-    06_Drums_C.musicxml
-
-MySong_No_Trumpet/
-  score.musicxml        → MySong_No_Trumpet.mp3   (bounce in MuseScore)
-
-MySong_No_Sax/
-  score.musicxml        → MySong_No_Sax.mp3       (bounce in MuseScore)
-
-MySong_Whole/
-  MySong.musicxml
-  MySong.mid            → upload to Soundslice
-```
-
-Then render in MuseScore to get `00_Full_Score.pdf` +
-`01_…_06_…pdf` next to `parts/`, and you have the full chart
-package.
-
----
-
-## 7. Limitations (sprint 0.4)
+## 8. Limitations (sprint 0.6)
 
 - **No pitch auto-correction in the MIDI.** The MIDI is faithful to
   the MusicXML (rests, pitches, durations). It does not humanize
@@ -245,6 +298,10 @@ package.
   parsed.
 - **No lyric / rehearsal mark extraction.** Both are present in
   MusicXML; both are skipped here.
+- **Audio uses the bundled GM soundfont.** MP3s sound generic. To
+  upgrade, drop a higher-fidelity SF3 into the MuseScore sound
+  directory (see §3). The pipeline picks it up automatically on the
+  next `--render`.
 
-These are candidates for sprint 0.5 once a chart in the wild shows
+These are candidates for sprint 0.7 once a chart in the wild shows
 what's worth deepening.
