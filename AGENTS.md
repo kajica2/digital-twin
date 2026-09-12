@@ -923,3 +923,72 @@ notation in MusicXML output (requires music21 or similar);
 (d) ship a docs sample showing two charts side-by-side
 (modal-sketch + modal-sketch-b) so the alt-head's articulation
 choices are visible in PDF form.
+
+### 2026-09-12 — sprint 0.12 (watcher tests + log rotation)
+
+- **Shipped:**
+  - **`lib/chart-watcher.test.js`** — pure-Node, no deps. 13
+    assertions covering the watcher's lockfile logic. Uses
+    `WATCHER_TEST_DIR` env var to point the watcher at a scratch
+    dir so no real files in `chart-inbox/` are touched.
+    Mocks the export runner via
+    `module.exports.setRunExport()` — no mscore invocation
+    during tests. Run via `npm run test:watcher`.
+  - **`bin/log-rotate.sh`** — newsyslog-style rotation for every
+    `*.log` in `logs/`. Keeps 7 daily `.gz` rotations, deletes
+    the rest. Naming: `foo.log` → `foo.log.1.gz` after rotation;
+    older ones count up. Manual use: `bin/log-rotate.sh` or
+    `bin/log-rotate.sh <file>...`.
+  - **`com.kaidjuric.digital-twin.log-rotate` LaunchAgent**
+    installed + bootstrapped. `StartCalendarInterval` Hour=3
+    Minute=0 → fires daily at 03:00. Verified the script works
+    via direct invocation (LaunchAgent `state = not running`
+    between scheduled firings — correct behavior for
+    `StartCalendarInterval` jobs).
+  - **Chart-watcher refactor** for testability — extracted
+    `execFileSync` into `runExport()` so tests can mock it.
+    Added `--test` flag and `WATCHER_TEST_DIR` env var.
+    Production code path is unchanged; the new flags are
+    short-circuits in `main()`. Module-exports the narrow set
+    of internals the harness needs.
+  - **`docs/CHART-WATCHER.md`** — added Logs + Tests sections,
+    fixed stale "No retry on failure" limitation that should
+    have been updated in the 0.10 entry.
+- **Decisions:**
+  - **Tests cover the lockfile logic, NOT the export
+    integration.** The export pipeline (chart-export.js →
+    music21 round-trip → mscore render → ffprobe verify) is
+    already covered by the manual end-to-end runs in sprints
+    0.7/0.8/0.9. Test infrastructure for the mscore+ffmpeg
+    dance would be heavy (Docker, mock binaries) and isn't
+    worth it for a personal tool.
+  - **Test harness mirrors the repo's e2e/ pattern.** Plain
+    `.js` files invoked via `node`, no test framework. Same
+    convention as the 6 ct-* specs from sprint 0.5.
+  - **`StartCalendarInterval` instead of `RunAtLoad +
+    `KeepAlive`.** The log-rotate job is calendar-based (daily
+    03:00), not watch-based. Per the `macos-launchd-automation`
+    skill, `StartCalendarInterval` is the right pattern for
+    scheduled tasks that should NOT poll.
+  - **Log rotation deletes anything beyond the 7-day window.**
+    No long-term retention. If the user wants a permanent
+    archive of watch activity, that's a separate cron / git
+    commit-cadence project, not log rotation.
+- **Verified:**
+  - `npm run test:watcher` → 13/13 pass (all green)
+  - `bin/log-rotate.sh` on a real `logs/` → rotated 7 files,
+    gzipped, source files replaced with empty `.log`. Zero-byte
+    files skipped (correct — no point rotating empty logs).
+  - `npm run verify` (existing e2e specs) → all green, no
+    regression from the watcher refactor.
+  - LaunchAgent loaded: `service = com.kaidjuric.digital-twin.log-rotate`
+    appears in `launchctl print gui/$UID/...`. Will fire at
+    next 03:00.
+- **Open:** none for this sprint.
+- **Next:** sprint 0.13 candidates — (a) chord-symbol / slash
+  notation in MusicXML output (requires music21 or similar);
+  (b) side-by-side chart sample in docs (modal-sketch +
+  modal-sketch-b); (c) extend the test harness to cover
+  `exportOne`'s retry path (would require mocking
+  `execFileSync` differently); (d) bring the songs-indexer into
+  the watcher pattern (file-in, file-out catalog rebuilds).
