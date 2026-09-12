@@ -107,6 +107,48 @@ node lib/chart-watcher.js --interval 5
   first.** LaunchAgent runs with launchd's stripped PATH; the
   Hermes-managed Node is the preferred binary here.
 
+## Logs
+
+The watcher writes to:
+
+| File | Source |
+|------|--------|
+| `logs/chart-watcher.log` | the watcher's own per-file `[start]` / `[done]` / `[fail]` lines |
+| `logs/chart-watcher.out.log` | launchd's stdout from `bash bin/chart-watcher.sh` |
+| `logs/chart-watcher.err.log` | launchd's stderr |
+
+Daily rotation at 03:00 is handled by `bin/log-rotate.sh` (also
+shipped in this repo) via the
+`com.kaidjuric.digital-twin.log-rotate` LaunchAgent. Keeps 7
+daily `.gz` rotations, deletes the rest. Not bootstrapped by
+default — install with:
+
+```bash
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.kaidjuric.digital-twin.log-rotate.plist
+```
+
+Manual rotate:
+
+```bash
+bin/log-rotate.sh                 # rotate everything in logs/
+bin/log-rotate.sh logs/foo.log    # rotate just one file
+```
+
+## Tests
+
+```bash
+npm run test:watcher
+```
+
+Runs `lib/chart-watcher.test.js` — pure-Node harness, no deps.
+13 assertions covering: empty inbox, single file, active lockfile
+skip, stale-by-age lockfile unblock, stale-by-mtime lockfile
+unblock (the "replace file at same path" case), mixed states,
+deterministic ordering, non-musicxml extension filtering, and
+lockFor hash stability. Uses `WATCHER_TEST_DIR` env var to point
+the watcher at a scratch dir so no real files in `chart-inbox/`
+are touched.
+
 ## Limitations
 
 - **No concurrency.** A backlog of N files takes N × 10s. Add a
@@ -114,8 +156,9 @@ node lib/chart-watcher.js --interval 5
 - **Single-process watcher.** Two simultaneous watcher instances
   on the same inbox will both see the same files but the
   lockfile (`.processing-<sha1>`) prevents double-export.
-- **No retry on failure.** A failed export logs `[fail]` and
-  leaves the input in `chart-inbox/` (does NOT move to
-  processed/). Manual intervention required.
+- **Retries once on transient failure.** A persistent failure
+  (bad MusicXML, mscore crash loop) logs `[fail]` and leaves
+  the input in `chart-inbox/` (does NOT move to processed/).
+  Manual intervention required.
 - **No chord-symbol / slash notation** in the output MusicXML.
   The watcher ships whatever the chart-export pipeline produces.
