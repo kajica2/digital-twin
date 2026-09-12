@@ -660,3 +660,87 @@ green.
     `docs/COLTRANE-SHAW-ENGRAVING.md` §6/§9, then runs
     `npm run export-all` against the produced MusicXML to ship
     the full chart package with the new Demo MP3.
+
+### 2026-09-12 — sprint 0.7 (first chart + export-all wrapper fix)
+
+- **Shipped:**
+  - **First real chart:** modal AABA contrafact over the
+    canonical D dorian / G dorian changes ("Impressions"-style).
+    25-bar head, 4 parts (Trumpet Bb, Piano, Bass, Drums).
+    Trumpet head articulates Shaw-style phrasing — flowing 8th-
+    note line over pedal harmony, with the rhythmic profile
+    designed for improvisation over the same form. Pianist
+    comps quartal voicings (Dm7sus / G7sus / Dm7sus / G7sus in
+    A; Gm7sus / C7sus in bridge). Bass walks root + 5th.
+    Drums are skeletal ride + kick — per the engraving doc's
+    "don't over-notate drums" rule.
+  - **`bin/export-all.sh`** — bash wrapper for the full export
+    pipeline. Fixes a silent bug in `npm run export-all`: the
+    prior `&&`-chained script only forwarded the user's input
+    path to the SECOND script (`midi-export`), so the first
+    (`chart-export`) always fell back to its built-in
+    `/tmp/mini-score.musicxml` fixture — silently exporting
+    the wrong chart. npm appends user args to the END of the
+    entire script command, so `$@` between `&&` doesn't expand
+    for both halves. The wrapper takes the path once and
+    forwards it to both stages. `package.json` `export-all`
+    now delegates to it.
+  - The chart MusicXML + outputs stay in `/tmp` (work product,
+    not repo content). What ships is the wrapper fix + the
+    chart composition documented below.
+- **Decisions:**
+  - **Original contrafact, not transcription.** Per the AGENTS.md
+    §11 hygiene rule and the no-copyrighted-melody policy: read
+    the Coltrane MIDI locally for form + key + feel (modal AABA
+    in D dorian / G dorian, swing 8ths, 4/4) and composed an
+    original head in the same idiom. No melody from the source
+    MIDI ends up in the public repo.
+  - **25 bars, not 32.** I cut the head at bar 25 with a held
+    whole-note tonic so the export pipeline gets a clean
+    fixed-length score. Real modal AABA charts usually loop
+    via D.S. al Coda, but the export pipeline (MuseScore PDF,
+    ffprobe-verified MP3, multi-track MIDI) is happier with a
+    fixed-length chart that doesn't depend on repeat markings.
+  - **Trumpet in Bb (transposed), rhythm section in C.**
+    Matches the band-staff convention from the engraving doc
+    §2 — horn players read transposed keys, rhythm reads concert.
+    The chart-export.js transposition inference correctly labels
+    Trumpet as Bb and Piano/Bass/Drums as C.
+  - **Skeletal drum part.** Quarter-note ride bell on 1+3, kick
+    on 2+4, no fills. The engraving doc §4 says don't over-
+    notate drums — the live drummer fills the gaps.
+  - **Quartal piano voicings, no slash notation yet.** A real
+    chart would add chord symbols (`Dm7`, `G7sus`) above the
+    piano staff; the MusicXML schema doesn't carry those in the
+    current pipeline, so the voicings stand on their own.
+- **Verified end-to-end:**
+  - `npm run export-all -- /tmp/modal-sketch.musicxml` →
+    1 Full_Score.pdf (3 pages, 60 KB) + 4 per-part PDFs in
+    canonical band order (Trumpet_Bb, Piano_C, Bass_C,
+    Drums_C) + Demo.mp3 (56.0s @ 128 kbps) + No_Trumpet.mp3
+    (53.0s) + No_Sax.mp3 (56.0s) + 5-track MIDI (PPQ=4,
+    2.4 KB). All real (PDF v1.4, MPEG ADTS layer III, format 1
+    MIDI), all ffprobe-validated, all file-type-checked.
+  - `npm run verify` — all 3 e2e specs green, no regressions
+    from the wrapper change.
+- **Bug surfaced:** the `npm run export-all` arg-passthrough
+  bug had been silently shipping the wrong chart for every
+  prior run. Fixed by the wrapper. Sprint 0.6's "Demo MP3"
+  verification was against the wrong chart; the MP3 pipeline
+  itself is still correct, but re-running `npm run export-all
+  -- path/to/song.musicxml` against a real chart is now
+  accurate for the first time.
+- **Open:**
+  - The trumpet head is a one-chorus sketch; the actual
+    improvising over this form is left to the soloist. A
+    follow-up could produce an alternate-head variant or a
+    fully-notated solo transcription.
+  - Slash notation / chord symbols not yet carried by the
+    MusicXML pipeline. Adding them requires either a MusicXML
+    extension or a separate lyric/chord layer in the export
+    manifest.
+- **Next:** sprint 0.8 candidates — (a) the alternate-head
+  variant or solo transcription; (b) chord-symbol / slash
+  notation in MusicXML (requires music21 or similar); (c) wire
+  the chart export into a watched-folder LaunchAgent that
+  auto-rebuilds the chart package on every input change.
