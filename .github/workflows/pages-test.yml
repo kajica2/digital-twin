@@ -71,11 +71,28 @@ jobs:
             cd e2e && E2E_URL=https://kajica2.github.io/digital-twin node landing.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node twin-os.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node twin-os-songs.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-default.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-icon.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-nav.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-progress.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-theme.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-verify.mjs
           else
             echo "(PR run — Pages isn't built for branches, e2e runs locally)"
+            # ct-* specs serve from pages/ on :5180 so /cognitive-twin.html resolves
+            python3 -m http.server 5180 --directory pages &
+            SERVER_PID=$!
+            sleep 2
             cd e2e && node landing.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && node twin-os.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && node twin-os-songs.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && node ct-default.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && node ct-icon.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && node ct-nav.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && node ct-progress.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && node ct-theme.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && node ct-verify.mjs
+            kill $SERVER_PID 2>/dev/null || true
           fi
 
       - name: Upload screenshots on failure

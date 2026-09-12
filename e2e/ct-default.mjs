@@ -1,8 +1,16 @@
 import puppeteer from 'puppeteer';
-const URL = process.env.URL || 'http://127.0.0.1:5180/cognitive-twin.html';
+
+// E2E_URL — when set, runs against the deployed GitHub Pages site.
+// Otherwise serves the local `pages/` dir on PORT (default 5180).
+//   E2E_URL=https://kajica2.github.io/digital-twin node ct-default.mjs
+const DEPLOYED_URL = process.env.E2E_URL || null;
+const PORT = process.env.PORT || '5180';
+const BASE = DEPLOYED_URL || `http://127.0.0.1:${PORT}`;
+const URL = `${BASE}${DEPLOYED_URL ? '/pages/cognitive-twin.html' : '/cognitive-twin.html'}`;
+
 const browser = await puppeteer.launch({
   headless: 'new',
-  executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  ...(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {}),
   args: ['--no-sandbox', '--disable-gpu'],
 });
 const page = await browser.newPage();
