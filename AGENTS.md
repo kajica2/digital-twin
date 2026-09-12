@@ -564,10 +564,27 @@ green.
     4 layer-details elements toggle correctly, scanner demo
     toggles, theme toggle persists across reloads.
 - **Open:**
-  - ct-* specs are not yet wired into `.github/workflows/
-    pages-test.yml`. The current workflow still runs the three
-    `landing.spec.mjs` / `twin-os.spec.mjs` / `twin-os-songs.spec
-    .mjs` specs. Add the six ct-* specs in a follow-up sprint.
   - Sprint 0.6 (the actual Woody Shaw chart per 0.4.b's "Next")
     is still parked.
 - **Next:** wire ct-* specs into CI, then resume the chart work.
+
+### 2026-09-12 — sprint 0.5.b (CI wiring)
+
+- **Shipped:** the six ct-* specs now run in `.github/workflows/
+  pages-test.yml` alongside the existing landing / twin-os /
+  twin-os-songs specs, both on push (against the deployed GitHub
+  Pages URL) and on PR (locally with a dedicated `python3 -m
+  http.server 5180 --directory pages` started in-step and killed
+  after). The specs honor the existing `E2E_URL` / `PORT`
+  convention from `landing.spec.mjs` so deployed vs local paths
+  (`/pages/cognitive-twin.html` vs `/cognitive-twin.html`) are
+  picked up automatically. `executablePath` no longer hardcoded
+  to macOS Chrome — reads `CHROME_PATH` env, otherwise puppeteer's
+  bundled Chromium is used (what CI Linux runners want).
+- **Pushed:** 5 commits on `main`, ahead of origin, now at
+  `3691aa9` on origin. CI will run on push.
+- **Open:** none for this sprint.
+- **Next:** sprint 0.6 — the Woody Shaw chart per the 0.4.b
+  parked item. User supplies the head + chord changes + form;
+  agent produces the trumpet-feature part + rhythm-section
+  voicings following `docs/COLTRANE-SHAW-ENGRAVING.md` §6/§9.
