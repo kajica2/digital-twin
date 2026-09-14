@@ -9,6 +9,7 @@
     "e2e:landing": "cd e2e && node landing.spec.mjs",
     "e2e:twin-os": "cd e2e && node twin-os.spec.mjs",
     "e2e:twin-os-songs": "cd e2e && node twin-os-songs.spec.mjs",
+    "e2e:ct": "cd e2e && node ct-default.mjs && node ct-icon.mjs && node ct-nav.mjs && node ct-progress.mjs && node ct-theme.mjs && node ct-verify.mjs && node ct-a11y.mjs",
     "e2e:live": "cd e2e && E2E_URL=https://kajica2.github.io/digital-twin node landing.spec.mjs && cd ../e2e && E2E_URL=https://kajica2.github.io/digital-twin node twin-os.spec.mjs && cd ../e2e && E2E_URL=https://kajica2.github.io/digital-twin node twin-os-songs.spec.mjs",
     "index-songs": "node lib/songs-indexer.js --apply --yes",
     "export-parts": "node lib/chart-export.js",
@@ -19,7 +20,8 @@
     "sync-e2e:apply": "node assets/sync-e2e-constants.js --apply --yes",
     "test:watcher": "node lib/chart-watcher.test.js",
     "test:songs-watcher": "node lib/songs-watcher.test.js",
-    "test:all": "npm run test:watcher && npm run test:songs-watcher",
+    "test:mj": "node lib/mj-watcher.test.js",
+    "test:all": "npm run test:watcher && npm run test:songs-watcher && npm run test:mj",
     "verify": "npm run e2e",
     "test-args": "/tmp/test-npm.sh \"$@\""
   }
