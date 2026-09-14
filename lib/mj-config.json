@@ -1,7 +1,7 @@
 {
     "_note": "Midjourney automation configuration. Edit this file to point at your Discord setup.",
     "discord": {
-        "channelUrl": "https://discord.com/channels/@me",
+        "channelUrl": "https://discord.com/channels/@me/1068785229520711721",
         "_note_channelUrl": "The Discord channel URL where the Midjourney bot lives. Defaults to DM with MJ bot. Replace with your server's channel URL."
     },
     "chrome": {
