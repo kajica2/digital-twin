@@ -9,7 +9,7 @@
     "e2e:landing": "cd e2e && node landing.spec.mjs",
     "e2e:twin-os": "cd e2e && node twin-os.spec.mjs",
     "e2e:twin-os-songs": "cd e2e && node twin-os-songs.spec.mjs",
-    "e2e:ct": "cd e2e && node ct-default.mjs && node ct-icon.mjs && node ct-nav.mjs && node ct-progress.mjs && node ct-theme.mjs && node ct-verify.mjs && node ct-a11y.mjs",
+    "e2e:ct": "cd e2e && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" node ct-default.mjs && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" node ct-icon.mjs && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" node ct-nav.mjs && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" node ct-progress.mjs && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" node ct-theme.mjs && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" node ct-verify.mjs && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" node ct-a11y.mjs && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" node ct-phase3.mjs",
     "e2e:live": "cd e2e && E2E_URL=https://kajica2.github.io/digital-twin node landing.spec.mjs && cd ../e2e && E2E_URL=https://kajica2.github.io/digital-twin node twin-os.spec.mjs && cd ../e2e && E2E_URL=https://kajica2.github.io/digital-twin node twin-os-songs.spec.mjs",
     "index-songs": "node lib/songs-indexer.js --apply --yes",
     "export-parts": "node lib/chart-export.js",

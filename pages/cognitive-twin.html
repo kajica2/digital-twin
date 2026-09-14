@@ -8,6 +8,16 @@
     <meta property="og:title" content="The Cognitive Twin — Systems Architecture">
     <meta property="og:description" content="A map of everything. Working.">
     <meta property="og:type" content="website">
+    <meta property="og:url" content="https://kajica2.github.io/digital-twin/pages/cognitive-twin.html">
+    <meta property="og:image" content="https://kajica2.github.io/digital-twin/assets/cognitive-twin-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Four-layer architecture diagram: Scanner → Model → Reasoner → Orchestrator">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="The Cognitive Twin — Systems Architecture">
+    <meta name="twitter:description" content="A map of everything. Working.">
+    <meta name="twitter:image" content="https://kajica2.github.io/digital-twin/assets/cognitive-twin-og.png">
+    <link rel="canonical" href="https://kajica2.github.io/digital-twin/pages/cognitive-twin.html">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='28'%3E%E2%97%88%3C/text%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -176,6 +186,47 @@
             background: rgba(14, 165, 233, 0.1);
         }
 
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-toggle {
+            display: none;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-medium);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 1.1rem;
+        }
+
+        .nav-toggle:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .nav-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 99;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .nav-backdrop.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
         .theme-toggle {
             width: 36px;
             height: 36px;
@@ -188,7 +239,6 @@
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
-            margin-left: 8px;
             font-size: 1rem;
         }
 
@@ -836,8 +886,36 @@
             .arch-arrow {
                 display: none;
             }
+            .nav-toggle {
+                display: flex;
+            }
             .nav-links {
-                display: none;
+                position: fixed;
+                top: 64px;
+                right: 0;
+                bottom: 0;
+                width: 280px;
+                max-width: 80vw;
+                flex-direction: column;
+                align-items: stretch;
+                padding: 16px;
+                gap: 4px;
+                background: var(--bg-primary);
+                border-left: 1px solid var(--border-light);
+                box-shadow: var(--shadow-lg);
+                transform: translateX(100%);
+                transition: transform 0.2s ease;
+                z-index: 101;
+                visibility: hidden;
+            }
+            .nav-links.open {
+                transform: translateX(0);
+                visibility: visible;
+            }
+            .nav-link {
+                padding: 14px 16px;
+                font-size: 1rem;
+                border-radius: var(--radius-md);
             }
             .hero {
                 padding-top: 100px;
@@ -1014,16 +1092,20 @@
 <nav class="nav" aria-label="Page sections">
     <div class="nav-inner">
         <a href="/" class="nav-logo">The Cognitive Twin</a>
-        <div class="nav-links">
+        <div class="nav-links" id="navLinks">
             <a href="#scan" class="nav-link">Scan</a>
             <a href="#architecture" class="nav-link">Architecture</a>
             <a href="#processes" class="nav-link">Processes</a>
             <a href="#instances" class="nav-link">Instances</a>
             <a href="#toolchain" class="nav-link">Toolchain</a>
         </div>
-        <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark theme" aria-pressed="false">◐</button>
+        <div class="nav-actions">
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark theme" aria-pressed="false">◐</button>
+            <button class="nav-toggle" id="navToggle" aria-label="Open navigation menu" aria-controls="navLinks" aria-expanded="false">☰</button>
+        </div>
     </div>
 </nav>
+<div class="nav-backdrop" id="navBackdrop" hidden></div>
 <main>
 <div class="container">
     <header class="hero">
@@ -1134,8 +1216,8 @@
         <p style="color: var(--text-tertiary); font-style: italic; margin-top: 24px;">
             "I want to transcribe this recording" should route to the transcription pipeline, not require re-discovering which tools are installed.
         </p>
-        <button class="demo-btn" id="runScanner">▶ Run Scanner Demo</button>
-        <div class="demo-output" id="scannerOutput">
+        <button class="demo-btn" id="runScanner" aria-pressed="false" aria-controls="scannerOutput">▶ Run Scanner Demo</button>
+        <div class="demo-output" id="scannerOutput" role="region" aria-label="Scanner demo output" aria-live="polite">
             <div class="demo-line info">$ twin scan --environment</div>
             <div class="demo-line">Scanning filesystem...</div>
             <div class="demo-line">Found package.json: 12 projects</div>
@@ -1515,7 +1597,8 @@
     window.dispatchEvent(new Event('scroll'));
 
     /* ---------- Layer details toggle (arch-node buttons) ---------- */
-    function showLayer(layer) {
+    function showLayer(layer, opts = {}) {
+        const recordHash = opts.recordHash !== false;
         // Hide all
         document.querySelectorAll('.arch-node').forEach(el => {
             el.classList.remove('active');
@@ -1532,6 +1615,7 @@
             node.setAttribute('aria-expanded', 'true');
             details.classList.add('visible');
         }
+        if (recordHash) recordState({ l: layer });
     }
 
     // Wire arch-node buttons to the showLayer function
@@ -1542,7 +1626,8 @@
     });
 
     /* ---------- Twin tabs (ARIA + keyboard navigation) ---------- */
-    function showTwin(twin) {
+    function showTwin(twin, opts = {}) {
+        const recordHash = opts.recordHash !== false;
         // Hide all tabs
         document.querySelectorAll('.twin-tab').forEach(tab => {
             tab.classList.remove('active');
@@ -1559,6 +1644,20 @@
         });
         const panel = document.getElementById('twin-' + twin);
         if (panel) panel.classList.add('active');
+        if (recordHash) recordState({ t: twin });
+    }
+
+    /* ---------- URL state record (history.pushState) ---------- */
+    function recordState(patch) {
+        const params = new URLSearchParams(location.search);
+        for (const [k, v] of Object.entries(patch)) {
+            if (v === null || v === undefined) params.delete(k);
+            else params.set(k, v);
+        }
+        const newSearch = '?' + params.toString();
+        if (newSearch !== location.search) {
+            history.pushState(null, '', location.pathname + newSearch + location.hash);
+        }
     }
 
     // Keyboard nav for twin tabs
@@ -1599,8 +1698,9 @@
     const scannerOutput = document.getElementById('scannerOutput');
     if (runScanner && scannerOutput) {
         runScanner.addEventListener('click', () => {
-            scannerOutput.classList.toggle('visible');
-            runScanner.textContent = scannerOutput.classList.contains('visible') ? '⏸ Hide Scanner Output' : '▶ Run Scanner Demo';
+            const isVisible = scannerOutput.classList.toggle('visible');
+            runScanner.textContent = isVisible ? '⏸ Hide Scanner Output' : '▶ Run Scanner Demo';
+            runScanner.setAttribute('aria-pressed', isVisible ? 'true' : 'false');
         });
     }
 
@@ -1653,8 +1753,64 @@
         });
     });
 
-    // Show scanner by default
-    showLayer('scanner');
+    /* ---------- Mobile nav drawer ---------- */
+    const navToggle = document.getElementById('navToggle');
+    const navLinksEl = document.getElementById('navLinks');
+    const navBackdrop = document.getElementById('navBackdrop');
+    function setDrawerOpen(open) {
+        if (!navLinksEl || !navBackdrop) return;
+        navLinksEl.classList.toggle('open', open);
+        navBackdrop.classList.toggle('open', open);
+        navBackdrop.hidden = !open;
+        if (navToggle) navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (navToggle) navToggle.setAttribute('aria-label', open ? 'Close navigation menu' : 'Open navigation menu');
+    }
+    if (navToggle) {
+        navToggle.addEventListener('click', () => {
+            const isOpen = navLinksEl.classList.contains('open');
+            setDrawerOpen(!isOpen);
+        });
+    }
+    if (navBackdrop) {
+        navBackdrop.addEventListener('click', () => setDrawerOpen(false));
+    }
+    // Close drawer when a nav link is tapped
+    if (navLinksEl) {
+        navLinksEl.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => setDrawerOpen(false));
+        });
+    }
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && navLinksEl && navLinksEl.classList.contains('open')) {
+            setDrawerOpen(false);
+            navToggle?.focus();
+        }
+    });
+
+    // Show scanner by default; URL hash params (?l=scanner&t=music) override.
+    const initialLayer = new URLSearchParams(location.search).get('l');
+    const initialTwin  = new URLSearchParams(location.search).get('t');
+    if (initialLayer && ['scanner','model','reasoner','orchestrator'].includes(initialLayer)) {
+        showLayer(initialLayer, { recordHash: false });
+    } else {
+        showLayer('scanner', { recordHash: false });
+    }
+    if (initialTwin && ['music','transcription','web','research'].includes(initialTwin)) {
+        showTwin(initialTwin, { recordHash: false });
+    }
+
+    // Back/forward navigation
+    window.addEventListener('popstate', () => {
+        const layer = new URLSearchParams(location.search).get('l');
+        const twin  = new URLSearchParams(location.search).get('t');
+        if (layer && ['scanner','model','reasoner','orchestrator'].includes(layer)) {
+            showLayer(layer, { recordHash: false });
+        }
+        if (twin && ['music','transcription','web','research'].includes(twin)) {
+            showTwin(twin, { recordHash: false });
+        }
+    });
 </script>
 </body>
 </html>
