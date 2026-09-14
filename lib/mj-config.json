@@ -6,8 +6,8 @@
     },
     "chrome": {
         "debugPort": 9444,
-        "userDataDir": "/tmp/mj-chrome-profile",
-        "_note_userDataDir": "Chrome profile directory. The user must sign into Discord in this profile ONCE, then reuse it. A fresh profile starts logged-out."
+        "userDataDir": "/tmp/comet-mj-profile",
+        "_note_userDataDir": "Dedicated Comet profile directory. Launch Comet with this once, sign into Discord, then close. The watcher reuses the profile (cookies persist)."
     },
     "mj": {
         "outputDir": "mj-output",
@@ -17,7 +17,7 @@
         "_note_generationTimeoutMs": "Max time to wait for MJ to finish generating (milliseconds). MJ 4-up grids typically take 30-90s."
     },
     "paths": {
-        "chromeBin": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-        "_note_chromeBin": "Path to Chrome executable. Override if using Brave, Edge, etc."
+        "chromeBin": "/Applications/Comet.app/Contents/MacOS/Comet",
+        "_note_chromeBin": "Using Comet browser instead of Chrome (per user preference)."
     }
 }

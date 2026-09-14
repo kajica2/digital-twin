@@ -31,7 +31,7 @@ Two components following the repo's established watcher pattern (see
 | `bin/mj-watcher.sh` | LaunchAgent wrapper. Multi-candidate Node resolution. |
 | `prompts-inbox/` | Drop zone for `.md` prompt files. |
 | `prompts-inbox/processed/` | Processed prompts land here. |
-| `mj-output/` | Generated result images + metadata JSON. |
+| `mj-output/` | Generated result images + metadata, organized per-prompt in `<slug>/` subdirectories. Each contains `prompt.md`, `result.png` (or `timeout.png`), and `meta.json`. |
 | `logs/mj-watcher.log` | One line per prompt processed. |
 
 ## Quick start
