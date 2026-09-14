@@ -53,7 +53,7 @@ assert('h3 present', semantic.headingCounts.h3 > 0);
 
 console.log('\n2. Navigation ARIA');
 // Scroll into a section so a nav link is active
-await page.evaluate(() => window.scrollTo(0, 500));
+await page.evaluate(() => window.scrollTo(0, 1500));
 await new Promise(r => setTimeout(r, 200));
 const navAria = await page.evaluate(() => {
     const nav = document.querySelector('nav');
