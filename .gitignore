@@ -26,3 +26,6 @@ logs/*.err.log
 # e2e artifacts and dependencies
 e2e/artifacts/
 e2e/node_modules/
+
+# Agent loop state
+.agent/
