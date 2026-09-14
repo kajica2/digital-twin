@@ -1,0 +1,23 @@
+{
+    "_note": "Midjourney automation configuration. Edit this file to point at your Discord setup.",
+    "discord": {
+        "channelUrl": "https://discord.com/channels/@me",
+        "_note_channelUrl": "The Discord channel URL where the Midjourney bot lives. Defaults to DM with MJ bot. Replace with your server's channel URL."
+    },
+    "chrome": {
+        "debugPort": 9444,
+        "userDataDir": "/tmp/mj-chrome-profile",
+        "_note_userDataDir": "Chrome profile directory. The user must sign into Discord in this profile ONCE, then reuse it. A fresh profile starts logged-out."
+    },
+    "mj": {
+        "outputDir": "mj-output",
+        "defaultArgs": "--ar 3:4 --style raw --s 250",
+        "_note_defaultArgs": "Default Midjourney parameters appended when the prompt file doesn't specify --ar, --style, etc.",
+        "generationTimeoutMs": 120000,
+        "_note_generationTimeoutMs": "Max time to wait for MJ to finish generating (milliseconds). MJ 4-up grids typically take 30-90s."
+    },
+    "paths": {
+        "chromeBin": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "_note_chromeBin": "Path to Chrome executable. Override if using Brave, Edge, etc."
+    }
+}
