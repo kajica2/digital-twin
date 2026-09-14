@@ -60,7 +60,7 @@ try {
   const checks = await page.evaluate(() => {
     const requiredIds = ['scan','architecture','processes','instances','toolchain'];
     const found = requiredIds.map(id => !!document.getElementById(id));
-    const twins = ['twin-music','twin-transcription','twin-web','twin-research'].map(id => !!document.getElementById(id));
+    const twins = ['twin-music','twin-transcription','twin-web','twin-research','twin-agent-loop'].map(id => !!document.getElementById(id));
     const layers = ['layer-scanner','layer-model','layer-reasoner','layer-orchestrator'].map(id => !!document.getElementById(id));
     const archNodes = document.querySelectorAll('.arch-node').length;
     const processItems = document.querySelectorAll('.process-item').length;

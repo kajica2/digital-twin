@@ -1356,6 +1356,7 @@
             <button class="twin-tab" data-twin="transcription" id="tab-transcription" role="tab" aria-selected="false" aria-controls="twin-transcription" onclick="showTwin('transcription')"><span aria-hidden="true">🎙</span> Transcription</button>
             <button class="twin-tab" data-twin="web" id="tab-web" role="tab" aria-selected="false" aria-controls="twin-web" onclick="showTwin('web')"><span aria-hidden="true">🌐</span> Web</button>
             <button class="twin-tab" data-twin="research" id="tab-research" role="tab" aria-selected="false" aria-controls="twin-research" onclick="showTwin('research')"><span aria-hidden="true">🔬</span> Research</button>
+            <button class="twin-tab" data-twin="agent-loop" id="tab-agent-loop" role="tab" aria-selected="false" aria-controls="twin-agent-loop" onclick="showTwin('agent-loop')"><span aria-hidden="true">⚡</span> Agent Loop</button>
         </div>
         <div class="twin-content active" id="twin-music" role="tabpanel" aria-labelledby="tab-music">
             <div class="twin-panel">
@@ -1405,6 +1406,15 @@
                     <span class="project-tag">GitHub Trending</span>
                     <span class="project-tag">JSTOR</span>
                 </div>
+            </div>
+        </div>
+        <div class="twin-content" id="twin-agent-loop" role="tabpanel" aria-labelledby="tab-agent-loop">
+            <div class="twin-panel" style="padding: 0; overflow: hidden; height: 600px; display: flex; flex-direction: column;">
+                <div style="padding: 24px 32px 16px;">
+                    <h3 style="color: var(--accent-orchestrator-text); margin-bottom: 4px;"><span aria-hidden="true">⚡</span> Persistent Agent Loop</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Live view of the <code>.agent/state.json</code> memory core. Checkpoints before and after every step.</p>
+                </div>
+                <iframe src="../.agent/dashboard.html" title="Agent Loop Dashboard" style="flex: 1; width: 100%; border: none; border-top: 1px solid var(--border-light); background: #0f1117;"></iframe>
             </div>
         </div>
     </section>
@@ -1796,7 +1806,7 @@
     } else {
         showLayer('scanner', { recordHash: false });
     }
-    if (initialTwin && ['music','transcription','web','research'].includes(initialTwin)) {
+    if (initialTwin && ['music','transcription','web','research','agent-loop'].includes(initialTwin)) {
         showTwin(initialTwin, { recordHash: false });
     }
 
@@ -1807,7 +1817,7 @@
         if (layer && ['scanner','model','reasoner','orchestrator'].includes(layer)) {
             showLayer(layer, { recordHash: false });
         }
-        if (twin && ['music','transcription','web','research'].includes(twin)) {
+        if (twin && ['music','transcription','web','research','agent-loop'].includes(twin)) {
             showTwin(twin, { recordHash: false });
         }
     });

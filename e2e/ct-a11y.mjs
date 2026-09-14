@@ -135,8 +135,8 @@ const twinAria = await page.evaluate(() => {
 });
 assert('tablist exists', twinAria.tablist);
 assert('tablist has aria-label', twinAria.tablistLabel && twinAria.tablistLabel.length > 0);
-assert('4 tabs', twinAria.tabCount === 4);
-assert('4 panels', twinAria.panelCount === 4);
+assert('5 tabs', twinAria.tabCount === 5);
+assert('5 panels', twinAria.panelCount === 5);
 assert('active tab selected', twinAria.activeTabId === 'tab-music');
 for (const t of twinAria.tabs) {
     assert(`tab ${t.id} has aria-selected`, t.selected === 'true' || t.selected === 'false');
@@ -170,7 +170,7 @@ const afterEnd = await page.evaluate(() => {
     const active = document.querySelector('[aria-selected="true"]');
     return { id: active?.id, twin: active?.dataset?.twin };
 });
-assert('End → last tab active', afterEnd.twin === 'research');
+assert('End → last tab active', afterEnd.twin === 'agent-loop');
 
 // Keyboard navigation: Home key
 await page.evaluate(() => {
@@ -194,7 +194,7 @@ const afterLeft = await page.evaluate(() => {
     const active = document.querySelector('[aria-selected="true"]');
     return { id: active?.id, twin: active?.dataset?.twin };
 });
-assert('ArrowLeft from first → wraps to last', afterLeft.twin === 'research');
+assert('ArrowLeft from first → wraps to last', afterLeft.twin === 'agent-loop');
 
 console.log('\n6. Decorative icon ARIA');
 const iconAria = await page.evaluate(() => {
@@ -251,7 +251,7 @@ const twinH3 = await page.evaluate(() => {
         span: h.querySelector('span[aria-hidden="true"]'),
     }));
 });
-assert('4 twin-panel h3 elements', twinH3.length === 4);
+assert('5 twin-panel h3 elements', twinH3.length === 5);
 for (const h of twinH3) {
     assert('twin h3 uses -text var', h.color.includes('accent-') && h.color.includes('-text'));
 }
