@@ -2,6 +2,9 @@
 mj-output/
 prompts-inbox/processed/
 
+# Audio-inbox test artifacts (e2e songs processing)
+audio-inbox/processed/
+
 # Chart export artifacts (e2e tests leave these in chart-inbox/)
 chart-inbox/*.pdf
 chart-inbox/*.mp3
