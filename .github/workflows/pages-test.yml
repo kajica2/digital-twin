@@ -81,7 +81,7 @@ jobs:
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-phase3.mjs
           else
             echo "(PR run - Pages is not built for branches, e2e runs locally)"
-            python3 -m http.server 5180 --directory pages &
+            python3 -m http.server 5180 --directory . &
             SERVER_PID=$!
             sleep 2
             cd e2e && node landing.spec.mjs
