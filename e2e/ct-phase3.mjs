@@ -54,7 +54,11 @@ assert('og:url set', !!meta.ogUrl);
 // Verify the OG image file actually exists and is a real PNG with the right dimensions
 if (meta.ogImage) {
     try {
-        const ogPath = '/Users/kaidejuricmasscmbook/digital-twin/assets/cognitive-twin-og.png';
+        // Resolve against the repo checkout (works on CI runners, not just this machine)
+        const { fileURLToPath } = await import('node:url');
+        const { dirname, join } = await import('node:path');
+        const specDir = dirname(fileURLToPath(import.meta.url));
+        const ogPath = join(specDir, '..', 'assets', 'cognitive-twin-og.png');
         const { existsSync, statSync } = await import('node:fs');
         const exists = existsSync(ogPath);
         assert('og:image file exists on disk', exists);
