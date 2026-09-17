@@ -54,8 +54,13 @@ assert('5+ h2 (sections)', semantic.headingCounts.h2 >= 5);
 assert('h3 present', semantic.headingCounts.h3 > 0);
 
 console.log('\n2. Navigation ARIA');
-// Scroll into a section so a nav link is active
-await page.evaluate(() => window.scrollTo(0, 1500));
+// Scroll into a real section (instantly — the page has scroll-behavior:smooth,
+// which makes window.scrollTo animate and CI machines never land in time).
+await page.evaluate(() => {
+    document.documentElement.style.scrollBehavior = 'auto';
+    const s = document.getElementById('architecture');
+    window.scrollTo(0, s.offsetTop);
+});
 await new Promise(r => setTimeout(r, 200));
 const navAria = await page.evaluate(() => {
     const nav = document.querySelector('nav');
