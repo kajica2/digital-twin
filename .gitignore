@@ -22,6 +22,7 @@ data/songs/catalog.json
 logs/*.log
 logs/*.out.log
 logs/*.err.log
+logs/*.gz
 
 # OS junk
 .DS_Store
