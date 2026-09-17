@@ -127,6 +127,8 @@ const twinAria = await page.evaluate(() => {
         tabs: Array.from(tabs).map(t => ({
             id: t.id, selected: t.getAttribute('aria-selected'),
             controls: t.getAttribute('aria-controls'),
+            inlineOnclick: t.getAttribute('onclick'),
+            tabindex: t.getAttribute('tabindex'),
         })),
         panels: Array.from(panels).map(p => ({
             id: p.id, labelledby: p.getAttribute('aria-labelledby'),
@@ -146,6 +148,25 @@ for (const p of twinAria.panels) {
     assert(`panel ${p.id} has aria-labelledby`, p.labelledby && p.labelledby.startsWith('tab-'));
 }
 
+// A tablist is ONE stop in the tab order: the selected tab carries tabindex=0,
+// every other tab -1, and Arrow*/Home/End move between them. Without this a
+// keyboard user tabs through all five twins before reaching the panel.
+const zeroTabs = twinAria.tabs.filter(t => t.tabindex === '0');
+assert('exactly one tab is tabbable (roving tabindex)', zeroTabs.length === 1,
+       `tabindex="0" on: ${zeroTabs.map(t => t.id).join(', ') || 'none'}`);
+assert('the tabbable tab is the selected tab',
+       zeroTabs.length === 1 && zeroTabs[0].selected === 'true');
+for (const t of twinAria.tabs) {
+    if (t.selected !== 'true') {
+        assert(`tab ${t.id} is out of the tab order`, t.tabindex === '-1', `tabindex=${t.tabindex}`);
+    }
+}
+// Same rule the arch-nodes already assert: behaviour lives in addEventListener,
+// not in inline handlers on the markup.
+for (const t of twinAria.tabs) {
+    assert(`tab ${t.id} no inline onclick`, !t.inlineOnclick, t.inlineOnclick || '');
+}
+
 // Keyboard navigation: arrow right
 await page.evaluate(() => {
     document.querySelector('#tab-music').focus();
@@ -155,10 +176,15 @@ await page.evaluate(() => {
 await new Promise(r => setTimeout(r, 50));
 const afterRight = await page.evaluate(() => {
     const active = document.querySelector('[aria-selected="true"]');
-    return { id: active?.id, twin: active?.dataset?.twin, isTab: document.activeElement?.id };
+    const zero = [...document.querySelectorAll('[role="tab"][tabindex="0"]')].map(t => t.id);
+    return { id: active?.id, twin: active?.dataset?.twin, isTab: document.activeElement?.id,
+             zero, alsoSelected: active?.getAttribute('tabindex') };
 });
 assert('ArrowRight → next tab active', afterRight.twin === 'transcription');
 assert('ArrowRight → focus moves', afterRight.isTab === 'tab-transcription');
+assert('ArrowRight → tabindex=0 follows the selection',
+       afterRight.zero.length === 1 && afterRight.zero[0] === 'tab-transcription',
+       `tabindex=0 on: ${afterRight.zero.join(', ') || 'none'}`);
 
 // Keyboard navigation: End key
 await page.evaluate(() => {
