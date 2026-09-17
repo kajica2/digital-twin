@@ -992,3 +992,68 @@ choices are visible in PDF form.
   `exportOne`'s retry path (would require mocking
   `execFileSync` differently); (d) bring the songs-indexer into
   the watcher pattern (file-in, file-out catalog rebuilds).
+
+### 2026-09-12 — sprint 0.13 (songs-watcher + chart samples)
+
+- **Shipped:**
+- `bin/songs-watcher.sh` + `lib/songs-watcher.js` — drop audio into
+`audio-inbox/`, catalog auto-regenerates via songs-indexer. Same
+watcher pattern as chart-watcher (lockfile, serial processing).
+- `docs/CHART-SAMPLES.md` — side-by-side modal-sketch + alt-head
+comparison (closes sprint 0.12's open item (d)/(b)).
+- `e2e/watcher.spec.mjs` + `e2e/songs-watcher.spec.mjs` — end-to-end
+contract tests for both watchers.
+- chart-watcher test harness extended with retry-path coverage
+(closes 0.12's open item (c)).
+- Apple Notes ping on successful chart export.
+- CI: pages-test workflow documents that watcher specs are local-only;
+em-dash YAML fix.
+- **Decisions:** Watcher e2e specs run locally (they touch LaunchAgent
+state and inbox dirs), not in CI — CI keeps hitting the deployed URL.
+
+### 2026-09-12 — sprint 0.14 (chords + AIFF + hardening)
+
+- **Shipped:**
+- `chart-export --chords <json>` — injects `<harmony>` chord-symbol
+elements into MusicXML output without a music21 dependency
+(closes 0.12's open item (a) via the simpler path).
+- AIFF (`.aif` / `.aiff`) parsing in songs-indexer + songs-watcher,
+with docs.
+- songs-watcher pre-flight check on `sources.config.json`.
+- `--help` flags for chart-export + songs-indexer.
+- Cross-watcher lockfile namespace + tmp-file ignore so chart- and
+songs-watchers can't collide.
+- `docs/SONGS-WATCHER.md`; e2e made LaunchAgent-aware.
+
+### 2026-09-14 — sprint 0.15 (MJ automation + cognitive-twin Phase 3)
+
+- **Shipped:**
+- **Midjourney automation system** — `lib/mj-submitter.js` (644
+lines), `lib/mj-watcher.js` + `bin/mj-watcher.sh`,
+`lib/mj-config.json`, `lib/mj-watcher.test.js`,
+`docs/MJ-WATCHER.md`. Per-prompt output directories + Comet
+config; reliable slash-command insertion and avatar filtering.
+- **cognitive-twin a11y pass** + structural cleanup
+(`e2e/ct-a11y.mjs`).
+- **cognitive-twin Phase 3** — shareable state, OG preview
+(`make-og-image.py` → `cognitive-twin-og.png`), mobile drawer.
+- **Decisions:** MJ automation follows the same drop-a-file watcher
+contract as chart/songs watchers — one interaction pattern across
+all three pipelines.
+
+### 2026-09-14 — sprint 0.16 (persistent agent loop + fixes)
+
+- **Shipped:**
+- `agents/persistent-agent-loop.py` (615 lines) — resumable
+persistent agent loop; the twin's first long-running runtime
+piece (sprint 2+ direction from the original plan).
+- Agent-loop dashboard tab in `pages/cognitive-twin.html`.
+- Hardening fixes: reliable MJ slash-command insertion + avatar
+filtering; twin-os specs ignore `catalog.json` 404s; robust
+scroll position in `ct-a11y` for `aria-current` assertion.
+- **Open:** Agent-loop dashboard currently shows static/stub state —
+wiring it to live orchestrator data is the natural next step.
+- **Next:** candidates — (a) live-state wiring for the agent-loop
+dashboard; (b) jazz-solos CSV catalog (`catalog-jazz-solos.json`)
+so the 456-entry MIDI corpus is searchable in the Songs panel;
+(c) FLAC/M4A/OGG parsing in songs-indexer.
