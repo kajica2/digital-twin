@@ -1,0 +1,6 @@
+# My Midjourney prompt
+
+Describe what you want to generate. The first non-frontmatter paragraph
+below is the prompt sent to Midjourney.
+
+--ar 3:4 --style raw --s 250

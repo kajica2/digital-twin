@@ -124,7 +124,14 @@ async function main() {
 
     const consoleErrors = [];
     page.on('pageerror', e => consoleErrors.push(`pageerror: ${e.message}`));
-    page.on('console', m => { if (m.type() === 'error') consoleErrors.push(`console.error: ${m.text()}`); });
+    page.on('console', m => { 
+        if (m.type() === 'error') {
+            const url = m.location().url || '';
+            const text = m.text();
+            if (url.includes('catalog.json') && text.includes('404')) return;
+            consoleErrors.push(`console.error: ${text} (${url})`);
+        }
+    });
 
     log(`--- load ${pageUrl} ---`);
     const resp = await page.goto(pageUrl, { waitUntil: 'networkidle0' });

@@ -1,0 +1,23 @@
+{
+    "_note": "Midjourney automation configuration. Edit this file to point at your Discord setup.",
+    "discord": {
+        "channelUrl": "https://discord.com/channels/@me/1068785229520711721",
+        "_note_channelUrl": "The Discord channel URL where the Midjourney bot lives. Defaults to DM with MJ bot. Replace with your server's channel URL."
+    },
+    "chrome": {
+        "debugPort": 9444,
+        "userDataDir": "/tmp/comet-mj-profile",
+        "_note_userDataDir": "Dedicated Comet profile directory. Launch Comet with this once, sign into Discord, then close. The watcher reuses the profile (cookies persist)."
+    },
+    "mj": {
+        "outputDir": "mj-output",
+        "defaultArgs": "--ar 3:4 --style raw --s 250",
+        "_note_defaultArgs": "Default Midjourney parameters appended when the prompt file doesn't specify --ar, --style, etc.",
+        "generationTimeoutMs": 120000,
+        "_note_generationTimeoutMs": "Max time to wait for MJ to finish generating (milliseconds). MJ 4-up grids typically take 30-90s."
+    },
+    "paths": {
+        "chromeBin": "/Applications/Comet.app/Contents/MacOS/Comet",
+        "_note_chromeBin": "Using Comet browser instead of Chrome (per user preference)."
+    }
+}

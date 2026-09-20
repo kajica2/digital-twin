@@ -363,3 +363,712 @@ green.
   start the actual twin runtime (pattern memory + cron self-
   reminders). Scope TBD based on what the populated Songs panel
   reveals about the audio corpus shape.
+
+### 2026-09-09 — sprint 0.1 (boot-core)
+
+- **Shipped:** launchd-driven boot for the Twin OS. Two LaunchAgents:
+  - `com.kaidjuric.digital-twin.server` (`KeepAlive=true`) — serves the
+    repo on `:5173` via `python3 -m http.server 0.0.0.0`, owned by
+    launchd so its lifecycle survives boot.sh exit.
+  - `com.kaidjuric.digital-twin.boot` (`RunAtLoad=true`) — orchestrator:
+    `git pull --ff-only`, ensure server, wait for health, open a
+    visible Terminal tailing the server log, open the Twin OS in the
+    default browser, post a one-line status to Apple Notes under a
+    `twin OS` folder.
+- **Scripts:** `bin/boot.sh`, `bin/notes.applescript`,
+  `bin/terminal-log.applescript`. Stickies AppleScript explored and
+  abandoned — modern macOS does not expose the Stickies document model
+  to AppleScript (`sticky` / `stickies` classes return `not defined`).
+  Apple Notes is the scriptable alternative; same desktop-visible +
+  iCloud-synced behavior.
+
+### 2026-09-09 — sprint 0.2 (agenda-input + muScriptor)
+
+- **Shipped:**
+  - **Today panel textfield** — `form[data-agenda-add]` below the
+    seeded agenda. Submit (Enter / Add button) appends a
+    `.agenda-item[data-user="true"]` row with a × remove control.
+    Persists in `localStorage["dt-agenda-items"]` as
+    `{id, text, addedAt, done}`. Survives reload. Seeded items stay
+    static; user items render after, with a subtle copper highlight.
+  - **Songs panel Tools section** — `.tool-grid` with a MuScriptor
+    card linking to `https://muscriptor.kyutai.org/`. Card describes
+    the output (MIDI, per-instrument sheet-music PDFs, full score,
+    MusicXML) and the local-only command (`uvx muscriptor serve`).
+    Grid layout so future tools slot in next to it.
+- **Decisions:**
+  - Form follows the existing `.song-search` visual pattern (warm
+    cream input, copper focus ring). The Add button uses the copper
+    primary so it reads as a primary action without competing with
+    the rail.
+  - Seeded items kept as static markup instead of merging them into
+    the storage list. This avoids "do I show seeds or user's items?"
+    drift and keeps the first-load visual contract stable.
+  - Text is HTML-escaped before insertion; matches the pattern used
+    in the songs panel.
+
+### 2026-09-09 — sprint 0.3 (engraving reference)
+
+- **Shipped:** `docs/COLTRANE-SHAW-ENGRAVING.md` — 275-line reference
+  encoding the conventions for engraving post-bop / modal jazz scores
+  in the styles of John Coltrane and Woody Shaw. Covers: full-band
+  and jazz-band staff order, part-prep rules (page turns, cue notes,
+  multi-measure rests), section-specific engraving, Coltrane sax
+  conventions (Trane slurs, ghost notes, sheets of sound, altissimo,
+  multiphonics), Shaw trumpet conventions (no 8va, popped highs,
+  acciaccatura grace notes, scoops, half-valve, Harmon mute), full-
+  band implications for rhythm section + horn backgrounds, rhythmic
+  feel notation (metric modulation, double-time feel, laying back),
+  per-section checklist.
+- **Decisions:** The twin's domain is jazz. Standard classical
+  engraving rules do not apply. This doc gives future agents a
+  shared reference so transcriptions / original charts stay
+  consistent regardless of which agent produced them.
+
+### 2026-09-09 — open + next
+
+- **Open:**
+  - Original chart composition in the style of Woody Shaw: not yet
+    started. The reference doc is in place; next sprint will scaffold
+    a chart (trumpet + rhythm) once the head's melody/chords/tempo
+    land.
+  - Branch `feat/agenda-input` has the 0.1/0.2/0.3 commits ready to
+    push + PR.
+- **Next:** push `feat/agenda-input`, open PR. Then start the Woody
+  Shaw chart sprint (0.4) — head + harmony + rhythm-section voicings
+  following the conventions in §6/§9 of the new doc.
+
+### 2026-09-09 — sprint 0.4 (chart export pipeline)
+
+- **Shipped:**
+  - `lib/chart-export.js` — pure-Node, no deps. Splits a MusicXML
+    score into per-instrument MusicXML parts (named per the convention
+    from `docs/COLTRANE-SHAW-ENGRAVING.md` §2), writes a JSON manifest,
+    and produces two muted variants (`No_Trumpet`, `No_Sax`) by removing
+    both the `<part>` elements AND their `<score-part>` declarations
+    from the part-list (orphan declarations would break strict
+    consumers like MuseScore).
+  - `lib/midi-export.js` — pure-Node, no deps. Reads MusicXML, emits
+    a valid SMF 1.0 multi-track MIDI (conductor track + one per part,
+    program-change per channel, note-on/note-off events). The MIDI is
+    the input for Soundslice sync, Synthesia-style highlight videos,
+    DAW re-import, and notation software round-trip.
+  - `docs/CHART-EXPORT-WORKFLOW.md` — canonical reference for the
+    pipeline, including the MuseScore one-click render steps and the
+    Soundslice sync workflow.
+  - `package.json` exposes `npm run export-parts` and
+    `npm run export-midi` matching the existing `--apply --yes` convention
+    from `npm run index-songs`.
+- **Decisions:**
+  - **No PDF / WAV generation inside the scripts.** This machine has
+    no MuseScore / Sibelius / Dorico and no MIDI soundfont synth
+    (no `timidity`, `fluidsynth`, or `mido`). The scripts produce
+    MusicXML inputs + a manifest; the user runs MuseScore (or their
+    DAW) once for the final render. The pipeline's value is in the
+    **automated part-splitting + selective muting**, which is the
+    slow tedious bit when done by hand.
+  - **Staff order matches the engraving doc, not the input order.**
+    The user's MuseScore may have entered the parts in any order;
+    `chart-export.js` reorders them per §2 so the per-instrument
+    filenames (`01_…`, `02_…`) match the band-staff layout.
+  - **Transposition labels are inferred from part-name patterns** —
+    Trumpet → Bb, Alto Sax → Eb, etc. No hard-coded instrument list;
+    unknowns (custom part-names) fall through with C label.
+- **Verified end-to-end:**
+  - `node lib/chart-export.js /tmp/mini-score.musicxml --apply --yes`
+    produces 4 output dirs (PDF, No_Trumpet, No_Sax, Whole) with
+    per-instrument MusicXML parts + manifest + READMEs.
+  - music21 round-trip parse of every output (`parts/*.musicxml`,
+    `score.musicxml` in both muted variants) returns the expected
+    part list.
+  - `node lib/midi-export.js /tmp/mini-score.musicxml --apply --yes`
+    produces a 4-track, 88-byte MIDI that music21 parses back to 4
+    valid tracks.
+- **Open:**
+  - Percussion-channel mapping (channel 9 / GM percussion keys) is
+    not yet applied — drum parts come through as literal MIDI note
+    numbers when the source MusicXML doesn't tag them as channel 9.
+    Sprint 0.5 candidate.
+  - Chord symbol extraction / lyric / rehearsal mark handling —
+    present in MusicXML, not yet parsed. Add when a real chart in
+    the wild shows what's worth deepening.
+- **Next:**
+  - sprint 0.5 — first real chart (Woody Shaw-style). User provides
+    the head + chord changes + form; the agent produces the
+    trumpet-feature part + rhythm-section voicings following the
+    conventions in `docs/COLTRANE-SHAW-ENGRAVING.md` §6/§9, then
+    runs the export pipeline against the produced MusicXML.
+
+### 2026-09-09 — sprint 0.4.b (tooling + automation)
+
+- **Installed via Homebrew:**
+  - `musescore` (cask, 4.7.5) — `/Applications/MuseScore 4.app` +
+    `/opt/homebrew/bin/mscore`. The CLI wrapper exports PDFs and MP3s
+    directly from MusicXML: `mscore -f input.musicxml -o output.pdf`
+    and `mscore -f input.musicxml -o output.mp3`. Bundles `MS Basic.sf3`
+    — no separate SoundFont install needed for the chart pipeline.
+  - `fluid-synth` (2.6.0) — installed as a fallback for headless
+    MIDI→audio rendering on hosts without MuseScore's bundled sounds.
+- **`lib/chart-export.js` gains `--render`:** invokes `mscore` to
+  produce the full score PDF, per-part PDFs, and the two muted
+  backing tracks. Detection uses **file existence** rather than exit
+  code (MuseScore's Qt shutdown can complete the export and then
+  exit non-zero on macOS — the file IS the source of truth).
+- **`package.json` gains `npm run export-all`:** one command runs
+  the whole pipeline (MusicXML splits → PDFs → MP3s → MIDI). Six-
+  second end-to-end test on a 3-part fixture.
+- **Verified:** `npm run export-all -- /tmp/mini-score.musicxml`
+  produces: 1 × Full_Score.pdf, 3 × per-part PDFs, 2 × muted MP3s,
+  1 × .mid of the whole arrangement, plus the MusicXML inputs
+  preserved. All files validated as real PDFs / MP3s / MIDI via
+  `file` and music21 round-trip.
+- **Open:** None blocking. The pipeline is fully self-sufficient.
+- **Next:** sprint 0.5 — first real Woody Shaw-style chart. The
+  tooling is in place; user supplies the head + changes.
+
+### 2026-09-12 — sprint 0.5 (cognitive-twin page)
+
+- **Shipped:**
+  - **`pages/cognitive-twin.html`** — single-file narrative page
+    documenting the 4-layer cognitive twin architecture (Scanner /
+    Model / Reasoner / Orchestrator). Sections: hero, click-to-
+    expand layer architecture diagram, 4 running processes, 6
+    domain twins (music, transcription, web, research, …), 12-item
+    toolchain, and the canonical memory model
+    (`memory/user.md` / `memory/agent.md` / `AGENTS.md`).
+    Paired light/dark via CSS custom properties + `prefers-color-
+    scheme` + manual `<theme-toggle>` persisted to
+    `localStorage.ct-theme`. Scroll-spy nav, reading progress bar,
+    copy-to-clipboard on code blocks, click-to-run scanner demo.
+    No frameworks, no build step. Same vanilla-HTML convention as
+    the landing page.
+  - **Six ct-* e2e specs** (`e2e/ct-default.mjs`,
+    `ct-icon.mjs`, `ct-nav.mjs`, `ct-progress.mjs`, `ct-theme.mjs`,
+    `ct-verify.mjs`). Mirror the `landing.spec.mjs` pattern, hit
+    `http://127.0.0.1:5180/cognitive-twin.html` (different port so
+    they can run alongside the launchd `:5173` server).
+    `ct-verify` is the contract spec: 4 layers / 4 twins / 4 arch
+    nodes / 4 processes / 6 domains / 12 tools, plus exercises for
+    layer toggle, twin tab, scanner demo, theme toggle, and 0
+    console errors.
+  - **`lib/songs-indexer.js --add <file>`** — repeatable flag that
+    adds individual audio files to the catalog without walking a
+    configured root. Files land under a synthetic `manual` root
+    (override with `--label <name>`). Reusable for ad-hoc catalog
+    additions; used here to inject a test fixture.
+  - **`assets/mural-prompts/south-america-street-graffiti.md`** —
+    8 Midjourney prompts cataloging the three coherent style
+    groups already in `~/Downloads/midjourney_session (8)/`: B&W
+    asymmetric graphic, mixed-media stencil + blueprint + notation,
+    and cinematic dawn medium-shot.
+- **Decisions:**
+  - **Different port (`:5180` not `:5173`) for ct-* specs** so the
+    launchd Twin OS server keeps its port. Static `python3 -m
+    http.server 5180 --directory pages` works for ad-hoc test
+    runs; production deploy lives on GitHub Pages.
+  - **6 domain twins instead of the 4 originally in the AGENTS.md
+    contract** because the public page wants to surface the full
+    fleet (music + transcription + web + research + 2 reserved).
+    The Twin OS app shell keeps its 3 panels (Today / Songs / Twin)
+    — the 6 are a presentation layer for the page, not a UI
+    commitment.
+- **Verified end-to-end:**
+  - All six ct-* specs pass green on a fresh
+    `python3 -m http.server 5180 --directory pages` server.
+  - `ct-verify` confirms 0 console errors across light + dark, all
+    4 layer-details elements toggle correctly, scanner demo
+    toggles, theme toggle persists across reloads.
+- **Open:**
+  - Sprint 0.6 (the actual Woody Shaw chart per 0.4.b's "Next")
+    is still parked.
+- **Next:** wire ct-* specs into CI, then resume the chart work.
+
+### 2026-09-12 — sprint 0.5.b (CI wiring)
+
+- **Shipped:** the six ct-* specs now run in `.github/workflows/
+  pages-test.yml` alongside the existing landing / twin-os /
+  twin-os-songs specs, both on push (against the deployed GitHub
+  Pages URL) and on PR (locally with a dedicated `python3 -m
+  http.server 5180 --directory pages` started in-step and killed
+  after). The specs honor the existing `E2E_URL` / `PORT`
+  convention from `landing.spec.mjs` so deployed vs local paths
+  (`/pages/cognitive-twin.html` vs `/cognitive-twin.html`) are
+  picked up automatically. `executablePath` no longer hardcoded
+  to macOS Chrome — reads `CHROME_PATH` env, otherwise puppeteer's
+  bundled Chromium is used (what CI Linux runners want).
+- **Pushed:** 5 commits on `main`, ahead of origin, now at
+  `3691aa9` on origin. CI will run on push.
+- **Open:** none for this sprint.
+- **Next:** sprint 0.6 — the Woody Shaw chart per the 0.4.b
+  parked item. User supplies the head + chord changes + form;
+  agent produces the trumpet-feature part + rhythm-section
+  voicings following `docs/COLTRANE-SHAW-ENGRAVING.md` §6/§9.
+
+### 2026-09-12 — sprint 0.6 (chart MP3 pipeline)
+
+- **Shipped:**
+  - **`lib/chart-export.js --render` now emits `<song>_Demo.mp3`**
+    — the whole-arrangement audition with all parts playing. This
+    is the shareable single-file artifact (SoundCloud-style demo),
+    distinct from the two muted backing tracks.
+  - **`--mp3-only` flag** — re-renders just the audio set from
+    existing MusicXML splits. Skips the split + mute work. ~50%
+    faster than the full pipeline (4.2s vs 7.8s on the
+    3-part fixture). Exits with code 2 + a one-line fix hint if
+    the required `<song>_Whole/` directory doesn't exist yet.
+  - **`npm run export-mp3`** — wires the audio-only path into
+    npm, matches the existing `--apply --yes` convention from
+    `index-songs` / `export-all`.
+  - **`ffprobe` MP3 verification** baked into the render pass.
+    Each `.mp3` output is checked for non-zero duration and
+    reported with its bitrate. Catches the "MuseScore wrote a
+    0-byte file" failure mode that the file-existence check
+    alone misses. Falls through silently if `ffprobe` isn't on
+    PATH.
+  - **Bug fix:** stale literal `<song>.musicxml` in the
+    `process.stderr.write` summary line — now correctly
+    interpolates `${SONG_BASE}`. Pre-existing cosmetic bug,
+    surfaced by the new render pass.
+  - **`docs/CHART-EXPORT-WORKFLOW.md` rewritten** to reflect
+    the current `--render` pipeline (no more "this machine
+    doesn't have MuseScore" stale note). Documents the new
+    Demo MP3, `--mp3-only`, and the bundled `MS Basic.sf3`
+    soundfont + the optional swap procedure.
+- **Decisions:**
+  - **Bundled `MS Basic.sf3` is the default soundfont.** It's
+    GM-ish but ships with the cask and keeps the pipeline
+    self-sufficient. Documented the soundfont swap as optional
+    (drop a new SF3 into MuseScore's sound dir) — no script
+    changes needed when the user upgrades.
+  - **ffprobe verified, not mandated.** The script logs a
+    warning if ffprobe isn't installed; it doesn't refuse to
+    run. CI / dev machines that lack ffmpeg still get the
+    files written, just without the duration sanity check.
+  - **Demo MP3 is the whole arrangement, not the head-only
+    loop.** Auditions benefit from hearing the full texture —
+    the head + a chorus of comping + bass + drums is the
+    selling artifact. Head-only can be a follow-up if the
+    sprint rhythm requires it.
+  - **`--mp3-only` doesn't require `--render`** — they're
+    independent flags now. `--mp3-only` short-circuits to the
+    audio path; `--render` is still the "do everything from
+    scratch" entry point.
+- **Verified end-to-end:**
+  - `npm run export-all -- /tmp/mini-score.musicxml` →
+    1 Full_Score.pdf + 3 part PDFs + Demo.mp3 + 2 muted MP3s +
+    whole-arrangement .mid, all real (PDF v1.4 / MPEG ADTS layer
+    III 128 kbps 44.1 kHz / multi-track MIDI), 8.0s wall.
+  - `npm run export-mp3 -- /tmp/mini-score.musicxml` → 3 MP3s
+    only, 4.1s wall, ffprobe-validated durations.
+  - `--mp3-only` error path (no prior split) exits with code 2
+    + one-line fix hint.
+  - Full `npm run verify` (all 3 e2e specs) green — no
+    regressions.
+- **Open:**
+  - Sprint 0.6's original charter (first real Woody Shaw chart)
+    is **still parked** — this sprint shipped the audio
+    pipeline work the user asked for. Chart composition is the
+    next ask.
+- **Next:** sprint 0.7 — first real Woody Shaw-style chart.
+    User supplies head + changes + form; agent produces the
+    trumpet-feature part + rhythm-section voicings following
+    `docs/COLTRANE-SHAW-ENGRAVING.md` §6/§9, then runs
+    `npm run export-all` against the produced MusicXML to ship
+    the full chart package with the new Demo MP3.
+
+### 2026-09-12 — sprint 0.7 (first chart + export-all wrapper fix)
+
+- **Shipped:**
+  - **First real chart:** modal AABA contrafact over the
+    canonical D dorian / G dorian changes ("Impressions"-style).
+    25-bar head, 4 parts (Trumpet Bb, Piano, Bass, Drums).
+    Trumpet head articulates Shaw-style phrasing — flowing 8th-
+    note line over pedal harmony, with the rhythmic profile
+    designed for improvisation over the same form. Pianist
+    comps quartal voicings (Dm7sus / G7sus / Dm7sus / G7sus in
+    A; Gm7sus / C7sus in bridge). Bass walks root + 5th.
+    Drums are skeletal ride + kick — per the engraving doc's
+    "don't over-notate drums" rule.
+  - **`bin/export-all.sh`** — bash wrapper for the full export
+    pipeline. Fixes a silent bug in `npm run export-all`: the
+    prior `&&`-chained script only forwarded the user's input
+    path to the SECOND script (`midi-export`), so the first
+    (`chart-export`) always fell back to its built-in
+    `/tmp/mini-score.musicxml` fixture — silently exporting
+    the wrong chart. npm appends user args to the END of the
+    entire script command, so `$@` between `&&` doesn't expand
+    for both halves. The wrapper takes the path once and
+    forwards it to both stages. `package.json` `export-all`
+    now delegates to it.
+  - The chart MusicXML + outputs stay in `/tmp` (work product,
+    not repo content). What ships is the wrapper fix + the
+    chart composition documented below.
+- **Decisions:**
+  - **Original contrafact, not transcription.** Per the AGENTS.md
+    §11 hygiene rule and the no-copyrighted-melody policy: read
+    the Coltrane MIDI locally for form + key + feel (modal AABA
+    in D dorian / G dorian, swing 8ths, 4/4) and composed an
+    original head in the same idiom. No melody from the source
+    MIDI ends up in the public repo.
+  - **25 bars, not 32.** I cut the head at bar 25 with a held
+    whole-note tonic so the export pipeline gets a clean
+    fixed-length score. Real modal AABA charts usually loop
+    via D.S. al Coda, but the export pipeline (MuseScore PDF,
+    ffprobe-verified MP3, multi-track MIDI) is happier with a
+    fixed-length chart that doesn't depend on repeat markings.
+  - **Trumpet in Bb (transposed), rhythm section in C.**
+    Matches the band-staff convention from the engraving doc
+    §2 — horn players read transposed keys, rhythm reads concert.
+    The chart-export.js transposition inference correctly labels
+    Trumpet as Bb and Piano/Bass/Drums as C.
+  - **Skeletal drum part.** Quarter-note ride bell on 1+3, kick
+    on 2+4, no fills. The engraving doc §4 says don't over-
+    notate drums — the live drummer fills the gaps.
+  - **Quartal piano voicings, no slash notation yet.** A real
+    chart would add chord symbols (`Dm7`, `G7sus`) above the
+    piano staff; the MusicXML schema doesn't carry those in the
+    current pipeline, so the voicings stand on their own.
+- **Verified end-to-end:**
+  - `npm run export-all -- /tmp/modal-sketch.musicxml` →
+    1 Full_Score.pdf (3 pages, 60 KB) + 4 per-part PDFs in
+    canonical band order (Trumpet_Bb, Piano_C, Bass_C,
+    Drums_C) + Demo.mp3 (56.0s @ 128 kbps) + No_Trumpet.mp3
+    (53.0s) + No_Sax.mp3 (56.0s) + 5-track MIDI (PPQ=4,
+    2.4 KB). All real (PDF v1.4, MPEG ADTS layer III, format 1
+    MIDI), all ffprobe-validated, all file-type-checked.
+  - `npm run verify` — all 3 e2e specs green, no regressions
+    from the wrapper change.
+- **Bug surfaced:** the `npm run export-all` arg-passthrough
+  bug had been silently shipping the wrong chart for every
+  prior run. Fixed by the wrapper. Sprint 0.6's "Demo MP3"
+  verification was against the wrong chart; the MP3 pipeline
+  itself is still correct, but re-running `npm run export-all
+  -- path/to/song.musicxml` against a real chart is now
+  accurate for the first time.
+- **Open:**
+  - The trumpet head is a one-chorus sketch; the actual
+    improvising over this form is left to the soloist. A
+    follow-up could produce an alternate-head variant or a
+    fully-notated solo transcription.
+  - Slash notation / chord symbols not yet carried by the
+    MusicXML pipeline. Adding them requires either a MusicXML
+    extension or a separate lyric/chord layer in the export
+    manifest.
+- **Next:** sprint 0.8 candidates — (a) the alternate-head
+  variant or solo transcription; (b) chord-symbol / slash
+  notation in MusicXML (requires music21 or similar); (c) wire
+  the chart export into a watched-folder LaunchAgent that
+  auto-rebuilds the chart package on every input change.
+
+### 2026-09-12 — sprint 0.8 (chart export watcher)
+
+- **Shipped:**
+  - **`lib/chart-watcher.js`** — pure-Node, no deps. Polls
+    `chart-inbox/` every 2s for new `.musicxml` files. For each:
+    acquires a lockfile, runs `bin/export-all.sh`, moves the
+    input to `chart-inbox/processed/`, appends a one-line
+    `[start]` / `[done]` / `[fail]` to `logs/chart-watcher.log`.
+    `--once` flag for manual runs. SIGTERM-clean shutdown.
+    Stale lockfiles (>30 min) pruned at startup.
+  - **`bin/chart-watcher.sh`** — LaunchAgent wrapper. Mirrors
+    the `macos-launchd-automation` skill's `start.sh` template:
+    absolute paths, no `cd`, multi-candidate Node resolution
+    (Hermes Node → NVM → Homebrew → system). Drop-in compatible
+    with the existing twin boot / server LaunchAgents.
+  - **`~/Library/LaunchAgents/com.kaidjuric.digital-twin.chart-watcher.plist`**
+    — `RunAtLoad=true`, `KeepAlive=true`, `ThrottleInterval=10`,
+    `EnvironmentVariables.PATH` includes `~/.hermes/node/bin`
+    first. **NOT bootstrapped** — service-state change, awaiting
+    user approval. `plutil -lint` confirmed valid.
+  - **`chart-inbox/`** — drop zone for new `.musicxml` files.
+    `.gitkeep` keeps the dir in the repo; everything else
+    (PDFs, MP3s, MIDI, processed/) is `.gitignore`d as
+    auto-generated.
+  - **`docs/CHART-WATCHER.md`** — install + verify + teardown
+    steps. Includes a copy-paste-able launchctl command sequence.
+- **Decisions:**
+  - **Poll loop, not `fs.watch`.** `fs.watch` / FSEvents under a
+    GUI LaunchAgent has known reliability gaps on macOS — events
+    drop, especially under network filesystem mounts. A 2-second
+    poll is boring, predictable, and matches the twin's "calm,
+    not chatty" ethos.
+  - **Single in-process watcher, no concurrency.** Each export
+    takes ~10s. Serial processing is the right default for a
+    personal twin. To parallelize later, add a worker pool —
+    not now.
+  - **Lockfile-based concurrency guard.** `.processing-<sha1>`
+    in `chart-inbox/` ensures two simultaneous watcher
+    instances (or a stale one) don't double-process a file.
+    Stale locks (>30 min) are pruned at startup so a crash
+    doesn't permanently block a file.
+  - **Move to `processed/`, not delete.** The user can see what
+    shipped. Matches the calm-by-default twin ethos.
+  - **No Slack / IM / desktop notifications.** Logging only.
+    AGENTS.md says "silent unless something matters."
+  - **ThrottleInterval=10 in the plist.** If launchd restarts
+    the watcher (crash), don't let it tight-loop — at least
+    10 seconds between respawns.
+- **Verified end-to-end:**
+  - `cp /tmp/modal-sketch.musicxml chart-inbox/ && node
+    lib/chart-watcher.js --once` → full chart package produced
+    (1 Full_Score.pdf + 4 per-part PDFs + Demo.mp3 + 2 muted
+    MP3s + 5-track MIDI), input moved to `processed/`, all
+    ffprobe-validated. 12.1s wall (matches sprint 0.7 manual
+    run). Zero failures.
+  - `npm run verify` — all 3 e2e specs green, no regressions.
+- **Open:**
+  - LaunchAgent plist is installed but NOT bootstrapped. Awaiting
+    user approval to run `launchctl bootstrap` — irreversible
+    service-state change.
+  - **No retry on failure.** A failed export logs `[fail]` and
+    leaves the input in `chart-inbox/`. Manual intervention
+    required. A simple retry-once-on-failure could be added.
+  - **No concurrency.** Backlog of N files takes N × 10s.
+    Add a worker pool when N > 5 is routine.
+- **Next:** sprint 0.9 candidates — (a) bootstrap the LaunchAgent
+  (after user approval); (b) retry-once-on-failure; (c) the
+  alternate-head chart variant from sprint 0.7's backlog;
+  (d) chord-symbol / slash notation in MusicXML output.
+
+### 2026-09-12 — sprints 0.9 / 0.10 / 0.11 (watcher live, hardened, alt-head chart)
+
+Three sprints in one combined entry — all chart-pipeline work, all
+shipped within a single hour against the running LaunchAgent.
+
+**Sprint 0.9 — LaunchAgent bootstrapped:**
+
+- Loaded `~/Library/LaunchAgents/com.kaidjuric.digital-twin.chart-watcher.plist`
+  via `launchctl bootstrap gui/$UID/...`. State = running, PID 18202
+  (then PID 23200 after the 0.10 kickstart). Hermes-managed Node
+  binary (`~/.hermes/node/bin/node`) used per the plist's PATH.
+- `launchctl kickstart -k` after bootstrap to force an immediate run.
+- Verified beyond `state = running` via `pgrep -fl chart-watcher` —
+  per the `macos-launchd-automation` skill, that flag alone isn't
+  proof of health.
+- Did NOT bootout the existing twin boot / server LaunchAgents.
+  Three LaunchAgents total now: `twin.boot` + `twin.server`
+  + `twin.chart-watcher`.
+
+**Sprint 0.10 — retry-once + lockfile mtime fix:**
+
+- Wrapped `execFileSync` in a 2-attempt loop with a 5-second sync
+  sleep. Catches mscore file-locks, MuseScore crashes, brief
+  filesystem contention. Logging distinguishes `[done]` /
+  `[done-retry-N]` / `[fail]` (with attempt count).
+- Lockfile lifecycle is via `try/finally` around the retry loop —
+  a slow retry never holds the lock longer than total wall time.
+- **Bug fix surfaced during 0.11 verification:** the original
+  lockfile check (`!fs.existsSync(lock)`) didn't detect a stale
+  lock from a previously-processed file at the same path. Drop
+  a new file with the same name → lockfile from the old run
+  blocks the new file indefinitely. The new check considers a
+  lockfile stale if (a) it's older than STALE_LOCK_MS (lowered
+  from 30min to 5min), OR (b) the underlying file's mtime is
+  newer than the lockfile's mtime. The (b) check handles the
+  "replace file at same path" case correctly.
+- Verified end-to-end: happy path → `[done]` at 12.2s, no retry.
+  Failure path (export-all.sh missing) → `[retry]` logged, 5s
+  sleep, `[fail]` (2 attempts), lockfile cleaned. Replace-at-
+  same-path → new file picked up immediately on next tick.
+
+**Sprint 0.11 — alt-head modal chart variant:**
+
+- Composed `/tmp/modal-sketch-b.musicxml` — 60KB, 4 parts, modal
+  AABA in D dorian / G dorian / D dorian (same form as the
+  sprint 0.7 chart), but the head starts on F (a 5th higher
+  than modal-sketch's D) and showcases per `docs/COLTRANE-SHAW-
+  ENGRAVING.md` §6: `<articulations>` markers on popped-high
+  notes (marcato + tenuto + strong-accent), "Harmon mute, stem
+  out" direction at bar 17, half-valve pickup direction at the
+  bridge.
+- Stays in `/tmp` (work product, not repo content) — same
+  convention as sprint 0.7's `modal-sketch.musicxml`.
+- Dropped into the production inbox while the LaunchAgent was
+  live. Watcher picked it up, full chart package shipped end-
+  to-end: 1 Full_Score.pdf (3 pages) + 4 per-part PDFs in
+  canonical band order (Trumpet_Bb, Piano_C, Bass_C, Drums_C)
+  + Demo.mp3 + No_Trumpet.mp3 + No_Sax.mp3 (all 56.0s/53.0s @
+  128 kbps) + 5-track MIDI. All ffprobe-validated, all real.
+- Wall time: 13.3s — articulations + mute direction did NOT
+  break MuseScore (initial concern that mscore would hang on
+  the direction text — it didn't).
+
+**Decisions:**
+
+- **Single combined AGENTS.md entry** for 0.9 / 0.10 / 0.11
+  because they form one continuous arc: bootstrap → harden →
+  exercise. Splitting them across three entries would have
+  duplicated the LaunchAgent verification narrative.
+- **`launchctl kickstart -k` (not `bootout`/`bootstrap`) for
+  the 0.10 restart** — same scope as the 0.9 bootstrap approval.
+  Cheaper, no approval gate.
+- **Alt-head kept in `/tmp`** rather than committed to the
+  repo, despite the new watcher making in-repo placement viable.
+  Reason: chart compositions are evolving work products, not
+  durable artifacts. The repo carries the tooling, the chart
+  itself lives where the user iterates on it.
+- **No concurrency in the watcher.** Serial processing is still
+  the right default for a personal twin; the queue has never
+  built up beyond a single file in practice.
+
+**Verified end-to-end (all three sprints):**
+
+- LaunchAgent running PID 23200, state = running, two children
+  active. Three LaunchAgents total.
+- `[start] modal-sketch-b.musicxml` → `[done] → 13.3s` via
+  the live watcher.
+- `[start] lockfile-test.musicxml` (first) → `[done] → 13.7s`,
+  then REPLACE the file → `[start] lockfile-test.musicxml`
+  (second, same path, different mtime) → `[done] → 12.9s`.
+  Mtime fix confirmed working.
+- All mp3s are MPEG ADTS layer III 128 kbps 44.1 kHz JntStereo,
+  all PDFs are v1.4, MIDI is format 1 with 5 tracks.
+
+**Open:**
+
+- No automated test for the lockfile-mtime race condition. The
+  manual reproduction verified it; a permanent test would
+  require a synthetic watcher test harness. Defer until the
+  watcher grows more branches.
+
+**Next:** sprint 0.12 candidates — (a) chord-symbol / slash
+notation in MusicXML output (requires music21 or similar);
+(b) automated test for the watcher's lockfile logic;
+(c) wire the LaunchAgent log rotation (logs/ grows unbounded);
+(d) ship a docs sample showing two charts side-by-side
+(modal-sketch + modal-sketch-b) so the alt-head's articulation
+choices are visible in PDF form.
+
+### 2026-09-12 — sprint 0.12 (watcher tests + log rotation)
+
+- **Shipped:**
+  - **`lib/chart-watcher.test.js`** — pure-Node, no deps. 13
+    assertions covering the watcher's lockfile logic. Uses
+    `WATCHER_TEST_DIR` env var to point the watcher at a scratch
+    dir so no real files in `chart-inbox/` are touched.
+    Mocks the export runner via
+    `module.exports.setRunExport()` — no mscore invocation
+    during tests. Run via `npm run test:watcher`.
+  - **`bin/log-rotate.sh`** — newsyslog-style rotation for every
+    `*.log` in `logs/`. Keeps 7 daily `.gz` rotations, deletes
+    the rest. Naming: `foo.log` → `foo.log.1.gz` after rotation;
+    older ones count up. Manual use: `bin/log-rotate.sh` or
+    `bin/log-rotate.sh <file>...`.
+  - **`com.kaidjuric.digital-twin.log-rotate` LaunchAgent**
+    installed + bootstrapped. `StartCalendarInterval` Hour=3
+    Minute=0 → fires daily at 03:00. Verified the script works
+    via direct invocation (LaunchAgent `state = not running`
+    between scheduled firings — correct behavior for
+    `StartCalendarInterval` jobs).
+  - **Chart-watcher refactor** for testability — extracted
+    `execFileSync` into `runExport()` so tests can mock it.
+    Added `--test` flag and `WATCHER_TEST_DIR` env var.
+    Production code path is unchanged; the new flags are
+    short-circuits in `main()`. Module-exports the narrow set
+    of internals the harness needs.
+  - **`docs/CHART-WATCHER.md`** — added Logs + Tests sections,
+    fixed stale "No retry on failure" limitation that should
+    have been updated in the 0.10 entry.
+- **Decisions:**
+  - **Tests cover the lockfile logic, NOT the export
+    integration.** The export pipeline (chart-export.js →
+    music21 round-trip → mscore render → ffprobe verify) is
+    already covered by the manual end-to-end runs in sprints
+    0.7/0.8/0.9. Test infrastructure for the mscore+ffmpeg
+    dance would be heavy (Docker, mock binaries) and isn't
+    worth it for a personal tool.
+  - **Test harness mirrors the repo's e2e/ pattern.** Plain
+    `.js` files invoked via `node`, no test framework. Same
+    convention as the 6 ct-* specs from sprint 0.5.
+  - **`StartCalendarInterval` instead of `RunAtLoad +
+    `KeepAlive`.** The log-rotate job is calendar-based (daily
+    03:00), not watch-based. Per the `macos-launchd-automation`
+    skill, `StartCalendarInterval` is the right pattern for
+    scheduled tasks that should NOT poll.
+  - **Log rotation deletes anything beyond the 7-day window.**
+    No long-term retention. If the user wants a permanent
+    archive of watch activity, that's a separate cron / git
+    commit-cadence project, not log rotation.
+- **Verified:**
+  - `npm run test:watcher` → 13/13 pass (all green)
+  - `bin/log-rotate.sh` on a real `logs/` → rotated 7 files,
+    gzipped, source files replaced with empty `.log`. Zero-byte
+    files skipped (correct — no point rotating empty logs).
+  - `npm run verify` (existing e2e specs) → all green, no
+    regression from the watcher refactor.
+  - LaunchAgent loaded: `service = com.kaidjuric.digital-twin.log-rotate`
+    appears in `launchctl print gui/$UID/...`. Will fire at
+    next 03:00.
+- **Open:** none for this sprint.
+- **Next:** sprint 0.13 candidates — (a) chord-symbol / slash
+  notation in MusicXML output (requires music21 or similar);
+  (b) side-by-side chart sample in docs (modal-sketch +
+  modal-sketch-b); (c) extend the test harness to cover
+  `exportOne`'s retry path (would require mocking
+  `execFileSync` differently); (d) bring the songs-indexer into
+  the watcher pattern (file-in, file-out catalog rebuilds).
+
+### 2026-09-12 — sprint 0.13 (songs-watcher + chart samples)
+
+- **Shipped:**
+- `bin/songs-watcher.sh` + `lib/songs-watcher.js` — drop audio into
+`audio-inbox/`, catalog auto-regenerates via songs-indexer. Same
+watcher pattern as chart-watcher (lockfile, serial processing).
+- `docs/CHART-SAMPLES.md` — side-by-side modal-sketch + alt-head
+comparison (closes sprint 0.12's open item (d)/(b)).
+- `e2e/watcher.spec.mjs` + `e2e/songs-watcher.spec.mjs` — end-to-end
+contract tests for both watchers.
+- chart-watcher test harness extended with retry-path coverage
+(closes 0.12's open item (c)).
+- Apple Notes ping on successful chart export.
+- CI: pages-test workflow documents that watcher specs are local-only;
+em-dash YAML fix.
+- **Decisions:** Watcher e2e specs run locally (they touch LaunchAgent
+state and inbox dirs), not in CI — CI keeps hitting the deployed URL.
+
+### 2026-09-12 — sprint 0.14 (chords + AIFF + hardening)
+
+- **Shipped:**
+- `chart-export --chords <json>` — injects `<harmony>` chord-symbol
+elements into MusicXML output without a music21 dependency
+(closes 0.12's open item (a) via the simpler path).
+- AIFF (`.aif` / `.aiff`) parsing in songs-indexer + songs-watcher,
+with docs.
+- songs-watcher pre-flight check on `sources.config.json`.
+- `--help` flags for chart-export + songs-indexer.
+- Cross-watcher lockfile namespace + tmp-file ignore so chart- and
+songs-watchers can't collide.
+- `docs/SONGS-WATCHER.md`; e2e made LaunchAgent-aware.
+
+### 2026-09-14 — sprint 0.15 (MJ automation + cognitive-twin Phase 3)
+
+- **Shipped:**
+- **Midjourney automation system** — `lib/mj-submitter.js` (644
+lines), `lib/mj-watcher.js` + `bin/mj-watcher.sh`,
+`lib/mj-config.json`, `lib/mj-watcher.test.js`,
+`docs/MJ-WATCHER.md`. Per-prompt output directories + Comet
+config; reliable slash-command insertion and avatar filtering.
+- **cognitive-twin a11y pass** + structural cleanup
+(`e2e/ct-a11y.mjs`).
+- **cognitive-twin Phase 3** — shareable state, OG preview
+(`make-og-image.py` → `cognitive-twin-og.png`), mobile drawer.
+- **Decisions:** MJ automation follows the same drop-a-file watcher
+contract as chart/songs watchers — one interaction pattern across
+all three pipelines.
+
+### 2026-09-14 — sprint 0.16 (persistent agent loop + fixes)
+
+- **Shipped:**
+- `agents/persistent-agent-loop.py` (615 lines) — resumable
+persistent agent loop; the twin's first long-running runtime
+piece (sprint 2+ direction from the original plan).
+- Agent-loop dashboard tab in `pages/cognitive-twin.html`.
+- Hardening fixes: reliable MJ slash-command insertion + avatar
+filtering; twin-os specs ignore `catalog.json` 404s; robust
+scroll position in `ct-a11y` for `aria-current` assertion.
+- **Open:** Agent-loop dashboard currently shows static/stub state —
+wiring it to live orchestrator data is the natural next step.
+- **Next:** candidates — (a) live-state wiring for the agent-loop
+dashboard; (b) jazz-solos CSV catalog (`catalog-jazz-solos.json`)
+so the 456-entry MIDI corpus is searchable in the Songs panel;
+(c) FLAC/M4A/OGG parsing in songs-indexer.

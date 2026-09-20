@@ -31,6 +31,53 @@ For now, what's here:
 - **`e2e/landing.spec.mjs`** — Puppeteer smoke test that loads each
   variant, screenshots, and asserts the variant switcher roundtrips.
 
+## Install from GitHub
+
+Requires **macOS** (the boot core and LaunchAgents are macOS-only), **git**, and **Python 3** (system `python3` works). The pages are static — no build step, no bundler.
+
+```bash
+# 1. Clone (repo path matters: boot.sh and the LaunchAgents use ~/digital-twin)
+git clone https://github.com/kajica2/digital-twin.git ~/digital-twin
+cd ~/digital-twin
+
+# 2. (optional) e2e test runner — only needed to run the Puppeteer specs
+cd e2e && npm install && cd ..
+
+# 3. Run the site locally
+python3 -m http.server 5173 --bind 0.0.0.0
+#   → http://localhost:5173/pages/landing.html
+#   → http://localhost:5173/pages/twin-os/        (Twin OS PWA)
+#   → http://localhost:5173/pages/cognitive-twin.html
+```
+
+### Self-update on launch
+
+The repo ships with **auto-update on launch** (`bin/auto-update.sh`, wired into `bin/boot.sh`):
+
+- At every login, `boot.sh` runs `auto-update.sh` which fetches `origin/main`, **detects new commits**, and fast-forwards the repo only if there are any.
+- After a clean pull it **reloads any running watcher LaunchAgents** (chart / songs / MJ) so new code goes live without a logout/login cycle.
+- It **refuses to overwrite uncommitted local changes** (exit 1, logs to `logs/auto-update.log`) and tolerates being offline (exit 3, boot continues).
+- Manual run: `bin/auto-update.sh` from the repo root.
+
+### Optional: LaunchAgent boot core
+
+The full login-boot experience (auto-update → server → open Twin OS → terminal log → Apple Notes status) runs via two LaunchAgents that already ship on this machine:
+
+```bash
+# Verify the boot core agents are loaded
+launchctl print gui/$(id -u)/com.kaidjuric.digital-twin.boot   2>/dev/null | grep -E "state|program"
+launchctl print gui/$(id -u)/com.kaidjuric.digital-twin.server 2>/dev/null | grep -E "state|program"
+
+# Force the boot core to run right now
+launchctl kickstart -k gui/$(id -u)/com.kaidjuric.digital-twin.boot
+#   → watch logs/boot-$(date +%Y%m%d).log for the auto-update + server-up lines
+
+# (GUI-visible) open the Twin OS now
+open http://127.0.0.1:5173/pages/twin-os/
+```
+
+The plist files themselves are per-machine artifacts (they hardcode `$HOME` paths), so on a fresh install recreate them from the workflow scripts in `bin/` — the schemas are documented in `docs/CHART-WATCHER.md`, `docs/SONGS-WATCHER.md`, `docs/MJ-WATCHER.md` and the `macos-launchd-automation` skill.
+
 ## Run the landing page
 
 The page is a single self-contained HTML file. No build step.
