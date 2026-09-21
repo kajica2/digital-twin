@@ -32,3 +32,6 @@ e2e/node_modules/
 
 # Agent loop state
 .agent/
+
+# Kai project memory (local-only by choice — contains absolute paths)
+.kai/
