@@ -121,12 +121,13 @@ sample-output presence) and the twin-os `data-tool-clip` link. It runs
 **without** Python deps:
 
 ```bash
-python3 -m http.server 5180 --directory pages &
+python3 -m http.server 5180 --directory . &
 npm run e2e:clip
 ```
 
-URL convention: deployed → `${BASE}/pages/clip-interrogator.html`, local
-(`--directory pages`) → `${BASE}/clip-interrogator.html`.
+URL convention: single path in every mode (GitHub Pages, launchd dev
+server, CI PR-mode server, ad-hoc local server — all serve the repo
+root): `${BASE}/pages/clip-interrogator.html`.
 
 ## Attribution
 

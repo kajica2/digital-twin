@@ -54,8 +54,8 @@ and is a no-op outside it.
 ## How to run
 
 ```bash
-python3 -m http.server 5173 --directory pages
-# open http://127.0.0.1:5173/refael-mp4-maker.html
+python3 -m http.server 5173 --directory .
+# open http://127.0.0.1:5173/pages/refael-mp4-maker.html
 ```
 
 or simply open `pages/refael-mp4-maker.html` directly from disk
@@ -68,7 +68,7 @@ same URL convention as `clip-interrogator.spec.mjs`:
 
 ```bash
 cd e2e
-PORT=5180 node refael.spec.mjs       # requires: python3 -m http.server 5180 --directory pages
+PORT=5180 node refael.spec.mjs       # requires: python3 -m http.server 5180 --directory .
 ```
 
 Asserts: title + hero, offline badge, 3-tab tablist with the first

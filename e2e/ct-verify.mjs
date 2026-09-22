@@ -3,17 +3,19 @@ import puppeteer from 'puppeteer';
 // Cognitive-twin contract spec.
 //
 // E2E_URL — when set, runs against the deployed GitHub Pages site.
-// Otherwise hits a local server:
-//   * PORT default 5173 — the launchd-managed server at repo root, page at
-//     /pages/cognitive-twin.html
-//   * PORT=5180 + `python3 -m http.server 5180 --directory pages` — page at
-//     /cognitive-twin.html
+// Otherwise hits a local server: the launchd-managed server at repo root
+// (PORT default 5173) or an ad-hoc one, e.g.
+//   python3 -m http.server 5180 --directory .   # PORT=5180
+// Both serve the repo root, so the page lives at /pages/cognitive-twin.html
+// in every mode (production, launchd dev, CI PR-mode server).
 //   E2E_URL=https://kajica2.github.io/digital-twin node ct-verify.mjs
-//   PORT=5180 node ct-verify.mjs                   # ad-hoc pages-rooted server
+//   PORT=5180 node ct-verify.mjs                   # ad-hoc repo-root server
 const DEPLOYED_URL = process.env.E2E_URL || null;
 const PORT = process.env.PORT || '5173';
 const BASE = DEPLOYED_URL || `http://127.0.0.1:${PORT}`;
-const PAGE_URL = `${BASE}${DEPLOYED_URL ? '/pages/cognitive-twin.html' : '/cognitive-twin.html'}`;
+// /pages/cognitive-twin.html on the deployed Pages site and on the launchd dev
+// server alike — both serve the repo root. CI's PR-mode server must too.
+const PAGE_URL = `${BASE}/pages/cognitive-twin.html`;
 
 const errors = [];
 const results = [];
@@ -41,7 +43,7 @@ try {
     await page.goto(PAGE_URL, { waitUntil: 'networkidle0', timeout: 15000 });
   } catch (err) {
     console.log('⚠ server unreachable: ' + err.message);
-    console.log('start a server first: python3 -m http.server 5180 --directory pages');
+    console.log('start a server first: python3 -m http.server 5180 --directory .');
     for (const r of results) console.log(r);
     console.log(`FAILED — ${failed} check(s) failed (0 assertions could run)`);
     process.exit(1);

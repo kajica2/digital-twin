@@ -7,16 +7,20 @@ import { fileURLToPath } from 'node:url';
 //
 // URL convention (deliberately NOT the ct-spec quirk):
 //   deployed → ${BASE}/pages/clip-interrogator.html  (site root = repo root)
-//   local    → ${BASE}/clip-interrogator.html        (server runs --directory pages)
-//   twin-os  → ${BASE}/pages/twin-os/index.html deployed / ${BASE}/twin-os/index.html local
+//   local    → ${BASE}/pages/clip-interrogator.html  (server runs --directory .,
+//              matching production + the launchd dev server — CI's PR-mode
+//              server serves the repo root too)
+//   twin-os  → ${BASE}/pages/twin-os/index.html (same in every mode)
 //
 //   E2E_URL=https://kajica2.github.io/digital-twin node clip-interrogator.spec.mjs
-//   PORT=5180 node clip-interrogator.spec.mjs     # python3 -m http.server 5180 --directory pages
+//   PORT=5180 node clip-interrogator.spec.mjs     # python3 -m http.server 5180 --directory .
 const DEPLOYED_URL = process.env.E2E_URL || null;
 const PORT = process.env.PORT || '5180';
 const BASE = DEPLOYED_URL || `http://127.0.0.1:${PORT}`;
-const CLIP_URL = `${BASE}${DEPLOYED_URL ? '/pages/clip-interrogator.html' : '/clip-interrogator.html'}`;
-const TWINOS_URL = `${BASE}${DEPLOYED_URL ? '/pages/twin-os/index.html' : '/twin-os/index.html'}`;
+// Single path in every mode: /pages/... on GitHub Pages, the launchd dev
+// server, and CI's PR-mode server all serve the repo root.
+const CLIP_URL = `${BASE}/pages/clip-interrogator.html`;
+const TWINOS_URL = `${BASE}/pages/twin-os/index.html`;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ARTIFACTS = path.join(__dirname, 'artifacts');
@@ -51,7 +55,7 @@ try {
   } catch (err) {
     // Down-server ergonomics: give the fix hint, dump checks so far, exit 1.
     console.log('⚠ server unreachable: ' + err.message);
-    console.log('start a static server first: python3 -m http.server 5180 --directory pages');
+    console.log('start a static server first: python3 -m http.server 5180 --directory .');
     for (const r of results) console.log(r);
     console.log(`FAILED — ${failed} check(s) failed (0 assertions could run)`);
     process.exit(1);
@@ -128,7 +132,7 @@ try {
   twin.on('pageerror', e => twinErrors.push('pageerror: ' + e.message));
   twin.on('console', m => {
     // Known pre-existing: twin-os fetches ../../data/songs/catalog.json, which
-    // 404s under --directory pages (catalog is gitignored user-local). Mirror
+    // 404s (catalog is gitignored user-local — still true under the repo-root server). Mirror
     // the filter used by twin-os.spec.mjs / twin-os-songs.spec.mjs.
     if (m.type() === 'error') {
       const url = m.location().url || '';

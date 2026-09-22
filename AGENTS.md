@@ -1362,3 +1362,38 @@ so the 456-entry MIDI corpus is searchable in the Songs panel;
   served dashboard on pause/exit; (b) CLIP sample strip → generated
   `data/clip/samples.json`; (c) clip CLI `--out <file>`; (d) woody-shaw
   chart variants.
+
+### 2026-09-22 — sprint 0.19.b (merge reconciliation with concurrent main work)
+
+Shipped inside the merge of `origin/main` (which had advanced 7 commits
+while sprint 0.19 was in flight — another session shipped a roving-
+tabindex fix, a CI PR-mode server change, a ct-a11y scroll fix, and
+boot auto-update docs):
+
+- **Repo-wide URL convention converged.** Parallel work established the
+  canonical serve shape: **repo root everywhere** (`python3 -m http.server
+  5180 --directory .`) — production Pages, launchd dev server, and CI
+  PR-mode server alike — with specs hitting `/pages/<page>.html` in every
+  mode. Sprint 0.19's ct/clip/refael specs were aligned to this single
+  path (ternaries collapsed); earlier pages-dir-convention docs and e2e
+  hints updated (`docs/CLIP-INTERROGATOR.md`,
+  `docs/REFAEL-MP4-MAKER.md`, README).
+- **ct-a11y scroll fix merged with the parallel fix.** The other session
+  disabled smooth scrolling and scrolled to `#architecture` with a fixed
+  200 ms wait — which they noted *still failed against the deployed
+  Pages site*. Sprint 0.19's poll-based fix (disable
+  `history.scrollRestoration` + `scrollIntoView` + `waitForFunction`
+  for the spy's observable output) was kept on top of their
+  smooth-scroll insight; it is the version that passes in every mode
+  including the deployed URL.
+- **Kept from parallel work:** roving-tabindex spec additions in
+  ct-a11y, the og:image path resolution fix in ct-phase3 (supersedes
+  sprint 0.19's earlier ct-phase3 path tweak), the CI repo-root server
+  switch, `.gitignore` gzip-log entry, and the boot auto-update /
+  install-docs work.
+- **Verified under the final convention** (repo-root :5180 server):
+  ct-verify 16/16, ct-a11y ALL PASS, ct-{default,icon,nav,progress,
+  theme,phase3} clean, clip + refael all checks pass, `npm run verify`
+  green.
+- **Open/next:** unchanged from sprint 0.19's list — auto-regenerating
+  the served dashboard on loop pause/exit is the highest-value follow-up.

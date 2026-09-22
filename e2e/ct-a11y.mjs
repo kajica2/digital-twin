@@ -3,7 +3,9 @@ import puppeteer from 'puppeteer';
 const DEPLOYED_URL = process.env.E2E_URL || null;
 const PORT = process.env.PORT || '5173';
 const BASE = DEPLOYED_URL || `http://127.0.0.1:${PORT}`;
-const URL = `${BASE}${DEPLOYED_URL ? '/pages/cognitive-twin.html' : '/cognitive-twin.html'}`;
+// /pages/cognitive-twin.html on the deployed Pages site and on the launchd dev
+// server alike — both serve the repo root. CI's PR-mode server must too.
+const URL = `${BASE}/pages/cognitive-twin.html`;
 
 const errors = [];
 const fails = [];
@@ -59,10 +61,15 @@ assert('5+ h2 (sections)', semantic.headingCounts.h2 >= 5);
 assert('h3 present', semantic.headingCounts.h3 > 0);
 
 console.log('\n2. Navigation ARIA');
-// Scroll a mid-page section into view so a nav link becomes active, then
-// POLL for the spy's observable output (rAF-throttled + restoration can
-// shift timing); fixed sleeps are flaky across machines.
-await page.evaluate(() => document.getElementById('processes')?.scrollIntoView());
+// Scroll a mid-page section into view so a nav link becomes active. The page
+// has scroll-behavior:smooth (animated scrolling never lands within a fixed
+// wait on CI), so disable smoothing, scroll instantly, then POLL for the
+// spy's observable output — rAF-throttling and Chrome scroll restoration can
+// shift timing, so a fixed sleep is flaky across machines.
+await page.evaluate(() => {
+  document.documentElement.style.scrollBehavior = 'auto';
+  document.getElementById('processes')?.scrollIntoView();
+});
 await page.waitForFunction(() => {
   const a = document.querySelector('.nav-link.active');
   return a && a.getAttribute('aria-current') === 'true';
@@ -139,6 +146,8 @@ const twinAria = await page.evaluate(() => {
         tabs: Array.from(tabs).map(t => ({
             id: t.id, selected: t.getAttribute('aria-selected'),
             controls: t.getAttribute('aria-controls'),
+            inlineOnclick: t.getAttribute('onclick'),
+            tabindex: t.getAttribute('tabindex'),
         })),
         panels: Array.from(panels).map(p => ({
             id: p.id, labelledby: p.getAttribute('aria-labelledby'),
@@ -158,6 +167,25 @@ for (const p of twinAria.panels) {
     assert(`panel ${p.id} has aria-labelledby`, p.labelledby && p.labelledby.startsWith('tab-'));
 }
 
+// A tablist is ONE stop in the tab order: the selected tab carries tabindex=0,
+// every other tab -1, and Arrow*/Home/End move between them. Without this a
+// keyboard user tabs through all five twins before reaching the panel.
+const zeroTabs = twinAria.tabs.filter(t => t.tabindex === '0');
+assert('exactly one tab is tabbable (roving tabindex)', zeroTabs.length === 1,
+       `tabindex="0" on: ${zeroTabs.map(t => t.id).join(', ') || 'none'}`);
+assert('the tabbable tab is the selected tab',
+       zeroTabs.length === 1 && zeroTabs[0].selected === 'true');
+for (const t of twinAria.tabs) {
+    if (t.selected !== 'true') {
+        assert(`tab ${t.id} is out of the tab order`, t.tabindex === '-1', `tabindex=${t.tabindex}`);
+    }
+}
+// Same rule the arch-nodes already assert: behaviour lives in addEventListener,
+// not in inline handlers on the markup.
+for (const t of twinAria.tabs) {
+    assert(`tab ${t.id} no inline onclick`, !t.inlineOnclick, t.inlineOnclick || '');
+}
+
 // Keyboard navigation: arrow right
 await page.evaluate(() => {
     document.querySelector('#tab-music').focus();
@@ -167,10 +195,15 @@ await page.evaluate(() => {
 await new Promise(r => setTimeout(r, 50));
 const afterRight = await page.evaluate(() => {
     const active = document.querySelector('[aria-selected="true"]');
-    return { id: active?.id, twin: active?.dataset?.twin, isTab: document.activeElement?.id };
+    const zero = [...document.querySelectorAll('[role="tab"][tabindex="0"]')].map(t => t.id);
+    return { id: active?.id, twin: active?.dataset?.twin, isTab: document.activeElement?.id,
+             zero, alsoSelected: active?.getAttribute('tabindex') };
 });
 assert('ArrowRight → next tab active', afterRight.twin === 'transcription');
 assert('ArrowRight → focus moves', afterRight.isTab === 'tab-transcription');
+assert('ArrowRight → tabindex=0 follows the selection',
+       afterRight.zero.length === 1 && afterRight.zero[0] === 'tab-transcription',
+       `tabindex=0 on: ${afterRight.zero.join(', ') || 'none'}`);
 
 // Keyboard navigation: End key
 await page.evaluate(() => {

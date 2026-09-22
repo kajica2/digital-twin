@@ -5,7 +5,8 @@
 # Responsibilities (split on purpose — the server runs under its OWN
 # LaunchAgent so launchd owns its lifecycle, not boot.sh):
 #
-#   1. git pull (fast-forward only)
+#   1. auto-update: fetch origin, detect new commits, ff-only pull, and
+#      reload watcher LaunchAgents whose code changed (bin/auto-update.sh)
 #   2. ask launchd to ensure the server LaunchAgent is loaded + running
 #   3. wait for the server health endpoint
 #   4. open a visible Terminal showing the live server log
@@ -39,15 +40,17 @@ with open('$LOG', 'a') as f:
 {
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] digital-twin boot start"
 
-# --- 1. git pull (fast-forward only) ----------------------------------
+# --- 1. self-update: fetch, detect new commits, ff-only pull, reload
+#        watchers whose code changed (bin/auto-update.sh) ----------------
 cd "$REPO" || {
     echo "  FATAL: cannot cd to $REPO"
     exit 1
 }
 echo
-echo "-- git pull --"
-GIT_OUT=$(git pull --ff-only 2>&1)
-echo "$GIT_OUT"
+echo "-- auto-update --"
+AUTO_UPDATE_STATUS=0
+"$REPO/bin/auto-update.sh" 2>&1 || AUTO_UPDATE_STATUS=$?
+echo "  auto-update exit: $AUTO_UPDATE_STATUS (0=clean, 1=dirty/conflict, 3=offline — boot continues)"
 
 # --- 2. ensure server LaunchAgent is loaded + running -----------------
 echo

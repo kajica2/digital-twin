@@ -3,7 +3,9 @@ import puppeteer from 'puppeteer';
 const DEPLOYED_URL = process.env.E2E_URL || null;
 const PORT = process.env.PORT || '5173';
 const BASE = DEPLOYED_URL || `http://127.0.0.1:${PORT}`;
-const URL = `${BASE}${DEPLOYED_URL ? '/pages/cognitive-twin.html' : '/cognitive-twin.html'}`;
+// /pages/cognitive-twin.html on the deployed Pages site and on the launchd dev
+// server alike — both serve the repo root. CI's PR-mode server must too.
+const URL = `${BASE}/pages/cognitive-twin.html`;
 
 const errors = [];
 const fails = [];
@@ -52,10 +54,9 @@ assert('og:url set', !!meta.ogUrl);
 // Verify the OG image file actually exists and is a real PNG with the right dimensions
 if (meta.ogImage) {
     try {
-        // Resolve relative to the spec (e2e/ → repo-root/assets/...).
-        // The old hard-coded macOS path broke on any other machine AND in CI.
-        const { dirname, join } = await import('node:path');
+        // Resolve against the repo checkout (works on CI runners, not just this machine)
         const { fileURLToPath } = await import('node:url');
+        const { dirname, join } = await import('node:path');
         const specDir = dirname(fileURLToPath(import.meta.url));
         const ogPath = join(specDir, '..', 'assets', 'cognitive-twin-og.png');
         const { existsSync, statSync } = await import('node:fs');

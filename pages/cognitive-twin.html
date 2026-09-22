@@ -1352,11 +1352,11 @@
             The general scanner produces domain-specific instantiations. Each twin knows its domain cold and runs the work without asking.
         </p>
         <div class="twin-tabs" role="tablist" aria-label="Twin instances">
-            <button class="twin-tab active" data-twin="music" id="tab-music" role="tab" aria-selected="true" aria-controls="twin-music" onclick="showTwin('music')"><span aria-hidden="true">🎵</span> Music</button>
-            <button class="twin-tab" data-twin="transcription" id="tab-transcription" role="tab" aria-selected="false" aria-controls="twin-transcription" onclick="showTwin('transcription')"><span aria-hidden="true">🎙</span> Transcription</button>
-            <button class="twin-tab" data-twin="web" id="tab-web" role="tab" aria-selected="false" aria-controls="twin-web" onclick="showTwin('web')"><span aria-hidden="true">🌐</span> Web</button>
-            <button class="twin-tab" data-twin="research" id="tab-research" role="tab" aria-selected="false" aria-controls="twin-research" onclick="showTwin('research')"><span aria-hidden="true">🔬</span> Research</button>
-            <button class="twin-tab" data-twin="agent-loop" id="tab-agent-loop" role="tab" aria-selected="false" aria-controls="twin-agent-loop" onclick="showTwin('agent-loop')"><span aria-hidden="true">⚡</span> Agent Loop</button>
+            <button class="twin-tab active" data-twin="music" id="tab-music" role="tab" aria-selected="true" aria-controls="twin-music" tabindex="0"><span aria-hidden="true">🎵</span> Music</button>
+            <button class="twin-tab" data-twin="transcription" id="tab-transcription" role="tab" aria-selected="false" aria-controls="twin-transcription" tabindex="-1"><span aria-hidden="true">🎙</span> Transcription</button>
+            <button class="twin-tab" data-twin="web" id="tab-web" role="tab" aria-selected="false" aria-controls="twin-web" tabindex="-1"><span aria-hidden="true">🌐</span> Web</button>
+            <button class="twin-tab" data-twin="research" id="tab-research" role="tab" aria-selected="false" aria-controls="twin-research" tabindex="-1"><span aria-hidden="true">🔬</span> Research</button>
+            <button class="twin-tab" data-twin="agent-loop" id="tab-agent-loop" role="tab" aria-selected="false" aria-controls="twin-agent-loop" tabindex="-1"><span aria-hidden="true">⚡</span> Agent Loop</button>
         </div>
         <div class="twin-content active" id="twin-music" role="tabpanel" aria-labelledby="tab-music">
             <div class="twin-panel">
@@ -1639,15 +1639,19 @@
     function showTwin(twin, opts = {}) {
         const recordHash = opts.recordHash !== false;
         // Hide all tabs
+        // Roving tabindex: a tablist is a single stop in the tab order — the
+        // selected tab is where Tab lands, and Arrow*/Home/End move between them.
         document.querySelectorAll('.twin-tab').forEach(tab => {
             tab.classList.remove('active');
             tab.setAttribute('aria-selected', 'false');
+            tab.setAttribute('tabindex', '-1');
         });
         // Show selected tab
         const tab = document.querySelector(`[data-twin="${twin}"]`);
         if (tab) {
             tab.classList.add('active');
             tab.setAttribute('aria-selected', 'true');
+            tab.setAttribute('tabindex', '0');
         }
         document.querySelectorAll('.twin-content').forEach(content => {
             content.classList.remove('active');
@@ -1674,6 +1678,13 @@
     const tablist = document.querySelector('[role="tablist"]');
     if (tablist) {
         const tabs = Array.from(tablist.querySelectorAll('[role="tab"]'));
+        // One delegated listener replaces the per-tab inline onclick, so a mouse
+        // click and the Arrow* handler below (which calls .click()) take exactly
+        // the same path into showTwin().
+        tablist.addEventListener('click', (e) => {
+            const tab = e.target.closest('[role="tab"]');
+            if (tab && tab.dataset.twin) showTwin(tab.dataset.twin);
+        });
         tablist.addEventListener('keydown', (e) => {
             const current = tablist.querySelector('[role="tab"][aria-selected="true"]');
             if (!current) return;
