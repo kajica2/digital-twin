@@ -1397,3 +1397,85 @@ boot auto-update docs):
   green.
 - **Open/next:** unchanged from sprint 0.19's list — auto-regenerating
   the served dashboard on loop pause/exit is the highest-value follow-up.
+
+### 2026-09-22 — sprint 0.20 (how-to page)
+
+- **Shipped:**
+  - **`pages/how-to.html`** — the operator's manual for the whole
+    repo. Single self-contained HTML file in the cognitive-twin style
+    (stone palette, Inter + JetBrains Mono, paired light/dark via
+    `prefers-color-scheme` + `<theme-toggle>` persisted to
+    `localStorage["ht-theme"]` with a no-flash bootstrap, scroll-spy
+    nav with progress bar, mobile drawer, copy-to-clipboard code
+    blocks with `execCommand` fallback so headless never throws).
+    Nine sections: 01 Quickstart (requirements, the repo-root serve
+    command, page map table), 02 Twin OS, 03 CLIP Interrogator
+    (setup/UI/CLI + the why-CPU callout), 04 Refael (engines +
+    offline caveat), 05 Chart pipeline (export-all + chart-inbox
+    watcher), 06 Song indexer (index-songs + audio-inbox watcher +
+    empty-catalog fix), 07 Testing (all spec entry points), 08
+    LaunchAgents (live state table + verify/tap commands), 09
+    Troubleshooting (ports, 404 root cause, mscore exit-code quirk,
+    uv cache fix, favicon rule, git author flags) + memory note.
+    Every factual claim in the page was verified live before commit:
+    `npm run test:all` exists as referenced, LaunchAgent states were
+    pulled from `launchctl`, page count fixed to 7.
+  - **cognitive-twin footer** — second `.footer-link` "How to run the
+    twin" → `./how-to.html` (discoverability; ct-a11y only asserts
+    the first footer link, verified before editing).
+  - **`e2e/how-to.spec.mjs`** — Puppeteer contract spec, 16 checks:
+    title/hero, 9 nav links match expected set, all 9 section ids,
+    code blocks == copy buttons (12), copy click throws no errors,
+    theme toggle → dark + persists on reload, cross-page links exist,
+    every internal link resolves ≤ 400 (HEAD), 0 console errors in
+    light + dark passes, screenshots → `e2e/artifacts/howto-{light,dark}.png`.
+    Uses the single `/pages/how-to.html` URL convention in every mode.
+  - **npm + CI** — `e2e:howto` script; `pages-test.yml` gains push
+    + PR lines exactly like the clip/refael lines.
+  - **README** — "what's here" bullet, e2e section note, file-tree
+    entries, `npm run test:all` mention.
+- **Decisions:**
+  - **One page, one job: "how do I actually run this?"** The repo had
+    landing (pitch), cognitive-twin (why), tool pages (what each tool
+    does), and markdown docs (deep reference) — but no page that
+    answers "how do I run all of it?" in one place. The how-to is
+    deliberately the operator's manual: real commands, real watcher
+    states, real failure modes.
+  - **Facts verified before copy, not after.** The page documents
+    LaunchAgent state (`pgrep`/`launchctl` live-checked: server,
+    chart-watcher, songs-watcher, mj-watcher live; boot at login;
+    log-rotate 03:00), npm script names (checked against
+    package.json), and the repo-root serve convention. A how-to page
+    that lies about the system is worse than no page.
+  - **Theme key `ht-theme`, not a shared one.** Each page owns its
+    localStorage key (dt-theme-pref / ct-theme / ci-theme / ht-theme)
+    — keeps pages standalone-openable with zero cross-contamination.
+  - **Copy buttons everywhere, fallback included.** `navigator.clipboard`
+    in a secure local context can reject; the fallback
+    (`textarea` + `document.execCommand('copy')`) guarantees a click
+    never throws — which is what the 0-console-error e2e contract
+    actually checks.
+  - **No nav surgery on other pages.** Only touch = one footer link on
+    cognitive-twin (the natural sibling). Landing/twin-os navs stay
+    untouched — their e2e contracts are stable.
+- **Verified end-to-end:**
+  - `e2e:howto` 16/16 PASS on the repo-root :5180 server.
+  - `ct-a11y` ALL PASS (footer link added safely), `ct-verify` 16/16
+    (dashboard iframe still 200, 0 console errors).
+  - `npm run verify` green (landing / twin-os / twin-os-songs).
+  - `e2e:clip` + `e2e:refael` green, `npm run test:all` green
+    (chart 13 + songs + mj 17).
+  - Hygiene grep clean — no absolute filesystem paths in any new file.
+- **Open:**
+  - The how-to page is static; when the agent-loop dashboard
+    auto-regenerates (sprint 0.20 backlog item), the how-to's
+    LaunchAgents table + dashboard blurb may need a refresh pass.
+  - Page-map table should gain a row when sprint 0.21+ ships another
+    page (pattern: add row + bump hero count).
+  - Other 0.19/0.20 backlog items unchanged: (a) `run` auto-
+    regenerates the served dashboard on pause/exit; (b) CLIP sample
+    strip → generated `data/clip/samples.json`; (c) clip CLI `--out`;
+    (d) woody-shaw chart variants.
+- **Next:** sprint 0.21 candidates — (a) auto-regenerating served
+  dashboard (highest value; plumbing exists); (b) `data/clip/samples.json`;
+  (c) clip CLI `--out <file>`; (d) chart variants backlog.

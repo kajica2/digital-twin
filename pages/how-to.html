@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How To — Digital Twin</title>
+    <meta name="description" content="How to run everything in the digital-twin repo: Twin OS, the CLIP Interrogator, the Refael MP4 Maker, the chart pipeline, the song indexer, the e2e tests, and the LaunchAgents.">
+    <meta property="og:title" content="How To — Digital Twin">
+    <meta property="og:description" content="One repo, seven pages, four live watchers, zero frameworks. Here's how to run all of it.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://kajica2.github.io/digital-twin/pages/how-to.html">
+    <link rel="canonical" href="https://kajica2.github.io/digital-twin/pages/how-to.html">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='28'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #fafaf9;
+            --bg-secondary: #f5f5f4;
+            --bg-tertiary: #e7e5e4;
+            --bg-card: #ffffff;
+            --text-primary: #1c1917;
+            --text-secondary: #57534e;
+            --text-tertiary: #78716c;
+            --border-light: #e7e5e4;
+            --border-medium: #d6d3d1;
+            --accent: #0f766e;
+            --accent-strong: #0d5c56;
+            --accent-text: #0f766e;
+            --accent-2: #7c3aed;
+            --accent-2-text: #6d28d9;
+            --accent-3: #b45309;
+            --accent-3-text: #92400e;
+            --code-bg: #f5f5f4;
+            --code-text: #44403c;
+            --ok: #047857;
+            --warn: #b45309;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0c0a09;
+            --bg-secondary: #1c1917;
+            --bg-tertiary: #292524;
+            --bg-card: #1c1917;
+            --text-primary: #fafaf9;
+            --text-secondary: #a8a29e;
+            --text-tertiary: #78716c;
+            --border-light: #292524;
+            --border-medium: #44403c;
+            --accent: #2dd4bf;
+            --accent-strong: #5eead4;
+            --accent-text: #2dd4bf;
+            --accent-2: #a78bfa;
+            --accent-2-text: #c4b5fd;
+            --accent-3: #fbbf24;
+            --accent-3-text: #fcd34d;
+            --code-bg: #292524;
+            --code-text: #e7e5e4;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body.no-scroll { overflow: hidden; }
+
+        .progress-bar {
+            position: fixed; top: 0; left: 0;
+            height: 3px; width: 0%;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            z-index: 100;
+            transition: width 0.1s linear;
+        }
+
+        /* ---------- Nav ---------- */
+        .nav {
+            position: sticky; top: 0; z-index: 90;
+            background: color-mix(in srgb, var(--bg-primary) 88%, transparent);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-light);
+        }
+        .nav-inner {
+            max-width: 1080px; margin: 0 auto;
+            display: flex; align-items: center; gap: 20px;
+            padding: 14px 24px;
+        }
+        .nav-logo {
+            font-weight: 700; font-size: 0.95rem;
+            color: var(--text-primary); text-decoration: none;
+            white-space: nowrap; letter-spacing: -0.01em;
+        }
+        .nav-logo span { color: var(--accent-text); }
+        .nav-links {
+            display: flex; gap: 4px; flex-wrap: wrap;
+            margin-left: auto;
+        }
+        .nav-link {
+            color: var(--text-secondary); text-decoration: none;
+            font-size: 0.83rem; font-weight: 500;
+            padding: 6px 10px; border-radius: 999px;
+            transition: background 0.15s, color 0.15s;
+        }
+        .nav-link:hover { color: var(--text-primary); background: var(--bg-tertiary); }
+        .nav-link.active { color: var(--accent-text); background: var(--bg-tertiary); }
+        .nav-actions { display: flex; align-items: center; gap: 8px; }
+        .theme-toggle {
+            border: 1px solid var(--border-medium); background: var(--bg-card);
+            color: var(--text-secondary); width: 34px; height: 34px;
+            border-radius: 999px; font-size: 1rem; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center;
+            transition: border-color 0.15s, color 0.15s;
+        }
+        .theme-toggle:hover { border-color: var(--accent); color: var(--text-primary); }
+        .theme-toggle:focus-visible, .nav-toggle:focus-visible, .nav-link:focus-visible, .copy-btn:focus-visible {
+            outline: 2px solid var(--accent); outline-offset: 2px;
+        }
+        .nav-toggle {
+            display: none; border: 1px solid var(--border-medium); background: var(--bg-card);
+            color: var(--text-secondary); width: 34px; height: 34px; border-radius: 8px;
+            font-size: 1rem; cursor: pointer;
+        }
+        .nav-backdrop {
+            position: fixed; inset: 0; background: rgb(0 0 0 / 0.4);
+            z-index: 85; backdrop-filter: blur(2px);
+        }
+
+        @media (max-width: 860px) {
+            .nav-links {
+                display: none; position: fixed; top: 0; right: 0; bottom: 0;
+                width: 260px; flex-direction: column; gap: 2px;
+                background: var(--bg-card); border-left: 1px solid var(--border-light);
+                padding: 70px 16px 24px; margin: 0; z-index: 95;
+                box-shadow: var(--shadow-lg);
+            }
+            .nav-links.open { display: flex; }
+            .nav-links a { padding: 10px 12px; border-radius: var(--radius-sm); }
+            .nav-toggle { display: inline-flex; align-items: center; justify-content: center; }
+            .nav-logo { font-size: 0.85rem; }
+        }
+
+        /* ---------- Layout ---------- */
+        main { max-width: 1080px; margin: 0 auto; padding: 0 24px 80px; }
+
+        .hero { padding: 88px 0 56px; }
+        .hero-badge {
+            display: inline-block; font-size: 0.75rem; font-weight: 600;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            color: var(--accent-text); background: var(--bg-card);
+            border: 1px solid var(--border-medium); border-radius: 999px;
+            padding: 5px 14px; margin-bottom: 20px;
+        }
+        .hero h1 {
+            font-size: clamp(2.2rem, 5vw, 3.6rem);
+            font-weight: 800; letter-spacing: -0.03em; line-height: 1.08;
+            margin-bottom: 12px;
+        }
+        .hero h1 em { font-style: normal; color: var(--accent-text); }
+        .hero-desc {
+            font-size: 1.1rem; color: var(--text-secondary);
+            max-width: 640px; line-height: 1.65;
+        }
+        .hero-meta {
+            margin-top: 22px; display: flex; flex-wrap: wrap; gap: 8px;
+        }
+        .chip {
+            font-size: 0.75rem; font-weight: 500; color: var(--text-secondary);
+            background: var(--bg-card); border: 1px solid var(--border-light);
+            border-radius: 999px; padding: 4px 12px;
+        }
+
+        .section { padding: 56px 0 8px; }
+        .section-header { display: flex; align-items: baseline; gap: 14px; margin-bottom: 20px; }
+        .section-num {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+            color: var(--accent-text); font-weight: 600;
+        }
+        .section h2 { font-size: 1.7rem; font-weight: 700; letter-spacing: -0.02em; }
+        .section > p.lede { color: var(--text-secondary); max-width: 720px; margin-bottom: 24px; }
+        .section h3 { font-size: 1.05rem; font-weight: 600; margin: 32px 0 10px; color: var(--text-primary); }
+
+        p, li { color: var(--text-secondary); }
+        .section p { margin-bottom: 14px; max-width: 760px; }
+
+        /* ---------- Code ---------- */
+        .code-block {
+            position: relative; margin: 12px 0 22px;
+            background: var(--code-bg); border: 1px solid var(--border-light);
+            border-radius: var(--radius-md); overflow: hidden;
+        }
+        .code-block pre {
+            padding: 16px 20px; overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.84rem; line-height: 1.65;
+            color: var(--code-text); white-space: pre;
+        }
+        .code-block code { font-family: inherit; }
+        .copy-btn {
+            position: absolute; top: 10px; right: 10px;
+            font-family: 'Inter', sans-serif; font-size: 0.72rem; font-weight: 600;
+            color: var(--text-secondary); background: var(--bg-card);
+            border: 1px solid var(--border-medium); border-radius: 6px;
+            padding: 4px 10px; cursor: pointer;
+            transition: border-color 0.15s, color 0.15s;
+        }
+        .copy-btn:hover { border-color: var(--accent); color: var(--accent-text); }
+        .copy-btn.copied { border-color: var(--ok); color: var(--ok); }
+
+        .inline-code {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.82em;
+            background: var(--code-bg); border: 1px solid var(--border-light);
+            border-radius: 5px; padding: 1px 6px; color: var(--code-text);
+        }
+
+        /* ---------- Tables ---------- */
+        .table-wrap { margin: 16px 0 26px; overflow-x: auto; border: 1px solid var(--border-light); border-radius: var(--radius-md); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; background: var(--bg-card); }
+        th, td { text-align: left; padding: 10px 16px; border-bottom: 1px solid var(--border-light); vertical-align: top; }
+        th { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-tertiary); font-weight: 600; }
+        tr:last-child td { border-bottom: none; }
+        td code { font-size: 0.82em; }
+
+        /* ---------- Cards ---------- */
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin: 16px 0 26px; }
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border-light);
+            border-radius: var(--radius-md); padding: 18px 20px;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .card h4 { font-size: 0.98rem; font-weight: 600; }
+        .card p { font-size: 0.88rem; margin: 0; color: var(--text-secondary); }
+        .card a { color: var(--accent-text); text-decoration: none; font-weight: 500; }
+        .card a:hover { text-decoration: underline; }
+        .card .tag {
+            align-self: flex-start; font-size: 0.7rem; font-weight: 600;
+            color: var(--accent-text); background: var(--bg-tertiary);
+            border-radius: 999px; padding: 2px 10px; text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .callout {
+            border: 1px solid var(--border-light); border-left: 3px solid var(--accent);
+            background: var(--bg-card); border-radius: var(--radius-sm);
+            padding: 14px 18px; margin: 16px 0 22px; font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .callout.warn { border-left-color: var(--warn); }
+        .callout strong { color: var(--text-primary); }
+
+        /* ---------- Status pills ---------- */
+        .pill {
+            display: inline-block; font-size: 0.72rem; font-weight: 600;
+            border-radius: 999px; padding: 2px 10px; white-space: nowrap;
+        }
+        .pill.live { color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); }
+        .pill.scheduled { color: var(--accent-3-text); background: color-mix(in srgb, var(--accent-3) 14%, transparent); }
+
+        ul.tight { padding-left: 20px; margin: 6px 0 20px; max-width: 760px; }
+        ul.tight li { margin-bottom: 6px; }
+
+        .footer {
+            border-top: 1px solid var(--border-light);
+            padding: 28px 24px; text-align: center;
+            display: flex; flex-wrap: wrap; gap: 16px; justify-content: center;
+        }
+        .footer-link {
+            color: var(--text-secondary); text-decoration: none; font-size: 0.86rem;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .footer-link:hover { color: var(--text-primary); }
+
+        @media (prefers-reduced-motion: reduce) {
+            * { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+        }
+    </style>
+    <script>
+        /* No-flash theme bootstrap: ht-theme, system fallback, before first paint. */
+        (function () {
+            try {
+                var saved = localStorage.getItem('ht-theme');
+                var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (_) { document.documentElement.setAttribute('data-theme', 'light'); }
+        })();
+    </script>
+</head>
+<body>
+<div class="progress-bar" id="progressBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+<nav class="nav" aria-label="Page sections">
+    <div class="nav-inner">
+        <a href="#" class="nav-logo">How To<span> · digital twin</span></a>
+        <div class="nav-links" id="navLinks">
+            <a href="#quickstart" class="nav-link">Quickstart</a>
+            <a href="#twin-os" class="nav-link">Twin OS</a>
+            <a href="#clip" class="nav-link">CLIP</a>
+            <a href="#refael" class="nav-link">Refael</a>
+            <a href="#charts" class="nav-link">Charts</a>
+            <a href="#songs" class="nav-link">Songs</a>
+            <a href="#testing" class="nav-link">Testing</a>
+            <a href="#launchagents" class="nav-link">LaunchAgents</a>
+            <a href="#troubleshooting" class="nav-link">Troubleshoot</a>
+        </div>
+        <div class="nav-actions">
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark theme" aria-pressed="false">◐</button>
+            <button class="nav-toggle" id="navToggle" aria-label="Open navigation menu" aria-controls="navLinks" aria-expanded="false">☰</button>
+        </div>
+    </div>
+</nav>
+<div class="nav-backdrop" id="navBackdrop" hidden></div>
+<main>
+    <header class="hero">
+        <div class="hero-badge">User Guide · sprint 0.20</div>
+        <h1>How to run <em>everything</em>.</h1>
+        <p class="hero-desc">
+            One repo, seven pages, four live watchers, zero frameworks. This page is the
+            operator's manual: how to serve the site, use the Twin OS, run the CLIP
+            Interrogator and Refael, drive the chart pipeline and song indexer, run the
+            tests, and understand what the LaunchAgents are doing on this machine.
+        </p>
+        <div class="hero-meta">
+            <span class="chip">vanilla HTML/CSS/JS</span>
+            <span class="chip">no build step</span>
+            <span class="chip">local-first</span>
+            <span class="chip">kai-systems house style</span>
+        </div>
+    </header>
+
+    <!-- 01 Quickstart -->
+    <section id="quickstart" class="section">
+        <div class="section-header"><span class="section-num">01</span><h2>Quickstart</h2></div>
+        <p class="lede">Everything is static files. Clone, serve the repo root, open a page.</p>
+
+        <h3>Requirements</h3>
+        <ul class="tight">
+            <li>macOS (the LaunchAgents are launchd-based), <span class="inline-code">python3</span> (any recent), <span class="inline-code">node ≥ 18</span> for the e2e tests.</li>
+            <li><span class="inline-code">uv</span> only for the CLIP Interrogator (<a href="https://docs.astral.sh/uv/" target="_blank" rel="noopener">install</a>). Everything else is stdlib.</li>
+            <li>MuseScore 4 (<span class="inline-code">mscore</span>) + the bundled <span class="inline-code">MS Basic.sf3</span> only for the chart render step. <span class="inline-code">ffprobe</span> (optional) verifies MP3s.</li>
+        </ul>
+
+        <h3>Serve the site</h3>
+        <div class="code-block"><button class="copy-btn" data-copy>copy</button><pre><code>git clone https://github.com/kajica2/digital-twin.git
+cd digital-twin
+python3 -m http.server 5180 --directory .
+# open http://127.0.0.1:5180/pages/landing.html</code></pre></div>
+        <p>Repo-root serving is the one true convention — it matches GitHub Pages, the launchd
+        dev server, and CI's PR-mode server. If a page 404s, you're serving the wrong root.</p>
+
+        <h3>Page map</h3>
+        <div class="table-wrap">
+            <table>
+                <tr><th>Page</th><th>What it's for</th></tr>
+                <tr><td><code>pages/landing.html</code></td><td>The public face — three A/B-testable variants (<code>?v=1|2|3</code>).</td></tr>
+                <tr><td><code>pages/twin-os/</code></td><td>The Twin OS PWA shell — Today / Songs / Twin panels, installable, IndexedDB-backed.</td></tr>
+                <tr><td><code>pages/cognitive-twin.html</code></td><td>The 4-layer architecture narrative (Scanner → Model → Reasoner → Orchestrator).</td></tr>
+                <tr><td><code>pages/how-to.html</code></td><td>This page — the operator's manual.</td></tr>
+                <tr><td><code>pages/clip-interrogator.html</code></td><td>CLIP tool page — image→prompt + image analysis (Python backend).</td></tr>
+                <tr><td><code>pages/refael-mp4-maker.html</code></td><td>Offline MP3→MP4 maker with mood-keyword auto-covers.</td></tr>
+                <tr><td><code>pages/agent-dashboard.html</code></td><td>Live view of the persistent agent loop — regenerated by <code>dashboard --out</code>.</td></tr>
+            </table>
+        </div>
+    </section>
+
+    <!-- 02 Twin OS -->
+    <section id="twin-os" class="section">
+        <div class="section-header"><span class="section-num">02</span><h2>Twin OS</h2></div>
+        <p class="lede">The actual app. Three panels, local-first, zero backend.</p>
+
+        <div class="code-block"><button class="copy-btn" data-copy>copy</button><pre><code>open pages/twin-os/   # or serve the repo root and visit /pages/twin-os/</code></pre></div>
+
+        <ul class="tight">
+            <li><strong>Today</strong> — the agenda. Seeded items are static; add your own via the textfield (persisted in <span class="inline-code">localStorage["dt-agenda-items"]</span>), remove with ×.</li>
+            <li><strong>Songs</strong> — the audio catalog. Three states: loading, configured-empty (tells you the configured roots), and catalog (grouped by label, searchable). Tools grid below it links MuScriptor, CLIP Interrogator, and Refael.</li>
+            <li><strong>Twin</strong> — your twin panel (pattern cards + stats).</li>
+        </ul>
+        <p>Installable as a PWA (manifest + service worker: cache-first shell, network-first catalog). Theme toggle persists to <span class="inline-code">localStorage["dt-theme-pref"]</span> with a no-flash bootstrap.</p>
+    </section>
+
+    <!-- 03 CLIP Interrogator -->
+    <section id="clip" class="section">
+        <div class="section-header"><span class="section-num">03</span><h2>CLIP Interrogator</h2></div>
+        <p class="lede">Turn an image into a text prompt, or analyze it into label tables. Python package in <span class="inline-code">lib/clip-interrogator/</span>, uv-managed, <b>device pinned to CPU</b> (deterministic; MPS crashes the label tables).</p>
+
+        <h3>Setup (once)</h3>
+        <div class="code-block"><button class="copy-btn" data-copy>copy</button><pre><code>npm run clip:setup          # uv sync --project lib/clip-interrogator
+npm run clip:check          # import + device + registry, downloads NO weights</code></pre></div>
+        <p>Weights download on first real use (~1-2 GB) into your HF cache and the vocab cache at <span class="inline-code">~/.cache/clip-interrogator</span>.</p>
+
+        <h3>UI</h3>
+        <div class="code-block"><button class="copy-btn" data-copy>copy</button><pre><code>npm run clip:ui             # gradio app on http://127.0.0.1:7860  (two tabs: Prompt / Analyze)</code></pre></div>
+
+        <h3>CLI</h3>
+        <div class="code-block"><button class="copy-btn" data-copy>copy</button><pre><code>npm run clip:interrogate -- path/to/image.jpg --model vit-l --mode best
+npm run clip:interrogate -- path/to/image.jpg --model vit-h --mode classic --json
+npm run clip:interrogate -- path/to/image.jpg --model vit-l --mode fast --json</code></pre></div>
+        <ul class="tight">
+            <li>Models: <span class="inline-code">vit-l</span> (default, ViT-L/14) and <span class="inline-code">vit-h</span> (ViT-H, materializes only when selected — <span class="inline-code">--model vit-h</span> never downloads ViT-L).</li>
+            <li>Modes: <span class="inline-code">best / fast / classic / negative</span>. <span class="inline-code">--json</span> keeps stdout parseable (library banners go to stderr).</li>
+            <li><span class="inline-code">analyze</span> verb prints five label tables (medium / artist / movement / trending / flavor); <span class="inline-code">--top 5</span> default.</li>
+        </ul>
+        <div class="callout">
+            <strong>Why CPU-only?</strong> clip-interrogator 0.6.0's <span class="inline-code">LabelTable</span> only casts vocab embeddings to fp32 on CPU — on MPS every similarity op crashes with a dtype mismatch. CPU keeps it deterministic; it's a calm local utility, not a render farm.
+        </div>
+    </section>
+
+    <!-- 04 Refael -->
+    <section id="refael" class="section">
+        <div class="section-header"><span class="section-num">04</span><h2>Refael MP4 Maker</h2></div>
+        <p class="lede">MP3 → 1920×1080 MP4 with mood-keyword auto-covers. Single self-contained HTML file, works from <span class="inline-code">file://</span>.</p>
+
+        <div class="code-block"><button class="copy-btn" data-copy>copy</button><pre><code>open pages/refael-mp4-maker.html
+# or served: http://127.0.0.1:5180/pages/refael-mp4-maker.html</code></pre></div>
+
+        <ul class="tight">
+            <li>Drop an MP3, pick a track name (or 🎲 random), choose a render mode.</li>
+            <li>Three engines: ⚡ <strong>Fast</strong> (WebCodecs, fully offline — the default, zero network calls), 🛡 <strong>FFmpeg.wasm</strong> (lazy-loads from unpkg on first use, then browser-cached), 🐢 <strong>Real-time</strong> (MediaRecorder).</li>
+            <li>Single / Custom image / Batch tabs; deterministic cover art from track + artist (dark/light/fire/love/ocean/earth, EN + SR-Cyrillic).</li>
+            <li><span class="inline-code">?selftest=1</span> runs a built-in end-to-end render self-test (manual smoke lever — WebCodecs is flaky in headless CI).</li>
+        </ul>
+        <div class="callout warn">
+            <strong>Offline caveat:</strong> the footer's "0 network calls" claim is true only for Fast + Real-time modes. FFmpeg.wasm touches the network once (unpkg), then caches. Documented in <span class="inline-code">docs/REFAEL-MP4-MAKER.md</span>.
+        </div>
+    </section>
+
+    <!-- 05 Chart pipeline -->
+    <section id="charts" class="section">
+        <div class="section-header"><span class="section-num">05</span><h2>Chart pipeline</h2></div>
+        <p class="lede">MusicXML in → full chart package out: per-part PDFs, whole-score PDF, Demo MP3, muted backing tracks, multi-track MIDI.</p>
+
+        <h3>One-shot export</h3>
+        <div class="code-block"><button class="copy-btn" data-copy>copy</button><pre><code>npm run export-all -- /path/to/song.musicxml
+# produces: Full_Score.pdf + per-part PDFs (canonical band order) +
+# Demo.mp3 + No_Trumpet.mp3 + No_Sax.mp3 + song.mid</code></pre></div>
+        <ul class="tight">
+            <li>Part splitting + selective muting are automated; MuseScore renders the PDFs/MP3s (bundled <span class="inline-code">MS Basic.sf3</span> soundfont).</li>
+            <li><span class="inline-code">--chords '{"m1":["Dm7","G7sus"]}'</span> injects chord-symbol harmony into the MusicXML.</li>
+            <li><span class="inline-code">npm run export-mp3 -- song.musicxml</span> re-renders audio only (~2× faster). ffprobe validates every MP3 duration when present.</li>
+            <li>Engraving conventions live in <span class="inline-code">docs/COLTRANE-SHAW-ENGRAVING.md</span> — post-bop/modal jazz rules (staff order, Trane slurs, Shaw pops, don't over-notate drums).</li>
+        </ul>
+
+        <h3>Watched inbox (the zero-touch path)</h3>
+        <div class="code-block"><button class="copy-btn" data-copy>copy</button><pre><code>cp new-chart.musicxml chart-inbox/
+# the chart-watcher LaunchAgent (live) picks it up within ~2s,
+# exports the full package, moves the input to chart-inbox/processed/,
+# and logs to logs/chart-watcher.log. Retries once on failure.</code></pre></div>
+        <p>Manual run: <span class="inline-code">node lib/chart-watcher.js --once</span>. Poll loop, not fs.watch — 2s is calm and predictable.</p>
+    </section>
+
+    <!-- 06 Songs indexer -->
+    <section id="songs" class="section">
+        <div class="section-header"><span class="section-num">06</span><h2>Song indexer</h2></div>
+        <p class="lede">Walks your audio folders, reads MP3 ID3v2 / WAV / AIFF metadata, writes a searchable catalog for the Songs panel.</p>
+
+        <h3>Manual rebuild</h3>
+        <div class="code-block"><button class="copy-btn" data-copy>copy</button><pre><code># point lib/sources.config.json at where audio actually lives, then:
+npm run index-songs          # writes data/songs/catalog.json
+# absolute paths are stripped from shipped output by default</code></pre></div>
+
+        <h3>Watched inbox</h3>
+        <div class="code-block"><button class="copy-btn" data-copy>copy</button><pre><code>cp new-track.mp3 audio-inbox/
+# the songs-watcher LaunchAgent (live) runs the indexer automatically,
+# logs to logs/songs-watcher.log</code></pre></div>
+        <div class="callout">
+            <strong>Catalog still empty?</strong> The default config points at the AGENTS.md-named dirs, which contain no audio. Edit <span class="inline-code">lib/sources.config.json</span>, re-run <span class="inline-code">npm run index-songs</span>. The Songs panel shows the configured roots in its empty state so you know what to fix.
+        </div>
+    </section>
+
+    <!-- 07 Testing -->
+    <section id="testing" class="section">
+        <div class="section-header"><span class="section-num">07</span><h2>Testing</h2></div>
+        <p class="lede">Puppeteer specs for pages, pure-Node unit tests for watchers. Every sprint ships green.</p>
+
+        <div class="code-block"><button class="copy-btn" data-copy>copy</button><pre><code>cd e2e && npm install
+python3 -m http.server 5180 --directory . &    # repo-root server, one true convention
+npm run verify               # landing + twin-os + twin-os-songs
+npm run e2e:ct               # 8 cognitive-twin specs (needs Chrome)
+npm run e2e:clip             # CLIP page contract (no Python deps)
+npm run e2e:refael           # Refael page contract
+npm run test:all             # watcher unit tests (chart / songs / mj)</code></pre></div>
+        <ul class="tight">
+            <li>CI runs the deployed URL on push (deploy-test loop: deploy is not done until the e2e hits the live site) and the local repo-root server on PRs.</li>
+            <li>Watcher specs are filesystem-only — run locally, not in CI (they touch LaunchAgent state).</li>
+            <li>0 console errors is a hard contract. If a spec reddens, <strong>fix the page, not the test</strong> — unless the test itself is wrong.</li>
+        </ul>
+    </section>
+
+    <!-- 08 LaunchAgents -->
+    <section id="launchagents" class="section">
+        <div class="section-header"><span class="section-num">08</span><h2>LaunchAgents</h2></div>
+        <p class="lede">The twin runs itself via launchd. State as of this writing:</p>
+
+        <div class="table-wrap">
+            <table>
+                <tr><th>Agent</th><th>Job</th><th>State</th></tr>
+                <tr><td><code>digital-twin.server</code></td><td>Keeps the repo served on <code>:5173</code> (<code>python3 -m http.server 0.0.0.0</code>)</td><td><span class="pill live">live</span></td></tr>
+                <tr><td><code>digital-twin.chart-watcher</code></td><td>Auto-exports anything dropped in <code>chart-inbox/</code></td><td><span class="pill live">live</span></td></tr>
+                <tr><td><code>digital-twin.songs-watcher</code></td><td>Auto-rebuilds the catalog from <code>audio-inbox/</code></td><td><span class="pill live">live</span></td></tr>
+                <tr><td><code>digital-twin.mj-watcher</code></td><td>Submits Midjourney prompts dropped in the MJ inbox</td><td><span class="pill live">live</span></td></tr>
+                <tr><td><code>digital-twin.boot</code></td><td>At login: auto-update → ensure server → open Twin OS → Apple Notes status</td><td><span class="pill scheduled">at login</span></td></tr>
+                <tr><td><code>digital-twin.log-rotate</code></td><td>Daily 03:00 — rotates <code>logs/*.log</code>, keeps 7 gzipped days</td><td><span class="pill scheduled">03:00 daily</span></td></tr>
+            </table>
+        </div>
+
+        <div class="code-block"><button class="copy-btn" data-copy>copy</button><pre><code># verify a watcher is actually alive (PID, not just "loaded")
+pgrep -fl "chart-watcher|songs-watcher|mj-watcher"
+
+# taps
+tail -f logs/chart-watcher.log logs/songs-watcher.log
+
+# teardown / reinstall per-service docs
+launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/com.kaidjuric.digital-twin.&lt;service&gt;.plist</code></pre></div>
+        <p>Per-service install + verify steps: <span class="inline-code">docs/CHART-WATCHER.md</span>, <span class="inline-code">docs/SONGS-WATCHER.md</span>, <span class="inline-code">docs/MJ-WATCHER.md</span>.</p>
+    </section>
+
+    <!-- 09 Troubleshooting -->
+    <section id="troubleshooting" class="section">
+        <div class="section-header"><span class="section-num">09</span><h2>Troubleshooting</h2></div>
+        <div class="table-wrap">
+            <table>
+                <tr><th>Problem</th><th>Fix</th></tr>
+                <tr><td>Port already in use</td><td><span class="inline-code">lsof -ti :5180 | xargs kill -9</span> (or :5173), then restart the server.</td></tr>
+                <tr><td>Page 404s locally</td><td>You're serving <span class="inline-code">pages/</span> instead of the repo root. Serve <span class="inline-code">--directory .</span> — every page lives under <span class="inline-code">/pages/</span>.</td></tr>
+                <tr><td>Songs panel says "empty"</td><td>Point <span class="inline-code">lib/sources.config.json</span> at real audio, re-run <span class="inline-code">npm run index-songs</span>.</td></tr>
+                <tr><td>MuseScore exits non-zero but PDFs/MP3s exist</td><td>Known macOS Qt quirk — the pipeline validates by file existence + ffprobe, not exit code. Check the artifacts.</td></tr>
+                <tr><td>CLIP crashes on MPS</td><td>By design it pins CPU (fp32 determinism). Don't "fix" it to MPS — see the callout in §03.</td></tr>
+                <tr><td>fails: <code>No module named 'clip_interrogator_app'</code></td><td>Stale uv cache. <span class="inline-code">uv sync --project lib/clip-interrogator --reinstall --no-cache</span>.</td></tr>
+                <tr><td>e2e says 0 console errors broken</td><td>A missing favicon makes Chrome auto-request <span class="inline-code">/favicon.ico</span> (404). Every page declares a data-URI favicon — keep it that way.</td></tr>
+                <tr><td>Committing for this repo</td><td>Use the repo author: <span class="inline-code">-c user.name="Kajica Djuric" -c user.email="kai.djuric@gmail.com"</span>.</td></tr>
+            </table>
+        </div>
+        <h3>Memory</h3>
+        <p>Project intelligence lives in <span class="inline-code">.kai/</span> (gitignored, local-only): conventions, ADRs, tech-debt register, prevention rules. Read <span class="inline-code">.kai/memory.yaml</span> first on any hard problem. Never store secrets there.</p>
+    </section>
+</main>
+
+<footer class="footer">
+    <a href="./cognitive-twin.html" class="footer-link"><span aria-hidden="true">🧠</span> The Cognitive Twin</a>
+    <a href="./twin-os/" class="footer-link"><span aria-hidden="true">⚙️</span> Twin OS</a>
+    <a href="https://github.com/kajica2/digital-twin" target="_blank" rel="noopener" class="footer-link"><span aria-hidden="true">⚡</span> Source</a>
+</footer>
+
+<script>
+    /* ---------- Theme toggle (system default + localStorage) ---------- */
+    (function () {
+        const html = document.documentElement;
+        const toggle = document.getElementById('themeToggle');
+        function current() {
+            try { return localStorage.getItem('ht-theme'); }
+            catch (_) { return null; }
+        }
+        let theme = current() || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        html.setAttribute('data-theme', theme);
+        toggle.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+        toggle.addEventListener('click', () => {
+            const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            toggle.setAttribute('aria-pressed', next === 'dark' ? 'true' : 'false');
+            try { localStorage.setItem('ht-theme', next); } catch (_) {}
+        });
+    })();
+
+    /* ---------- Progress bar + active nav (rAF-throttled) ---------- */
+    (function () {
+        const progressBar = document.getElementById('progressBar');
+        const sections = Array.from(document.querySelectorAll('section[id]'));
+        const navLinks = Array.from(document.querySelectorAll('.nav-link'));
+        let ticking = false;
+        function onScroll() {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(() => {
+                const scrollY = window.scrollY;
+                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                if (docHeight > 0) progressBar.style.width = (scrollY / docHeight * 100) + '%';
+                progressBar.setAttribute('aria-valuenow', Math.round(docHeight > 0 ? scrollY / docHeight * 100 : 0));
+                let current = '';
+                for (const s of sections) {
+                    if (scrollY >= s.offsetTop - 120) current = s.id;
+                }
+                navLinks.forEach(link => {
+                    const on = link.getAttribute('href') === '#' + current;
+                    link.classList.toggle('active', on);
+                    if (on) link.setAttribute('aria-current', 'true');
+                    else link.removeAttribute('aria-current');
+                });
+                ticking = false;
+            });
+        }
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+    })();
+
+    /* ---------- Mobile nav toggle ---------- */
+    (function () {
+        const navToggle = document.getElementById('navToggle');
+        const navLinks = document.getElementById('navLinks');
+        const backdrop = document.getElementById('navBackdrop');
+        function close() {
+            navLinks.classList.remove('open');
+            backdrop.hidden = true;
+            document.body.classList.remove('no-scroll');
+            navToggle.setAttribute('aria-expanded', 'false');
+        }
+        navToggle.addEventListener('click', () => {
+            const open = navLinks.classList.toggle('open');
+            backdrop.hidden = !open;
+            document.body.classList.toggle('no-scroll', open);
+            navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        navLinks.addEventListener('click', e => { if (e.target.tagName === 'A') close(); });
+        backdrop.addEventListener('click', close);
+    })();
+
+    /* ---------- Copy buttons (execCommand fallback so headless never throws) ---------- */
+    document.querySelectorAll('.copy-btn[data-copy]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const pre = btn.closest('.code-block').querySelector('pre');
+            const text = pre.innerText;
+            let ok = false;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    flashCopied(btn);
+                }).catch(() => { fallbackCopy(btn, text); });
+            } else {
+                fallbackCopy(btn, text);
+            }
+        });
+    });
+    function flashCopied(btn) {
+        btn.textContent = 'copied';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1400);
+    }
+    function fallbackCopy(btn, text) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); flashCopied(btn); } catch (_) {}
+        document.body.removeChild(ta);
+    }
+</script>
+</body>
+</html>
