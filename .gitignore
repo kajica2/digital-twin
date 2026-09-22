@@ -43,6 +43,12 @@ lib/clip-interrogator/.venv/
 # uv build artifacts
 lib/clip-interrogator/dist/
 
+# Loopable Video Segmenter venv (uv-managed, generated)
+lib/loopable-video-segmenter/.venv/
+
+# uv build artifacts
+lib/loopable-video-segmenter/dist/
+
 # Python bytecode
 __pycache__/
 *.pyc

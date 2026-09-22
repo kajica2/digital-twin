@@ -177,8 +177,10 @@ async function main() {
       assert(rowCount >= 1, `at least one song row rendered (got ${rowCount})`);
 
       // Each row has format chip + title
+      // Valid formats = SUPPORTED_EXTS in lib/songs-indexer.js (mp3/wav + aif/aiff
+      // since sprint 0.14). Chip renders format: ext.slice(1).
       const firstRowFmt = await page.$eval('.song-row .song-fmt', el => el.textContent.trim());
-      assert(['mp3', 'wav'].includes(firstRowFmt), `first row has valid format chip: "${firstRowFmt}"`);
+      assert(['mp3', 'wav', 'aif', 'aiff'].includes(firstRowFmt), `first row has valid format chip: "${firstRowFmt}"`);
 
       const firstRowTitle = await page.$eval('.song-row .song-title', el => el.textContent.trim());
       assert(firstRowTitle.length > 0, `first row has a title: "${firstRowTitle}"`);

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loopable Video Segmenter — Tools</title>
+    <meta name="description" content="Split a long MP4 into beat-aligned mirror-loopable clips with the Loopable Video Segmenter — a local gradio + CLI tool in the digital-twin.">
+    <meta property="og:title" content="Loopable Video Segmenter — Tools">
+    <meta property="og:description" content="MP4 → N loopable clips, aligned to musical beats (librosa), forward + reverse mirror. Local, no uploads.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://kajica2.github.io/digital-twin/pages/loopable-video-segmenter.html">
+    <link rel="canonical" href="https://kajica2.github.io/digital-twin/pages/loopable-video-segmenter.html">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%E2%9B%AF%3C/text%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #fafaf9;
+            --bg-secondary: #f5f5f4;
+            --bg-tertiary: #e7e5e4;
+            --bg-card: #ffffff;
+            --text-primary: #1c1917;
+            --text-secondary: #57534e;
+            --text-tertiary: #78716c;
+            --border-light: #e7e5e4;
+            --border-medium: #d6d3d1;
+            --accent: #0f766e;
+            --accent-text: #0f766e;
+            --accent-2: #7c3aed;
+            --accent-2-text: #6d28d9;
+            --code-bg: #f5f5f4;
+            --code-text: #44403c;
+            --ok: #047857;
+            --warn: #b45309;
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+        }
+        [data-theme="dark"] {
+            --bg-primary: #0c0a09;
+            --bg-secondary: #1c1917;
+            --bg-tertiary: #292524;
+            --bg-card: #1c1917;
+            --text-primary: #fafaf9;
+            --text-secondary: #a8a29e;
+            --text-tertiary: #78716c;
+            --border-light: #292524;
+            --border-medium: #44403c;
+            --accent: #2dd4bf;
+            --accent-text: #2dd4bf;
+            --accent-2: #a78bfa;
+            --accent-2-text: #c4b5fd;
+            --code-bg: #292524;
+            --code-text: #e7e5e4;
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.7; -webkit-font-smoothing: antialiased; }
+        .progress-bar { position: fixed; top: 0; left: 0; height: 3px; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); z-index: 100; transition: width 0.1s linear; }
+
+        .nav { position: sticky; top: 0; z-index: 90; background: color-mix(in srgb, var(--bg-primary) 88%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-light); }
+        .nav-inner { max-width: 1080px; margin: 0 auto; display: flex; align-items: center; gap: 20px; padding: 14px 24px; }
+        .nav-logo { font-weight: 700; font-size: 0.95rem; color: var(--text-primary); text-decoration: none; white-space: nowrap; }
+        .nav-logo span { color: var(--accent-text); }
+        .nav-links { display: flex; gap: 4px; flex-wrap: wrap; margin-left: auto; }
+        .nav-link { color: var(--text-secondary); text-decoration: none; font-size: 0.83rem; font-weight: 500; padding: 6px 10px; border-radius: 999px; transition: background 0.15s, color 0.15s; }
+        .nav-link:hover { color: var(--text-primary); background: var(--bg-tertiary); }
+        .nav-link.active { color: var(--accent-text); background: var(--bg-tertiary); }
+        .nav-actions { display: flex; align-items: center; gap: 8px; }
+        .theme-toggle { border: 1px solid var(--border-medium); background: var(--bg-card); color: var(--text-secondary); width: 34px; height: 34px; border-radius: 999px; font-size: 1rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: border-color 0.15s, color 0.15s; }
+        .theme-toggle:hover { border-color: var(--accent); color: var(--text-primary); }
+        .theme-toggle:focus-visible, .nav-link:focus-visible, .copy-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        .nav-toggle { display: none; border: 1px solid var(--border-medium); background: var(--bg-card); color: var(--text-secondary); width: 34px; height: 34px; border-radius: 8px; font-size: 1rem; cursor: pointer; }
+        .nav-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 0.4); z-index: 85; backdrop-filter: blur(2px); }
+        @media (max-width: 860px) {
+            .nav-links { display: none; position: fixed; top: 0; right: 0; bottom: 0; width: 260px; flex-direction: column; gap: 2px; background: var(--bg-card); border-left: 1px solid var(--border-light); padding: 70px 16px 24px; margin: 0; z-index: 95; box-shadow: var(--shadow-lg); }
+            .nav-links.open { display: flex; }
+            .nav-toggle { display: inline-flex; align-items: center; justify-content: center; }
+            .nav-logo { font-size: 0.85rem; }
+        }
+
+        main { max-width: 1080px; margin: 0 auto; padding: 0 24px 80px; }
+        .hero { padding: 88px 0 56px; }
+        .hero-badge { display: inline-block; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-text); background: var(--bg-card); border: 1px solid var(--border-medium); border-radius: 999px; padding: 5px 14px; margin-bottom: 20px; }
+        .hero h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.08; margin-bottom: 12px; }
+        .hero h1 em { font-style: normal; color: var(--accent-text); }
+        .hero-desc { font-size: 1.1rem; color: var(--text-secondary); max-width: 680px; line-height: 1.65; }
+        .hero-meta { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 8px; }
+        .chip { font-size: 0.75rem; font-weight: 500; color: var(--text-secondary); background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 999px; padding: 4px 12px; }
+
+        .section { padding: 56px 0 8px; }
+        .section-header { display: flex; align-items: baseline; gap: 14px; margin-bottom: 20px; }
+        .section-num { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--accent-text); font-weight: 600; }
+        .section h2 { font-size: 1.7rem; font-weight: 700; letter-spacing: -0.02em; }
+        .section > p.lede { color: var(--text-secondary); max-width: 720px; margin-bottom: 24px; }
+        .section h3 { font-size: 1.05rem; font-weight: 600; margin: 32px 0 10px; }
+        .section p { margin-bottom: 14px; max-width: 760px; color: var(--text-secondary); }
+
+        .code-block { position: relative; margin: 12px 0 22px; background: var(--code-bg); border: 1px solid var(--border-light); border-radius: var(--radius-md); overflow: hidden; }
+        .code-block pre { padding: 16px 20px; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.84rem; line-height: 1.65; color: var(--code-text); white-space: pre; }
+        .code-block code { font-family: inherit; }
+        .copy-btn { position: absolute; top: 10px; right: 10px; font-family: 'Inter', sans-serif; font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); background: var(--bg-card); border: 1px solid var(--border-medium); border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: border-color 0.15s, color 0.15s; }
+        .copy-btn:hover { border-color: var(--accent); color: var(--accent-text); }
+        .copy-btn.copied { border-color: var(--ok); color: var(--ok); }
+        .inline-code { font-family: 'JetBrains Mono', monospace; font-size: 0.82em; background: var(--code-bg); border: 1px solid var(--border-light); border-radius: 5px; padding: 1px 6px; color: var(--code-text); }
+
+        .table-wrap { margin: 16px 0 26px; overflow-x: auto; border: 1px solid var(--border-light); border-radius: var(--radius-md); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; background: var(--bg-card); }
+        th, td { text-align: left; padding: 10px 16px; border-bottom: 1px solid var(--border-light); vertical-align: top; color: var(--text-secondary); }
+        th { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-tertiary); font-weight: 600; }
+        tr:last-child td { border-bottom: none; }
+        td code { font-size: 0.82em; }
+
+        .callout { border: 1px solid var(--border-light); border-left: 3px solid var(--accent); background: var(--bg-card); border-radius: var(--radius-sm); padding: 14px 18px; margin: 16px 0 22px; font-size: 0.9rem; color: var(--text-secondary); }
+        .callout.warn { border-left-color: var(--warn); }
+        .callout strong { color: var(--text-primary); }
+
+        ul.tight { padding-left: 20px; margin: 6px 0 20px; max-width: 760px; }
+        ul.tight li { margin-bottom: 6px; color: var(--text-secondary); }
+
+        .footer { border-top: 1px solid var(--border-light); padding: 28px 24px; text-align: center; display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
+        .footer-link { color: var(--text-secondary); text-decoration: none; font-size: 0.86rem; display: inline-flex; align-items: center; gap: 8px; }
+        .footer-link:hover { color: var(--text-primary); }
+        @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+    </style>
+    <script>
+        /* No-flash theme bootstrap — key: lvs-theme */
+        (function () {
+            try {
+                var saved = localStorage.getItem('lvs-theme');
+                var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (_) { document.documentElement.setAttribute('data-theme', 'light'); }
+        })();
+    </script>
+</head>
+<body>
+<div class="progress-bar" id="progressBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+<nav class="nav" aria-label="Page sections">
+    <div class="nav-inner">
+        <a href="./how-to.html" class="nav-logo">Tools<span> · Loopable Video Segmenter</span></a>
+        <div class="nav-links" id="navLinks">
+            <a href="#what" class="nav-link">What</a>
+            <a href="#run" class="nav-link">Run</a>
+            <a href="#params" class="nav-link">Params</a>
+            <a href="#how" class="nav-link">How it works</a>
+            <a href="#notes" class="nav-link">Notes</a>
+            <a href="#attribution" class="nav-link">Attribution</a>
+        </div>
+        <div class="nav-actions">
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark theme" aria-pressed="false">◐</button>
+            <button class="nav-toggle" id="navToggle" aria-label="Open navigation menu" aria-controls="navLinks" aria-expanded="false">☰</button>
+        </div>
+    </div>
+</nav>
+<div class="nav-backdrop" id="navBackdrop" hidden></div>
+<main>
+    <header class="hero">
+        <div class="hero-badge">Local tool · sprint 0.21</div>
+        <h1>MP4 → <em>loopable</em> clips.</h1>
+        <p class="hero-desc">
+            Split a long video into N segments whose boundaries land on
+            musical beats — each clip plays forward then mirrors back, so
+            dropped into a loop slot it cycles without a visible seam.
+            Beat detection via <strong>librosa</strong>; rendering via
+            <strong>MoviePy</strong>. Falls back to equal-time slices when
+            the video has no usable audio. Everything runs locally.
+        </p>
+        <div class="hero-meta">
+            <span class="chip">gradio 5 + MoviePy + librosa</span>
+            <span class="chip">CLI + UI</span>
+            <span class="chip">local-first · no uploads</span>
+            <span class="chip">MIT</span>
+        </div>
+    </header>
+
+    <section class="section" id="what" aria-labelledby="what-h">
+        <div class="section-header"><span class="section-num">01</span><h2 id="what-h">What it does</h2></div>
+        <ul class="tight">
+            <li><strong>Beat-aligned cuts.</strong> Audio is extracted (22.05 kHz mono), beats are detected with <span class="inline-code">librosa.beat.beat_track</span>, and the beat list is split into N contiguous groups — so every segment starts and ends on a musical downbeat.</li>
+            <li><strong>Seamless loops.</strong> Each segment is built as <span class="inline-code">[forward, reverse]</span> (<span class="inline-code">vfx.time_mirror</span>) — the tail mirrors back to the head, no visible seam.</li>
+            <li><strong>Always produces output.</strong> No audio or too few beats? Equal-duration fallback kicks in instead of failing.</li>
+            <li><strong>ZIP download.</strong> <span class="inline-code">segment_01.mp4 … segment_NN.mp4</span> in one archive.</li>
+        </ul>
+    </section>
+
+    <section class="section" id="run" aria-labelledby="run-h">
+        <div class="section-header"><span class="section-num">02</span><h2 id="run-h">How to run it</h2></div>
+        <p class="lede">Setup is a one-time <span class="inline-code">uv sync</span> (same pattern as the CLIP Interrogator). ffmpeg must be on PATH — MoviePy shells out to it for encode/decode.</p>
+
+        <h3>Setup (once)</h3>
+        <div class="code-block"><button class="copy-btn" data-copy>copy</button><pre><code>brew install ffmpeg        # if not already installed
+npm run lvs:setup           # uv sync --project lib/loopable-video-segmenter
+npm run lvs:check           # imports + deps + ffmpeg presence, no model downloads</code></pre></div>
+
+        <h3>UI</h3>
+        <div class="code-block"><button class="copy-btn" data-copy>copy</button><pre><code>npm run lvs:ui
+# gradio app on http://127.0.0.1:7861  (7860 is the CLIP Interrogator's port)</code></pre></div>
+
+        <h3>CLI</h3>
+        <div class="code-block"><button class="copy-btn" data-copy>copy</button><pre><code>npm run lvs:segment -- video.mp4 --segments 4
+npm run lvs:segment -- video.mp4 --segments 8 --no-loopable --json
+npm run lvs:segment -- video.mp4 --segments 2 --out /path/to/out.zip</code></pre></div>
+        <p><span class="inline-code">--json</span> emits the zip path, segment count and which
+        segmentation path ran (<span class="inline-code">beat detection</span> or
+        <span class="inline-code">equal-time fallback</span>). Exit codes: 0 ok, 2 bad input,
+        3 runtime failure.</p>
+    </section>
+
+    <section class="section" id="params" aria-labelledby="params-h">
+        <div class="section-header"><span class="section-num">03</span><h2 id="params-h">Parameters</h2></div>
+        <div class="table-wrap">
+            <table>
+                <tr><th>Parameter</th><th>Range / default</th><th>Meaning</th></tr>
+                <tr><td>Number of segments</td><td>1–20 · <span class="inline-code">--segments</span>, default 4</td><td>How many loopable clips to produce from the source.</td></tr>
+                <tr><td>Make each segment loopable</td><td>on by default · <span class="inline-code">--no-loopable</span></td><td>Forward + reverse mirror build; off = plain cuts.</td></tr>
+                <tr><td>Input</td><td>MP4 (h264 + aac works best)</td><td>Audio is extracted for beat tracking; silent video falls back to equal time.</td></tr>
+            </table>
+        </div>
+    </section>
+
+    <section class="section" id="how" aria-labelledby="how-h">
+        <div class="section-header"><span class="section-num">04</span><h2 id="how-h">How it works</h2></div>
+        <ol class="tight">
+            <li><strong>Extract</strong> audio to a temp WAV (22.05 kHz mono) via MoviePy.</li>
+            <li><strong>Detect</strong> beats with <span class="inline-code">librosa.beat.beat_track</span>; keep only beat times inside the video duration.</li>
+            <li><strong>Divide</strong> the beat list into N contiguous groups → N <span class="inline-code">(start, end)</span> windows that begin/end on downbeats.</li>
+            <li><strong>Build</strong> each clip: <span class="inline-code">subclip(start, end)</span> then <span class="inline-code">concatenate([sub, sub.fx(vfx.time_mirror)])</span>, encoded h264 + aac.</li>
+            <li><strong>Zip</strong> the segments and hand the archive back (UI file widget or CLI <span class="inline-code">--out</span>).</li>
+        </ol>
+        <div class="callout">
+            <strong>Quality depends on the audio.</strong> Live or percussive music gives the
+            cleanest splits. Spoken word and ambient tracks fall through to the equal-time
+            fallback — the pipeline never refuses to produce output.
+        </div>
+    </section>
+
+    <section class="section" id="notes" aria-labelledby="notes-h">
+        <div class="section-header"><span class="section-num">05</span><h2 id="notes-h">Notes</h2></div>
+        <div class="callout warn">
+            <strong>The mirrored half plays audio backwards.</strong> The
+            <span class="inline-code">time_mirror</span> trick makes visuals loop seamlessly,
+            but the second half of each clip's audio is reversed. Fine for visual loops; for
+            music-video work, mute the second half in your DAW or cross-fade.
+        </div>
+        <ul class="tight">
+            <li>Source code: <span class="inline-code">lib/loopable-video-segmenter/</span> (uv-managed, <span class="inline-code">src/loopable_video_segmenter/</span>).</li>
+            <li>MoviePy is pinned to 1.x — the code uses the 1.x API (<span class="inline-code">moviepy.editor</span>, <span class="inline-code">subclip</span>, <span class="inline-code">vfx.time_mirror</span>).</li>
+            <li>Docs: <span class="inline-code">docs/LOOPABLE-VIDEO-SEGMENTER.md</span>. Source repo: <span class="inline-code">github.com/kajica2/loopable-video-segmenter</span>.</li>
+        </ul>
+    </section>
+
+    <section class="section" id="attribution" aria-labelledby="attribution-h">
+        <div class="section-header"><span class="section-num">06</span><h2 id="attribution-h">Attribution</h2></div>
+        <p>Port of <a href="https://github.com/kajica2/loopable-video-segmenter" target="_blank" rel="noopener">kajica2/loopable-video-segmenter</a>
+        (MIT, © 2026 Kai Djuric / kajica2). Stack: <a href="https://www.gradio.app/" target="_blank" rel="noopener">Gradio</a>,
+        <a href="https://zulko.github.io/moviepy/" target="_blank" rel="noopener">MoviePy</a>,
+        <a href="https://librosa.org/" target="_blank" rel="noopener">librosa</a>,
+        <a href="https://python-soundfile.readthedocs.io/" target="_blank" rel="noopener">soundfile</a>.</p>
+    </section>
+</main>
+
+<footer class="footer">
+    <a href="./how-to.html" class="footer-link"><span aria-hidden="true">📖</span> How to</a>
+    <a href="./cognitive-twin.html" class="footer-link"><span aria-hidden="true">🧠</span> Cognitive Twin</a>
+    <a href="https://github.com/kajica2/digital-twin" target="_blank" rel="noopener" class="footer-link"><span aria-hidden="true">⚡</span> Source</a>
+    <a href="https://github.com/kajica2/loopable-video-segmenter" target="_blank" rel="noopener" class="footer-link"><span aria-hidden="true">⛯</span> Original repo</a>
+</footer>
+
+<script>
+    /* ---------- Theme toggle (system default + localStorage) ---------- */
+    (function () {
+        const html = document.documentElement;
+        const toggle = document.getElementById('themeToggle');
+        function current() { try { return localStorage.getItem('lvs-theme'); } catch (_) { return null; } }
+        let theme = current() || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        html.setAttribute('data-theme', theme);
+        toggle.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+        toggle.addEventListener('click', () => {
+            const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            toggle.setAttribute('aria-pressed', next === 'dark' ? 'true' : 'false');
+            try { localStorage.setItem('lvs-theme', next); } catch (_) {}
+        });
+    })();
+
+    /* ---------- Progress bar + active nav (rAF-throttled) ---------- */
+    (function () {
+        const bar = document.getElementById('progressBar');
+        const sections = Array.from(document.querySelectorAll('section[id]'));
+        const links = Array.from(document.querySelectorAll('.nav-link'));
+        let ticking = false;
+        function onScroll() {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(() => {
+                const y = window.scrollY;
+                const doc = document.documentElement.scrollHeight - window.innerHeight;
+                if (doc > 0) bar.style.width = (y / doc * 100) + '%';
+                bar.setAttribute('aria-valuenow', Math.round(doc > 0 ? y / doc * 100 : 0));
+                let cur = '';
+                for (const s of sections) { if (y >= s.offsetTop - 120) cur = s.id; }
+                links.forEach(l => {
+                    const on = l.getAttribute('href') === '#' + cur;
+                    l.classList.toggle('active', on);
+                    if (on) l.setAttribute('aria-current', 'true'); else l.removeAttribute('aria-current');
+                });
+                ticking = false;
+            });
+        }
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+    })();
+
+    /* ---------- Mobile nav toggle ---------- */
+    (function () {
+        const toggle = document.getElementById('navToggle');
+        const links = document.getElementById('navLinks');
+        const backdrop = document.getElementById('navBackdrop');
+        function close() { links.classList.remove('open'); backdrop.hidden = true; document.body.classList.remove('no-scroll'); toggle.setAttribute('aria-expanded', 'false'); }
+        toggle.addEventListener('click', () => {
+            const open = links.classList.toggle('open');
+            backdrop.hidden = !open;
+            document.body.classList.toggle('no-scroll', open);
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        links.addEventListener('click', e => { if (e.target.tagName === 'A') close(); });
+        backdrop.addEventListener('click', close);
+    })();
+
+    /* ---------- Copy buttons (execCommand fallback so headless never throws) ---------- */
+    document.querySelectorAll('.copy-btn[data-copy]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const pre = btn.closest('.code-block').querySelector('pre');
+            const text = pre.innerText;
+            const flash = () => { btn.textContent = 'copied'; btn.classList.add('copied'); setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1400); };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(flash).catch(() => fallbackCopy(flash, text));
+            } else fallbackCopy(flash, text);
+        });
+    });
+    function fallbackCopy(flash, text) {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); flash(); } catch (_) {}
+        document.body.removeChild(ta);
+    }
+</script>
+</body>
+</html>

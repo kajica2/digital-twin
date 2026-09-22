@@ -1479,3 +1479,119 @@ boot auto-update docs):
 - **Next:** sprint 0.21 candidates — (a) auto-regenerating served
   dashboard (highest value; plumbing exists); (b) `data/clip/samples.json`;
   (c) clip CLI `--out <file>`; (d) chart variants backlog.
+
+### 2026-09-22 — sprint 0.21 (Loopable Video Segmenter port)
+
+- **Shipped:**
+  - **`lib/loopable-video-segmenter/`** — uv-managed Python package (CPython
+    3.12, `requires-python = ">=3.12,<3.13"`), port of the author's
+    `kajica2/loopable-video-segmenter` Gradio app (MIT). `pyproject.toml` +
+    committed `uv.lock` + gitignored `.venv/`/`dist/`. Deps:
+    `gradio~=5.0`, `moviepy>=1.0.3,<2`, `librosa>=0.10`,
+    `soundfile>=0.12`, `numpy>=1.26,<2` (numpy<2 because moviepy 1.0.3
+    breaks on numpy 2). Four-module src layout:
+    `__init__.py` + `core.py` (**no gradio import**) + `cli.py` + `ui.py`.
+    Splits an MP4 into **N beat-aligned, mirror-loopable clips**
+    (librosa beat tracking; equal-time fallback when no usable audio).
+  - **`core.py`** — faithful port of the author's app.py logic with one
+    structural addition: `compute_segments()` split out so CLI + UI share
+    the same boundary-detection pipeline, and the status message reports
+    which path actually ran (`beat detection` vs `equal-time fallback`)
+    instead of upstream's always-claim.
+  - **`cli.py`** — verbs `segment <video> [--segments N] [--no-loopable]
+    [--out zip|dir] [--json]`, `check --self-check` (imports + deps +
+    ffmpeg binary presence; no downloads). Exit codes 0 / 2 bad input /
+    3 runtime. `--json` emits `{status, message, zip, segments, loopable}`.
+  - **`ui.py`** — faithful Blocks port, plain 5.x-safe APIs (no
+    `num_classes`, `api_name` on `.click()` not Button). Launches on
+    **127.0.0.1:7861** — deliberately NOT 7860, which the CLIP
+    Interrogator owns.
+  - **`pages/loopable-video-segmenter.html`** — house-style tool page
+    (stone palette, Inter + JetBrains Mono, paired light/dark under
+    `localStorage["lvs-theme"]` with no-flash bootstrap, scroll-spy +
+    progress bar, mobile drawer, copy buttons with execCommand fallback,
+    data-URI ⛯ favicon). Sections: what / run (setup + UI + CLI) /
+    params (3-row table) / how-it-works (5 steps) / notes (mirrored-audio
+    caveat callout) / attribution. NO working browser demo.
+  - **Twin OS** — Songs panel `.tool-grid` gains a third local card
+    (`a[data-tool-lvs]`, href `../loopable-video-segmenter.html`).
+  - **how-to page** — page-map gains the LVS row; hero count 7 → **8**
+    (the sprint-0.20 open item "add row + bump hero count", closed).
+  - **`docs/LOOPABLE-VIDEO-SEGMENTER.md`** — full reference: install,
+    UI, CLI flags + exit codes, how the segmentation works, package
+    layout, npm scripts, e2e, attribution, verified-run log.
+  - **`e2e/loopable-video-segmenter.spec.mjs`** — Puppeteer contract
+    spec, 19 checks, single `/pages/loopable-video-segmenter.html` URL
+    convention, runs WITHOUT Python deps. Asserts hero, plain
+    `#themeToggle` flip + reload persistence, params table 4 rows,
+    how-it-works 5 steps, `npm run lvs:ui` in how-to-run, `--json`
+    mention, mirrored-audio warning, attribution, local-first chip,
+    **every code block has a copy button (3 blocks, 3 btns)**, internal
+    links ≤ 400, twin-os `data-tool-lvs` card, 0 console errors on both
+    pages, screenshots → `e2e/artifacts/lvs-{light,dark,twinos}.png`.
+  - **npm scripts** — `lvs:setup` / `lvs:ui` / `lvs:segment` (includes
+    the `segment` verb so `npm run lvs:segment -- video.mp4 --segments 4`
+    is ergonomic) / `lvs:check` / `e2e:lvs`.
+  - **CI** — `pages-test.yml` gains push + PR lines exactly like the
+    clip/refael/how-to lines.
+  - **README** — status line, "what's here" bullets, "Run the Loopable
+    Video Segmenter" section, e2e note, file-tree entries (page + lib
+    package + docs).
+  - **`.gitignore`** — `lib/loopable-video-segmenter/.venv/` + `dist/`.
+- **Decisions:**
+  - **Same port pattern as CLIP, not Refael.** Python backend + gradio
+    UI + headless CLI → uv-managed package with the core/CLI/UI split.
+    The CLI gets real value here (the GUI flow is the primary path, but
+    `--json` + `--out` make it scriptable for batch/drop-in use).
+  - **MoviePy pinned 1.x, numpy pinned <2.** The author's proven stack
+    (`moviepy.editor`, `subclip`, `vfx.time_mirror` are 1.x APIs);
+    moviepy 1.0.3 does not support numpy 2. Don't port fresh and risk
+    breaking the working code on a 2.x rewrite — document the swap as a
+    future exercise instead.
+  - **UI on 7861, not 7860.** The CLIP Interrogator owns
+    `127.0.0.1:7860`; the twin runs both. Documented in page + docs.
+  - **Status message reports the actual path.** Upstream's UI always
+    claimed beat detection; the port says `beat detection` or
+    `equal-time fallback`. Honest output matters for `--json` scripting.
+  - **How-to page-map row, no new how-to section.** The how-to spec
+    asserts exactly 9 nav links + 9 section ids; a full section would
+    change that contract, which the sprint-0.20 pattern explicitly does
+    NOT ask for. Row + count bump is the documented pattern.
+  - **Stale spec whitelist fixed, not the page.** `twin-os-songs`
+    hardcoded `['mp3','wav']` as valid format chips, but the indexer has
+    emitted `.aif`/`.aiff` (format = extension sans dot) since sprint
+    0.14. First row of the local catalog is `aif` → check failed. The
+    page was right; the test's whitelist predated AIFF support. Fix:
+    `['mp3','wav','aif','aiff']` now matches `SUPPORTED_EXTS`.
+- **Verified end-to-end (real runs, not just static):**
+  - `uv sync` clean: numpy 1.26.4 / moviepy 1.0.3 / gradio 5.50.0 /
+    librosa 0.11.0 / soundfile 0.14.0.
+  - `lvs:check` green — imports + deps + ffmpeg binary found.
+  - CLI smoke on generated fixtures (ffmpeg testsrc + click track):
+    **beat path** → `"using beat detection"`, ZIP with 2 real MP4s,
+    ffprobe-verified 1.0s/2.0s (mirror doubling correct); **fallback**
+    (silent video) → `"using equal-time fallback"`; **--no-loopable**
+    → plain cuts; missing file → exit 2.
+  - UI launch: binds 127.0.0.1:7861, `GET / → 200`, config carries
+    `api_name: ['create-segments']` (in **dependencies**, not components
+    — first probe looked in the wrong field), 1 markdown / 1 video /
+    1 slider.
+  - `npm run e2e:lvs` 19/19 PASS on the repo-root :5180 server.
+  - `npm run verify` green after the twin-os tool-grid edit + the
+    twin-os-songs whitelist fix.
+  - `e2e:clip` + `e2e:refael` green (both touch twin-os cards).
+  - ct-verify 16/16 + ct-a11y ALL PASS; `npm run test:all` green
+    (chart 36 + songs 16 + mj 17).
+  - `e2e:howto` green after the page-map row + hero count edit.
+  - Hygiene grep clean — no absolute filesystem paths in any new file.
+- **Open:**
+  - The LVS CLI writes its zip to a temp dir by default (printed);
+    `--out` handles the destination. Fine as-is.
+  - BC: a future sprint could port the app to moviepy 2.x (numpy 2
+    current) — not worth the regression risk now.
+  - Other backlog unchanged: (a) auto-regenerating served dashboard;
+    (b) `data/clip/samples.json`; (c) clip CLI `--out`; (d) woody-shaw
+    chart variants.
+- **Next:** sprint 0.22 candidates — (a) auto-regenerating served
+  dashboard (highest value; plumbing exists); (b) `data/clip/samples.json`;
+  (c) clip CLI `--out <file>`; (d) chart variants backlog.

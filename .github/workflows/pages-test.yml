@@ -82,6 +82,7 @@ jobs:
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node clip-interrogator.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node refael.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node how-to.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node loopable-video-segmenter.spec.mjs
           else
             echo "(PR run - Pages is not built for branches, e2e runs locally)"
             python3 -m http.server 5180 --directory . &
@@ -101,6 +102,7 @@ jobs:
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node clip-interrogator.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node refael.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node how-to.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node loopable-video-segmenter.spec.mjs
             kill $SERVER_PID 2>/dev/null || true
           fi
           echo "(watcher specs are filesystem-only and require a live chart-watcher LaunchAgent + mscore, neither of which exists on Linux CI runners. Run locally via npm run test:watcher && npm run test:songs-watcher. The watcher.spec.mjs + songs-watcher.spec.mjs files exist in e2e/ for that purpose.)"

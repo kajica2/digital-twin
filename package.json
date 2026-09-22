@@ -13,6 +13,7 @@
     "e2e:clip": "cd e2e && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" PORT=5180 node clip-interrogator.spec.mjs",
     "e2e:refael": "cd e2e && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" PORT=5180 node refael.spec.mjs",
     "e2e:howto": "cd e2e && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" PORT=5180 node how-to.spec.mjs",
+    "e2e:lvs": "cd e2e && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" PORT=5180 node loopable-video-segmenter.spec.mjs",
     "e2e:live": "cd e2e && E2E_URL=https://kajica2.github.io/digital-twin node landing.spec.mjs && cd ../e2e && E2E_URL=https://kajica2.github.io/digital-twin node twin-os.spec.mjs && cd ../e2e && E2E_URL=https://kajica2.github.io/digital-twin node twin-os-songs.spec.mjs",
     "index-songs": "node lib/songs-indexer.js --apply --yes",
     "export-parts": "node lib/chart-export.js",
@@ -29,6 +30,10 @@
     "clip:ui": "uv run --project lib/clip-interrogator python -m clip_interrogator_app.ui",
     "clip:interrogate": "uv run --project lib/clip-interrogator clip-interrogate interrogate assets/clip-interrogator/example01.jpg --mode best",
     "clip:check": "uv run --project lib/clip-interrogator clip-interrogate check --self-check",
+    "lvs:setup": "uv sync --project lib/loopable-video-segmenter",
+    "lvs:ui": "uv run --project lib/loopable-video-segmenter python -m loopable_video_segmenter.ui",
+    "lvs:segment": "uv run --project lib/loopable-video-segmenter lvs-segment segment",
+    "lvs:check": "uv run --project lib/loopable-video-segmenter lvs-segment check --self-check",
     "verify": "npm run e2e",
     "test-args": "/tmp/test-npm.sh \"$@\""
   }
