@@ -1480,6 +1480,33 @@ boot auto-update docs):
   dashboard (highest value; plumbing exists); (b) `data/clip/samples.json`;
   (c) clip CLI `--out <file>`; (d) chart variants backlog.
 
+### 2026-09-22 — sprint 0.21.b (batch-render audit + row-state fix)
+
+- **Audited**: the Refael Batch tab was driven end-to-end in headless Chrome with
+  three real MP3s (ffmpeg-synthesized sine tracks). Batch pipeline verdict:
+  **working** — decode → sequential render → gallery + ZIP, all 3/3 ok,
+  0 console errors. One real bug surfaced by watching the rows mid-render.
+- **Bug fixed**: the render loop refreshed the wrong element. Row layout is
+  `[num, nameInput, fileName, state, genBtn]`, but the loop used
+  `row.lastElementChild` for `applyStateVisual` → every state transition
+  (`rendering…` / `✓ done` / `! error`) landed **on the 🎲 gen-mini button**,
+  clobbering its glyph + classes, while the `.state` column stayed frozen on
+  `"ready"`. Fixed both call sites (mid-item + after-item) to
+  `row.querySelector('.state')` — semantic, order-proof.
+- **Verified after fix**: `.state` column correctly shows `✓ done` per row,
+  🎲 button intact, gallery opens, 0 console errors. `e2e:refael` +
+  `npm run verify` green. No other batch issues found (the unused `queue`
+  guard var and always-true `hasEngine` in `updateBatchButton` are cosmetic;
+  left alone).
+- **Commit**: `pages/refael-mp4-maker.html` only. Probes were temp + removed;
+  the MP3 fixtures were temp + removed (no binaries committed).
+- **Open**: the batch state-target contract is only covered by the manual
+  live probe, not the static refael spec (which deliberately avoids real
+  renders in CI — WebCodecs is flaky in headless). A future spec could
+  commit tiny MP3 fixtures + drive the folder input (strip `webkitdirectory`,
+  since `uploadFile` ignores it in headless) and assert the `.state` column
+  contract — deferred to keep CI render-free.
+
 ### 2026-09-22 — sprint 0.21 (Loopable Video Segmenter port)
 
 - **Shipped:**

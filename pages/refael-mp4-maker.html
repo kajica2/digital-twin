@@ -4294,9 +4294,11 @@ void main() {
       const it = batch.items[idx];
       if (!it.audioBuffer || !it.name.trim() || it.state === 'ok') continue;
       it.state = 'rendering';
-      // refresh the row's state
+      // refresh the row's state (semantic selector — children order is
+      // [num, nameInput, fileName, state, genBtn], so lastElementChild
+      // would hit the 🎲 gen-mini button, not the .state div)
       const row = batch.list.children[idx];
-      if (row) applyStateVisual(row.lastElementChild, it);
+      if (row) applyStateVisual(row.querySelector('.state'), it);
       setStatus('b-list-status', `Rendering ${idx+1}/${batch.items.length}: ${it.name}`);
       try {
         // if the user opted into the custom palette in the Batch tab, use it for every track
@@ -4354,7 +4356,7 @@ void main() {
         console.error(e);
         it.state = 'err'; it.err = e.message;
       }
-      if (row) applyStateVisual(row.lastElementChild, it);
+      if (row) applyStateVisual(row.querySelector('.state'), it);
       // pause a beat between downloads to avoid browser blocking
       await new Promise(r => setTimeout(r, 250));
     }
