@@ -525,6 +525,20 @@ tail -f logs/chart-watcher.log logs/songs-watcher.log
 # teardown / reinstall per-service docs
 launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/com.kaidjuric.digital-twin.&lt;service&gt;.plist</code></pre></div>
         <p>Per-service install + verify steps: <span class="inline-code">docs/CHART-WATCHER.md</span>, <span class="inline-code">docs/SONGS-WATCHER.md</span>, <span class="inline-code">docs/MJ-WATCHER.md</span>.</p>
+
+        <div class="callout">
+            <strong>Two checkouts, one architecture.</strong> The LaunchAgents run the
+            <em>operational clone</em> at <span class="inline-code">~/digital-twin</span>
+            — the dev checkout in <span class="inline-code">Documents/GitHub/digital-twin</span>
+            is where code lands and gets pushed. The boot agent runs
+            <span class="inline-code">git pull --ff-only</span> at every login, so the
+            machine self-updates. To push a change live without waiting for login:
+        </div>
+        <div class="code-block"><button class="copy-btn" data-copy>copy</button><pre><code>cd ~/digital-twin && git pull --ff-only \
+  && launchctl kickstart -k gui/$(id -u)/com.kaidjuric.digital-twin.server</code></pre></div>
+        <p>If a page 404s on <span class="inline-code">:5173</span>, the operational clone
+        is stale — pull it, don't edit the plists. The watchers all live there too
+        (chart-inbox/, audio-inbox/, prompts-inbox/).</p>
     </section>
 
     <!-- 09 Troubleshooting -->
