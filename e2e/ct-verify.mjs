@@ -8,7 +8,7 @@ import puppeteer from 'puppeteer';
 const DEPLOYED_URL = process.env.E2E_URL || null;
 const PORT = process.env.PORT || '5173';
 const BASE = DEPLOYED_URL || `http://127.0.0.1:${PORT}`;
-const URL = `${BASE}${DEPLOYED_URL ? '/pages/cognitive-twin.html' : '/pages/cognitive-twin.html'}`;
+const URL = `${BASE}${DEPLOYED_URL ? '/pages/cognitive-twin.html' : '/cognitive-twin.html'}`;
 
 const errors = [];
 
