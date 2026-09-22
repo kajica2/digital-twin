@@ -1290,3 +1290,75 @@ so the 456-entry MIDI corpus is searchable in the Songs panel;
   to a generated `data/clip/samples.json`; (b) add `--out` to the
   clip CLI; (c) resume the agent-loop dashboard live-state wiring
   from 0.16; (d) the woody-shaw chart variants backlog.
+
+### 2026-09-22 — sprint 0.19 (agent-loop dashboard served + ct gate hardening)
+
+- **Shipped:**
+  - **`agents/persistent-agent-loop.py` gains `dashboard --out PATH`** —
+    writes the generated dashboard anywhere, not just next to the state
+    file (default behavior unchanged). The served tree is now a target:
+    `python3 agents/persistent-agent-loop.py dashboard --out
+    pages/agent-dashboard.html` regenerates the Twin's dashboard in
+    place.
+  - **`pages/agent-dashboard.html` (committed)** — placeholder dashboard
+    in the loop's exact generated style (dark `#0f1117`, same table + feed
+    structure) so a regeneration overwrites it seamlessly. Shows the
+    idle/empty state + the run-and-regenerate commands until the loop has
+    a state file. Zero JS, zero network.
+  - **`pages/cognitive-twin.html`** — agent-loop iframe
+    `../.agent/dashboard.html` → `./agent-dashboard.html`, copy updated
+    with the regenerate command. This **fixes a real 404** the page had
+    shipped with since sprint 0.16.
+  - **`e2e/ct-verify.mjs` hardened** — was a *print-and-exit-zero* spec:
+    checked were logged but never asserted, console errors printed but
+    never gated. Now a real gate: `check()` helper, 16 assertions
+    (structure counts, layer/twin/scanner/theme exercises, dashboard
+    iframe resolves 200 + served non-dot path, **0 console errors**),
+    non-zero exit on failure.
+  - **`e2e/ct-a11y.mjs` fixed** — pre-existing deterministic failure on
+    "active link has aria-current". Root cause: the spec's hardcoded
+    `window.scrollTo(0, 1500)` + fixed 200 ms wait raced Chrome's scroll
+    restoration after `page.reload` (restore clobbered the scroll, so no
+    section was in the spy's active zone at check time). Fix: disable
+    `history.scrollRestoration`, scroll a mid-page section into view,
+    and **poll** for `.nav-link.active[aria-current="true"]` instead of a
+    fixed sleep. The page's scroll-spy was correct (probe-verified at
+    multiple scroll depths).
+- **Decisions:**
+  - **The dashboard must live at a served, non-dot path.** The loop's
+    brain stays at `.agent/state.json` (gitignored, local-only — correct
+    per §11 hygiene), but a dot-directory is unreachable from both the
+    pages-rooted local server and GitHub Pages (Jekyll ignores dot-dirs),
+    so `.agent/dashboard.html` was never going to load in the iframe —
+    even after running the loop. `pages/agent-dashboard.html` doubles as
+    the committed placeholder AND the loop's regeneration target: same
+    file, different contents, seamless swap.
+  - **Test fix justified under "fix the page, not the test"**: the 404
+    and the ct-a11y failure were both *spec* defects (no assertion /
+    scroll race), not page defects. ct-verify's 0-console-error gate
+    only became possible once the iframe resolved.
+  - **ct-a11y's assertion contract unchanged** — same check, now
+    deterministic.
+- **Verified end-to-end:**
+  - Loop: `run` in a scratch dir → `dashboard --out /tmp/served.html`
+    writes live-data HTML (plan table present, 2014 bytes); default call
+    still writes next to state. Both paths confirmed.
+  - `ct-verify`: 16/16 PASS incl. dashboard `→ 200` and 0 console errors.
+  - `ct-a11y`: ALL PASS, 0 console errors (previously SOME FAILED).
+  - `ct-{default,icon,nav,progress,theme,phase3}`: all clean
+    (`errors: []` where applicable).
+  - `npm run verify` green; `e2e:clip` + `e2e:refael` green — no
+    regressions.
+  - Hygiene grep: no absolute filesystem paths in changed files.
+- **Open:**
+  - Live-state wiring is now *possible but not automatic*: running the
+    loop + `dashboard --out pages/agent-dashboard.html` replaces the
+    placeholder with live plan/memory/journal. Wiring that regenerate
+    into the loop's own `run` (post-run hook) or a watcher remains a
+    follow-up.
+  - The other 0.19 candidates (CLIP `data/clip/samples.json`, clip CLI
+    `--out`, woody-shaw chart variants) remain on the backlog.
+- **Next:** sprint 0.20 candidates — (a) `run` auto-regenerates the
+  served dashboard on pause/exit; (b) CLIP sample strip → generated
+  `data/clip/samples.json`; (c) clip CLI `--out <file>`; (d) woody-shaw
+  chart variants.
