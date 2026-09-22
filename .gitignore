@@ -35,3 +35,13 @@ e2e/node_modules/
 
 # Kai project memory (local-only by choice — contains absolute paths)
 .kai/
+
+# CLIP Interrogator venv (uv-managed, generated)
+lib/clip-interrogator/.venv/
+
+# uv build artifacts
+lib/clip-interrogator/dist/
+
+# Python bytecode
+__pycache__/
+*.pyc

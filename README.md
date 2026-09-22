@@ -10,14 +10,15 @@ Part of [kai-systems](https://kajica2.github.io/kai-systems/) — the
 meta-layer that makes all the other kai-systems stacks run
 themselves.
 
-> **Sprint 0 status:** Landing page live. Three A/B-testable variants
-> in one HTML file. Twin OS shell + song indexer queued for sprint 1.
+> **Sprint 2 status:** Landing page live, Twin OS shell live, song
+> indexer live, chart pipeline live, CLIP Interrogator port live.
+> The landing's CTA opens the Twin OS; the Twin OS's Songs panel
+> surfaces the audio catalog plus pairing tools.
 
 ## What this is
 
 A long-running project. The landing page is the public face; the Twin
-OS shell is the thing you'll actually use every day. The shell and the
-song indexer are sprint 1.
+OS shell is the thing you'll actually use every day.
 
 For now, what's here:
 
@@ -26,10 +27,19 @@ For now, what's here:
   switcher. kai-systems house style (DM Serif Display + Outfit +
   JetBrains Mono, warm copper), paired light + dark, WCAG AA in both
   themes.
+- **`pages/twin-os/`** — the Twin OS PWA shell (Today / Songs / Twin
+  panels) with the song catalog surfaced in Songs.
+- **`pages/clip-interrogator.html`** — the CLIP Interrogator port
+  (image→prompt + image analysis), docs and sibling link from the
+  Twin OS Songs panel.
+- **`lib/clip-interrogator/`** — Python package (uv-managed venv) that
+  powers the CLIP Interrogator. Gradio UI + CLI + self-check.
+- **`lib/songs-indexer.js`** — walks audio dirs, builds
+  `data/songs/catalog.json`.
 - **`docs/DESIGN-RATIONALE.md`** — why the page looks the way it does.
 - **`docs/COMPONENT-CATALOGUE.md`** — what each Web Component does.
-- **`e2e/landing.spec.mjs`** — Puppeteer smoke test that loads each
-  variant, screenshots, and asserts the variant switcher roundtrips.
+- **`e2e/*.mjs`** — Puppeteer smoke tests (landing, twin-os, songs,
+  cognitive-twin, clip-interrogator).
 
 ## Run the landing page
 
@@ -59,6 +69,29 @@ architecture section, the running processes, the domain twins, the
 integrations, and the footer stay the same — the *product* is
 constant, the *pitch* is the A/B test.
 
+## Run the CLIP Interrogator
+
+The tool is a Python package under `lib/clip-interrogator/` with its own
+uv-managed venv (CPython 3.12). First run downloads ~1 GB of models
+into `~/.cache/huggingface` (ViT-L + BLIP; vocab embeddings come from
+the clip-interrogator CDN).
+
+```bash
+# one-time setup: venv + resolved deps (commits uv.lock)
+npm run clip:setup
+
+# self-check — import + device + registry, downloads NO weights
+npm run clip:check
+
+# gradio UI on http://127.0.0.1:7860
+npm run clip:ui
+
+# real interrogation — image → prompt (best mode, ViT-L, example01.jpg)
+npm run clip:interrogate
+```
+
+Details, CLI verbs, exit codes and e2e: [`docs/CLIP-INTERROGATOR.md`](docs/CLIP-INTERROGATOR.md).
+
 ## Run the e2e test
 
 ```bash
@@ -67,7 +100,7 @@ npm install
 node landing.spec.mjs
 ```
 
-The test:
+The landing test:
 1. Spawns a local static file server on port 5173.
 2. Loads the landing page in headless Chrome.
 3. Switches through all three variants and screenshots each.
@@ -76,32 +109,35 @@ The test:
 5. Asserts 0 console errors on each variant.
 6. Saves screenshots to `e2e/artifacts/`.
 
+The CLIP test runs against a pages-rooted server (no Python deps):
+
+```bash
+python3 -m http.server 5180 --directory pages &
+npm run e2e:clip
+```
+
 ## Architecture (sprint 0 + planned)
 
 ```
 digital_twin/
 ├── pages/
 │   ├── landing.html          # the public landing page (sprint 0)
+│   ├── cognitive-twin.html   # the 4-layer architecture narrative
+│   ├── clip-interrogator.html # tool page for the CLIP Interrogator port
 │   └── twin-os/              # the actual twin PWA shell (sprint 1)
-├── lib/                      # shared components (sprint 1+)
-│   ├── shell.html
-│   ├── today.js
-│   ├── songs.js
-│   └── twin.js
+├── lib/
+│   ├── songs-indexer.js      # audio metadata → catalog.json
+│   ├── chart-export.js       # MusicXML → parts / PDF / MP3 / MIDI
+│   └── clip-interrogator/    # Python package (uv-managed venv)
 ├── data/                     # generated catalogs
-│   └── songs/
-│       └── catalog.json      # built by lib/songs-indexer.js (sprint 1)
-├── e2e/
-│   └── landing.spec.mjs      # Puppeteer test
+├── e2e/                      # Puppeteer specs (landing, twin-os, ct-*, clip)
 ├── agents/                   # twin agent definitions (sprint 2+)
-│   ├── today.md
-│   ├── songs.md
-│   └── ...
 ├── docs/
 │   ├── DESIGN-RATIONALE.md
 │   ├── COMPONENT-CATALOGUE.md
-│   └── ARCHITECTURE.md       # TBD sprint 1
-├── assets/                   # brand assets (logo, mark, etc.)
+│   ├── ARCHITECTURE.md
+│   └── CLIP-INTERROGATOR.md
+├── assets/                   # brand assets + clip example images
 └── README.md                 # this file
 ```
 

@@ -1057,3 +1057,158 @@ wiring it to live orchestrator data is the natural next step.
 dashboard; (b) jazz-solos CSV catalog (`catalog-jazz-solos.json`)
 so the 456-entry MIDI corpus is searchable in the Songs panel;
 (c) FLAC/M4A/OGG parsing in songs-indexer.
+
+### 2026-09-22 — sprint 0.17 (CLIP Interrogator port)
+
+- **Shipped:**
+- **`lib/clip-interrogator/`** — Python package under a uv-managed
+  venv (managed CPython 3.12, `requires-python = ">=3.12,<3.13"`).
+  `pyproject.toml` + committed `uv.lock` + gitignored `.venv/`.
+  Deps: `gradio~=5.0` (deliberately not 6.x), `clip-interrogator==0.6.0`,
+  `torch>=2.6,<3`, `torchvision>=0.21,<1`.
+  Five-module set: `__init__.py`, `config.py` (model registry +
+  tunables), `core.py` (business logic, **no gradio import**),
+  `cli.py` (argparse), `ui.py` (gradio).
+- **`core.py` ModelManager** — lazy loader under a reentrant lock
+  (two concurrent gradio events can't double-load the 1-2GB models).
+  ViT-L is the default (loaded on first UI use); ViT-H materialises
+  only when selected; the BLIP captioner is shared between both via
+  the `Config.caption_model` / `Config.caption_processor` attrs that
+  clip_interrogator 0.6.0 actually reads (the oft-cited
+  `cfg.blip_model` attribute does NOT exist in the 0.6.0 wheel);
+  CLI-only path uses `shared_blip=False` so a CLI run loads **only**
+  the requested model. CPU ping-pong activates the selected CLIP and
+  parks the other on CPU. `repo_root()` walks up to `pages/` — no
+  absolute paths anywhere.
+- **`cli.py`** — verbs `interrogate <image> [--model vit-l|vit-h]
+  [--mode best|fast|classic|negative] [--json]`, `analyze <image>
+  [--model] [--top 5] [--json]`, `check --self-check` (import +
+  device + registry, downloads NO weights; reports the pinned
+  inference device separately from the available accelerator).
+  `--json` redirects the library's loading banner prints to stderr
+  so the payload parses clean (`python3 -m json.tool`).
+  Exit codes 0 / 2 bad input / 3 model error.
+- **`ui.py`** — `build_gradio_app()`: one Blocks context, two tabs
+  (Prompt / Analyze), plain `gr.Label(label=...)` outputs (gradio
+  5.x removed `num_classes`), `api_name` on the `.click()` events
+  (not on Button — another non-5.x API), handlers receive components
+  as explicit params (upstream `analyze_tab()` global-reference bug
+  fixed) and guard `DISPLAY_TO_ID` lookups with `.get()` +
+  `gr.Error`, share-to-community + HF duplicate badge + Colab
+  boilerplate dropped, `cache_examples` / `run_on_click` /
+  `ex.dataset.headers` dropped, launch on `127.0.0.1:7860` with
+  `show_api=False`.
+- **`pages/clip-interrogator.html`** — static tool page, kai-systems
+  house style (DM Serif Display + Outfit + JetBrains Mono, warm
+  cream + copper + forest tokens), mirroring the cognitive-twin
+  structure: hero, what-it-is, how-to-run, mode table (4 rows),
+  model table (2 entries), examples + `[data-sample-output]` strip,
+  attribution. Paired light/dark via `<theme-toggle>` (3-state
+  light/auto/dark) persisted under `localStorage["ci-theme"]` with
+  a no-flash bootstrap script. NO working browser demo.
+- **Twin OS** — Songs panel `.tool-grid` gains a CLIP Interrogator
+  card (`a[data-tool-clip]`, links to `../clip-interrogator.html`).
+- **`assets/clip-interrogator/{example01,example02}.jpg`** — the
+  upstream pair (Layers + Lin Tong, Pixabay), copied from the HF
+  space clone. Also mirrored at `pages/assets/clip-interrogator/`
+  so the static page's examples load under the `--directory pages`
+  local server (the repo-root `assets/` sits outside that server's
+  document root — the page's relative `assets/...` refs resolve to
+  the mirror under both local and deployed paths).
+- **`docs/CLIP-INTERROGATOR.md`** — full reference: install, CLI,
+  UI, gradio modernization notes, npm scripts, e2e, attribution.
+- **`e2e/clip-interrogator.spec.mjs`** — Puppeteer contract spec
+  that runs WITHOUT Python deps: hero `<h1>`, `<theme-toggle>`
+  flip + reload persistence, mode table 4 rows, model table 2
+  entries, both example imgs `naturalWidth > 0`, `npm run clip:ui`
+  in how-to-run, Pixabay + pharmapsychotic attribution,
+  `[data-sample-output]` presence, twin-os `data-tool-clip` link
+  (href ends `clip-interrogator.html`, name "CLIP Interrogator"),
+  0 console errors (pageerror + console.error + requestfailed) on
+  both pages, screenshots → `e2e/artifacts/clip-{light,dark,twinos}.png`.
+  URL convention fixed (not the ct-spec quirk): deployed
+  `${BASE}/pages/clip-interrogator.html`, local
+  `${BASE}/clip-interrogator.html`; twin-os `/pages/twin-os/index.html`
+  vs `/twin-os/index.html`.
+- **npm scripts** — `e2e:clip` (node + puppeteer, `cd e2e && PORT=5180
+  node clip-interrogator.spec.mjs`), `clip:setup` (`uv sync --project
+  lib/clip-interrogator`), `clip:ui` / `clip:interrogate` /
+  `clip:check` (via `uv run --project lib/clip-interrogator`).
+- **CI** — `.github/workflows/pages-test.yml` gains one push line +
+  one PR line (run `clip-interrogator.spec.mjs` against the deployed
+  URL / `PORT=5180` respectively, exactly like the ct-* lines).
+- `.gitignore` — `lib/clip-interrogator/.venv/` + `dist/`.
+- **Sample output recorded verbatim** (from one real CLI run):
+  - `clip-interrogate interrogate assets/clip-interrogator/example01.jpg --mode best`:
+    `painting of a turtle in watercolors, realistic photo studio photoshop, red and teal color scheme, pencil drawing illustration, teal and orange color scheme, photoshop render, clear seas, featured on dribbble, realistic sketch, watercolor effect, by Mac Conner, cgsociety 9`
+- **Verified end-to-end:**
+  - `uv sync` clean (93 packages resolved; torch 2.14.0,
+    torchvision 0.29.0, gradio 5.50.0, clip-interrogator 0.6.0).
+    NOTE: the first `uv sync` hit a stale-uv-cache editable install
+    with no `.pth` hook (`No module named 'clip_interrogator_app'`);
+    fixed with `uv sync --project lib/clip-interrogator
+    --reinstall --no-cache`. Documented in `docs/CLIP-INTERROGATOR.md`.
+  - `clip:check` green (exit 0, device mps, registry printed, no
+    weights downloaded; reports inference device cpu separately).
+  - **UI launch verified** — `python -m clip_interrogator_app.ui`
+    binds `127.0.0.1:7860`, `GET / → 200`, config carries both
+    tabitems (`Prompt`, `Analyze`) and both api_names
+    (`image-to-prompt`, `image-analysis`). Only new noise is the
+    forward-looking `show_api` deprecation warning for gradio 6.0.
+  - **Full smoke, all four interrogate modes + both analyze models**
+    (weights cached, per-mode wall ≈ up to ~3 min on CPU):
+    - `interrogate example01.jpg --mode {best,fast,classic,negative} --json` — all four emit JSON that parses clean via `python3 -m json.tool`, with the library's loading-banner prints redirected to stderr. `best` prompt = the sample recorded above (272 chars); `fast` / `classic` / `negative` each produce distinct coherent prompts.
+    - `analyze example01.jpg --model vit-l --json` AND `--model vit-h --json` — both emit JSON with all five label tables present (medium / artist / movement / trending / flavor, 5 labels each).
+  - One real `clip-interrogate ... example01.jpg --mode best` run
+    completed and produced the prompt recorded above.
+  - `npm run e2e:clip` green on :5180 (17/17 checks, includes the
+    internal-link resolution check — no 404s on the page's relative
+    hrefs after the footer/brand fix).
+  - `npm run verify` green (existing landing / twin-os /
+    twin-os-songs specs) — no regressions.
+  - ct specs: `ct-{a11y,default,icon,nav,phase3,progress,theme,verify}`
+    all pass locally against the `--directory pages` :5180 server.
+  - No absolute filesystem paths in new files (grep clean).
+- **Decisions:**
+  - **Device pinned to CPU inside the interrogator.** clip_interrogator
+    0.6.0's `Config.device` auto-detects MPS, but its `LabelTable`
+    only casts cached fp16 vocab embeddings to fp32 on *cpu* — on MPS
+    every rank/similarity op crashes with "expected mat1 and mat2 to
+    have the same dtype ... float != Half". Upstream never ran the
+    MPS path in practice. Pinning `device="cpu"` keeps the whole
+    pipeline fp32 and deterministic; the tool is a calm local
+    utility, not a render farm.
+  - **Vocab cache pinned to `~/.cache/clip-interrogator`.** Upstream
+    `Config()` defaults `cache_path` to the *relative* path `"cache"`,
+    which dropped ~164M of safetensors into the repo root on the first
+    real CLI run (surfaced during final verification, removed before
+    commit). The pin keeps the working tree clean; weights still land
+    in the HF cache as before.
+  - **Gradio modernisation followed the upstream removals.** Both
+    `num_top_classes` (removed) and `num_classes` (never a 5.x API)
+    are gone — plain `gr.Label(label=...)` renders the score dict.
+    `api_name` moved from the Button constructors to the `.click()`
+    events (Button didn't accept it in 5.x — reproduced TypeError).
+    Also dropped `run_on_click`, `cache_examples`,
+    `ex.dataset.headers`, share buttons, HF badge, Colab copy. The
+    upstream `analyze_tab()` referenced components (`input_image`,
+    `input_model`) defined later in module scope — the latent bug is
+    fixed by building everything inside one Blocks-context builder and
+    passing refs explicitly; drop-down lookups use `.get()` +
+    `gr.Error` instead of raw `DISPLAY_TO_ID[...]`.
+  - **`shared_blip` split.** UI path shares BLIP (upstream behavior);
+    CLI path constructs each interrogator with its own BLIP so
+    `--model vit-h` never downloads ViT-L.
+- **Open:**
+  - `npm run clip:interrogate` default target is the shipped
+    example01.jpg; pointing it at the user's real images is a `--`
+    passthrough away (`npm run clip:interrogate -- <image> --model vit-h`).
+  - The e2e does not exercise the gradio app via the browser (the
+    UI was manually launch-verified: binds 127.0.0.1:7860, both tabs
+    present). A future sprint could add a `clip-ui.spec.mjs` that
+    drives the running app on a loaded-cache machine.
+- **Next:** sprint 0.18 candidates — (a) wire the sample strip to a
+  generated `data/clip/samples.json` so the page auto-refreshes when
+  the indexer rebuilds; (b) add `--out` to the CLI to write prompts
+  to a sibling catalog; (c) resume the agent-loop dashboard live-state
+  wiring from 0.16's open item.
