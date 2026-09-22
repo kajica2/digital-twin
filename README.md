@@ -11,7 +11,8 @@ meta-layer that makes all the other kai-systems stacks run
 themselves.
 
 > **Sprint 2 status:** Landing page live, Twin OS shell live, song
-> indexer live, chart pipeline live, CLIP Interrogator port live.
+> indexer live, chart pipeline live, CLIP Interrogator port live,
+> Refael MP4 Maker port live.
 > The landing's CTA opens the Twin OS; the Twin OS's Songs panel
 > surfaces the audio catalog plus pairing tools.
 
@@ -34,12 +35,15 @@ For now, what's here:
   Twin OS Songs panel.
 - **`lib/clip-interrogator/`** — Python package (uv-managed venv) that
   powers the CLIP Interrogator. Gradio UI + CLI + self-check.
+- **`pages/refael-mp4-maker.html`** — the Refael MP4 Maker port
+  (offline MP3→MP4 with mood-keyword auto-covers; single/custom/batch),
+  docs and sibling link from the Twin OS Songs panel.
 - **`lib/songs-indexer.js`** — walks audio dirs, builds
   `data/songs/catalog.json`.
 - **`docs/DESIGN-RATIONALE.md`** — why the page looks the way it does.
 - **`docs/COMPONENT-CATALOGUE.md`** — what each Web Component does.
 - **`e2e/*.mjs`** — Puppeteer smoke tests (landing, twin-os, songs,
-  cognitive-twin, clip-interrogator).
+  cognitive-twin, clip-interrogator, refael).
 
 ## Run the landing page
 
@@ -92,6 +96,27 @@ npm run clip:interrogate
 
 Details, CLI verbs, exit codes and e2e: [`docs/CLIP-INTERROGATOR.md`](docs/CLIP-INTERROGATOR.md).
 
+## Run the Refael MP4 Maker
+
+No setup — it's one static HTML file. Serve it or open it from disk:
+
+```bash
+# Option A: open directly (fully offline, file:// works)
+open pages/refael-mp4-maker.html
+
+# Option B: serve it with the rest of the pages
+python3 -m http.server 5173 --directory pages
+# then visit http://127.0.0.1:5173/refael-mp4-maker.html
+```
+
+Drop an MP3, pick a track name (or hit 🎲 random), choose a render
+mode, and get a 1920×1080 MP4 with a mood-keyword auto-cover. Fast
+mode is WebCodecs (offline, zero network); FFmpeg.wasm lazy-loads
+from unpkg on first use; Real-time uses MediaRecorder. Open with
+`?selftest=1` for a built-in end-to-end render self-test.
+
+Details and offline caveats: [`docs/REFAEL-MP4-MAKER.md`](docs/REFAEL-MP4-MAKER.md).
+
 ## Run the e2e test
 
 ```bash
@@ -116,6 +141,13 @@ python3 -m http.server 5180 --directory pages &
 npm run e2e:clip
 ```
 
+The Refael test uses the same convention:
+
+```bash
+python3 -m http.server 5180 --directory pages &
+npm run e2e:refael
+```
+
 ## Architecture (sprint 0 + planned)
 
 ```
@@ -124,19 +156,21 @@ digital_twin/
 │   ├── landing.html          # the public landing page (sprint 0)
 │   ├── cognitive-twin.html   # the 4-layer architecture narrative
 │   ├── clip-interrogator.html # tool page for the CLIP Interrogator port
+│   ├── refael-mp4-maker.html  # offline MP3→MP4 maker (single-file app)
 │   └── twin-os/              # the actual twin PWA shell (sprint 1)
 ├── lib/
 │   ├── songs-indexer.js      # audio metadata → catalog.json
 │   ├── chart-export.js       # MusicXML → parts / PDF / MP3 / MIDI
 │   └── clip-interrogator/    # Python package (uv-managed venv)
 ├── data/                     # generated catalogs
-├── e2e/                      # Puppeteer specs (landing, twin-os, ct-*, clip)
+├── e2e/                      # Puppeteer specs (landing, twin-os, ct-*, clip, refael)
 ├── agents/                   # twin agent definitions (sprint 2+)
 ├── docs/
 │   ├── DESIGN-RATIONALE.md
 │   ├── COMPONENT-CATALOGUE.md
 │   ├── ARCHITECTURE.md
-│   └── CLIP-INTERROGATOR.md
+│   ├── CLIP-INTERROGATOR.md
+│   └── REFAEL-MP4-MAKER.md
 ├── assets/                   # brand assets + clip example images
 └── README.md                 # this file
 ```

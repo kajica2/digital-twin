@@ -1212,3 +1212,81 @@ so the 456-entry MIDI corpus is searchable in the Songs panel;
   the indexer rebuilds; (b) add `--out` to the CLI to write prompts
   to a sibling catalog; (c) resume the agent-loop dashboard live-state
   wiring from 0.16's open item.
+
+### 2026-09-22 — sprint 0.18 (Refael MP4 Maker port)
+
+- **Shipped:**
+  - **`pages/refael-mp4-maker.html`** — port of the author's HF Space
+    `kaidjuric/refael-mp4-maker` (static SDK, MIT; part of the Sainted
+    Word Records portfolio). Single self-contained HTML file (4648
+    lines, fonts as data URIs): MP3 → 1920×1080 MP4 with mood-keyword
+    auto-covers (dark/light/fire/love/ocean/earth, English + Serbian/
+    Cyrillic), deterministic from track name + artist. Three render
+    engines behind one radio group — ⚡ Fast (WebCodecs, offline),
+    🛡 FFmpeg.wasm (lazy-loads @ffmpeg from unpkg on first use),
+    🐢 Real-time (MediaRecorder). Single / Custom image / Batch tabs,
+    Kai-flavored random-name generator, blob-URL PWA manifest + inline
+    service worker, built-in `?selftest=1` end-to-end render self-test.
+    Copied from the Space's `index.html` with exactly one hygiene
+    addition: a data-URI favicon (the page's own "R" monogram) so
+    browsers stop auto-requesting `/favicon.ico` (404 console error
+    surfaced by the e2e). Canonical source lives on another machine at
+    `~/Documents/autodashboard/refael-mp4-maker`.
+  - **Twin OS Songs panel** — third `.tool-grid` card
+    (`a[data-tool-refael]`, href `../refael-mp4-maker.html`), same
+    pattern as the CLIP card.
+  - **`docs/REFAEL-MP4-MAKER.md`** — origin, engine behavior, the
+    offline caveat (default path = true 0 network calls; FFmpeg.wasm
+    mode lazily fetches from unpkg), run instructions, `?selftest=1`
+    lever, e2e contract, attribution.
+  - **`e2e/refael.spec.mjs`** — Puppeteer contract spec, 22 checks,
+    same URL convention + console-error collection + down-server
+    ergonomics as `clip-interrogator.spec.mjs`. Asserts title/hero,
+    offline badge, 3-tab tablist (first active), 3 engine radios (Fast
+    checked), engine pill + hint, render buttons disabled until input,
+    1920×1080 canvases, output-info row, "0 network calls" footer
+    claim, ffmpeg one-liner `<details>`, the random-name generator
+    fills the title input, internal links don't 404, Twin OS
+    `data-tool-refael` card, 0 console errors on both pages.
+  - **`npm run e2e:refael`** + CI: `pages-test.yml` gains push + PR
+    lines (deployed `/pages/refael-mp4-maker.html`, local
+    `/refael-mp4-maker.html` — same convention as the clip line).
+  - **README** — status line + "what's here" + "Run the Refael MP4
+    Maker" section + file tree entries.
+- **Decisions:**
+  - **Byte-identical copy (plus one hygiene line), no kai-systems
+    restyle.** Refael is a complete product with its own polished dark
+    design (Fraunces + data-URI fonts, offline-first). Restyling it
+    into the shared tokens would strip its identity; the twin
+    surfaces it as a tool, not a page it owns. The single addition is
+    the data-URI favicon — without it, Chrome auto-requests
+    `/favicon.ico` and the 404 shows up as a console error (caught by
+    the e2e's 0-console-error contract). Documented origin + offline
+    caveat instead.
+  - **The `?selftest=1` hook stays out of the e2e.** It exercises
+    WebCodecs video encoding, which is flaky across headless Chrome
+    versions; the spec covers the static contract and the spec keeps
+    green in CI. Selftest remains the manual render smoke lever.
+  - **FFmpeg.wasm's CDN dependency is documented, not removed.** The
+    Fast + Real-time engines are fully offline; FFmpeg mode is the
+    one network-touching path, lazily loaded on first use and then
+    browser-cached. The footer's "0 network calls" claim is accurate
+    for the default path — the e2e asserts it verbatim.
+  - **Port from the HF Space, not the absent local source.** The
+    README's canonical path (`~/Documents/autodashboard/...`) doesn't
+    exist on this machine; the HF copy is the source of truth here.
+- **Verified end-to-end:**
+  - `npm run e2e:refael` green on :5180 (22/22 checks, includes the
+    random-name generator interaction + internal-link resolution).
+  - `npm run verify` green (landing / twin-os / twin-os-songs) — no
+    regressions from the tool-grid edit.
+  - ct specs still green locally on :5180 (spot-checked ct-verify +
+    ct-default after the twin-os edit).
+- **Open:**
+  - A future sprint could drive `?selftest=1` in Puppeteer against a
+    real Chrome binary when headless WebCodecs stabilizes (the spec
+    notes this explicitly).
+- **Next:** sprint 0.19 candidates — (a) wire the CLIP sample strip
+  to a generated `data/clip/samples.json`; (b) add `--out` to the
+  clip CLI; (c) resume the agent-loop dashboard live-state wiring
+  from 0.16; (d) the woody-shaw chart variants backlog.
