@@ -580,6 +580,8 @@
     }
     .song-row .song-fmt[data-fmt="mp3"] { color: var(--primary); border-color: var(--primary-mid); background: var(--primary-soft); }
     .song-row .song-fmt[data-fmt="wav"] { color: var(--accent); border-color: rgba(47, 111, 94, 0.20); background: var(--accent-soft); }
+    .song-row .song-fmt[data-fmt="mid"] { color: var(--accent); border-color: rgba(47, 111, 94, 0.20); background: var(--accent-soft); }
+    .song-row .song-fmt[data-fmt="mid+pdf"] { color: var(--primary); border-color: var(--primary-mid); background: var(--primary-soft); }
     .song-row .song-title {
       color: var(--ink);
       font-weight: 500;
@@ -955,6 +957,32 @@
           </div>
           <div class="song-groups" data-songs-groups></div>
         </div>
+
+        <!-- MIDI corpus — the WJazzD solo archive. Independent of the
+             audio catalog above: separate source (manifest.csv), separate
+             indexer (npm run index-jazz-solos), separate catalog file. -->
+        <div class="panel-section" style="margin-top:28px">
+          <h2>Transcription corpus</h2>
+          <p class="lede">The Weimar Jazz Database solo archive — 456 transcribed solos with MIDI and engraved PDF per entry. Indexed from its manifest by <code>npm run index-jazz-solos</code>.</p>
+
+          <div class="song-empty" data-jz-loading>
+            <p>Loading corpus…</p>
+          </div>
+
+          <div class="song-empty" data-jz-empty hidden>
+            <p><strong>Corpus not indexed yet.</strong></p>
+            <p data-jz-empty-detail></p>
+          </div>
+
+          <div class="song-catalog" data-jz-catalog hidden>
+            <div class="song-meta" data-jz-meta></div>
+            <div class="song-search">
+              <input type="search" placeholder="Filter by performer, title, style, instrument…" data-jz-search aria-label="Filter transcription corpus" />
+              <span class="song-search-count" data-jz-search-count></span>
+            </div>
+            <div class="song-groups" data-jz-groups></div>
+          </div>
+        </div>
       </section>
 
       <!-- TWIN -->
@@ -1215,6 +1243,162 @@
         renderRoots();
         const detail = document.querySelector('[data-songs-empty-detail]');
         if (detail) detail.innerHTML = `Could not load <code>${escapeHtml(CATALOG_URL)}</code> — ${escapeHtml(err.message)}. Run <code>npm run index-songs</code> from the repo root to generate the catalog.`;
+        show(empty);
+      });
+  })();
+
+  /* ===========================================================
+     Transcription corpus — fetch + render the WJazzD catalog
+     from /data/songs/catalog-jazz-solos.json. Independent of the
+     audio catalog above: separate indexer, separate file, separate
+     empty state (the corpus may be indexed while audio is not, and
+     vice versa).
+     =========================================================== */
+  (function () {
+    const CATALOG_URL = '../../data/songs/catalog-jazz-solos.json';
+    const loading = document.querySelector('[data-jz-loading]');
+    const empty   = document.querySelector('[data-jz-empty]');
+    const catalog = document.querySelector('[data-jz-catalog]');
+    const meta    = document.querySelector('[data-jz-meta]');
+    const groups  = document.querySelector('[data-jz-groups]');
+    const counter = document.querySelector('[data-jz-search-count]');
+
+    if (!loading || !empty || !catalog) return;
+
+    let allItems = [];
+    let source = null;
+    let facets = { performers: [], styles: [], instruments: [] };
+
+    function show(node) {
+      [loading, empty, catalog].forEach(n => { if (n) n.hidden = (n !== node); });
+    }
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[c]));
+    }
+    function fmtSize(bytes) {
+      if (!bytes) return '—';
+      const units = ['B','KB','MB','GB'];
+      let i = 0, n = bytes;
+      while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
+      return `${n.toFixed(n < 10 && i > 0 ? 1 : 0)} ${units[i]}`;
+    }
+    function fmtFormat(it) {
+      if (it.hasMidi && it.hasPdf) return 'mid+pdf';
+      if (it.hasMidi) return 'mid';
+      return 'pdf';
+    }
+    function fmtTempo(t) {
+      if (t == null) return '—';
+      return `${Number.isInteger(t) ? t : t.toFixed(1)} BPM`;
+    }
+
+    function renderMeta() {
+      if (!meta || !source) return;
+      const c = source.counts || {};
+      const n = c.items || allItems.length;
+      meta.innerHTML =
+        `<span><strong>${n}</strong> solo${n === 1 ? '' : 's'}</span> ` +
+        `<span><strong>${facets.performers.length}</strong> performers</span> ` +
+        `<span><strong>${facets.styles.length}</strong> styles</span> ` +
+        `<span><strong>${c.midiVerified || 0}</strong> midi · <strong>${c.pdfVerified || 0}</strong> pdf</span>`;
+    }
+
+    function renderGroups(filter) {
+      const q = (filter || '').trim().toLowerCase();
+      const matches = q
+        ? allItems.filter(it => [
+            it.title, it.performer, it.style, it.instrument,
+            it.instrumentName, String(it.year || ''),
+          ].join(' ').toLowerCase().includes(q))
+        : allItems;
+
+      const byStyle = new Map();
+      for (const it of matches) {
+        const k = it.style || 'Unclassified';
+        if (!byStyle.has(k)) byStyle.set(k, []);
+        byStyle.get(k).push(it);
+      }
+
+      groups.innerHTML = '';
+      for (const styleName of [...byStyle.keys()].sort()) {
+        const items = byStyle.get(styleName);
+        const wrap = document.createElement('div');
+        wrap.className = 'song-group';
+        wrap.innerHTML =
+          `<div class="song-group-head">` +
+            `<span class="song-group-label">${escapeHtml(styleName)}</span>` +
+            `<span class="song-group-count">${items.length} solo${items.length === 1 ? '' : 's'}</span>` +
+          `</div>` +
+          `<div class="song-list"></div>`;
+        const list = wrap.querySelector('.song-list');
+        for (const it of items) {
+          const fmt = fmtFormat(it);
+          const sub = [it.performer, it.year].filter(Boolean).join(' · ');
+          const metaCell = [it.instrumentName, it.tones ? `${it.tones} tones` : null]
+            .filter(Boolean).join(' · ');
+          const sizeCell = it.hasMidi && it.hasPdf
+            ? `${fmtSize(it.midiSize)} / ${fmtSize(it.pdfSize)}`
+            : fmtSize(it.hasMidi ? it.midiSize : it.pdfSize);
+
+          const row = document.createElement('div');
+          row.className = 'song-row';
+          row.innerHTML =
+            `<span class="song-fmt" data-fmt="${escapeHtml(fmt)}">${escapeHtml(fmt)}</span>` +
+            `<span class="song-title">${escapeHtml(it.title)}` +
+              (sub ? `<small>${escapeHtml(sub)}</small>` : '') +
+            `</span>` +
+            `<span class="song-meta-cell">${escapeHtml(metaCell || '—')}</span>` +
+            `<span class="song-meta-cell">${escapeHtml(fmtTempo(it.tempo))}</span>` +
+            `<span class="song-dur">${escapeHtml(sizeCell)}</span>`;
+          list.appendChild(row);
+        }
+        groups.appendChild(wrap);
+      }
+
+      if (counter) {
+        counter.textContent = `${matches.length} match${matches.length === 1 ? '' : 'es'}`;
+      }
+    }
+
+    function wireSearch() {
+      const input = document.querySelector('[data-jz-search]');
+      if (!input) return;
+      let t;
+      input.addEventListener('input', () => {
+        clearTimeout(t);
+        t = setTimeout(() => renderGroups(input.value), 80);
+      });
+    }
+
+    fetch(CATALOG_URL + '?_=' + Date.now(), { cache: 'no-store' })
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(data => {
+        allItems = (data && data.items) || [];
+        source = (data && data.source) || null;
+        facets = {
+          performers:  (data && data.performers)  || [],
+          styles:      (data && data.styles)      || [],
+          instruments: (data && data.instruments) || [],
+        };
+        if (!allItems.length) {
+          const detail = document.querySelector('[data-jz-empty-detail]');
+          if (detail) detail.innerHTML =
+            `The catalog loaded but contains no rows. Re-run <code>npm run index-jazz-solos</code> against the corpus.`;
+          show(empty);
+          return;
+        }
+        renderMeta();
+        renderGroups('');
+        show(catalog);
+        wireSearch();
+      })
+      .catch(err => {
+        const detail = document.querySelector('[data-jz-empty-detail]');
+        if (detail) detail.innerHTML =
+          `Could not load <code>${escapeHtml(CATALOG_URL)}</code> — ${escapeHtml(err.message)}. ` +
+          `Run <code>npm run index-jazz-solos</code> from the repo root (set <code>--source</code> if the corpus lives elsewhere).`;
         show(empty);
       });
   })();

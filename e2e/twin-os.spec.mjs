@@ -72,15 +72,17 @@ function startServer(rootDir) {
     try {
       const u = new URL(req.url, BASE);
       let p = u.pathname === '/' ? '/index.html' : u.pathname;
-      // Map the catalog path to its real location in the repo.
-      // This is what the shell expects when served via Pages too —
-      // the live site resolves /data/songs/catalog.json from the
-      // Pages root (the shell is at /pages/twin-os/).
+      // Map the catalog paths to their real location in the repo.
+      // The shell expects ../../data/<x> relative to /pages/twin-os/,
+      // which resolves to /data/<x> — the same shape Pages serves.
+      // Map the whole /data/ subtree, not just the one audio catalog:
+      // the Songs panel fetches both catalog.json and
+      // catalog-jazz-solos.json.
       let file;
-      if (p === '/data/songs/catalog.json') {
-        file = join(ROOT, 'data', 'songs', 'catalog.json');
-      } else if (p === '../../data/songs/catalog.json') {
-        file = join(ROOT, 'data', 'songs', 'catalog.json');
+      if (p.startsWith('/data/')) {
+        file = join(ROOT, decodeURIComponent(p.slice(1)));
+      } else if (p.startsWith('../../data/')) {
+        file = join(ROOT, decodeURIComponent(p.replace(/^\.\.\/\.\.\//, '')));
       } else {
         file = join(rootDir, decodeURIComponent(p));
       }
@@ -137,11 +139,14 @@ async function main() {
 
     const consoleErrors = [];
     page.on('pageerror', e => consoleErrors.push(`pageerror: ${e.message}`));
-    page.on('console', m => { 
+    page.on('console', m => {
         if (m.type() === 'error') {
             const url = m.location().url || '';
             const text = m.text();
-            if (url.includes('catalog.json') && text.includes('404')) return;
+            // Catalogs are generated artifacts (gitignored), so a
+            // deployed page legitimately 404s on them and the panel
+            // renders its "not indexed yet" state. Ignore those.
+            if (/catalog[^/]*\.json/.test(url) && text.includes('404')) return;
             consoleErrors.push(`console.error: ${text} (${url})`);
         }
     });

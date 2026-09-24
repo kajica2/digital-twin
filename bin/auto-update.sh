@@ -86,10 +86,12 @@ fi
 # --- 4. pull + show what changed -------------------------------------------
 # Snapshot which watcher files exist BEFORE the pull so we can decide
 # whether a reload is needed after it.
-HAD_CHART=false;  HAD_SONGS=false;  HAD_MJ=false
+HAD_CHART=false;  HAD_SONGS=false;  HAD_MJ=false;  HAD_REEL=false;  HAD_SERVE=false
 [ -f "$REPO/lib/chart-watcher.js" ]  && HAD_CHART=true
 [ -f "$REPO/lib/songs-watcher.js" ]  && HAD_SONGS=true
 [ -f "$REPO/lib/mj-watcher.js" ]     && HAD_MJ=true
+[ -f "$REPO/lib/reel-watcher.js" ]   && HAD_REEL=true
+[ -f "$REPO/lib/serve.js" ]          && HAD_SERVE=true
 
 CHANGED=$(git rev-list "HEAD..origin/$BRANCH")
 COUNT=$(echo "$CHANGED" | grep -c . || true)
@@ -134,6 +136,14 @@ if $HAD_SONGS && [ -f "$REPO/lib/songs-watcher.js" ]; then
 fi
 if $HAD_MJ && [ -f "$REPO/lib/mj-watcher.js" ]; then
     reload_if_loaded "com.kaidjuric.digital-twin.mj-watcher"
+fi
+if $HAD_REEL && [ -f "$REPO/lib/reel-watcher.js" ]; then
+    reload_if_loaded "com.kaidjuric.digital-twin.reel-watcher"
+fi
+# The static server is Node (lib/serve.js) and reads its handlers from
+# disk, so a pull that changes it needs a reload to take effect.
+if $HAD_SERVE && [ -f "$REPO/lib/serve.js" ]; then
+    reload_if_loaded "com.kaidjuric.digital-twin.server"
 fi
 
 append_log <<EOF

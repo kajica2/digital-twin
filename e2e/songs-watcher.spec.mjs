@@ -100,32 +100,60 @@ async function main() {
     page.on('pageerror', () => { consoleErrors += 1; });
     await page.goto('about:blank');
 
-    // 4. Invoke the watcher with --once (process pending, then exit).
-    // Use the wrapper script so we test the real production path
-    // (Node resolution, env setup).
-    const child = spawn('bash', [wrapper, '--once'], {
-        cwd: REPO,
-        stdio: ['ignore', 'pipe', 'pipe'],
-    });
-    let stderr = '';
-    child.stderr.on('data', d => { stderr += d.toString(); });
-    const exitCode = await new Promise((resolve) => {
-        child.on('close', resolve);
-    });
-    console.log(`  (watcher exited with code ${exitCode}${exitCode !== 0 ? ', stderr: ' + stderr.slice(0, 200) : ''})`);
-    assertTrue('watcher exited cleanly', exitCode === 0);
+    // 4. Process the drop.
+    //
+    // If the production LaunchAgent is running it claims the file within
+    // one poll interval (2s) and holds the lock, so running our own
+    // --once instance would find nothing to do — and we would then be
+    // asserting against another process's writes while they were still
+    // in flight. Delegate to it instead, which also exercises the real
+    // production path. Fall back to a direct wrapper invocation on CI /
+    // fresh dev boxes where no agent is loaded.
+    if (agentRunning) {
+        console.log('  (delegating to the running LaunchAgent)');
+    } else {
+        const child = spawn('bash', [wrapper, '--once'], {
+            cwd: REPO,
+            stdio: ['ignore', 'pipe', 'pipe'],
+        });
+        let stderr = '';
+        child.stderr.on('data', d => { stderr += d.toString(); });
+        const exitCode = await new Promise((resolve) => {
+            child.on('close', resolve);
+        });
+        console.log(`  (watcher exited with code ${exitCode}${exitCode !== 0 ? ', stderr: ' + stderr.slice(0, 200) : ''})`);
+        assertTrue('watcher exited cleanly', exitCode === 0);
+    }
 
-    // 5. Audio file moved to processed/
-    assertTrue('audio file moved to processed/', existsSync(join(PROCESSED, `${SONG}.wav`)));
+    // 5. Audio file moved to processed/ — poll, since the mover may be
+    //    the LaunchAgent and its poll interval is up to 2s.
+    const processedFile = join(PROCESSED, `${SONG}.wav`);
+    const moved = await waitFor(() => existsSync(processedFile));
+    assertTrue('audio file moved to processed/', moved);
     assertTrue('audio file NOT still in inbox', !existsSync(audioFile));
 
-    // 6. Catalog was updated with the new manual entry
+    // 6. Log lines recorded (poll for [done] — the mover logs it after
+    //    the indexer finishes).
+    const logPath = join(REPO, 'logs', 'songs-watcher.log');
+    assertTrue('log file exists', existsSync(logPath));
+    if (existsSync(logPath)) {
+        const log = () => readFileSync(logPath, 'utf8');
+        assertTrue('log has [start] entry for new file', log().includes(`[start] ${SONG}.wav`));
+        const gotDone = await waitFor(() => log().includes(`[done] ${SONG}.wav`), 30000);
+        assertTrue('log has [done] entry for new file', gotDone);
+    }
+
+    // 7. Catalog was updated with the new manual entry
     const catalogPath = join(REPO, 'data', 'songs', 'catalog.json');
     assertTrue('catalog.json exists', existsSync(catalogPath));
     if (existsSync(catalogPath)) {
-        const catalog = JSON.parse(readFileSync(catalogPath, 'utf8'));
-        const found = (catalog.items || []).find(i => i.relPath === `${SONG}.wav`);
-        assertTrue('catalog contains new manual entry', !!found);
+        const findEntry = () => {
+            const catalog = JSON.parse(readFileSync(catalogPath, 'utf8'));
+            return (catalog.items || []).find(i => i.relPath === `${SONG}.wav`);
+        };
+        const gotEntry = await waitFor(() => !!findEntry(), 30000);
+        assertTrue('catalog contains new manual entry', gotEntry);
+        const found = findEntry();
         if (found) {
             assertTrue('entry format is wav', found.format, 'wav');
             assertTrue('entry has durationSec', typeof found.durationSec === 'number');
@@ -133,15 +161,6 @@ async function main() {
             assertTrue('entry has channels 1', found.channels, 1);
             assertTrue('entry label is "manual"', found.label, 'manual');
         }
-    }
-
-    // 6. log line recorded
-    const logPath = join(REPO, 'logs', 'songs-watcher.log');
-    assertTrue('log file exists', existsSync(logPath));
-    if (existsSync(logPath)) {
-        const log = readFileSync(logPath, 'utf8');
-        assertTrue('log has [start] entry for new file', log.includes(`[start] ${SONG}.wav`));
-        assertTrue('log has [done] entry for new file', log.includes(`[done] ${SONG}.wav`));
     }
 
     await page.screenshot({ path: join(ART, 'songs-watcher-e2e.png'), fullPage: true });

@@ -60,19 +60,34 @@ async function findChrome() {
 }
 
 // ---------- tiny static file server ----------
-function startServer(rootDir) {
+//
+// Serves pages/ for page paths, but resolves root-absolute static
+// assets (favicon.ico / favicon.svg) from the REPO ROOT — which is
+// what GitHub Pages does, since the deployed site root is the repo
+// root and the pages live under /pages/. Without this the page's
+// /favicon.* requests 404 locally and trip the console-error check.
+function startServer(rootDir, repoRoot) {
+  const ROOT_ASSETS = new Set(['/favicon.ico', '/favicon.svg']);
   const server = http.createServer(async (req, res) => {
     try {
       const u = new URL(req.url, BASE);
       let p = u.pathname === '/' ? '/landing.html' : u.pathname;
-      const file = join(rootDir, decodeURIComponent(p));
+      const file = ROOT_ASSETS.has(p)
+        ? join(repoRoot, p.slice(1))
+        : join(rootDir, decodeURIComponent(p));
       if (!existsSync(file)) {
         res.statusCode = 404;
         res.end('not found');
         return;
       }
       const ext = file.split('.').pop();
-      const types = { html: 'text/html; charset=utf-8', css: 'text/css', js: 'application/javascript' };
+      const types = {
+        html: 'text/html; charset=utf-8',
+        css: 'text/css',
+        js: 'application/javascript',
+        ico: 'image/x-icon',
+        svg: 'image/svg+xml',
+      };
       res.setHeader('Content-Type', types[ext] || 'text/plain');
       const { readFile } = await import('node:fs/promises');
       res.end(await readFile(file));
@@ -105,7 +120,7 @@ async function main() {
   let server = null;
   if (!DEPLOYED_URL) {
     log(`starting static server on :${PORT} (serving ${join(ROOT, 'pages')})`);
-    server = await startServer(join(ROOT, 'pages'));
+    server = await startServer(join(ROOT, 'pages'), ROOT);
   } else {
     log(`running against deployed URL: ${BASE}${PAGE_PATH}`);
   }

@@ -58,10 +58,14 @@ function startServer(twinOsDir, repoRoot) {
     try {
       const u = new URL(req.url, BASE);
       let p = u.pathname === '/' ? '/index.html' : u.pathname;
-      // Map /data/songs/catalog.json → repoRoot/data/songs/catalog.json
+      // Map the catalogs to their real location in the repo. The shell
+      // fetches both catalog.json (audio) and catalog-jazz-solos.json
+      // (MIDI corpus) from the Pages root, so map the whole /data/ subtree.
       let file;
-      if (p === '/data/songs/catalog.json' || p === '../../data/songs/catalog.json') {
-        file = join(repoRoot, 'data', 'songs', 'catalog.json');
+      if (p.startsWith('/data/')) {
+        file = join(repoRoot, decodeURIComponent(p.slice(1)));
+      } else if (p.startsWith('../../data/')) {
+        file = join(repoRoot, decodeURIComponent(p.replace(/^\.\.\/\.\.\//, '')));
       } else {
         file = join(twinOsDir, decodeURIComponent(p));
       }
@@ -128,7 +132,10 @@ async function main() {
         if (m.type() === 'error') {
             const url = m.location().url || '';
             const text = m.text();
-            if (url.includes('catalog.json') && text.includes('404')) return;
+            // Catalogs are generated artifacts (gitignored), so a deployed
+            // page legitimately 404s on them and the panel renders its
+            // "not indexed yet" state. Ignore those.
+            if (/catalog[^/]*\.json/.test(url) && text.includes('404')) return;
             consoleErrors.push(`console.error: ${text} (${url})`);
         }
     });
@@ -170,17 +177,21 @@ async function main() {
       const meta = await page.$eval('[data-songs-meta]', el => el.textContent.replace(/\s+/g, ' ').trim());
       assert(/items?\b/.test(meta), `meta mentions items: "${meta}"`);
 
-      const groupCount = await page.$$eval('.song-group', els => els.length);
+      const groupCount = await page.$$eval('[data-songs-catalog] .song-group', els => els.length);
       assert(groupCount >= 1, `at least one group rendered (got ${groupCount})`);
 
-      const rowCount = await page.$$eval('.song-row', els => els.length);
+      const rowCount = await page.$$eval('[data-songs-catalog] .song-row', els => els.length);
       assert(rowCount >= 1, `at least one song row rendered (got ${rowCount})`);
 
-      // Each row has format chip + title
-      const firstRowFmt = await page.$eval('.song-row .song-fmt', el => el.textContent.trim());
-      assert(['mp3', 'wav'].includes(firstRowFmt), `first row has valid format chip: "${firstRowFmt}"`);
+      // Each row has format chip + title. The chip reflects what the
+      // indexer emitted; AIFF was added in sprint 0.35, and the MIDI
+      // corpus section uses mid / pdf / mid+pdf.
+      const AUDIO_FORMATS = ['mp3', 'wav', 'aif', 'aiff', 'm4a', 'aac', 'flac', 'ogg'];
+      const firstRowFmt = await page.$eval('[data-songs-catalog] .song-row .song-fmt', el => el.textContent.trim());
+      assert(AUDIO_FORMATS.includes(firstRowFmt),
+        `first row has valid format chip: "${firstRowFmt}"`);
 
-      const firstRowTitle = await page.$eval('.song-row .song-title', el => el.textContent.trim());
+      const firstRowTitle = await page.$eval('[data-songs-catalog] .song-row .song-title', el => el.textContent.trim());
       assert(firstRowTitle.length > 0, `first row has a title: "${firstRowTitle}"`);
 
       // Search input is present
@@ -190,19 +201,66 @@ async function main() {
       // Type a query that matches nothing → row count drops to 0
       await page.type('[data-songs-search]', 'zzzzz-no-match-zzzzz');
       await new Promise(r => setTimeout(r, 250));
-      const filteredRows = await page.$$eval('.song-row', els => els.length);
+      const filteredRows = await page.$$eval('[data-songs-catalog] .song-row', els => els.length);
       assert(filteredRows === 0, `search "zzzzz-no-match-zzzzz" hides all rows (got ${filteredRows})`);
 
       // Clear search → all rows back
       await page.click('[data-songs-search]', { clickCount: 3 });
       await page.keyboard.press('Backspace');
       await new Promise(r => setTimeout(r, 250));
-      const restoredRows = await page.$$eval('.song-row', els => els.length);
+      const restoredRows = await page.$$eval('[data-songs-catalog] .song-row', els => els.length);
       assert(restoredRows === rowCount, `clearing search restores rows (got ${restoredRows}, expected ${rowCount})`);
 
       // Search count visible
       const counter = await page.$eval('[data-songs-search-count]', el => el.textContent.trim());
       assert(/\d+ match/.test(counter), `search count populated: "${counter}"`);
+
+      // --- Transcription corpus section (WJazzD MIDI archive) ---
+      // Independent of the audio catalog: its own indexer, its own
+      // catalog file, its own loading/empty/catalog states.
+      const jzCatalogHidden = await page.$eval('[data-jz-catalog]', el => el.hidden);
+      const jzEmptyHidden   = await page.$eval('[data-jz-empty]',   el => el.hidden);
+      assert(jzCatalogHidden !== jzEmptyHidden,
+        `exactly one corpus state is visible (catalog.hidden=${jzCatalogHidden}, empty.hidden=${jzEmptyHidden})`);
+
+      if (!jzCatalogHidden) {
+        const jzMeta = await page.$eval('[data-jz-meta]', el => el.textContent.replace(/\s+/g, ' ').trim());
+        assert(/\d+ solos?/.test(jzMeta), `corpus meta mentions solos: "${jzMeta}"`);
+        assert(/\d+ performers/.test(jzMeta), `corpus meta mentions performers: "${jzMeta}"`);
+
+        const jzGroups = await page.$$eval('[data-jz-groups] .song-group', els => els.length);
+        assert(jzGroups >= 1, `corpus groups rendered (got ${jzGroups})`);
+
+        const jzRows = await page.$$eval('[data-jz-groups] .song-row', els => els.length);
+        assert(jzRows >= 1, `corpus rows rendered (got ${jzRows})`);
+
+        // Rows carry a mid/pdf chip + title + performer subtitle.
+        const jzFmt = await page.$eval('[data-jz-groups] .song-row .song-fmt', el => el.textContent.trim());
+        assert(['mid', 'pdf', 'mid+pdf'].includes(jzFmt), `corpus row format chip: "${jzFmt}"`);
+
+        const jzTitle = await page.$eval('[data-jz-groups] .song-row .song-title', el => el.textContent.trim());
+        assert(jzTitle.length > 0, `corpus row has a title: "${jzTitle}"`);
+
+        // Corpus search is independent of the audio search.
+        await page.type('[data-jz-search]', 'zzzzz-no-match-zzzzz');
+        await new Promise(r => setTimeout(r, 250));
+        const jzFiltered = await page.$$eval('[data-jz-groups] .song-row', els => els.length);
+        assert(jzFiltered === 0, `corpus search hides all corpus rows (got ${jzFiltered})`);
+        // The audio list must be unaffected by the corpus search.
+        const audioStillVisible = await page.$$eval('[data-songs-catalog] .song-row', els => els.length);
+        assert(audioStillVisible === restoredRows,
+          `corpus search leaves audio rows untouched (got ${audioStillVisible}, expected ${restoredRows})`);
+
+        await page.click('[data-jz-search]', { clickCount: 3 });
+        await page.keyboard.press('Backspace');
+        await new Promise(r => setTimeout(r, 250));
+        const jzRestored = await page.$$eval('[data-jz-groups] .song-row', els => els.length);
+        assert(jzRestored === jzRows, `clearing corpus search restores rows (got ${jzRestored}, expected ${jzRows})`);
+      } else {
+        const jzEmptyText = await page.$eval('[data-jz-empty]', el => el.textContent.trim());
+        assert(/index-jazz-solos|could not load/i.test(jzEmptyText),
+          `corpus empty-state explains the fix: "${jzEmptyText.slice(0, 90)}…"`);
+      }
 
       // Screenshot
       await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'light'));
