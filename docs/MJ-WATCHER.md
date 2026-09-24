@@ -1,8 +1,7 @@
 # Midjourney Automation — drop a prompt, get an image
 
 > Drop `.md` prompt files into `prompts-inbox/`; the watcher submits them to
-> Midjourney via Discord web (Chrome DevTools Protocol), captures the
-> generated image, and moves the prompt to `processed/`.
+> Midjourney, tracks the resulting task, and moves the prompt to `processed/`.
 
 ---
 
@@ -15,23 +14,37 @@ Two components following the repo's established watcher pattern (see
    `.md` files. Same lockfile-based concurrency guard, stale-lock detection,
    retry-once, SIGTERM-clean shutdown pattern as the chart and song watchers.
 
-2. **`lib/mj-submitter.js`** — drives Discord web via Chrome DevTools Protocol
-   (CDP). Launches or attaches to a debug Chrome, navigates to the configured
-   Discord channel, types `/imagine prompt: <prompt>`, submits, and captures
-   the generation result.
+2. **A submitter backend**, chosen by `engine` in `lib/mj-config.json`:
+
+| `engine` | Module | What it drives |
+|----------|--------|----------------|
+| `web` *(default)* | `lib/mj-web.js` | `midjourney.com/imagine` — the prompt bar in MJ's own web app |
+| `discord` | `lib/mj-submitter.js` | the `/imagine` slash command in Discord, via the MJ bot |
+
+Both accept identical CLI arguments, so the watcher swaps between them
+without caring which is active.
+
+**Prefer `web`.** The Discord route needs a second logged-in session
+(Discord) inside the automation profile, and when that lapses the failure
+surfaces as a generic 45-second "textarea not found" timeout. The web route
+needs no Discord at all — just a cookie jar exported from a browser already
+logged into midjourney.com.
 
 ## Files
 
 | File | Purpose |
 |------|---------|
 | `lib/mj-watcher.js` | Poll-loop watcher. Pure-Node, no deps. |
-| `lib/mj-submitter.js` | CDP-based Discord/MJ automation core. |
-| `lib/mj-config.json` | Configuration (Discord channel, Chrome port, MJ defaults). |
-| `lib/mj-watcher.test.js` | Lockfile logic tests (13 assertions). |
+| `lib/mj-web.js` | **Web backend** — drives midjourney.com/imagine. |
+| `lib/mj-submitter.js` | Legacy Discord backend + shared CDP primitives. |
+| `lib/mj-cookies.js` | Cookie-jar loading (Netscape + JSON), `__Host-` rules. |
+| `lib/mj-config.json` | Configuration (engine, cookies, ports, MJ defaults). |
+| `lib/mj-watcher.test.js` | Lockfile logic tests. |
+| `lib/mj-cookies.test.js` | Cookie parsing + `__Host-` tests (37 assertions). |
 | `bin/mj-watcher.sh` | LaunchAgent wrapper. Multi-candidate Node resolution. |
 | `prompts-inbox/` | Drop zone for `.md` prompt files. |
 | `prompts-inbox/processed/` | Processed prompts land here. |
-| `mj-output/` | Generated result images + metadata, organized per-prompt in `<slug>/` subdirectories. Each contains `prompt.md`, `result.png` (or `timeout.png`), and `meta.json`. |
+| `mj-output/` | Per-prompt output: `<slug>/prompt-NN/` with `prompt.md` and `meta.json` (task id + the generated image URLs). |
 | `logs/mj-watcher.log` | One line per prompt processed. |
 
 ## Quick start
@@ -129,7 +142,85 @@ Key settings:
 - **`mj.generationTimeoutMs`** — Max wait for MJ to generate (default 120s).
   MJ 4-up grids typically take 30-90s.
 
-## Chrome profile setup (one-time)
+Web-backend settings:
+
+- **`engine`** — `"web"` (default) or `"discord"`. Selects the submitter.
+
+- **`web.cookiesFile`** — Cookie jar exported from a logged-in browser
+  (default `~/.midjourney-cookies.txt`). Netscape or JSON. **Secret.**
+
+- **`web.userDataDir`** — Browser profile for the web backend (default
+  `/tmp/mj-web-profile`). Separate from the Discord profile so the two
+  backends never contend for one Chromium instance.
+
+- **`web.acceptTimeoutMs`** — How long to wait for a new task to appear after
+  pressing Enter (default 45s). This is the acceptance signal.
+
+- **`web.generationTimeoutMs`** — How long to wait for that task's 4-up grid
+  (default 180s). Relax-mode jobs queue, so this is deliberately generous.
+
+- **`paths.webBrowserBin`** — Browser for the web backend. Must be a browser
+  that runs headed (Chrome or Comet).
+
+## Web backend setup (`engine: "web"`, default)
+
+No Discord needed. Two steps.
+
+### 1. Export a cookie jar from a logged-in browser
+
+Open midjourney.com in a browser where you are signed in, and export the
+cookies for that site (a "Get cookies.txt"-style extension, or a DevTools
+cookie export as JSON — either format works). Save it to the path in
+`web.cookiesFile` (default `~/.midjourney-cookies.txt`).
+
+**This file is a live session token — treat it as a password.** It is
+`.gitignore`d (`*-cookies.txt`, `mj-cookies*.txt`), and it lives outside the
+repo by default. It expires; when MJ starts showing the login page again,
+re-export.
+
+Verify the jar before a run:
+
+```bash
+node lib/mj-web.js --prompt-file assets/mural-prompts/whats-gonna-be-groove.md \
+  --all-prompts --preflight
+```
+
+`--preflight` launches the browser, checks the cookies were accepted, loads
+the Imagine page, confirms the prompt bar exists, and reports how many
+prompts are queued — **without submitting anything**. It costs no
+generations, so run it whenever you suspect the session has lapsed.
+
+### 2. Run it
+
+```bash
+node lib/mj-web.js --prompt-file <file.md> --all-prompts
+node lib/mj-web.js --prompt-file <file.md> --all-prompts --dry-run   # no browser
+```
+
+### Two constraints worth knowing
+
+**The browser must be HEADED.** Cloudflare fingerprints headless Chromium:
+the first couple of submissions succeed, then `/api/submit-jobs` returns 403
+and the page becomes the "Just a moment..." interstitial. A visible window
+passes cleanly. The backend therefore never launches headless, and it detects
+the interstitial and fails with an explanatory message rather than timing out.
+
+**`__Host-` cookies must not carry a `Domain` attribute.** Both MJ auth
+tokens use that prefix. A browser silently *drops* a `__Host-` cookie that has
+a domain, and the site then just renders "Log in" with no error — the only
+symptom is a 45s "textarea not found". `lib/mj-cookies.js` strips the domain
+and expresses those cookies via `url` instead; it is unit-tested for exactly
+this.
+
+### How success is judged
+
+A cleared prompt box is **not** proof of acceptance — the UI clears it either
+way. The backend snapshots the task ids already in the feed, submits, then
+waits for a **new** `cdn.midjourney.com/<uuid>/...` task to appear. That uuid
+becomes the acceptance signal, and its image URLs are written to
+`meta.json`, so a run leaves machine-checkable evidence rather than a claim.
+
+## Chrome profile setup (one-time) — Discord backend only
 
 The watcher needs a Chrome profile where you're signed into Discord and have
 access to the Midjourney server.

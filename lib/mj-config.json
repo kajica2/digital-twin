@@ -1,23 +1,44 @@
 {
-    "_note": "Midjourney automation configuration. Edit this file to point at your Discord setup.",
+    "_note": "Midjourney automation configuration. Two backends: the web app (default) and the legacy Discord bot.",
+
+    "engine": "web",
+    "_note_engine": "'web' drives midjourney.com/imagine with a headed browser + cookie jar (recommended — no Discord login needed). 'discord' uses the /imagine slash command via the Midjourney Discord bot (legacy; needs a logged-in Discord session in the automation profile).",
+
+    "web": {
+        "imagineUrl": "https://www.midjourney.com/imagine",
+        "cookiesFile": "~/.midjourney-cookies.txt",
+        "_note_cookiesFile": "Cookie jar exported from a browser logged into midjourney.com. Netscape or JSON format. SECRET — keep it out of git (see .gitignore). Export with a 'Get cookies.txt' extension, or from DevTools.",
+        "userDataDir": "/tmp/mj-web-profile",
+        "_note_userDataDir": "Browser profile for the web backend. Separate from the Discord profile so the two never fight over one Chromium instance.",
+        "generationTimeoutMs": 180000,
+        "_note_generationTimeoutMs": "How long to wait for a task's 4-up grid after submitting. Relax-mode jobs queue, so generous.",
+        "acceptTimeoutMs": 45000,
+        "_note_acceptTimeoutMs": "How long to wait for a new task to appear after pressing Enter. This is the acceptance signal — a cleared textbox is not."
+    },
+
     "discord": {
         "channelUrl": "https://discord.com/channels/@me/1068785229520711721",
         "_note_channelUrl": "The Discord channel URL where the Midjourney bot lives. Defaults to DM with MJ bot. Replace with your server's channel URL."
     },
+
     "chrome": {
         "debugPort": 9444,
         "userDataDir": "/tmp/comet-mj-profile",
-        "_note_userDataDir": "Dedicated Comet profile directory. Launch Comet with this once, sign into Discord, then close. The watcher reuses the profile (cookies persist)."
+        "_note_userDataDir": "Legacy Discord backend profile. Launch Comet with this once, sign into Discord, then close. The watcher reuses the profile (cookies persist)."
     },
+
     "mj": {
         "outputDir": "mj-output",
         "defaultArgs": "--ar 3:4 --style raw --s 250",
-        "_note_defaultArgs": "Default Midjourney parameters appended when the prompt file doesn't specify --ar, --style, etc.",
+        "_note_defaultArgs": "Default Midjourney parameters appended when the prompt doesn't specify --ar. Note: an explicit --ar in the prompt file wins, and the default's own --ar is stripped (see buildFullPrompt).",
         "generationTimeoutMs": 120000,
-        "_note_generationTimeoutMs": "Max time to wait for MJ to finish generating (milliseconds). MJ 4-up grids typically take 30-90s."
+        "_note_generationTimeoutMs": "Legacy Discord backend generation timeout (milliseconds)."
     },
+
     "paths": {
         "chromeBin": "/Applications/Comet.app/Contents/MacOS/Comet",
-        "_note_chromeBin": "Using Comet browser instead of Chrome (per user preference)."
+        "_note_chromeBin": "Legacy Discord backend browser.",
+        "webBrowserBin": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "_note_webBrowserBin": "Web backend browser. MUST run headed — Cloudflare blocks headless Chromium after a couple of submissions."
     }
 }
