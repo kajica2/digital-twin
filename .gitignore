@@ -5,6 +5,9 @@ prompts-inbox/processed/
 # Audio-inbox test artifacts (e2e songs processing)
 audio-inbox/processed/
 
+# Reel-inbox test artifacts (e2e reel processing)
+reel-inbox/processed/
+
 # Chart export artifacts (e2e tests leave these in chart-inbox/)
 chart-inbox/*.pdf
 chart-inbox/*.mp3
@@ -15,8 +18,9 @@ chart-inbox/*_No_Sax/
 chart-inbox/*_No_Trumpet/
 chart-inbox/processed/
 
-# Songs catalog (auto-generated)
+# Songs catalogs (auto-generated)
 data/songs/catalog.json
+data/songs/catalog-jazz-solos.json
 
 # Logs
 logs/*.log
@@ -43,3 +47,8 @@ e2e/node_modules/
 
 # Agent loop state
 .agent/
+
+# Midjourney cookie jars — SECRET (session tokens). Never commit.
+*.midjourney-cookies.txt
+mj-cookies*.txt
+*-cookies.txt

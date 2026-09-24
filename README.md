@@ -33,29 +33,37 @@ For now, what's here:
 
 ## Install from GitHub
 
-Requires **macOS** (the boot core and LaunchAgents are macOS-only), **git**, and **Python 3** (system `python3` works). The pages are static — no build step, no bundler.
+Requires **macOS** (the boot core and LaunchAgents are macOS-only), **git**, and **Node 18+**. The pages are static — no build step, no bundler, no runtime dependencies.
 
 ```bash
-# 1. Clone (repo path matters: boot.sh and the LaunchAgents use ~/digital-twin)
-git clone https://github.com/kajica2/digital-twin.git ~/digital-twin
+# 1. Clone (repo path matters: boot.sh and the LaunchAgents resolve ~/digital-twin)
+git clone https://github.com/kajica2/digital-twin.git ~/Documents/digital_twin
+ln -s ~/Documents/digital_twin ~/digital-twin   # launchd resolves the repo through this
 cd ~/digital-twin
 
 # 2. (optional) e2e test runner — only needed to run the Puppeteer specs
 cd e2e && npm install && cd ..
 
 # 3. Run the site locally
-python3 -m http.server 5173 --bind 0.0.0.0
+node lib/serve.js --port 5173
 #   → http://localhost:5173/pages/landing.html
 #   → http://localhost:5173/pages/twin-os/        (Twin OS PWA)
 #   → http://localhost:5173/pages/cognitive-twin.html
 ```
+
+> **Why Node and not `python3 -m http.server`?** macOS grants filesystem
+> access per-binary. Under launchd, `node` may read `~/Documents` while
+> `/usr/bin/python3` is denied (`Operation not permitted`), which makes a
+> python-based server return 404 for every path. `lib/serve.js` is a
+> zero-dependency static server so local and LaunchAgent runs use the
+> same program.
 
 ### Self-update on launch
 
 The repo ships with **auto-update on launch** (`bin/auto-update.sh`, wired into `bin/boot.sh`):
 
 - At every login, `boot.sh` runs `auto-update.sh` which fetches `origin/main`, **detects new commits**, and fast-forwards the repo only if there are any.
-- After a clean pull it **reloads any running watcher LaunchAgents** (chart / songs / MJ) so new code goes live without a logout/login cycle.
+- After a clean pull it **reloads any running LaunchAgents whose code changed** (chart / songs / reel / MJ watchers + the static server) so new code goes live without a logout/login cycle.
 - It **refuses to overwrite uncommitted local changes** (exit 1, logs to `logs/auto-update.log`) and tolerates being offline (exit 3, boot continues).
 - Manual run: `bin/auto-update.sh` from the repo root.
 
@@ -87,8 +95,8 @@ The page is a single self-contained HTML file. No build step.
 open pages/landing.html
 
 # Option B: serve it (recommended — Puppeteer + mobile testing work better)
-cd pages && python3 -m http.server 5173
-# then visit http://localhost:5173/landing.html
+node lib/serve.js --port 5173
+# then visit http://localhost:5173/pages/landing.html
 ```
 
 To switch variants, either click the `v1 v2 v3` switcher in the hub
@@ -128,29 +136,69 @@ The test:
 ```
 digital_twin/
 ├── pages/
-│   ├── landing.html          # the public landing page (sprint 0)
-│   └── twin-os/              # the actual twin PWA shell (sprint 1)
-├── lib/                      # shared components (sprint 1+)
-│   ├── shell.html
-│   ├── today.js
-│   ├── songs.js
-│   └── twin.js
-├── data/                     # generated catalogs
+│   ├── landing.html          # the public landing page
+│   ├── cognitive-twin.html   # the 4-layer architecture narrative
+│   └── twin-os/              # the Twin OS PWA shell (Today / Songs / Twin)
+├── lib/                      # pure-Node tooling + browser components
+│   ├── serve.js              # zero-dep static server (also the LaunchAgent program)
+│   ├── songs-indexer.js      # walks audio roots → data/songs/catalog.json
+│   ├── jazz-solos-indexer.js # reads the WJazzD manifest → catalog-jazz-solos.json
+│   ├── chart-export.js       # MusicXML → per-part PDFs / muted parts / MP3
+│   ├── midi-export.js        # MusicXML → multi-track MIDI
+│   ├── *-watcher.js          # chart / songs / reel / mj inbox watchers
+│   └── mj-prompt-generator.js# lyrics/idea → 5-10 Midjourney prompts
+├── data/                     # generated catalogs (gitignored)
 │   └── songs/
-│       └── catalog.json      # built by lib/songs-indexer.js (sprint 1)
-├── e2e/
-│   └── landing.spec.mjs      # Puppeteer test
-├── agents/                   # twin agent definitions (sprint 2+)
-│   ├── today.md
-│   ├── songs.md
-│   └── ...
-├── docs/
-│   ├── DESIGN-RATIONALE.md
-│   ├── COMPONENT-CATALOGUE.md
-│   └── ARCHITECTURE.md       # TBD sprint 1
-├── assets/                   # brand assets (logo, mark, etc.)
+│       ├── catalog.json              # audio, from `npm run index-songs`
+│       └── catalog-jazz-solos.json   # MIDI corpus, from `npm run index-jazz-solos`
+├── e2e/                      # Puppeteer specs (landing, twin-os, ct-*, watchers)
+├── agents/                   # twin agent definitions
+├── docs/                     # engraving, watcher, export, design references
+├── assets/                   # brand assets, mural prompts
+├── bin/                      # shell wrappers for the LaunchAgents
 └── README.md                 # this file
 ```
+
+### The Song indexers
+
+Two independent catalogs feed the Songs panel:
+
+| Catalog | Built by | Source | Content |
+|---------|----------|--------|---------|
+| `catalog.json` | `npm run index-songs` | `lib/sources.config.json` roots | your own audio (mp3 / wav / aiff), ID3 + RIFF metadata |
+| `catalog-jazz-solos.json` | `npm run index-jazz-solos` | `~/Documents/jazz solos/manifest.csv` | the [Weimar Jazz Database](https://jazzomat.hfm-weimar.de/dbformat/dbcontent.html) solo archive — 456 transcribed solos with MIDI + engraved PDF |
+
+Both are generated artifacts and are `.gitignore`d. The `catalog-jazz-solos.json`
+indexer also cross-checks every manifest row against the files actually on disk,
+so a stale manifest surfaces as a reported discrepancy rather than a broken row.
+
+### MusicXML → PDF
+
+```bash
+npm run musicxml-pdf -- score.musicxml                 # one file → ./pdf-out/score.pdf
+npm run musicxml-pdf -- ./scores --out ./pdf           # a directory, walked recursively
+npm run musicxml-pdf -- ./scores --out ./pdf --jobs 4  # parallel
+npm run musicxml-pdf -- ./scores --out ./pdf --dry-run # list without rendering
+```
+
+Handles plain `.musicxml` / `.xml` and compressed `.mxl` (the ZIP container
+MuseScore and most engravers ship). Requires `mscore` on PATH
+(`brew install --cask musescore`).
+
+This is the single-purpose path — one PDF per score. The full chart pipeline
+(`npm run export-all`) additionally splits parts, builds muted backing
+variants, writes a manifest, and exports MIDI + MP3.
+
+Two behaviours worth knowing:
+
+- **It reads the file, not the exit code.** MuseScore's Qt shutdown routinely
+  exits 134 (SIGABRT) *after* writing a complete PDF, so success is judged by
+  the output file existing and being non-empty.
+- **Malformed input is rejected before MuseScore is invoked.** MuseScore does
+  not fail on truncated or crossed-tag MusicXML — it hangs. A tag-stack check
+  (`lib/xml-guard.js`) turns a multi-minute stall into an instant, named error.
+  Compressed `.mxl` files skip that check (they're ZIPs) and rely on a
+  `--timeout` instead.
 
 ## Design system
 
