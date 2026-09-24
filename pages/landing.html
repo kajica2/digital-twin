@@ -13,8 +13,11 @@
 
   <!-- Brand mark: the hex + dot, in copper. Same as kai-systems. -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='16,4 28,11 28,21 16,28 4,21 4,11' fill='none' stroke='%23c97b3f' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23c97b3f'/%3E%3C/svg%3E" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="alternate icon" href="/favicon.ico" sizes="any" />
+  <!-- No root-absolute /favicon.* links here. GitHub Pages serves this repo
+       under /digital-twin/, so "/favicon.ico" resolves to the DOMAIN root and
+       404s (twice, in the console) on the deployed site. The data-URI icon
+       above already stops browsers auto-requesting /favicon.ico — which is the
+       convention every other page in this repo follows. -->
 
   <script>
     // Theme + variant bootstrap, applied before first paint to prevent flash.

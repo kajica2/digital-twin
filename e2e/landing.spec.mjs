@@ -61,20 +61,18 @@ async function findChrome() {
 
 // ---------- tiny static file server ----------
 //
-// Serves pages/ for page paths, but resolves root-absolute static
-// assets (favicon.ico / favicon.svg) from the REPO ROOT — which is
-// what GitHub Pages does, since the deployed site root is the repo
-// root and the pages live under /pages/. Without this the page's
-// /favicon.* requests 404 locally and trip the console-error check.
-function startServer(rootDir, repoRoot) {
-  const ROOT_ASSETS = new Set(['/favicon.ico', '/favicon.svg']);
+// Serves pages/ as the server root. Deliberately does NOT special-case
+// root-absolute assets: the deployed site is a GitHub Pages *project*
+// site under /digital-twin/, so a request for "/favicon.ico" resolves to
+// the DOMAIN root and 404s there too. Special-casing it here made the
+// local run pass while the deploy failed, which is how a broken
+// favicon link survived a green suite.
+function startServer(rootDir) {
   const server = http.createServer(async (req, res) => {
     try {
       const u = new URL(req.url, BASE);
       let p = u.pathname === '/' ? '/landing.html' : u.pathname;
-      const file = ROOT_ASSETS.has(p)
-        ? join(repoRoot, p.slice(1))
-        : join(rootDir, decodeURIComponent(p));
+      const file = join(rootDir, decodeURIComponent(p));
       if (!existsSync(file)) {
         res.statusCode = 404;
         res.end('not found');
@@ -120,7 +118,7 @@ async function main() {
   let server = null;
   if (!DEPLOYED_URL) {
     log(`starting static server on :${PORT} (serving ${join(ROOT, 'pages')})`);
-    server = await startServer(join(ROOT, 'pages'), ROOT);
+    server = await startServer(join(ROOT, 'pages'));
   } else {
     log(`running against deployed URL: ${BASE}${PAGE_PATH}`);
   }

@@ -2725,3 +2725,63 @@ wrong. Re-running the pack would produce clean metadata at the cost of
 8 more generations. The remaining 15 attributions were not individually
 image-verified, so treat per-prompt `taskId` as best-effort until a run
 is checked end to end.
+
+### 2026-09-24 — sprint 0.31 (deploy favicon 404 — pre-existing, found by the live test)
+
+The repo rule (see `docs/CHART-WATCHER.md` §Deploy and AGENTS.md's
+deploy-test loop) is that a deploy is not done until a Puppeteer spec
+visits the **deployed URL**. Doing that after the merge push caught a
+failure the local suite had been reporting as green.
+
+**The bug.** `pages/landing.html` declared three icons: a data-URI, plus
+root-absolute `/favicon.svg` and `/favicon.ico`. GitHub Pages serves this
+repo as a *project* site under `/digital-twin/`, so a root-absolute
+`/favicon.ico` resolves to the **domain** root:
+
+```
+404  https://kajica2.github.io/favicon.ico          <-- not /digital-twin/favicon.ico
+404  https://kajica2.github.io/favicon.svg
+```
+
+Two console 404s on every deployed load, tripping the landing spec's
+0-console-error contract.
+
+**Why it survived.** Two compounding reasons:
+
+1. Commit `18b0418` ("add favicon.ico + favicon.svg to silence 404
+   console error on deploy") added the *files* at the repo root — but the
+   page requests them at the domain root, so adding files could never fix
+   it. The `how-to.html` troubleshooting table states the actual rule:
+   *"Every page declares a data-URI favicon — keep it that way."* Every
+   tool page upstream added follows that rule; `landing.html` was the
+   exception.
+2. **The local spec had been taught to hide it.** Sprint 0.27's entry
+   records adding a `ROOT_ASSETS` special-case to `landing.spec.mjs` so
+   the spec's server would resolve `/favicon.*` from the repo root. That
+   made the local run pass while the deployed run failed — the local test
+   had been made *less* faithful to production in order to go green.
+
+**Fixed:**
+
+- `pages/landing.html` — dropped the two root-absolute links, keeping the
+  data-URI icon, which already stops browsers auto-requesting
+  `/favicon.ico`. Comment added explaining why the absolute form is wrong
+  here specifically.
+- `e2e/landing.spec.mjs` — removed the `ROOT_ASSETS` special-case, so the
+  local server serves `pages/` as its root exactly as Pages serves the
+  project under a subpath. Local and deployed semantics now agree.
+
+**Verified by making the test fail first.** Re-introducing the two links
+and running the *local* spec now produces the same `2 × 404` the deployed
+site showed, then passes once removed. Before this change that same
+reintroduction passed locally. That is the actual fix: the guard, not
+just the page.
+
+**Lesson recorded:** a local spec that resolves paths differently from the
+hosting environment cannot guard those paths. When a deploy check fails
+but the local suite is green, suspect the local harness before the page.
+
+**Verified:** `npm run test:all` — 351 assertions / 10 suites, 0
+failures; all 16 local e2e specs pass (12 here + clip-interrogator,
+refael, how-to, loopable-video-segmenter); deployed landing re-tested
+after push.
