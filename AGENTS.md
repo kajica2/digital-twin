@@ -1073,7 +1073,578 @@ wiring it to live orchestrator data is the natural next step.
   so the 456-entry MIDI corpus is searchable in the Songs panel;
   (c) FLAC/M4A/OGG parsing in songs-indexer.
 
-### 2026-09-23 — sprint 0.17 (Reel pre-publish watcher)
+### 2026-09-22 — sprint 0.17 (CLIP Interrogator port)
+
+- **Shipped:**
+- **`lib/clip-interrogator/`** — Python package under a uv-managed
+  venv (managed CPython 3.12, `requires-python = ">=3.12,<3.13"`).
+  `pyproject.toml` + committed `uv.lock` + gitignored `.venv/`.
+  Deps: `gradio~=5.0` (deliberately not 6.x), `clip-interrogator==0.6.0`,
+  `torch>=2.6,<3`, `torchvision>=0.21,<1`.
+  Five-module set: `__init__.py`, `config.py` (model registry +
+  tunables), `core.py` (business logic, **no gradio import**),
+  `cli.py` (argparse), `ui.py` (gradio).
+- **`core.py` ModelManager** — lazy loader under a reentrant lock
+  (two concurrent gradio events can't double-load the 1-2GB models).
+  ViT-L is the default (loaded on first UI use); ViT-H materialises
+  only when selected; the BLIP captioner is shared between both via
+  the `Config.caption_model` / `Config.caption_processor` attrs that
+  clip_interrogator 0.6.0 actually reads (the oft-cited
+  `cfg.blip_model` attribute does NOT exist in the 0.6.0 wheel);
+  CLI-only path uses `shared_blip=False` so a CLI run loads **only**
+  the requested model. CPU ping-pong activates the selected CLIP and
+  parks the other on CPU. `repo_root()` walks up to `pages/` — no
+  absolute paths anywhere.
+- **`cli.py`** — verbs `interrogate <image> [--model vit-l|vit-h]
+  [--mode best|fast|classic|negative] [--json]`, `analyze <image>
+  [--model] [--top 5] [--json]`, `check --self-check` (import +
+  device + registry, downloads NO weights; reports the pinned
+  inference device separately from the available accelerator).
+  `--json` redirects the library's loading banner prints to stderr
+  so the payload parses clean (`python3 -m json.tool`).
+  Exit codes 0 / 2 bad input / 3 model error.
+- **`ui.py`** — `build_gradio_app()`: one Blocks context, two tabs
+  (Prompt / Analyze), plain `gr.Label(label=...)` outputs (gradio
+  5.x removed `num_classes`), `api_name` on the `.click()` events
+  (not on Button — another non-5.x API), handlers receive components
+  as explicit params (upstream `analyze_tab()` global-reference bug
+  fixed) and guard `DISPLAY_TO_ID` lookups with `.get()` +
+  `gr.Error`, share-to-community + HF duplicate badge + Colab
+  boilerplate dropped, `cache_examples` / `run_on_click` /
+  `ex.dataset.headers` dropped, launch on `127.0.0.1:7860` with
+  `show_api=False`.
+- **`pages/clip-interrogator.html`** — static tool page, kai-systems
+  house style (DM Serif Display + Outfit + JetBrains Mono, warm
+  cream + copper + forest tokens), mirroring the cognitive-twin
+  structure: hero, what-it-is, how-to-run, mode table (4 rows),
+  model table (2 entries), examples + `[data-sample-output]` strip,
+  attribution. Paired light/dark via `<theme-toggle>` (3-state
+  light/auto/dark) persisted under `localStorage["ci-theme"]` with
+  a no-flash bootstrap script. NO working browser demo.
+- **Twin OS** — Songs panel `.tool-grid` gains a CLIP Interrogator
+  card (`a[data-tool-clip]`, links to `../clip-interrogator.html`).
+- **`assets/clip-interrogator/{example01,example02}.jpg`** — the
+  upstream pair (Layers + Lin Tong, Pixabay), copied from the HF
+  space clone. Also mirrored at `pages/assets/clip-interrogator/`
+  so the static page's examples load under the `--directory pages`
+  local server (the repo-root `assets/` sits outside that server's
+  document root — the page's relative `assets/...` refs resolve to
+  the mirror under both local and deployed paths).
+- **`docs/CLIP-INTERROGATOR.md`** — full reference: install, CLI,
+  UI, gradio modernization notes, npm scripts, e2e, attribution.
+- **`e2e/clip-interrogator.spec.mjs`** — Puppeteer contract spec
+  that runs WITHOUT Python deps: hero `<h1>`, `<theme-toggle>`
+  flip + reload persistence, mode table 4 rows, model table 2
+  entries, both example imgs `naturalWidth > 0`, `npm run clip:ui`
+  in how-to-run, Pixabay + pharmapsychotic attribution,
+  `[data-sample-output]` presence, twin-os `data-tool-clip` link
+  (href ends `clip-interrogator.html`, name "CLIP Interrogator"),
+  0 console errors (pageerror + console.error + requestfailed) on
+  both pages, screenshots → `e2e/artifacts/clip-{light,dark,twinos}.png`.
+  URL convention fixed (not the ct-spec quirk): deployed
+  `${BASE}/pages/clip-interrogator.html`, local
+  `${BASE}/clip-interrogator.html`; twin-os `/pages/twin-os/index.html`
+  vs `/twin-os/index.html`.
+- **npm scripts** — `e2e:clip` (node + puppeteer, `cd e2e && PORT=5180
+  node clip-interrogator.spec.mjs`), `clip:setup` (`uv sync --project
+  lib/clip-interrogator`), `clip:ui` / `clip:interrogate` /
+  `clip:check` (via `uv run --project lib/clip-interrogator`).
+- **CI** — `.github/workflows/pages-test.yml` gains one push line +
+  one PR line (run `clip-interrogator.spec.mjs` against the deployed
+  URL / `PORT=5180` respectively, exactly like the ct-* lines).
+- `.gitignore` — `lib/clip-interrogator/.venv/` + `dist/`.
+- **Sample output recorded verbatim** (from one real CLI run):
+  - `clip-interrogate interrogate assets/clip-interrogator/example01.jpg --mode best`:
+    `painting of a turtle in watercolors, realistic photo studio photoshop, red and teal color scheme, pencil drawing illustration, teal and orange color scheme, photoshop render, clear seas, featured on dribbble, realistic sketch, watercolor effect, by Mac Conner, cgsociety 9`
+- **Verified end-to-end:**
+  - `uv sync` clean (93 packages resolved; torch 2.14.0,
+    torchvision 0.29.0, gradio 5.50.0, clip-interrogator 0.6.0).
+    NOTE: the first `uv sync` hit a stale-uv-cache editable install
+    with no `.pth` hook (`No module named 'clip_interrogator_app'`);
+    fixed with `uv sync --project lib/clip-interrogator
+    --reinstall --no-cache`. Documented in `docs/CLIP-INTERROGATOR.md`.
+  - `clip:check` green (exit 0, device mps, registry printed, no
+    weights downloaded; reports inference device cpu separately).
+  - **UI launch verified** — `python -m clip_interrogator_app.ui`
+    binds `127.0.0.1:7860`, `GET / → 200`, config carries both
+    tabitems (`Prompt`, `Analyze`) and both api_names
+    (`image-to-prompt`, `image-analysis`). Only new noise is the
+    forward-looking `show_api` deprecation warning for gradio 6.0.
+  - **Full smoke, all four interrogate modes + both analyze models**
+    (weights cached, per-mode wall ≈ up to ~3 min on CPU):
+    - `interrogate example01.jpg --mode {best,fast,classic,negative} --json` — all four emit JSON that parses clean via `python3 -m json.tool`, with the library's loading-banner prints redirected to stderr. `best` prompt = the sample recorded above (272 chars); `fast` / `classic` / `negative` each produce distinct coherent prompts.
+    - `analyze example01.jpg --model vit-l --json` AND `--model vit-h --json` — both emit JSON with all five label tables present (medium / artist / movement / trending / flavor, 5 labels each).
+  - One real `clip-interrogate ... example01.jpg --mode best` run
+    completed and produced the prompt recorded above.
+  - `npm run e2e:clip` green on :5180 (17/17 checks, includes the
+    internal-link resolution check — no 404s on the page's relative
+    hrefs after the footer/brand fix).
+  - `npm run verify` green (existing landing / twin-os /
+    twin-os-songs specs) — no regressions.
+  - ct specs: `ct-{a11y,default,icon,nav,phase3,progress,theme,verify}`
+    all pass locally against the `--directory pages` :5180 server.
+  - No absolute filesystem paths in new files (grep clean).
+- **Decisions:**
+  - **Device pinned to CPU inside the interrogator.** clip_interrogator
+    0.6.0's `Config.device` auto-detects MPS, but its `LabelTable`
+    only casts cached fp16 vocab embeddings to fp32 on *cpu* — on MPS
+    every rank/similarity op crashes with "expected mat1 and mat2 to
+    have the same dtype ... float != Half". Upstream never ran the
+    MPS path in practice. Pinning `device="cpu"` keeps the whole
+    pipeline fp32 and deterministic; the tool is a calm local
+    utility, not a render farm.
+  - **Vocab cache pinned to `~/.cache/clip-interrogator`.** Upstream
+    `Config()` defaults `cache_path` to the *relative* path `"cache"`,
+    which dropped ~164M of safetensors into the repo root on the first
+    real CLI run (surfaced during final verification, removed before
+    commit). The pin keeps the working tree clean; weights still land
+    in the HF cache as before.
+  - **Gradio modernisation followed the upstream removals.** Both
+    `num_top_classes` (removed) and `num_classes` (never a 5.x API)
+    are gone — plain `gr.Label(label=...)` renders the score dict.
+    `api_name` moved from the Button constructors to the `.click()`
+    events (Button didn't accept it in 5.x — reproduced TypeError).
+    Also dropped `run_on_click`, `cache_examples`,
+    `ex.dataset.headers`, share buttons, HF badge, Colab copy. The
+    upstream `analyze_tab()` referenced components (`input_image`,
+    `input_model`) defined later in module scope — the latent bug is
+    fixed by building everything inside one Blocks-context builder and
+    passing refs explicitly; drop-down lookups use `.get()` +
+    `gr.Error` instead of raw `DISPLAY_TO_ID[...]`.
+  - **`shared_blip` split.** UI path shares BLIP (upstream behavior);
+    CLI path constructs each interrogator with its own BLIP so
+    `--model vit-h` never downloads ViT-L.
+- **Open:**
+  - `npm run clip:interrogate` default target is the shipped
+    example01.jpg; pointing it at the user's real images is a `--`
+    passthrough away (`npm run clip:interrogate -- <image> --model vit-h`).
+  - The e2e does not exercise the gradio app via the browser (the
+    UI was manually launch-verified: binds 127.0.0.1:7860, both tabs
+    present). A future sprint could add a `clip-ui.spec.mjs` that
+    drives the running app on a loaded-cache machine.
+- **Next:** sprint 0.18 candidates — (a) wire the sample strip to a
+  generated `data/clip/samples.json` so the page auto-refreshes when
+  the indexer rebuilds; (b) add `--out` to the CLI to write prompts
+  to a sibling catalog; (c) resume the agent-loop dashboard live-state
+  wiring from 0.16's open item.
+
+### 2026-09-22 — sprint 0.18 (Refael MP4 Maker port)
+
+- **Shipped:**
+  - **`pages/refael-mp4-maker.html`** — port of the author's HF Space
+    `kaidjuric/refael-mp4-maker` (static SDK, MIT; part of the Sainted
+    Word Records portfolio). Single self-contained HTML file (4648
+    lines, fonts as data URIs): MP3 → 1920×1080 MP4 with mood-keyword
+    auto-covers (dark/light/fire/love/ocean/earth, English + Serbian/
+    Cyrillic), deterministic from track name + artist. Three render
+    engines behind one radio group — ⚡ Fast (WebCodecs, offline),
+    🛡 FFmpeg.wasm (lazy-loads @ffmpeg from unpkg on first use),
+    🐢 Real-time (MediaRecorder). Single / Custom image / Batch tabs,
+    Kai-flavored random-name generator, blob-URL PWA manifest + inline
+    service worker, built-in `?selftest=1` end-to-end render self-test.
+    Copied from the Space's `index.html` with exactly one hygiene
+    addition: a data-URI favicon (the page's own "R" monogram) so
+    browsers stop auto-requesting `/favicon.ico` (404 console error
+    surfaced by the e2e). Canonical source lives on another machine at
+    `~/Documents/autodashboard/refael-mp4-maker`.
+  - **Twin OS Songs panel** — third `.tool-grid` card
+    (`a[data-tool-refael]`, href `../refael-mp4-maker.html`), same
+    pattern as the CLIP card.
+  - **`docs/REFAEL-MP4-MAKER.md`** — origin, engine behavior, the
+    offline caveat (default path = true 0 network calls; FFmpeg.wasm
+    mode lazily fetches from unpkg), run instructions, `?selftest=1`
+    lever, e2e contract, attribution.
+  - **`e2e/refael.spec.mjs`** — Puppeteer contract spec, 22 checks,
+    same URL convention + console-error collection + down-server
+    ergonomics as `clip-interrogator.spec.mjs`. Asserts title/hero,
+    offline badge, 3-tab tablist (first active), 3 engine radios (Fast
+    checked), engine pill + hint, render buttons disabled until input,
+    1920×1080 canvases, output-info row, "0 network calls" footer
+    claim, ffmpeg one-liner `<details>`, the random-name generator
+    fills the title input, internal links don't 404, Twin OS
+    `data-tool-refael` card, 0 console errors on both pages.
+  - **`npm run e2e:refael`** + CI: `pages-test.yml` gains push + PR
+    lines (deployed `/pages/refael-mp4-maker.html`, local
+    `/refael-mp4-maker.html` — same convention as the clip line).
+  - **README** — status line + "what's here" + "Run the Refael MP4
+    Maker" section + file tree entries.
+- **Decisions:**
+  - **Byte-identical copy (plus one hygiene line), no kai-systems
+    restyle.** Refael is a complete product with its own polished dark
+    design (Fraunces + data-URI fonts, offline-first). Restyling it
+    into the shared tokens would strip its identity; the twin
+    surfaces it as a tool, not a page it owns. The single addition is
+    the data-URI favicon — without it, Chrome auto-requests
+    `/favicon.ico` and the 404 shows up as a console error (caught by
+    the e2e's 0-console-error contract). Documented origin + offline
+    caveat instead.
+  - **The `?selftest=1` hook stays out of the e2e.** It exercises
+    WebCodecs video encoding, which is flaky across headless Chrome
+    versions; the spec covers the static contract and the spec keeps
+    green in CI. Selftest remains the manual render smoke lever.
+  - **FFmpeg.wasm's CDN dependency is documented, not removed.** The
+    Fast + Real-time engines are fully offline; FFmpeg mode is the
+    one network-touching path, lazily loaded on first use and then
+    browser-cached. The footer's "0 network calls" claim is accurate
+    for the default path — the e2e asserts it verbatim.
+  - **Port from the HF Space, not the absent local source.** The
+    README's canonical path (`~/Documents/autodashboard/...`) doesn't
+    exist on this machine; the HF copy is the source of truth here.
+- **Verified end-to-end:**
+  - `npm run e2e:refael` green on :5180 (22/22 checks, includes the
+    random-name generator interaction + internal-link resolution).
+  - `npm run verify` green (landing / twin-os / twin-os-songs) — no
+    regressions from the tool-grid edit.
+  - ct specs still green locally on :5180 (spot-checked ct-verify +
+    ct-default after the twin-os edit).
+- **Open:**
+  - A future sprint could drive `?selftest=1` in Puppeteer against a
+    real Chrome binary when headless WebCodecs stabilizes (the spec
+    notes this explicitly).
+- **Next:** sprint 0.19 candidates — (a) wire the CLIP sample strip
+  to a generated `data/clip/samples.json`; (b) add `--out` to the
+  clip CLI; (c) resume the agent-loop dashboard live-state wiring
+  from 0.16; (d) the woody-shaw chart variants backlog.
+
+### 2026-09-22 — sprint 0.19 (agent-loop dashboard served + ct gate hardening)
+
+- **Shipped:**
+  - **`agents/persistent-agent-loop.py` gains `dashboard --out PATH`** —
+    writes the generated dashboard anywhere, not just next to the state
+    file (default behavior unchanged). The served tree is now a target:
+    `python3 agents/persistent-agent-loop.py dashboard --out
+    pages/agent-dashboard.html` regenerates the Twin's dashboard in
+    place.
+  - **`pages/agent-dashboard.html` (committed)** — placeholder dashboard
+    in the loop's exact generated style (dark `#0f1117`, same table + feed
+    structure) so a regeneration overwrites it seamlessly. Shows the
+    idle/empty state + the run-and-regenerate commands until the loop has
+    a state file. Zero JS, zero network.
+  - **`pages/cognitive-twin.html`** — agent-loop iframe
+    `../.agent/dashboard.html` → `./agent-dashboard.html`, copy updated
+    with the regenerate command. This **fixes a real 404** the page had
+    shipped with since sprint 0.16.
+  - **`e2e/ct-verify.mjs` hardened** — was a *print-and-exit-zero* spec:
+    checked were logged but never asserted, console errors printed but
+    never gated. Now a real gate: `check()` helper, 16 assertions
+    (structure counts, layer/twin/scanner/theme exercises, dashboard
+    iframe resolves 200 + served non-dot path, **0 console errors**),
+    non-zero exit on failure.
+  - **`e2e/ct-a11y.mjs` fixed** — pre-existing deterministic failure on
+    "active link has aria-current". Root cause: the spec's hardcoded
+    `window.scrollTo(0, 1500)` + fixed 200 ms wait raced Chrome's scroll
+    restoration after `page.reload` (restore clobbered the scroll, so no
+    section was in the spy's active zone at check time). Fix: disable
+    `history.scrollRestoration`, scroll a mid-page section into view,
+    and **poll** for `.nav-link.active[aria-current="true"]` instead of a
+    fixed sleep. The page's scroll-spy was correct (probe-verified at
+    multiple scroll depths).
+- **Decisions:**
+  - **The dashboard must live at a served, non-dot path.** The loop's
+    brain stays at `.agent/state.json` (gitignored, local-only — correct
+    per §11 hygiene), but a dot-directory is unreachable from both the
+    pages-rooted local server and GitHub Pages (Jekyll ignores dot-dirs),
+    so `.agent/dashboard.html` was never going to load in the iframe —
+    even after running the loop. `pages/agent-dashboard.html` doubles as
+    the committed placeholder AND the loop's regeneration target: same
+    file, different contents, seamless swap.
+  - **Test fix justified under "fix the page, not the test"**: the 404
+    and the ct-a11y failure were both *spec* defects (no assertion /
+    scroll race), not page defects. ct-verify's 0-console-error gate
+    only became possible once the iframe resolved.
+  - **ct-a11y's assertion contract unchanged** — same check, now
+    deterministic.
+- **Verified end-to-end:**
+  - Loop: `run` in a scratch dir → `dashboard --out /tmp/served.html`
+    writes live-data HTML (plan table present, 2014 bytes); default call
+    still writes next to state. Both paths confirmed.
+  - `ct-verify`: 16/16 PASS incl. dashboard `→ 200` and 0 console errors.
+  - `ct-a11y`: ALL PASS, 0 console errors (previously SOME FAILED).
+  - `ct-{default,icon,nav,progress,theme,phase3}`: all clean
+    (`errors: []` where applicable).
+  - `npm run verify` green; `e2e:clip` + `e2e:refael` green — no
+    regressions.
+  - Hygiene grep: no absolute filesystem paths in changed files.
+- **Open:**
+  - Live-state wiring is now *possible but not automatic*: running the
+    loop + `dashboard --out pages/agent-dashboard.html` replaces the
+    placeholder with live plan/memory/journal. Wiring that regenerate
+    into the loop's own `run` (post-run hook) or a watcher remains a
+    follow-up.
+  - The other 0.19 candidates (CLIP `data/clip/samples.json`, clip CLI
+    `--out`, woody-shaw chart variants) remain on the backlog.
+- **Next:** sprint 0.20 candidates — (a) `run` auto-regenerates the
+  served dashboard on pause/exit; (b) CLIP sample strip → generated
+  `data/clip/samples.json`; (c) clip CLI `--out <file>`; (d) woody-shaw
+  chart variants.
+
+### 2026-09-22 — sprint 0.19.b (merge reconciliation with concurrent main work)
+
+Shipped inside the merge of `origin/main` (which had advanced 7 commits
+while sprint 0.19 was in flight — another session shipped a roving-
+tabindex fix, a CI PR-mode server change, a ct-a11y scroll fix, and
+boot auto-update docs):
+
+- **Repo-wide URL convention converged.** Parallel work established the
+  canonical serve shape: **repo root everywhere** (`python3 -m http.server
+  5180 --directory .`) — production Pages, launchd dev server, and CI
+  PR-mode server alike — with specs hitting `/pages/<page>.html` in every
+  mode. Sprint 0.19's ct/clip/refael specs were aligned to this single
+  path (ternaries collapsed); earlier pages-dir-convention docs and e2e
+  hints updated (`docs/CLIP-INTERROGATOR.md`,
+  `docs/REFAEL-MP4-MAKER.md`, README).
+- **ct-a11y scroll fix merged with the parallel fix.** The other session
+  disabled smooth scrolling and scrolled to `#architecture` with a fixed
+  200 ms wait — which they noted *still failed against the deployed
+  Pages site*. Sprint 0.19's poll-based fix (disable
+  `history.scrollRestoration` + `scrollIntoView` + `waitForFunction`
+  for the spy's observable output) was kept on top of their
+  smooth-scroll insight; it is the version that passes in every mode
+  including the deployed URL.
+- **Kept from parallel work:** roving-tabindex spec additions in
+  ct-a11y, the og:image path resolution fix in ct-phase3 (supersedes
+  sprint 0.19's earlier ct-phase3 path tweak), the CI repo-root server
+  switch, `.gitignore` gzip-log entry, and the boot auto-update /
+  install-docs work.
+- **Verified under the final convention** (repo-root :5180 server):
+  ct-verify 16/16, ct-a11y ALL PASS, ct-{default,icon,nav,progress,
+  theme,phase3} clean, clip + refael all checks pass, `npm run verify`
+  green.
+- **Open/next:** unchanged from sprint 0.19's list — auto-regenerating
+  the served dashboard on loop pause/exit is the highest-value follow-up.
+
+### 2026-09-22 — sprint 0.20 (how-to page)
+
+- **Shipped:**
+  - **`pages/how-to.html`** — the operator's manual for the whole
+    repo. Single self-contained HTML file in the cognitive-twin style
+    (stone palette, Inter + JetBrains Mono, paired light/dark via
+    `prefers-color-scheme` + `<theme-toggle>` persisted to
+    `localStorage["ht-theme"]` with a no-flash bootstrap, scroll-spy
+    nav with progress bar, mobile drawer, copy-to-clipboard code
+    blocks with `execCommand` fallback so headless never throws).
+    Nine sections: 01 Quickstart (requirements, the repo-root serve
+    command, page map table), 02 Twin OS, 03 CLIP Interrogator
+    (setup/UI/CLI + the why-CPU callout), 04 Refael (engines +
+    offline caveat), 05 Chart pipeline (export-all + chart-inbox
+    watcher), 06 Song indexer (index-songs + audio-inbox watcher +
+    empty-catalog fix), 07 Testing (all spec entry points), 08
+    LaunchAgents (live state table + verify/tap commands), 09
+    Troubleshooting (ports, 404 root cause, mscore exit-code quirk,
+    uv cache fix, favicon rule, git author flags) + memory note.
+    Every factual claim in the page was verified live before commit:
+    `npm run test:all` exists as referenced, LaunchAgent states were
+    pulled from `launchctl`, page count fixed to 7.
+  - **cognitive-twin footer** — second `.footer-link` "How to run the
+    twin" → `./how-to.html` (discoverability; ct-a11y only asserts
+    the first footer link, verified before editing).
+  - **`e2e/how-to.spec.mjs`** — Puppeteer contract spec, 16 checks:
+    title/hero, 9 nav links match expected set, all 9 section ids,
+    code blocks == copy buttons (12), copy click throws no errors,
+    theme toggle → dark + persists on reload, cross-page links exist,
+    every internal link resolves ≤ 400 (HEAD), 0 console errors in
+    light + dark passes, screenshots → `e2e/artifacts/howto-{light,dark}.png`.
+    Uses the single `/pages/how-to.html` URL convention in every mode.
+  - **npm + CI** — `e2e:howto` script; `pages-test.yml` gains push
+    + PR lines exactly like the clip/refael lines.
+  - **README** — "what's here" bullet, e2e section note, file-tree
+    entries, `npm run test:all` mention.
+- **Decisions:**
+  - **One page, one job: "how do I actually run this?"** The repo had
+    landing (pitch), cognitive-twin (why), tool pages (what each tool
+    does), and markdown docs (deep reference) — but no page that
+    answers "how do I run all of it?" in one place. The how-to is
+    deliberately the operator's manual: real commands, real watcher
+    states, real failure modes.
+  - **Facts verified before copy, not after.** The page documents
+    LaunchAgent state (`pgrep`/`launchctl` live-checked: server,
+    chart-watcher, songs-watcher, mj-watcher live; boot at login;
+    log-rotate 03:00), npm script names (checked against
+    package.json), and the repo-root serve convention. A how-to page
+    that lies about the system is worse than no page.
+  - **Theme key `ht-theme`, not a shared one.** Each page owns its
+    localStorage key (dt-theme-pref / ct-theme / ci-theme / ht-theme)
+    — keeps pages standalone-openable with zero cross-contamination.
+  - **Copy buttons everywhere, fallback included.** `navigator.clipboard`
+    in a secure local context can reject; the fallback
+    (`textarea` + `document.execCommand('copy')`) guarantees a click
+    never throws — which is what the 0-console-error e2e contract
+    actually checks.
+  - **No nav surgery on other pages.** Only touch = one footer link on
+    cognitive-twin (the natural sibling). Landing/twin-os navs stay
+    untouched — their e2e contracts are stable.
+- **Verified end-to-end:**
+  - `e2e:howto` 16/16 PASS on the repo-root :5180 server.
+  - `ct-a11y` ALL PASS (footer link added safely), `ct-verify` 16/16
+    (dashboard iframe still 200, 0 console errors).
+  - `npm run verify` green (landing / twin-os / twin-os-songs).
+  - `e2e:clip` + `e2e:refael` green, `npm run test:all` green
+    (chart 13 + songs + mj 17).
+  - Hygiene grep clean — no absolute filesystem paths in any new file.
+- **Open:**
+  - The how-to page is static; when the agent-loop dashboard
+    auto-regenerates (sprint 0.20 backlog item), the how-to's
+    LaunchAgents table + dashboard blurb may need a refresh pass.
+  - Page-map table should gain a row when sprint 0.21+ ships another
+    page (pattern: add row + bump hero count).
+  - Other 0.19/0.20 backlog items unchanged: (a) `run` auto-
+    regenerates the served dashboard on pause/exit; (b) CLIP sample
+    strip → generated `data/clip/samples.json`; (c) clip CLI `--out`;
+    (d) woody-shaw chart variants.
+- **Next:** sprint 0.21 candidates — (a) auto-regenerating served
+  dashboard (highest value; plumbing exists); (b) `data/clip/samples.json`;
+  (c) clip CLI `--out <file>`; (d) chart variants backlog.
+
+### 2026-09-22 — sprint 0.21.b (batch-render audit + row-state fix)
+
+- **Audited**: the Refael Batch tab was driven end-to-end in headless Chrome with
+  three real MP3s (ffmpeg-synthesized sine tracks). Batch pipeline verdict:
+  **working** — decode → sequential render → gallery + ZIP, all 3/3 ok,
+  0 console errors. One real bug surfaced by watching the rows mid-render.
+- **Bug fixed**: the render loop refreshed the wrong element. Row layout is
+  `[num, nameInput, fileName, state, genBtn]`, but the loop used
+  `row.lastElementChild` for `applyStateVisual` → every state transition
+  (`rendering…` / `✓ done` / `! error`) landed **on the 🎲 gen-mini button**,
+  clobbering its glyph + classes, while the `.state` column stayed frozen on
+  `"ready"`. Fixed both call sites (mid-item + after-item) to
+  `row.querySelector('.state')` — semantic, order-proof.
+- **Verified after fix**: `.state` column correctly shows `✓ done` per row,
+  🎲 button intact, gallery opens, 0 console errors. `e2e:refael` +
+  `npm run verify` green. No other batch issues found (the unused `queue`
+  guard var and always-true `hasEngine` in `updateBatchButton` are cosmetic;
+  left alone).
+- **Commit**: `pages/refael-mp4-maker.html` only. Probes were temp + removed;
+  the MP3 fixtures were temp + removed (no binaries committed).
+- **Open**: the batch state-target contract is only covered by the manual
+  live probe, not the static refael spec (which deliberately avoids real
+  renders in CI — WebCodecs is flaky in headless). A future spec could
+  commit tiny MP3 fixtures + drive the folder input (strip `webkitdirectory`,
+  since `uploadFile` ignores it in headless) and assert the `.state` column
+  contract — deferred to keep CI render-free.
+
+### 2026-09-22 — sprint 0.21 (Loopable Video Segmenter port)
+
+- **Shipped:**
+  - **`lib/loopable-video-segmenter/`** — uv-managed Python package (CPython
+    3.12, `requires-python = ">=3.12,<3.13"`), port of the author's
+    `kajica2/loopable-video-segmenter` Gradio app (MIT). `pyproject.toml` +
+    committed `uv.lock` + gitignored `.venv/`/`dist/`. Deps:
+    `gradio~=5.0`, `moviepy>=1.0.3,<2`, `librosa>=0.10`,
+    `soundfile>=0.12`, `numpy>=1.26,<2` (numpy<2 because moviepy 1.0.3
+    breaks on numpy 2). Four-module src layout:
+    `__init__.py` + `core.py` (**no gradio import**) + `cli.py` + `ui.py`.
+    Splits an MP4 into **N beat-aligned, mirror-loopable clips**
+    (librosa beat tracking; equal-time fallback when no usable audio).
+  - **`core.py`** — faithful port of the author's app.py logic with one
+    structural addition: `compute_segments()` split out so CLI + UI share
+    the same boundary-detection pipeline, and the status message reports
+    which path actually ran (`beat detection` vs `equal-time fallback`)
+    instead of upstream's always-claim.
+  - **`cli.py`** — verbs `segment <video> [--segments N] [--no-loopable]
+    [--out zip|dir] [--json]`, `check --self-check` (imports + deps +
+    ffmpeg binary presence; no downloads). Exit codes 0 / 2 bad input /
+    3 runtime. `--json` emits `{status, message, zip, segments, loopable}`.
+  - **`ui.py`** — faithful Blocks port, plain 5.x-safe APIs (no
+    `num_classes`, `api_name` on `.click()` not Button). Launches on
+    **127.0.0.1:7861** — deliberately NOT 7860, which the CLIP
+    Interrogator owns.
+  - **`pages/loopable-video-segmenter.html`** — house-style tool page
+    (stone palette, Inter + JetBrains Mono, paired light/dark under
+    `localStorage["lvs-theme"]` with no-flash bootstrap, scroll-spy +
+    progress bar, mobile drawer, copy buttons with execCommand fallback,
+    data-URI ⛯ favicon). Sections: what / run (setup + UI + CLI) /
+    params (3-row table) / how-it-works (5 steps) / notes (mirrored-audio
+    caveat callout) / attribution. NO working browser demo.
+  - **Twin OS** — Songs panel `.tool-grid` gains a third local card
+    (`a[data-tool-lvs]`, href `../loopable-video-segmenter.html`).
+  - **how-to page** — page-map gains the LVS row; hero count 7 → **8**
+    (the sprint-0.20 open item "add row + bump hero count", closed).
+  - **`docs/LOOPABLE-VIDEO-SEGMENTER.md`** — full reference: install,
+    UI, CLI flags + exit codes, how the segmentation works, package
+    layout, npm scripts, e2e, attribution, verified-run log.
+  - **`e2e/loopable-video-segmenter.spec.mjs`** — Puppeteer contract
+    spec, 19 checks, single `/pages/loopable-video-segmenter.html` URL
+    convention, runs WITHOUT Python deps. Asserts hero, plain
+    `#themeToggle` flip + reload persistence, params table 4 rows,
+    how-it-works 5 steps, `npm run lvs:ui` in how-to-run, `--json`
+    mention, mirrored-audio warning, attribution, local-first chip,
+    **every code block has a copy button (3 blocks, 3 btns)**, internal
+    links ≤ 400, twin-os `data-tool-lvs` card, 0 console errors on both
+    pages, screenshots → `e2e/artifacts/lvs-{light,dark,twinos}.png`.
+  - **npm scripts** — `lvs:setup` / `lvs:ui` / `lvs:segment` (includes
+    the `segment` verb so `npm run lvs:segment -- video.mp4 --segments 4`
+    is ergonomic) / `lvs:check` / `e2e:lvs`.
+  - **CI** — `pages-test.yml` gains push + PR lines exactly like the
+    clip/refael/how-to lines.
+  - **README** — status line, "what's here" bullets, "Run the Loopable
+    Video Segmenter" section, e2e note, file-tree entries (page + lib
+    package + docs).
+  - **`.gitignore`** — `lib/loopable-video-segmenter/.venv/` + `dist/`.
+- **Decisions:**
+  - **Same port pattern as CLIP, not Refael.** Python backend + gradio
+    UI + headless CLI → uv-managed package with the core/CLI/UI split.
+    The CLI gets real value here (the GUI flow is the primary path, but
+    `--json` + `--out` make it scriptable for batch/drop-in use).
+  - **MoviePy pinned 1.x, numpy pinned <2.** The author's proven stack
+    (`moviepy.editor`, `subclip`, `vfx.time_mirror` are 1.x APIs);
+    moviepy 1.0.3 does not support numpy 2. Don't port fresh and risk
+    breaking the working code on a 2.x rewrite — document the swap as a
+    future exercise instead.
+  - **UI on 7861, not 7860.** The CLIP Interrogator owns
+    `127.0.0.1:7860`; the twin runs both. Documented in page + docs.
+  - **Status message reports the actual path.** Upstream's UI always
+    claimed beat detection; the port says `beat detection` or
+    `equal-time fallback`. Honest output matters for `--json` scripting.
+  - **How-to page-map row, no new how-to section.** The how-to spec
+    asserts exactly 9 nav links + 9 section ids; a full section would
+    change that contract, which the sprint-0.20 pattern explicitly does
+    NOT ask for. Row + count bump is the documented pattern.
+  - **Stale spec whitelist fixed, not the page.** `twin-os-songs`
+    hardcoded `['mp3','wav']` as valid format chips, but the indexer has
+    emitted `.aif`/`.aiff` (format = extension sans dot) since sprint
+    0.14. First row of the local catalog is `aif` → check failed. The
+    page was right; the test's whitelist predated AIFF support. Fix:
+    `['mp3','wav','aif','aiff']` now matches `SUPPORTED_EXTS`.
+- **Verified end-to-end (real runs, not just static):**
+  - `uv sync` clean: numpy 1.26.4 / moviepy 1.0.3 / gradio 5.50.0 /
+    librosa 0.11.0 / soundfile 0.14.0.
+  - `lvs:check` green — imports + deps + ffmpeg binary found.
+  - CLI smoke on generated fixtures (ffmpeg testsrc + click track):
+    **beat path** → `"using beat detection"`, ZIP with 2 real MP4s,
+    ffprobe-verified 1.0s/2.0s (mirror doubling correct); **fallback**
+    (silent video) → `"using equal-time fallback"`; **--no-loopable**
+    → plain cuts; missing file → exit 2.
+  - UI launch: binds 127.0.0.1:7861, `GET / → 200`, config carries
+    `api_name: ['create-segments']` (in **dependencies**, not components
+    — first probe looked in the wrong field), 1 markdown / 1 video /
+    1 slider.
+  - `npm run e2e:lvs` 19/19 PASS on the repo-root :5180 server.
+  - `npm run verify` green after the twin-os tool-grid edit + the
+    twin-os-songs whitelist fix.
+  - `e2e:clip` + `e2e:refael` green (both touch twin-os cards).
+  - ct-verify 16/16 + ct-a11y ALL PASS; `npm run test:all` green
+    (chart 36 + songs 16 + mj 17).
+  - `e2e:howto` green after the page-map row + hero count edit.
+  - Hygiene grep clean — no absolute filesystem paths in any new file.
+- **Open:**
+  - The LVS CLI writes its zip to a temp dir by default (printed);
+    `--out` handles the destination. Fine as-is.
+  - BC: a future sprint could port the app to moviepy 2.x (numpy 2
+    current) — not worth the regression risk now.
+  - Other backlog unchanged: (a) auto-regenerating served dashboard;
+    (b) `data/clip/samples.json`; (c) clip CLI `--out`; (d) woody-shaw
+    chart variants.
+- **Next:** sprint 0.22 candidates — (a) auto-regenerating served
+  dashboard (highest value; plumbing exists); (b) `data/clip/samples.json`;
+  (c) clip CLI `--out <file>`; (d) chart variants backlog.
+
+> **Note on numbering (added at merge).** The sprints below were
+> numbered 0.17–0.25a on the branch that produced them. `main` had
+> independently published 0.17–0.21 (CLIP Interrogator, Refael MP4
+> Maker, agent-loop dashboard, how-to page, Loopable Video Segmenter),
+> so these were renumbered to 0.22–0.30a on merge. Dates are unchanged.
+
+### 2026-09-23 — sprint 0.22 (Reel pre-publish watcher)
 
 - **Shipped:**
 - `lib/reel-watcher.js` — pure-Node, no deps. Polls `reel-inbox/`
@@ -1159,7 +1730,7 @@ chart-export hook so every chart automatically produces a
 Reel; (d) live-state wiring for the agent-loop dashboard;
 (e) jazz-solos CSV catalog.
 
-### 2026-09-23 — sprint 0.18 (lyrics / idea → 5-10 MJ prompts)
+### 2026-09-23 — sprint 0.23 (lyrics / idea → 5-10 MJ prompts)
 
 - **Shipped:**
 - **`assets/mural-prompts/PROMPT-EXPANSION-FORMAT.md`** — the
@@ -1248,7 +1819,7 @@ prefer one-at-a-time. 8 prompts × ~45s each ≈ 6min wall.
 generator's deterministic style rotation is mechanical; the
 chat-AI path captures song mood / narrative arc / era. The
 generator is the fallback when chat is unavailable.
-- **No IG upload.** Same pre-publish-only ethos as sprint 0.17.
+- **No IG upload.** Same pre-publish-only ethos as sprint 0.22.
 - **Next:** candidates — (a) per-prompt retry state in the
 watcher; (b) parallel-friendly option for non-MJ flows (rare);
 (c) tighten the wall to feed chart-export → mj-prompt-generator
@@ -1256,7 +1827,7 @@ so chart ships auto-promote themselves into MJ canvases;
 (d) live-state wiring for the agent-loop dashboard; (e) jazz-
 solos CSV catalog.
 
-### 2026-09-23 — sprint 0.19 (per-prompt MJ retry state)
+### 2026-09-23 — sprint 0.24 (per-prompt MJ retry state)
 
 - **Shipped:**
 - **`.mj-done-<N>` sidecar markers in `prompts-inbox/`.**
@@ -1289,7 +1860,7 @@ write lyrics / idea → I produce the `.md` file → drop into
 `prompts-inbox/` → watcher submits.
 - **Convention doc updates:**
   - `PROMPT-EXPANSION-FORMAT.md` — added "Per-prompt retry
-    state (sprint 0.19)" section explaining the markers
+    state (sprint 0.24)" section explaining the markers
     + the partial-completion contract.
   - Limitations updated: noted the two-in-flight edge case
     (markers share index namespace if two files are
@@ -1322,7 +1893,7 @@ common case. Per-prompt budget is a future enhancement.
 (chart 36 + songs 16 + reel 18 + mj 17 + mj-submitter 14 +
 mj-prompt-generator 67), 0 failures.
 - **Open:**
-- **Reel LaunchAgent still unbootstrapped** (sprint 0.17).
+- **Reel LaunchAgent still unbootstrapped** (sprint 0.22).
 The watcher-side wiring is independent of per-prompt
 retry; both can land without coordination.
 - **Two-files-in-flight edge case.** Sidecar markers share
@@ -1339,7 +1910,7 @@ generator hook (chart ships auto-promote to MJ); (c) parallel
 capability for non-MJ flows; (d) live-state wiring for the
 agent-loop dashboard; (e) jazz-solos CSV catalog.
 
-### 2026-09-23 — sprint 0.20 (LaunchAgent TCC fix — all four live)
+### 2026-09-23 — sprint 0.25 (LaunchAgent TCC fix — all four live)
 
 - **Background:** every watcher LaunchAgent has been silently
 broken since the move from `~/digital-twin` (stale) to
@@ -1361,7 +1932,7 @@ checkout at `~/digital-twin` was removed (it had a stale
 `.agent/` dir from sprint 0.16's persistent agent loop —
 transient run state, no durable content).
 - **Four `/tmp/*-launcher.sh` shims**, one per watcher
-(updated in sprint 0.21 to `~/Library/LaunchAgents/` for
+(updated in sprint 0.26 to `~/Library/LaunchAgents/` for
 reboot durability):
   - `~/Library/LaunchAgents/reel-watcher-launcher.sh`
   - `~/Library/LaunchAgents/chart-watcher-launcher.sh`
@@ -1380,8 +1951,8 @@ reboot durability):
 reboot); `~/Library/LaunchAgents/` is launchd-readable
 *and* survives reboot. **Confirmed via test plist**: a
 launcher in `~/Library/LaunchAgents/` is exec-safe from
-launchd's spawn context. Updated from sprint 0.20's
-`/tmp` placement after sprint 0.21 verification.
+launchd's spawn context. Updated from sprint 0.25's
+`/tmp` placement after sprint 0.26 verification.
   Each resolves the Node binary (Hermes → NVM → Homebrew →
   system) and `readlink -f`s the symlink to get the real
   repo path, then `exec`'s Node with the lib script directly.
@@ -1433,7 +2004,7 @@ prompt `.md` into `prompts-inbox/`, a stub `.musicxml` into
     once per the watcher's retry-once contract.
 - All four watchers **have been silently broken since
 sprint 0.8 (when the original chart-watcher LaunchAgent
-landed)**. Sprint 0.20 is the first time the watcher fleet
+landed)**. Sprint 0.25 is the first time the watcher fleet
 is actually functional. Likely the broken-forever behavior
 went unnoticed because:
   - No file was being dropped into the inboxes (the
@@ -1466,7 +2037,7 @@ MJ); (c) live-state wiring for the agent-loop dashboard;
 error reporting so the failing-musicxml case shows up
 clearly in the log without polluting the success path.
 
-### 2026-09-23 — sprint 0.21 (durable shim location)
+### 2026-09-23 — sprint 0.26 (durable shim location)
 
 - **Shipped:**
 - **Moved all four `/tmp/*-launcher.sh` shims to
@@ -1491,7 +2062,7 @@ preserved (now stale but safe; rollback still works).
   - songs-watcher: dropped a real `.wav`, watcher
     picked it up, catalog regenerated, file moved to
     `processed/` within 0.1s.
-- **Cold-load simulation** (sprint 0.21 follow-up):
+- **Cold-load simulation** (sprint 0.26 follow-up):
   `bootout` all four → `enable` + `bootstrap` →
   `kickstart -k` (same code path launchd runs at boot).
   All four came back to `state = running, active count = 1`
@@ -1540,12 +2111,12 @@ clearly in the log without polluting the success path;
 (e) cleanup `/tmp/*-launcher.sh` shims after a successful
 reboot cycle.
 
-### 2026-09-23 — sprint 0.22 (jazz-solos corpus + Node server)
+### 2026-09-23 — sprint 0.27 (jazz-solos corpus + Node server)
 
 Closes the jazz-solos catalog item that has been on the "Next" list
 since sprint 2, and fixes the last launchd service (the static
 server) which was silently broken by the same TCC restriction found
-in sprint 0.20.
+in sprint 0.25.
 
 **Shipped — jazz-solos (MIDI corpus) catalog:**
 
@@ -1717,7 +2288,7 @@ in sprint 0.20.
   dashboard; (f) cleanup the now-superseded `/tmp/*-launcher.sh`
   shims and `.plist.bak` files.
 
-### 2026-09-23 — sprint 0.23 (live pipeline test — three bugs found)
+### 2026-09-23 — sprint 0.28 (live pipeline test — three bugs found)
 
 Ran every pipeline end-to-end against the live LaunchAgents with real
 inputs (a generated 4-part MusicXML chart, a WAV, an MP4 + tagged MP3
@@ -1735,7 +2306,7 @@ Confirmed by md5: the processed "reel" was byte-identical to the
 input.
 
 Only source extensions other than `.mp4` escaped it, which is exactly
-why the sprint 0.17 smoke test (a `.mov` source) passed and every
+why the sprint 0.22 smoke test (a `.mov` source) passed and every
 later check reported `[done]` — the log line fires regardless of what
 the file contains.
 
@@ -1762,7 +2333,7 @@ its guard tested the extracted prompt text, from which
 
 Midjourney honours the LAST `--ar`, so **the requested 16:9 was
 silently overridden by the config's 3:4** — defeating the entire point
-of the sprint 0.18 lyric-pack flow.
+of the sprint 0.23 lyric-pack flow.
 
 Fixed with `buildFullPrompt(prompt, ar, defaultArgs)`: resolves the
 ratio exactly once (prompt-embedded > caller > config default), strips
@@ -1791,7 +2362,7 @@ stalling for 10 minutes.
 **Bug 4 (test, not product) — the songs-watcher spec raced the live service.**
 
 The spec dropped a WAV and then ran its own `--once` instance. With the
-LaunchAgent now genuinely working (sprints 0.20/0.21), the live watcher
+LaunchAgent now genuinely working (sprints 0.25/0.26), the live watcher
 claimed the file ~170ms *before* the spec's instance booted, so the
 spec's run found nothing, exited immediately, and asserted against the
 other process's writes mid-flight:
@@ -1869,10 +2440,10 @@ outputs rather than running its own instance — so it needed no change.
 - **Four bugs in the tests themselves** were fixed alongside (reel
   spec selectors, songs spec race, landing favicon server, format-chip
   assertion) — all cases of the suite lagging the code it guards.
-- **Next:** as sprint 0.22's list, plus (g) move/archive the reel's
+- **Next:** as sprint 0.27's list, plus (g) move/archive the reel's
   consumed sibling audio; (h) PPQ floor in `midi-export.js`.
 
-### 2026-09-23 — sprint 0.24 (MusicXML → PDF, standalone)
+### 2026-09-23 — sprint 0.29 (MusicXML → PDF, standalone)
 
 Asked for a way to turn MusicXML into a PDF. The repo already rendered
 PDFs, but only as one stage of the full chart pipeline (split parts →
@@ -1977,13 +2548,13 @@ in-app, this converter is the thing to wire in.
 - `--keep-tree` naming is implemented but only lightly covered by tests
   (the unit test verifies the relative-path rule directly rather than
   exercising the flag, which is read at module load).
-- **Next:** as sprint 0.23's list, plus (i) run the bob-mover batch if
+- **Next:** as sprint 0.28's list, plus (i) run the bob-mover batch if
   wanted; (j) offer this converter as a `server.py` PDF route in that
   project.
 
-### 2026-09-24 — sprint 0.25 (Midjourney **web** submitter)
+### 2026-09-24 — sprint 0.30 (Midjourney **web** submitter)
 
-The lyric-pack flow (sprint 0.18) was wired end to end but could not
+The lyric-pack flow (sprint 0.23) was wired end to end but could not
 actually submit: the only backend was the Discord route, and it needs a
 logged-in Discord session inside the automation profile. Chasing that
 down produced the finding below, and this sprint adds a backend that
@@ -1992,7 +2563,7 @@ works.
 **Root finding — the Discord route was unverifiable and the web route
 was already available.**
 
-Sprint 0.23's first real submission attempt (every prior run had been
+Sprint 0.28's first real submission attempt (every prior run had been
 `--dry-run`) failed at 45s with "Discord textarea not found". The
 diagnostic screenshot showed Discord's **login page** — the Comet
 profile was never signed in. That failure is indistinguishable from a
@@ -2053,7 +2624,7 @@ therefore leaves machine-checkable evidence.
 **Verified end-to-end, with real submissions:**
 
 - `--dry-run` — 8 prompts extracted, each composing to exactly one
-  trailing `--ar 16:9` (sprint 0.23's fix still holding).
+  trailing `--ar 16:9` (sprint 0.28's fix still holding).
 - `--preflight` — **6.3s**: 11 cookies accepted (2 `__Host-`), headed
   Chrome up on :9444, Imagine page loaded, prompt bar found, no CF
   challenge, **zero generations spent**.
@@ -2080,11 +2651,11 @@ was used literally (no shell to expand it), so every run died with
   rejects third-party cookies the jar may still be incomplete.
 - **No parallelism.** Prompts submit serially (needed for the task-id
   diff to be unambiguous).
-- **Next:** as sprint 0.24's list, plus (k) reload the watcher and
+- **Next:** as sprint 0.29's list, plus (k) reload the watcher and
   confirm the lyric-pack flow runs unattended end to end; (l) surface
   the captured image URLs in the Twin OS Songs/Twin panels.
 
-### 2026-09-24 — sprint 0.25a (task-detection misattribution — found by running it)
+### 2026-09-24 — sprint 0.30a (task-detection misattribution — found by running it)
 
 Running the flow twice surfaced a bug in the web backend's own
 acceptance check. Worth recording because the first version *looked*

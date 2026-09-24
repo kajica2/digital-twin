@@ -566,7 +566,7 @@ def cmd_dashboard(args) -> int:
 <h2>Memory</h2><table>{mem}</table>
 <h2>Journal</h2>{feed}
 """
-    out = path.with_name("dashboard.html")
+    out = Path(args.out) if getattr(args, "out", None) else path.with_name("dashboard.html")
     out.write_text(doc, encoding="utf-8")
     print(f"wrote {out}")
     return 0
@@ -594,6 +594,10 @@ def main(argv=None) -> int:
         sp = sub.add_parser(name)
         sp.add_argument("--state", default=".agent/state.json",
                         help="where the agent's brain lives (default: .agent/state.json)")
+        if name == "dashboard":
+            sp.add_argument("--out", metavar="PATH",
+                            help="write the dashboard here instead of next to the"
+                                 " state file (e.g. pages/agent-dashboard.html)")
         if name == "run":
             sp.add_argument("--goal", help="what the agent is trying to achieve")
             sp.add_argument("--plan", help="initial steps, separated by ';;'")

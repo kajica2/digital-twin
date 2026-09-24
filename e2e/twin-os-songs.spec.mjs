@@ -183,9 +183,11 @@ async function main() {
       const rowCount = await page.$$eval('[data-songs-catalog] .song-row', els => els.length);
       assert(rowCount >= 1, `at least one song row rendered (got ${rowCount})`);
 
-      // Each row has format chip + title. The chip reflects what the
-      // indexer emitted; AIFF was added in sprint 0.35, and the MIDI
-      // corpus section uses mid / pdf / mid+pdf.
+      // Each row has format chip + title.
+      // Valid formats = SUPPORTED_EXTS in lib/songs-indexer.js (mp3/wav + aif/aiff
+      // since sprint 0.14); the MIDI corpus section below renders its own
+      // .song-row list with mid / pdf / mid+pdf chips, so this selector must stay
+      // scoped to the audio catalog. Chip renders format: ext.slice(1).
       const AUDIO_FORMATS = ['mp3', 'wav', 'aif', 'aiff', 'm4a', 'aac', 'flac', 'ogg'];
       const firstRowFmt = await page.$eval('[data-songs-catalog] .song-row .song-fmt', el => el.textContent.trim());
       assert(AUDIO_FORMATS.includes(firstRowFmt),

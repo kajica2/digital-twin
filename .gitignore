@@ -52,3 +52,21 @@ e2e/node_modules/
 *.midjourney-cookies.txt
 mj-cookies*.txt
 *-cookies.txt
+# Kai project memory (local-only by choice — contains absolute paths)
+.kai/
+
+# CLIP Interrogator venv (uv-managed, generated)
+lib/clip-interrogator/.venv/
+
+# uv build artifacts
+lib/clip-interrogator/dist/
+
+# Loopable Video Segmenter venv (uv-managed, generated)
+lib/loopable-video-segmenter/.venv/
+
+# uv build artifacts
+lib/loopable-video-segmenter/dist/
+
+# Python bytecode
+__pycache__/
+*.pyc

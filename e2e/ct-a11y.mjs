@@ -25,7 +25,14 @@ page.on('pageerror', e => errors.push('pageerror: ' + e.message));
 page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
 await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: 'light' }]);
 await page.goto(URL, { waitUntil: 'networkidle0', timeout: 15000 });
-await page.evaluate(() => localStorage.removeItem('theme'));
+await page.evaluate(() => {
+  // Scroll-spy race guard: Chrome restores scroll position after reload
+  // (history.scrollRestoration = 'auto'), which can clobber the
+  // window.scrollTo used by the nav-ARIA check below. Disable restoration
+  // for this session so our programmatic scroll is deterministic.
+  history.scrollRestoration = 'manual';
+  localStorage.removeItem('theme');
+});
 await page.reload({ waitUntil: 'networkidle0' });
 
 console.log('\n1. Semantic structure');
@@ -54,14 +61,19 @@ assert('5+ h2 (sections)', semantic.headingCounts.h2 >= 5);
 assert('h3 present', semantic.headingCounts.h3 > 0);
 
 console.log('\n2. Navigation ARIA');
-// Scroll into a real section (instantly — the page has scroll-behavior:smooth,
-// which makes window.scrollTo animate and CI machines never land in time).
+// Scroll a mid-page section into view so a nav link becomes active. The page
+// has scroll-behavior:smooth (animated scrolling never lands within a fixed
+// wait on CI), so disable smoothing, scroll instantly, then POLL for the
+// spy's observable output — rAF-throttling and Chrome scroll restoration can
+// shift timing, so a fixed sleep is flaky across machines.
 await page.evaluate(() => {
-    document.documentElement.style.scrollBehavior = 'auto';
-    const s = document.getElementById('architecture');
-    window.scrollTo(0, s.offsetTop);
+  document.documentElement.style.scrollBehavior = 'auto';
+  document.getElementById('processes')?.scrollIntoView();
 });
-await new Promise(r => setTimeout(r, 200));
+await page.waitForFunction(() => {
+  const a = document.querySelector('.nav-link.active');
+  return a && a.getAttribute('aria-current') === 'true';
+}, { timeout: 5000 });
 const navAria = await page.evaluate(() => {
     const nav = document.querySelector('nav');
     const ariaLabel = nav?.getAttribute('aria-label');

@@ -10,14 +10,16 @@ Part of [kai-systems](https://kajica2.github.io/kai-systems/) — the
 meta-layer that makes all the other kai-systems stacks run
 themselves.
 
-> **Sprint 0 status:** Landing page live. Three A/B-testable variants
-> in one HTML file. Twin OS shell + song indexer queued for sprint 1.
+> **Sprint 2 status:** Landing page live, Twin OS shell live, song
+> indexer live, chart pipeline live, CLIP Interrogator port live,
+> Refael MP4 Maker port live, Loopable Video Segmenter port live.
+> The landing's CTA opens the Twin OS; the Twin OS's Songs panel
+> surfaces the audio catalog plus pairing tools.
 
 ## What this is
 
 A long-running project. The landing page is the public face; the Twin
-OS shell is the thing you'll actually use every day. The shell and the
-song indexer are sprint 1.
+OS shell is the thing you'll actually use every day.
 
 For now, what's here:
 
@@ -26,10 +28,35 @@ For now, what's here:
   switcher. kai-systems house style (DM Serif Display + Outfit +
   JetBrains Mono, warm copper), paired light + dark, WCAG AA in both
   themes.
+- **`pages/twin-os/`** — the Twin OS PWA shell (Today / Songs / Twin
+  panels) with the song catalog surfaced in Songs.
+- **`pages/clip-interrogator.html`** — the CLIP Interrogator port
+  (image→prompt + image analysis), docs and sibling link from the
+  Twin OS Songs panel.
+- **`lib/clip-interrogator/`** — Python package (uv-managed venv) that
+  powers the CLIP Interrogator. Gradio UI + CLI + self-check.
+- **`pages/refael-mp4-maker.html`** — the Refael MP4 Maker port
+  (offline MP3→MP4 with mood-keyword auto-covers; single/custom/batch),
+  docs and sibling link from the Twin OS Songs panel.
+- **`pages/loopable-video-segmenter.html`** — the Loopable Video
+  Segmenter port (MP4→N beat-aligned mirror-loopable clips), docs and
+  sibling link from the Twin OS Songs panel.
+- **`lib/loopable-video-segmenter/`** — Python package (uv-managed
+  venv) that powers the Loopable Video Segmenter. Gradio UI + CLI +
+  self-check.
+- **`pages/agent-dashboard.html`** — live view of the persistent agent
+  loop (`agents/persistent-agent-loop.py`), embedded in the
+  cognitive-twin page. Regenerate with `python3
+  agents/persistent-agent-loop.py dashboard --out pages/agent-dashboard.html`.
+- **`pages/how-to.html`** — the operator's manual: quickstart, Twin OS,
+  CLIP Interrogator, Refael, chart pipeline, song indexer, testing,
+  LaunchAgents, troubleshooting. Linked from the cognitive-twin footer.
+- **`lib/songs-indexer.js`** — walks audio dirs, builds
+  `data/songs/catalog.json`.
 - **`docs/DESIGN-RATIONALE.md`** — why the page looks the way it does.
 - **`docs/COMPONENT-CATALOGUE.md`** — what each Web Component does.
-- **`e2e/landing.spec.mjs`** — Puppeteer smoke test that loads each
-  variant, screenshots, and asserts the variant switcher roundtrips.
+- **`e2e/*.mjs`** — Puppeteer smoke tests (landing, twin-os, songs,
+  cognitive-twin, clip-interrogator, refael).
 
 ## Install from GitHub
 
@@ -114,6 +141,72 @@ architecture section, the running processes, the domain twins, the
 integrations, and the footer stay the same — the *product* is
 constant, the *pitch* is the A/B test.
 
+## Run the CLIP Interrogator
+
+The tool is a Python package under `lib/clip-interrogator/` with its own
+uv-managed venv (CPython 3.12). First run downloads ~1 GB of models
+into `~/.cache/huggingface` (ViT-L + BLIP; vocab embeddings come from
+the clip-interrogator CDN).
+
+```bash
+# one-time setup: venv + resolved deps (commits uv.lock)
+npm run clip:setup
+
+# self-check — import + device + registry, downloads NO weights
+npm run clip:check
+
+# gradio UI on http://127.0.0.1:7860
+npm run clip:ui
+
+# real interrogation — image → prompt (best mode, ViT-L, example01.jpg)
+npm run clip:interrogate
+```
+
+Details, CLI verbs, exit codes and e2e: [`docs/CLIP-INTERROGATOR.md`](docs/CLIP-INTERROGATOR.md).
+
+## Run the Refael MP4 Maker
+
+No setup — it's one static HTML file. Serve it or open it from disk:
+
+```bash
+# Option A: open directly (fully offline, file:// works)
+open pages/refael-mp4-maker.html
+
+# Option B: serve it with the rest of the pages
+python3 -m http.server 5173 --directory .
+# then visit http://127.0.0.1:5173/pages/refael-mp4-maker.html
+```
+
+Drop an MP3, pick a track name (or hit 🎲 random), choose a render
+mode, and get a 1920×1080 MP4 with a mood-keyword auto-cover. Fast
+mode is WebCodecs (offline, zero network); FFmpeg.wasm lazy-loads
+from unpkg on first use; Real-time uses MediaRecorder. Open with
+`?selftest=1` for a built-in end-to-end render self-test.
+
+Details and offline caveats: [`docs/REFAEL-MP4-MAKER.md`](docs/REFAEL-MP4-MAKER.md).
+
+## Run the Loopable Video Segmenter
+
+A Python package under `lib/loopable-video-segmenter/` with its own
+uv-managed venv (CPython 3.12). **ffmpeg must be on PATH** (MoviePy
+uses it for encode/decode — `brew install ffmpeg`).
+
+```bash
+# one-time setup: venv + resolved deps (commits uv.lock)
+npm run lvs:setup
+
+# self-check — imports + deps + ffmpeg presence, no model downloads
+npm run lvs:check
+
+# gradio UI on http://127.0.0.1:7861  (7860 is the CLIP Interrogator's port)
+npm run lvs:ui
+
+# headless split — beat-aligned, mirror-loopable, ZIP out
+npm run lvs:segment -- video.mp4 --segments 4
+```
+
+Details, CLI flags, exit codes and e2e: [`docs/LOOPABLE-VIDEO-SEGMENTER.md`](docs/LOOPABLE-VIDEO-SEGMENTER.md).
+
 ## Run the e2e test
 
 ```bash
@@ -122,7 +215,7 @@ npm install
 node landing.spec.mjs
 ```
 
-The test:
+The landing test:
 1. Spawns a local static file server on port 5173.
 2. Loads the landing page in headless Chrome.
 3. Switches through all three variants and screenshots each.
@@ -131,6 +224,24 @@ The test:
 5. Asserts 0 console errors on each variant.
 6. Saves screenshots to `e2e/artifacts/`.
 
+The CLIP test runs against a repo-root server (no Python deps):
+
+```bash
+python3 -m http.server 5180 --directory . &
+npm run e2e:clip
+```
+
+The Refael test uses the same convention:
+
+```bash
+python3 -m http.server 5180 --directory . &
+npm run e2e:refael
+```
+
+The how-to page test uses the same convention (`npm run e2e:howto`),
+as does the Loopable Video Segmenter test (`npm run e2e:lvs`), and
+`npm run test:all` covers the watcher unit tests (chart / songs / MJ).
+
 ## Architecture (sprint 0 + planned)
 
 ```
@@ -138,6 +249,11 @@ digital_twin/
 ├── pages/
 │   ├── landing.html          # the public landing page
 │   ├── cognitive-twin.html   # the 4-layer architecture narrative
+│   ├── clip-interrogator.html # tool page for the CLIP Interrogator port
+│   ├── refael-mp4-maker.html  # offline MP3→MP4 maker (single-file app)
+│   ├── loopable-video-segmenter.html # tool page for the LVS port
+│   ├── agent-dashboard.html   # agent-loop live view (regenerated by the loop)
+│   ├── how-to.html            # operator's manual for the whole repo
 │   └── twin-os/              # the Twin OS PWA shell (Today / Songs / Twin)
 ├── lib/                      # pure-Node tooling + browser components
 │   ├── serve.js              # zero-dep static server (also the LaunchAgent program)
@@ -146,15 +262,23 @@ digital_twin/
 │   ├── chart-export.js       # MusicXML → per-part PDFs / muted parts / MP3
 │   ├── midi-export.js        # MusicXML → multi-track MIDI
 │   ├── *-watcher.js          # chart / songs / reel / mj inbox watchers
-│   └── mj-prompt-generator.js# lyrics/idea → 5-10 Midjourney prompts
+│   ├── mj-prompt-generator.js# lyrics/idea → 5-10 Midjourney prompts
+│   ├── clip-interrogator/    # Python package (uv-managed venv)
+│   └── loopable-video-segmenter/ # Python package (uv-managed venv)
 ├── data/                     # generated catalogs (gitignored)
 │   └── songs/
 │       ├── catalog.json              # audio, from `npm run index-songs`
 │       └── catalog-jazz-solos.json   # MIDI corpus, from `npm run index-jazz-solos`
-├── e2e/                      # Puppeteer specs (landing, twin-os, ct-*, watchers)
+├── e2e/                      # Puppeteer specs (landing, twin-os, ct-*, clip, refael, how-to, lvs, watchers)
 ├── agents/                   # twin agent definitions
-├── docs/                     # engraving, watcher, export, design references
-├── assets/                   # brand assets, mural prompts
+├── docs/                     # design + engraving, watcher, export, and tool references
+│   ├── DESIGN-RATIONALE.md
+│   ├── COMPONENT-CATALOGUE.md
+│   ├── ARCHITECTURE.md
+│   ├── CLIP-INTERROGATOR.md
+│   ├── LOOPABLE-VIDEO-SEGMENTER.md
+│   └── REFAEL-MP4-MAKER.md
+├── assets/                   # brand assets, mural prompts, clip example images
 ├── bin/                      # shell wrappers for the LaunchAgents
 └── README.md                 # this file
 ```
