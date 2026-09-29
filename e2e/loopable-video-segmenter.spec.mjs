@@ -132,13 +132,13 @@ try {
   await twin.setViewport({ width: 1280, height: 900, deviceScaleFactor: 1 });
   twin.on('pageerror', e => twinErrors.push('pageerror: ' + e.message));
   twin.on('console', m => {
-    // Known pre-existing: twin-os fetches ../../data/songs/catalog.json, which
-    // 404s (catalog is gitignored user-local). Mirror the filter used by
+    // Known pre-existing: twin-os fetches the songs catalogs (audio + jazz-solos),
+    // both gitignored user-local, so they 404 on the deployed site. Mirror the filter used by
     // twin-os.spec.mjs / twin-os-songs.spec.mjs.
     if (m.type() === 'error') {
       const url = m.location().url || '';
       const text = m.text();
-      if (url.includes('catalog.json') && text.includes('404')) return;
+      if (/catalog[^/]*\.json/.test(url) && text.includes('404')) return;
       twinErrors.push('console.error: ' + text + ' (' + url + ')');
     }
   });
