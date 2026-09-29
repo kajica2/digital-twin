@@ -2785,3 +2785,44 @@ but the local suite is green, suspect the local harness before the page.
 failures; all 16 local e2e specs pass (12 here + clip-interrogator,
 refael, how-to, loopable-video-segmenter); deployed landing re-tested
 after push.
+
+### 2026-09-29 — sprint 0.32 (MJ asset packs + acceptance-matcher hardening)
+
+- **Shipped:**
+  - **SWR asset prompt packs** — `assets/mural-prompts/swr-assets-{neon-church,
+    morning-haunt,system-error,dream-sequence,brutalist-grid}.md`, plus a
+    cinematic re-render pass for all five (`…-cinematic.md`, 41 prompts).
+    One top-level bullet per pack asset, `--ar 16:9`, subject-first.
+    67 MJ jobs submitted through the watcher; each run's `meta.json`
+    carries the task id and the preview URLs of the card it produced.
+  - **`lib/mj-web.js` — acceptance excerpts are now distinctive.** Two real
+    defects surfaced by running packs; both fixed and pinned:
+    1. **Shared-prefix collapse.** A pack whose prompts all opened with the
+       same style clause ("Cinematic film still, anamorphic widescreen: ")
+       produced one identical 40-char excerpt per prompt, so acceptance
+       attributed 8 prompts to 3 task ids (41 prompts → 19 distinct ids,
+       several wrong). `promptExcerpt` now takes 64 chars; a regression
+       test uses a shared 45-char prefix; the pack convention is documented
+       subject-first in each pack header.
+    2. **MJ's card text drops em dashes.** A prompt containing " — " never
+       matched its own card ("…a window — chipped mug" vs the card's
+       "…a window chipped mug"). Em/en dashes are normalised to spaces.
+  - **Reconciliation (throwaway probe).** Both incidents were repaired by a
+    CDP probe that scrolls the virtualized feed (7 cards mounted flat → 82
+    after scrolling) and re-maps ids by a distinctive subject clause: the
+    1:1 cover run, the first asset pass and the cinematic pass are all fully
+    mapped (41/41 distinct on the cinematic pass).
+- **Decisions:**
+  - Both fixes live in `promptExcerpt`, not in the pack files — the pipeline
+    should survive any pack style, and the tests encode the two incidents.
+  - Prompt packs live in `assets/mural-prompts/` (the repo's prompt source
+    dir); the copies the watcher consumes sit in `prompts-inbox/`.
+- **Verified:** `npm run test:mj-web` 22/22 (three new assertions);
+  `npm run test:all` 358 assertions / 10 suites, 0 failures;
+  `npm run verify` (3 e2e specs) exit 0.
+- **Open:** the SWR-side *import* (clips into `packs/*.mp4`) is manual only
+  on the MJ download — the CDN rejects scripted fetches (403 to curl, CORS
+  in-page). An `import-pack` script could collapse download → pack once the
+  user asks for it.
+- **Next:** the product calls still open on the SWR side (eight-registers
+  copy, the canonical Looks count, the MP4 tier wording).

@@ -53,6 +53,10 @@ For now, what's here:
   LaunchAgents, troubleshooting. Linked from the cognitive-twin footer.
 - **`lib/songs-indexer.js`** — walks audio dirs, builds
   `data/songs/catalog.json`.
+- **`assets/mural-prompts/STYLE-PRESETS.md`** — the 23-entry MJ style
+  registry, with its generated style-study pack
+  (`prompts-inbox/style-presets-vol-1.md`, dry-run validated through
+  the MJ watcher).
 - **`docs/DESIGN-RATIONALE.md`** — why the page looks the way it does.
 - **`docs/COMPONENT-CATALOGUE.md`** — what each Web Component does.
 - **`e2e/*.mjs`** — Puppeteer smoke tests (landing, twin-os, songs,

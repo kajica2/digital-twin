@@ -180,3 +180,47 @@ takes only the time of the missing prompts.
 - **No new LaunchAgent.** The MJ watcher is already wired from
   sprint 0.15; this is a watcher contract expansion, not a new
   service.
+
+## Style-preset packs
+
+A second pack shape: one prompt per MJ **style preset** instead of one
+per lyric fragment. No song subject — every bullet renders the same
+anchor subject ("Abstract study…") so the presets are comparable side
+by side.
+
+- **The registry is canonical.** `assets/mural-prompts/STYLE-PRESETS.md`
+  holds every preset with a stable kebab-case slug, its display name,
+  and its descriptor. Packs are generated from the registry, not
+  hand-written — when the registry changes, regenerate the pack rather
+  than editing prompts in place.
+- **The 5–10 soft cap does not apply here.** The cap keeps a *song's*
+  prompt set varied; a registry sweep is intentionally exhaustive.
+  Each `style-presets-vol-N.md` carries one prompt per registry entry,
+  in registry order, in a single file — an explicit choice for this
+  pack shape, not a licence to grow lyric packs past 10.
+- **Tail convention.** Each bullet ends
+  `— <DISPLAY NAME> study --ar 16:9`, where `<DISPLAY NAME>` is the
+  registry's bold line with ` · ` replaced by spaces. The tail
+  survives into the submitted prompt, so
+  `mj-output/<pack>/prompt-NN/` traces back to a registry entry.
+- **Dry-run first.** Verify the pack before any real drop (and after
+  any registry edit):
+
+  ```bash
+  node lib/mj-watcher.js --once --dry-run
+  ```
+
+  The watcher parses the pack, composes every prompt, archives the
+  input to `prompts-inbox/processed/` and spends zero generations — no
+  browser is launched. The watcher pipes its child's stdout, so to
+  *see* the composed prompt text, invoke the backend directly with the
+  same flags:
+
+  ```bash
+  node lib/mj-web.js --prompt-file <pack> --all-prompts --skip-done \
+      --output mj-output --dry-run
+  ```
+
+- **Real runs are the same drop without `--dry-run`.** One generation
+  per registry entry, submitted sequentially; expect minutes, not
+  seconds, because the web backend waits for each task's grid.
