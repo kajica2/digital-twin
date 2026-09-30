@@ -2947,3 +2947,58 @@ remembered to regenerate it.
   CLIP sample strip; (c) clip CLI `--out <file>`; (d) woody-shaw chart
   variants; (e) cleanup of the superseded `/tmp/*-launcher.sh` shims and
   `.plist.bak` files.
+
+### 2026-09-30 — sprint 0.34 (deploy-test loop content guard)
+
+Closes the blind spot the 0.33 security pass exposed: the loop's wait
+step polled `landing.html` for HTTP 200, which a STALE Pages build
+satisfies while the new build is still in flight. Observed live:
+CI went green before the scrubbed `lib/mj-config.json` was served —
+the deploy was verified as "up", never as "this commit".
+
+- **Shipped:**
+  - **`.github/workflows/pages-test.yml` gains a push-only step,
+    "Verify deployed content matches HEAD"**, inserted after the wait
+    step. It extracts `lib/mj-config.json` from `HEAD` (`git show
+    HEAD:...`, works in the shallow Actions checkout), curls the served
+    copy (cache-busted with the SHA query param + `no-cache` header),
+    and byte-compares with `cmp -s`. Retries every 5s for up to 5
+    minutes — Pages deploys are async, so a brief lag is expected —
+    then fails the run with `::error::` if the content never catches
+    up. Not just the channel-ID case: any byte drift fails CI.
+  - Header comment updated to document the two-stage liveness contract
+    (site answers / site serves this commit).
+- **Decisions:**
+  - **Sentinel = `lib/mj-config.json`** — the file that proved the
+    blind spot. JSON passes through Jekyll verbatim (no .md → .html
+    transformation), and it changes with realistic frequency. One
+    sentinel, documented as extensible to a list.
+  - **Byte compare, not a regex.** A regex hard-coding "the channel ID
+    is gone" would rot; `cmp -s` against HEAD catches any drift.
+  - **Push-only.** PR runs use a local server with no live deploy, so
+    there's nothing to verify — the step mirrors the existing
+    push-only wait step.
+  - **Retry, not instant-fail.** CI run 36668095314 proved the shape:
+    the new guard only fires after Pages finishes building, so a
+    single-shot check would flake on every deploy that's mid-flight
+    when the runner arrives.
+  - **Sprint log entry withheld until the guard survived a real run.**
+    This entry is written after, not before — same honesty rule as the
+    repo's "verify before logging" culture.
+- **Verified end-to-end:**
+  - Commit `eeae1b1` → run `36668095314` → **all steps success**,
+    including the new guard.
+  - Guard matched on **attempt 1** (deploy already live when the
+    runner got there) — the compare itself is the teeth, the attempt
+    number is timing.
+  - The full 15-spec deployed e2e still green under the new guard.
+  - Working tree clean, `main` in sync with origin.
+- **Open:**
+  - One sentinel file today; extend to a small list (a config + a
+    page) the moment a second blind spot shows up.
+  - The guard can't compare files Jekyll transforms (`.md` → `.html`,
+    liquid). Choose sentinels that pass through verbatim — hence JSON.
+- **Next:** backlog — (a) reel LaunchAgent bootstrap (needs user
+  approval, irreversible); (b) `data/clip/samples.json` for the CLIP
+  sample strip; (c) clip CLI `--out <file>`; (d) woody-shaw chart
+  variants.
