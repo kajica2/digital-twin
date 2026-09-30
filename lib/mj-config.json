@@ -12,8 +12,8 @@
         "_note_userDataDir": "Browser profile for the web backend. Separate from the Discord profile so the two never fight over one Chromium instance.",
         "generationTimeoutMs": 180000,
         "_note_generationTimeoutMs": "How long to wait for a task's 4-up grid after submitting. Relax-mode jobs queue, so generous.",
-        "acceptTimeoutMs": 45000,
-        "_note_acceptTimeoutMs": "How long to wait for a new task to appear after pressing Enter. This is the acceptance signal — a cleared textbox is not."
+        "acceptTimeoutMs": 75000,
+        "_note_acceptTimeoutMs": "How long to wait for a new task to appear after pressing Enter. This is the acceptance signal — a cleared textbox is not. 75s (was 45s since 2026-09-30): queued jobs + the per-prompt retry need the extra window."
     },
 
     "discord": {
@@ -29,8 +29,8 @@
 
     "mj": {
         "outputDir": "mj-output",
-        "defaultArgs": "--ar 3:4 --style raw --s 250",
-        "_note_defaultArgs": "Default Midjourney parameters appended when the prompt doesn't specify --ar. Note: an explicit --ar in the prompt file wins, and the default's own --ar is stripped (see buildFullPrompt).",
+        "defaultArgs": "--ar 16:9 --style raw --s 250",
+        "_note_defaultArgs": "Default Midjourney parameters appended when the prompt doesn't specify --ar. All current packs are 16:9 (2026-09-30 rule) so the default now matches; an explicit --ar in the prompt file wins, and the default's own --ar is stripped (see buildFullPrompt).",
         "generationTimeoutMs": 120000,
         "_note_generationTimeoutMs": "Legacy Discord backend generation timeout (milliseconds)."
     },
