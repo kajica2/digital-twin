@@ -46,7 +46,8 @@ For now, what's here:
   self-check.
 - **`pages/agent-dashboard.html`** — live view of the persistent agent
   loop (`agents/persistent-agent-loop.py`), embedded in the
-  cognitive-twin page. Regenerate with `python3
+  cognitive-twin page. The loop rewrites it itself on pause/exit and
+  every 10 iterations; regenerate by hand with `python3
   agents/persistent-agent-loop.py dashboard --out pages/agent-dashboard.html`.
 - **`pages/how-to.html`** — the operator's manual: quickstart, Twin OS,
   CLIP Interrogator, Refael, chart pipeline, song indexer, testing,

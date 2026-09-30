@@ -18,6 +18,14 @@ Run it:
     python persistent_agent.py dashboard    # writes dashboard.html
     python persistent_agent.py reset        # wipe and start over
 
+Every `run` also refreshes the SERVED dashboard — the page the
+cognitive-twin page iframes — on pause/exit (and every
+DASHBOARD_REFRESH_EVERY iterations while it works), so the human view
+never goes stale. It finds that page by walking up from the state file
+looking for `pages/agent-dashboard.html`; run the loop anywhere that
+page doesn't exist and nothing is written. Override with
+`--dashboard-out PATH`, disable with `--no-dashboard`.
+
 Wire in a real model with no SDK at all (any CLI that reads stdin):
     python persistent_agent.py run --cmd "llm -m gpt-4o"
     python persistent_agent.py run --cmd "ollama run llama3"
@@ -60,6 +68,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 STATE_VERSION = 1
+
+# the served view: what the cognitive-twin page iframes. Committed on
+# purpose — it doubles as the placeholder until the loop first runs.
+SERVED_DASHBOARD = Path("pages/agent-dashboard.html")
+DASHBOARD_REFRESH_EVERY = 10   # iterations between live refreshes while running
 
 # --- context / safety knobs -------------------------------------------------
 LOG_KEEP = 120           # log entries retained inside the state file
@@ -397,6 +410,13 @@ def show(st: State) -> None:
 
 def cmd_run(args) -> int:
     path = Path(args.state)
+    # where the served view lives; `--dashboard-out` wins over discovery
+    dash_out = Path(args.dashboard_out) if getattr(args, "dashboard_out", None) else None
+    dash_on = dash_out is not None or not getattr(args, "no_dashboard", False)
+
+    def refresh(st: State) -> "Path | None":
+        return refresh_dashboard(st, path, dash_out) if dash_on else None
+
     if args.reset and path.exists():
         path.unlink()
         print(f"reset {path}")
@@ -487,13 +507,21 @@ def cmd_run(args) -> int:
             st.save(path)
             show(st)
 
+            if st.iteration % DASHBOARD_REFRESH_EVERY == 0:
+                refresh(st)
+
     except KeyboardInterrupt:
         st.status = "paused"
         st.log_event("note", "interrupted — checkpointed, safe to resume")
         st.save(path)
         print("\ninterrupted. state saved; rerun the same command to continue.")
+    finally:
+        # pause / done / blocked / crash — the human view updates either way
+        target = refresh(st)
 
     print(f"\nstatus: {st.status}  |  iteration {st.iteration}  |  {path}")
+    if target is not None:
+        print(f"served dashboard refreshed -> {target}")
     if st.status == "done":
         print(f"goal met: {st.goal}")
     return 0 if st.status == "done" else 1
@@ -527,12 +555,44 @@ def cmd_status(args) -> int:
     return 0
 
 
-def cmd_dashboard(args) -> int:
-    path = Path(args.state)
-    if not path.exists():
-        print(f"no state at {path}")
-        return 1
-    st = State.load(path)
+def find_served_dashboard(state_path: Path) -> "Path | None":
+    """Locate the served view by walking UP from the brain.
+
+    Deliberately keyed off the state file rather than the CWD: `--state
+    /tmp/run/state.json` executed from the repo root still finds
+    pages/agent-dashboard.html, while a run in a scratch dir finds
+    nothing — so a throwaway run can never litter a stray pages/ tree.
+    """
+    parent = state_path.parent
+    while True:
+        cand = parent / SERVED_DASHBOARD
+        if cand.exists():
+            return cand
+        if parent == parent.parent:          # filesystem root
+            return None
+        parent = parent.parent
+
+
+def write_dashboard(st: State, out: Path) -> None:
+    """Render and write atomically — a served file is never seen half-written."""
+    _atomic_write(out, render_dashboard(st))
+
+
+def refresh_dashboard(st: State, state_path: Path,
+                      out: "Path | None" = None) -> "Path | None":
+    """Write the served view; `out=None` means discover it. Never raises."""
+    target = out if out is not None else find_served_dashboard(state_path)
+    if target is None:
+        return None
+    try:
+        write_dashboard(st, target)
+    except Exception as exc:                # a broken view must never kill the loop
+        print(f"  ! dashboard refresh failed: {type(exc).__name__}: {exc}")
+        return None
+    return target
+
+
+def render_dashboard(st: State) -> str:
     rows = "".join(
         f"<tr class='{s.status}'><td>{s.id}</td><td>{html.escape(s.text)}</td>"
         f"<td>{s.status}</td><td>{s.attempts}</td>"
@@ -566,8 +626,16 @@ def cmd_dashboard(args) -> int:
 <h2>Memory</h2><table>{mem}</table>
 <h2>Journal</h2>{feed}
 """
+    return doc
+
+
+def cmd_dashboard(args) -> int:
+    path = Path(args.state)
+    if not path.exists():
+        print(f"no state at {path}")
+        return 1
     out = Path(args.out) if getattr(args, "out", None) else path.with_name("dashboard.html")
-    out.write_text(doc, encoding="utf-8")
+    write_dashboard(State.load(path), out)
     print(f"wrote {out}")
     return 0
 
@@ -597,7 +665,8 @@ def main(argv=None) -> int:
         if name == "dashboard":
             sp.add_argument("--out", metavar="PATH",
                             help="write the dashboard here instead of next to the"
-                                 " state file (e.g. pages/agent-dashboard.html)")
+                                 " state file (e.g. pages/agent-dashboard.html)."
+                                 " `run` refreshes the discovered path on exit.")
         if name == "run":
             sp.add_argument("--goal", help="what the agent is trying to achieve")
             sp.add_argument("--plan", help="initial steps, separated by ';;'")
@@ -609,6 +678,11 @@ def main(argv=None) -> int:
             sp.add_argument("--timeout", type=int, default=180,
                             help="seconds to wait for the model command")
             sp.add_argument("--reset", action="store_true", help="start over")
+            sp.add_argument("--dashboard-out", metavar="PATH",
+                            help="refresh the served dashboard here on pause/exit "
+                                 "(default: auto-discover pages/agent-dashboard.html)")
+            sp.add_argument("--no-dashboard", action="store_true",
+                            help="don't touch the served dashboard")
 
     args = p.parse_args(argv)
     return {"run": cmd_run, "status": cmd_status,

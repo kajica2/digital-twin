@@ -2866,3 +2866,84 @@ after push.
 - **Also:** `prompts-inbox/processed/style-presets-vol-1.md` updated
   with frontmatter documenting it as a style-preset pack per the
   PROMPT-EXPANSION-FORMAT.md convention.
+
+### 2026-09-30 — sprint 0.33 (agent-loop dashboard auto-refresh)
+
+Closes the highest-value item left on the 0.19/0.20 backlog: the served
+dashboard was only ever written by a manual `dashboard --out` call, so
+the cognitive-twin iframe sat on the committed placeholder until someone
+remembered to regenerate it.
+
+- **Shipped:**
+  - **`run` refreshes the served dashboard itself.** On every exit path
+    — done, paused, blocked, `--max-iterations`, Ctrl-C/SIGTERM, and an
+    unhandled exception (`finally`) — plus every
+    `DASHBOARD_REFRESH_EVERY` (10) iterations while it's still working.
+    One confirmation line: `served dashboard refreshed -> <path>`.
+  - **Discovery walks UP from the state file, not the CWD.** The nearest
+    ancestor carrying `pages/agent-dashboard.html` wins; if none does,
+    nothing is written. So a run in a scratch dir can't litter a stray
+    `pages/` tree, while `--state /tmp/x/state.json` executed from the
+    repo root still finds the served page.
+  - **Two flags:** `--dashboard-out PATH` (explicit target) and
+    `--no-dashboard` (leave the page alone).
+  - **Rendering refactored** into `render_dashboard(st)` /
+    `write_dashboard(st, out)` / `find_served_dashboard` /
+    `refresh_dashboard` — one implementation shared by the `dashboard`
+    command and the run hook. Writes go through the existing
+    `_atomic_write`, so a served file is never observed half-written.
+  - **`agents/persistent-agent-loop.test.py`** — 37 assertions, pure
+    stdlib, built-in demo model, no network, no model. Wired up as
+    `npm run test:agent-loop` and appended to `test:all` (now 11
+    suites / 395 assertions). First tests this script has ever had.
+  - **Copy updated** where it still described the manual flow:
+    `pages/agent-dashboard.html` ("How this view comes alive"),
+    `pages/cognitive-twin.html` panel blurb, `README.md`,
+    `pages/how-to.html` (page-map row + testing lede).
+- **Decisions:**
+  - **`finally`, not `except`.** A crash should update the human view
+    exactly as a clean pause does — that is precisely when you want the
+    dashboard to say what happened.
+  - **The refresh swallows its own errors.** A broken view must never
+    kill the loop: `refresh_dashboard` logs and returns `None`.
+    Tested against an unwritable target (parent path is a file).
+  - **Keyed off the state file, never the CWD.** The litter failure
+    mode — a throwaway run creating `pages/` inside a scratch dir — is
+    the one that would have made this feature annoying, so tests 1 and
+    4 pin it directly.
+  - **`cmd_reset` deliberately untouched.** After a reset there is no
+    state to render, so the served page keeps showing the wiped run
+    until the next `run`. Restoring the committed placeholder from
+    inside the script would mean embedding that HTML in code — see
+    Open.
+  - **Cadence stays a fixed 10 iterations, not a flag.** It is an I/O
+    cost on a long run and 10 is already invisible in practice.
+- **Verified end-to-end:**
+  - `npm run test:all` — **395 assertions / 11 suites, 0 failures.**
+  - 8 ct specs (`ct-{default,icon,nav,progress,theme,verify,a11y,phase3}`)
+    green on the repo-root `:5180` server, including `ct-verify`'s
+    dashboard-iframe 200 + 0-console-errors contract.
+  - `npm run verify` (landing / twin-os / twin-os-songs) green;
+    `e2e:howto` green after the copy edits (13 code blocks, 13 copy
+    buttons, 0 console errors).
+  - **Real-repo smoke:** `run --goal "sprint 0.33 smoke"` from the repo
+    root discovered `pages/agent-dashboard.html`, rewrote it with live
+    state (goal present 3×, placeholder gone) and printed the refresh
+    line. Placeholder restored and `.agent/` removed afterwards.
+  - **SIGTERM path:** a run killed mid-model-call → `status: paused`,
+    state checkpointed, served page rewritten with the paused badge.
+- **Open:**
+  - `reset` leaves the served page showing the wiped run (per
+    Decisions). Fixing it needs the placeholder text either embedded in
+    the script or read from a committed source.
+  - The periodic cadence isn't configurable, and `cmd_reset` still has
+    no test coverage (pre-existing gap).
+  - The test imports the module by path (`importlib`) because the
+    filename carries a hyphen; py3.9 dataclasses additionally need the
+    module registered in `sys.modules` before exec. Both noted in the
+    test header.
+- **Next:** the rest of the 0.19/0.20 backlog — (a) reel LaunchAgent
+  bootstrap (needs user approval); (b) `data/clip/samples.json` for the
+  CLIP sample strip; (c) clip CLI `--out <file>`; (d) woody-shaw chart
+  variants; (e) cleanup of the superseded `/tmp/*-launcher.sh` shims and
+  `.plist.bak` files.
