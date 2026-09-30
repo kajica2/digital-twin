@@ -29,8 +29,8 @@
 
     "mj": {
         "outputDir": "mj-output",
-        "defaultArgs": "--ar 16:9 --style raw --s 250",
-        "_note_defaultArgs": "Default Midjourney parameters appended when the prompt doesn't specify --ar. All current packs are 16:9 (2026-09-30 rule) so the default now matches; an explicit --ar in the prompt file wins, and the default's own --ar is stripped (see buildFullPrompt).",
+        "defaultArgs": "--ar 16:9 --style raw --s 70",
+        "_note_defaultArgs": "Default Midjourney parameters appended when the prompt doesn't specify --ar. All current packs are 16:9 (2026-09-30 rule) so the default now matches. --s 70 since 2026-09-30 per the artist: low stylize keeps the render close to the literal prompt (with the dust/human-imperfection pass, MK embellishment is the enemy). An explicit --ar in the prompt file wins; the default's own --ar is stripped (see buildFullPrompt).",
         "generationTimeoutMs": 120000,
         "_note_generationTimeoutMs": "Legacy Discord backend generation timeout (milliseconds)."
     },
