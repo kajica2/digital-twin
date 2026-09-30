@@ -2826,3 +2826,43 @@ after push.
   user asks for it.
 - **Next:** the product calls still open on the SWR side (eight-registers
   copy, the canonical Looks count, the MP4 tier wording).
+
+### 2026-09-30 — sprint 0.31.b (MJ style deduplication)
+
+- **Shipped:** `buildFullPrompt` now strips `--style raw` and its coupled
+  `--s` from config defaults ONLY when the prompt already carries
+  `--style`. This prevents the double `--style raw` that appeared when
+  prompts authored with `--style raw` were submitted — the config's
+  `--style raw --s 250` was being appended after the prompt's
+  `--style raw`.
+- ** також: корица prompts submitted** — 3 prompts (front cover 2:3,
+  spine 1:4, back cover 2:3) to `mj-output/корица/` via the web
+  backend with `--v 8.2` confirmed in metadata (tasks `4cdf45be`,
+  `f08a9536`, `6b1f1762`). Re-submitted v2 with deduplication fix
+  (tasks `805f41fa`, `f08a9536`, `ed4516c0`) to
+  `mj-output/корица-v2/`.
+- **Also:** fresh cookie jar installed to
+  `~/.midjourney-cookies.txt` from user upload.
+- **Verified:** `npm run test:mj-submitter` 30/30; `npm run test:all`
+  351 assertions / 10 suites, 0 failures; all prompts compose cleanly
+  (no duplicate flags, `--ar` last, `--v 8.2` preserved).
+
+### 2026-09-30 — sprint 0.31.c (MJ art book + chapter openers)
+
+- **Shipped:**
+  - ** корица style studies** — `mj-output/artbook-style-studies/` — 23
+    prompts, the Byzantine sacred-geometry cover rendered through each
+    of the 23 MJ style presets (cross-raw through train-stage-3),
+    `--ar 2:3 --v 8.2`, submitted and tracking via task IDs.
+  - **Chapter openers 8–18** — 11 prompts, real historical references
+    (Serbian family portrait / Belgrade apartment / San Marco scholars /
+    Dobričević altarpiece / Studenica fresco / Theotokos icon /
+    Peć facade / Nemanjić tree / Hilandar / Belgrade exhibition /
+    medieval church with art historian), `--ar 2:3 --v 8.2 --style raw`,
+    to `mj-output/chapters-8-18/`. 9/11 first attempt, 2 resubmitted
+    and succeeded.
+  - **Style presets vol 1** — dry-run completed; 10 prompts submitted
+    before manual stop, 13 remaining.
+- **Also:** `prompts-inbox/processed/style-presets-vol-1.md` updated
+  with frontmatter documenting it as a style-preset pack per the
+  PROMPT-EXPANSION-FORMAT.md convention.
