@@ -8,9 +8,13 @@ name: pages-test
 #   1. push lands on main
 #   2. GitHub Pages builds + deploys (existing pages-build-and-deploy
 #      workflow, fires automatically because Pages is enabled on main)
-#   3. this workflow polls pages until the deploy is live
+#   3. this workflow polls pages until the deploy is live, then
+#      verifies a served file's bytes match HEAD — the poll alone can
+#      be satisfied by a STALE build (site answers 200 while the new
+#      build is still in flight), which is how a deploy once went
+#      green before its own content was live
 #   4. installs puppeteer in e2e/
-#   5. runs e2e/landing.spec.mjs with E2E_URL=https://kajica2.github.io/digital-twin
+#   5. runs e2e specs with E2E_URL=https://kajica2.github.io/digital-twin
 #   6. any failure fails the build → no green check, the deploy is
 #      treated as not-done
 #
@@ -64,6 +68,32 @@ jobs:
             echo "::error::Pages never came up after 5 minutes"
             exit 1
           fi
+
+      - name: Verify deployed content matches HEAD (push only)
+        if: github.event_name == 'push'
+        run: |
+          # The wait step above only proves the site answers 200 — a
+          # STALE build satisfies that while the new build is still in
+          # flight (observed 2026-09-30: green CI before the new
+          # mj-config.json was live). This step proves the NEW build is
+          # serving by diffing a file on the site against the same file
+          # at HEAD. lib/mj-config.json is the sentinel because Jekyll
+          # copies it verbatim and it changes with realistic frequency.
+          FILE="lib/mj-config.json"
+          git show "HEAD:$FILE" > /tmp/expected.json
+          for i in $(seq 1 60); do
+            curl -s --max-time 10 -H "Cache-Control: no-cache" \
+              "https://kajica2.github.io/digital-twin/$FILE?x=${GITHUB_SHA}" \
+              > /tmp/served.json || true
+            if cmp -s /tmp/expected.json /tmp/served.json; then
+              echo "deployed content matches HEAD (attempt $i)"
+              exit 0
+            fi
+            echo "  attempt $i: served content != HEAD — retrying in 5s"
+            sleep 5
+          done
+          echo "::error::deployed content still != HEAD after 5 minutes"
+          exit 1
 
       - name: Run e2e (deployed URL on push, local on PR)
         run: |
