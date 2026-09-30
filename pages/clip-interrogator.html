@@ -479,8 +479,37 @@ uv run --project lib/clip-interrogator clip-interrogate analyze assets/clip-inte
       </div>
       <p class="sample-note">
         Output recorded from <code>clip-interrogate interrogate assets/clip-interrogator/example01.jpg --mode best</code>.
+        When <code>data/clip/samples.json</code> exists (<code>npm run clip:samples</code>),
+        this strip shows the full generated catalog instead.
       </p>
     </section>
+
+    <script>
+      // Sample strip: when the generated catalog exists (local runs only —
+      // it's gitignored, so deploys don't carry it) render every entry;
+      // otherwise keep the baked-in recorded sample above. fetch() with an
+      // ok-check keeps this free of console errors in both states.
+      (function () {
+        var box = document.querySelector('[data-sample-output]');
+        if (!box) return;
+        fetch('../data/clip/samples.json', { cache: 'no-store' })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (cat) {
+            if (!cat || !Array.isArray(cat.samples) || !cat.samples.length) return;
+            var esc = function (s) {
+              return String(s).replace(/[&<>"']/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+              });
+            };
+            box.innerHTML = cat.samples.map(function (s) {
+              return '<p class="sample-meta">sample · ' + esc(s.mode) + ' mode · ' +
+                esc(s.model) + ' · ' + esc(s.label) + '</p><blockquote>' +
+                esc(s.prompt) + '</blockquote>';
+            }).join('');
+          })
+          .catch(function () { /* catalog absent or unreadable — keep fallback */ });
+      })();
+    </script>
 
     <!-- ATTRIBUTION -->
     <section class="section" id="attribution" aria-labelledby="attribution-h">

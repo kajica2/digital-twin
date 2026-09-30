@@ -165,6 +165,11 @@ npm run clip:ui
 
 # real interrogation — image → prompt (best mode, ViT-L, example01.jpg)
 npm run clip:interrogate
+
+# regenerate data/clip/samples.json — the page's sample strip
+# renders this catalog live when present (falls back to the baked-in
+# sample on deploys, where the gitignored file doesn't exist)
+npm run clip:samples
 ```
 
 Details, CLI verbs, exit codes and e2e: [`docs/CLIP-INTERROGATOR.md`](docs/CLIP-INTERROGATOR.md).

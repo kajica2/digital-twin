@@ -39,7 +39,19 @@ uv run --project lib/clip-interrogator clip-interrogate interrogate <image> --mo
 
 # image → top-5 ranks per vocabulary
 uv run --project lib/clip-interrogator clip-interrogate analyze <image> --model vit-l --top 5 --json
+
+# image → prompt, merged into the sample catalog the page renders
+uv run --project lib/clip-interrogator clip-interrogate interrogate \
+  assets/clip-interrogator/example01.jpg --mode best --out data/clip/samples.json
 ```
+
+`--out CATALOG.json` merge semantics (`src/clip_interrogator_app/samples.py`,
+pure stdlib): keys on the image path — re-running replaces that image's
+entry, so the indexer is idempotent. Corrupt input is backed up as
+`<file>.corrupt` and replaced (never crashes a run). Writes atomically.
+The entry's `image` is stored repo-relative (`_display_path`) so the page
+can fetch it — never an absolute filesystem path (§11 hygiene). The
+`wrote …` confirmation goes to stderr so `--json` stays parseable.
 
 Exit codes: `0` ok · `2` bad input (missing file, unknown model/mode,
 unreadable image) · `3` model error (load or inference failure). The CLI
@@ -105,6 +117,7 @@ constructs models at import time.
 | `clip:setup` | `uv sync --project lib/clip-interrogator` |
 | `clip:ui` | `uv run --project lib/clip-interrogator python -m clip_interrogator_app.ui` |
 | `clip:interrogate` | `uv run --project lib/clip-interrogator clip-interrogate interrogate assets/clip-interrogator/example01.jpg --mode best` |
+| `clip:samples` | regenerate `data/clip/samples.json` (example01 best + example02 fast, both `--out`) |
 | `clip:check` | `uv run --project lib/clip-interrogator clip-interrogate check --self-check` |
 | `e2e:clip` | `cd e2e && CHROME_PATH="${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}" PORT=5180 node clip-interrogator.spec.mjs` |
 
@@ -113,7 +126,11 @@ constructs models at import time.
 `pages/clip-interrogator.html` documents the tool (kai-systems house style,
 paired light/dark, `<theme-toggle>` persisted under `ci-theme`). The sample
 strip (`[data-sample-output]`) carries a real CLI run against
-`example01.jpg` — never fabricated.
+`example01.jpg` — never fabricated. The strip **fetches
+`../data/clip/samples.json`** on load (`fetch` + `ok` check — no console
+error when the file is missing) and renders every entry when present; the
+baked-in fallback covers the gitignored-file-absent state, which is what
+deploys see. Regenerate with `npm run clip:samples`.
 
 `e2e/clip-interrogator.spec.mjs` asserts the page contract (hero, theme
 toggle persistence, mode/model tables, example images load, attribution,

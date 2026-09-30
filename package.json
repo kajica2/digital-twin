@@ -39,6 +39,7 @@
     "clip:setup": "uv sync --project lib/clip-interrogator",
     "clip:ui": "uv run --project lib/clip-interrogator python -m clip_interrogator_app.ui",
     "clip:interrogate": "uv run --project lib/clip-interrogator clip-interrogate interrogate assets/clip-interrogator/example01.jpg --mode best",
+    "clip:samples": "bash -c 'uv run --project lib/clip-interrogator clip-interrogate interrogate assets/clip-interrogator/example01.jpg --mode best --out data/clip/samples.json && uv run --project lib/clip-interrogator clip-interrogate interrogate assets/clip-interrogator/example02.jpg --mode fast --out data/clip/samples.json'",
     "clip:check": "uv run --project lib/clip-interrogator clip-interrogate check --self-check",
     "lvs:setup": "uv sync --project lib/loopable-video-segmenter",
     "lvs:ui": "uv run --project lib/loopable-video-segmenter python -m loopable_video_segmenter.ui",

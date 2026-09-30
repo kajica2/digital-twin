@@ -47,7 +47,15 @@ try {
   const page = await browser.newPage();
   await page.setViewport({ width: 1280, height: 900, deviceScaleFactor: 1 });
   page.on('pageerror', e => clipErrors.push('pageerror: ' + e.message));
-  page.on('console', m => { if (m.type() === 'error') clipErrors.push('console.error: ' + m.text()); });
+  page.on('console', m => {
+    if (m.type() !== 'error') return;
+    // Known: the sample catalog is gitignored, so it legitimately 404s on
+    // deploys and on this fallback-state run. The page handles it (keeps
+    // the baked-in sample); the spec filters the expected 404 — same
+    // pattern twin-os uses for its catalog*.json 404s.
+    if (/clip\/samples\.json/.test(m.location().url || '') && m.text().includes('404')) return;
+    clipErrors.push('console.error: ' + m.text());
+  });
   page.on('requestfailed', r => clipErrors.push('reqfail: ' + r.url() + ' ' + (r.failure()?.errorText || '')));
   await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: 'light' }]);
   try {
@@ -78,6 +86,21 @@ try {
     document.body.innerText.includes('pharmapsychotic')));
   check('clip: [data-sample-output] exists', await page.evaluate(() =>
     !!document.querySelector('[data-sample-output]')));
+  check('clip: how-to mentions the sample catalog command', await page.evaluate(() =>
+    document.body.innerText.includes('npm run clip:samples')));
+
+  // Sample strip renders either the baked-in fallback or the generated
+  // catalog — both must leave at least one substantial prompt visible.
+  await page.waitForFunction(() => {
+    const qs = document.querySelectorAll('[data-sample-output] blockquote');
+    return qs.length >= 1 && Array.from(qs).some(q => q.textContent.trim().length > 20);
+  }, { timeout: 5000 });
+  const stripOk = await page.evaluate(() => {
+    const qs = document.querySelectorAll('[data-sample-output] blockquote');
+    return qs.length >= 1 && Array.from(qs).every(q => q.textContent.trim().length > 20);
+  });
+  check('clip: sample strip shows a prompt (fallback or catalog)', stripOk,
+    `blocks=${await page.evaluate(() => document.querySelectorAll('[data-sample-output] blockquote').length)}`);
 
   await new Promise(r => setTimeout(r, 600)); // let images finish after load
   const imgLoad = await page.evaluate(() => {

@@ -2,7 +2,7 @@
 """Command-line interface for the CLIP Interrogator port.
 
 Usage:
-    clip-interrogate interrogate <image> [--model vit-l|vit-h] [--mode best|fast|classic|negative] [--json]
+    clip-interrogate interrogate <image> [--model vit-l|vit-h] [--mode best|fast|classic|negative] [--json] [--out CATALOG.json]
     clip-interrogate analyze    <image> [--model vit-l|vit-h] [--top 5] [--json]
     clip-interrogate check --self-check
 
@@ -10,6 +10,10 @@ Exit codes:
     0  ok
     2  bad input (missing file, unknown model/mode, unreadable image)
     3  model error (load or inference failure)
+
+--out merges the prompt into data/clip/samples.json (idempotent per
+image); the page fetches that catalog and falls back to a baked-in
+sample when it's absent.
 """
 
 from __future__ import annotations
@@ -32,6 +36,7 @@ from .core import (
     image_to_prompt,
     normalize_model_id,
 )
+from .samples import entry_for, merge_samples
 
 EXIT_OK = 0
 EXIT_BAD_INPUT = 2
@@ -89,6 +94,12 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Interrogation mode (default: %(default)s)",
     )
     interrogate.add_argument("--json", action="store_true", help="Emit JSON")
+    interrogate.add_argument(
+        "--out",
+        metavar="CATALOG.json",
+        help="merge the result into a sample catalog at this path "
+             "(see samples.py; idempotent per image)",
+    )
 
     analyze = subs.add_parser(
         "analyze", help="Rank an image against the CLIP vocabularies"
@@ -153,6 +164,16 @@ def _run_check(_args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _display_path(image_path: str) -> str:
+    """Repo-relative path for the catalog/page. Falls back to the raw
+    argument when the image lives outside the working tree — the page
+    can't fetch those either way, but the entry stays honest."""
+    try:
+        return str(Path(image_path).resolve().relative_to(Path.cwd().resolve()))
+    except ValueError:
+        return image_path
+
+
 def _run_interrogate(manager: ModelManager, args: argparse.Namespace) -> int:
     image_path = _resolve_default_image(args.image)
     image = _load_image(image_path)
@@ -162,6 +183,20 @@ def _run_interrogate(manager: ModelManager, args: argparse.Namespace) -> int:
             prompt = image_to_prompt(manager, image, args.model, args.mode)
     except InputError as exc:
         raise
+    if getattr(args, "out", None):
+        catalog = merge_samples(
+            Path(args.out),
+            entry_for(
+                _display_path(image_path),
+                normalize_model_id(args.model),
+                args.mode,
+                prompt,
+            ),
+        )
+        print(
+            f"wrote {args.out} (samples: {len(catalog['samples'])})",
+            file=sys.stderr,
+        )
     if args.json:
         print(
             json.dumps(
