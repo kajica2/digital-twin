@@ -17,8 +17,8 @@
     },
 
     "discord": {
-        "channelUrl": "https://discord.com/channels/@me/1068785229520711721",
-        "_note_channelUrl": "The Discord channel URL where the Midjourney bot lives. Defaults to DM with MJ bot. Replace with your server's channel URL."
+        "channelUrl": "https://discord.com/channels/@me",
+        "_note_channelUrl": "The Discord channel URL where the Midjourney bot lives. Defaults to DM with MJ bot. Replace with your server's channel URL. (Personal channel ID scrubbed from this public config 2026-09-30 — the legacy Discord backend is unconfigured anyway.)"
     },
 
     "chrome": {
