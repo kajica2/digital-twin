@@ -48,7 +48,10 @@ The convention is designed to be writable by:
 - **Frontmatter (`--- ... ---`) is ignored.** Use it for notes
   the watcher shouldn't see.
 - **Blockquotes (`>`) are ignored.** Use them for the source
-  summary line.
+  summary line, and for per-prompt "Tune" notes. Important: this is
+  true at ANY indent depth — an indented `> Tune:` under a bullet is
+  ignored too (fixed 2026-09-30; until then indented blockquotes
+  leaked into the submitted prompt).
 - **Code fences (```` ``` ````) are ignored.** Useful for
   embedding reference raw output inside the file.
 
