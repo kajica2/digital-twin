@@ -20,7 +20,7 @@
 
 ## Frame 2 — The Vocalist / Blinds *(Soundhealing — breath)*
 
-**Video:** locked-off close-up, the vocalist draws breath, the shadow stripes stay fixed while the smoke drifts, eyes stay closed through the phrase. One gesture, one emotion. Atmosphere: tender, private, luminous. Style: moonlight through blinds, single cyan gel, smoke, Kodak Portra grain pushed cool. `--ar 4:3 --motion low`
+**Video:** locked-off close-up, the vocalist draws breath, the shadow stripes stay fixed while the smoke drifts, eyes stay closed through the phrase. One gesture, one emotion. Atmosphere: tender, private, luminous. Style: moonlight through blinds, single cyan gel, smoke, Kodak Portra grain pushed cool. `--ar 16:9 --motion low`
 
 *Tone map:* the parted mouth is a held breath — stillness with intent. (Soundhealing's "silence is a note".)
 
@@ -44,7 +44,7 @@
 
 ## Frame 5 — The Brass Corridor *(Soundhealing × Identity)*
 
-**Video:** slow tracking down the corridor toward the silhouette, the trumpet lifts into the sodium shaft, the note's start shakes the smoke. Atmosphere: cold, reverent, a held note. Style: new wave noir, single sodium key, 35mm, deep blacks. `--ar 21:9 --motion low`
+**Video:** slow tracking down the corridor toward the silhouette, the trumpet lifts into the sodium shaft, the note's start shakes the smoke. Atmosphere: cold, reverent, a held note. Style: new wave noir, single sodium key, 35mm, deep blacks. `--ar 16:9 --motion low`
 
 *Tone map:* the bell catching light is a threshold — brass as the loudest quiet thing.
 
@@ -52,7 +52,7 @@
 
 ## Frame 6 — The Singing Bowl *(Soundhealing — still)*
 
-**Video:** slow orbit around the bowl, the vapor thread curls upward and becomes faint light, the room tilts a degree as the camera completes the orbit. Atmosphere: uncanny, soft, dreamlike. Style: chiaroscuro, warm key, painterly grain, square composition. `--ar 1:1 --motion medium`
+**Video:** slow orbit around the bowl, the vapor thread curls upward and becomes faint light, the room tilts a degree as the camera completes the orbit. Atmosphere: uncanny, soft, dreamlike. Style: chiaroscuro, warm key, painterly grain, cinematic widescreen. `--ar 16:9 --motion medium`
 
 *Tone map:* the bowl is furniture — something you can put a tired person on; the orbit is the room agreeing.
 
@@ -71,7 +71,7 @@
 1. **The still holds the start of the motion** — the wet ink, the parted mouth, the hovering finger, the flicker-blur, the note not yet struck, the vapor thread, the raised typewriter arm. Complete actions read as steady state to V1.
 2. **Composition anticipates direction.** The platform figure stands center-far because the push-in owns the corridor. The pen rests right where the push-in will land.
 3. **Style language must match still ↔ video.** "1980s new wave music video" appears in both sides of every pair; "venetian blinds" in frame 2's still and its video prompt say the same thing.
-4. **Aspect ratios must match** — 16:9/4:3/21:9/1:1 held identically in the still and the video prompt.
+4. **Aspect ratios must match** — this set is **16:9 everywhere**, held identically in the still and the video prompt.
 
 ## Motion cheat-sheet
 

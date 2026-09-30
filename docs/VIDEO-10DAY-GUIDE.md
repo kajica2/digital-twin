@@ -43,7 +43,7 @@
 
 ## Day 3 — Portrait / Human
 
-**Video:** locked-off medium close-up of a person at a kitchen table, late afternoon. They lift a coffee cup, take a slow sip, set it down, look past camera out a window. Eyes catch the light. Atmosphere: tired, tender, ordinary. Style: Kodak Portra 400, natural light, 50mm lens, slight grain, 4:3 frame. `--ar 4:3 --motion low`
+**Video:** locked-off medium close-up of a person at a kitchen table, late afternoon. They lift a coffee cup, take a slow sip, set it down, look past camera out a window. Eyes catch the light. Atmosphere: tired, tender, ordinary. Style: Kodak Portra 400, natural light, 50mm lens, slight grain, 16:9 frame. `--ar 16:9 --motion low`
 
 *Why it works:* V1 is good at one human action + one emotion; the "look past camera" beat is where the clip breathes. One gesture only.
 
@@ -63,9 +63,9 @@
 
 ## Day 5 — Landscape / Epic
 
-**Video:** slow lateral tracking across a salt flat at golden hour, low to the ground. Mirrored sky in shallow water; a single horse walks left-to-right in the distance. Atmosphere: vast, still, mythic. Style: anamorphic widescreen, 35mm, warm palette, dust haze, slight lens bloom. `--ar 21:9 --motion low`
+**Video:** slow lateral tracking across a salt flat at golden hour, low to the ground. Mirrored sky in shallow water; a single horse walks left-to-right in the distance. Atmosphere: vast, still, mythic. Style: anamorphic widescreen, 35mm, warm palette, dust haze, slight lens bloom. `--ar 16:9 --motion low`
 
-*Why it works:* lateral motion + clear horizon + small moving subject = a shot V1 can complete without hallucinating geography. 21:9 forces cinematic.
+*Why it works:* lateral motion + clear horizon + small moving subject = a shot V1 can complete without hallucinating geography. 16:9 keeps the horizon wide without forcing a letterbox.
 
 **Source frame (image):** see pack Day 5. Tune: horse already **mid-stride** (legs apart) — a standing horse gets "frozen."
 
@@ -73,9 +73,9 @@
 
 ## Day 6 — Surreal / Dream
 
-**Video:** slow orbit around a porcelain teacup floating mid-room in dark wood panelling. The room tilts subtly. A faint steam trail becomes small birds drifting upward. Atmosphere: uncanny, soft, dreamlike. Style: painted surrealism meets cinematography, chiaroscuro, soft lens diffusion, painterly grain. `--ar 1:1 --motion medium`
+**Video:** slow orbit around a porcelain teacup floating mid-room in dark wood panelling. The room tilts subtly. A faint steam trail becomes small birds drifting upward. Atmosphere: uncanny, soft, dreamlike. Style: painted surrealism meets cinematography, chiaroscuro, soft lens diffusion, painterly grain. `--ar 16:9 --motion medium`
 
-*Why it works:* impossible physics grounded in a real surface (porcelain, wood); the orbiting camera stops V1 "fixing" the spatial logic. 1:1 forces different composition.
+*Why it works:* impossible physics grounded in a real surface (porcelain, wood); the orbiting camera stops V1 "fixing" the spatial logic. 16:9 gives the orbit room around the floating cup.
 
 **Source frame (image):** see pack Day 6. Tune: steam barely there — a single wisp, so V1 can "grow" it into birds. Heavy steam = V1 doesn't know what to do.
 
@@ -93,7 +93,7 @@
 
 ## Day 8 — Night / Low-key
 
-**Video:** locked-off wide of a single motel parking lot at night. A neon "VACANCY" sign flickers, buzzing. A car slowly pulls in, headlights sweep the wall, engine cuts, silence implied. Atmosphere: lonely, Americana, humid. Style: cinematic noir, anamorphic, deep blacks, sodium-vapor cast, film grain. `--ar 2.39:1 --motion low`
+**Video:** locked-off wide of a single motel parking lot at night. A neon "VACANCY" sign flickers, buzzing. A car slowly pulls in, headlights sweep the wall, engine cuts, silence implied. Atmosphere: lonely, Americana, humid. Style: cinematic noir, anamorphic, deep blacks, sodium-vapor cast, film grain. `--ar 16:9 --motion low`
 
 *Why it works:* night + neon + one vehicle = a contained "event" V1 can hold for 5s; locked-off prevents drift.
 
@@ -113,9 +113,9 @@
 
 ## Day 10 — Still Life / Quiet
 
-**Video:** locked-off, slowly drifting closer to a table set for one. A glass of red wine catches window light; a half-read paperback rests open; a candle flickers once. Atmosphere: contemplative, after-someone-left, warm. Style: Dutch still-life painting meets cinematography, painterly chiaroscuro, 50mm, very shallow DOF, soft grain. `--ar 4:3 --motion low`
+**Video:** locked-off, slowly drifting closer to a table set for one. A glass of red wine catches window light; a half-read paperback rests open; a candle flickers once. Atmosphere: contemplative, after-someone-left, warm. Style: Dutch still-life painting meets cinematography, painterly chiaroscuro, 50mm, very shallow DOF, soft grain. `--ar 16:9 --motion low`
 
-*Why it works:* stillness + one micro-event (the flicker) + rich material surface. 4:3 forces compositional weight. Quiet close to the cycle.
+*Why it works:* stillness + one micro-event (the flicker) + rich material surface. 16:9 matches the final deliverable. Quiet close to the cycle.
 
 **Source frame (image):** see pack Day 10. Tune: candle **unlit** in the still — V1 animates the flicker on first lighting; an already-lit candle reads as steady state and loses the flicker.
 
