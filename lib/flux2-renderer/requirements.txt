@@ -1,0 +1,12 @@
+# lib/flux2-renderer/requirements.txt — FLUX.2 klein-4B local renderer deps.
+#
+# torch/torchvision come from the CPU/MPS wheel index (no CUDA on this Mac):
+#   uv pip install --python lib/flux2-renderer/.venv/bin/python \
+#     torch torchvision --index-url https://download.pytorch.org/whl/cpu
+# The rest install from PyPI normally. See flux2:setup in package.json.
+diffusers>=0.40.0
+transformers>=5.0.0
+accelerate>=1.0.0
+sentencepiece>=0.2.0
+protobuf>=5.0.0
+safetensors>=0.4.0
