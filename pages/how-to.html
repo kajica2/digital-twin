@@ -351,6 +351,7 @@
             <li>macOS (the LaunchAgents are launchd-based), <span class="inline-code">python3</span> (any recent), <span class="inline-code">node ≥ 18</span> for the e2e tests.</li>
             <li><span class="inline-code">uv</span> only for the CLIP Interrogator (<a href="https://docs.astral.sh/uv/" target="_blank" rel="noopener">install</a>). Everything else is stdlib.</li>
             <li>MuseScore 4 (<span class="inline-code">mscore</span>) + the bundled <span class="inline-code">MS Basic.sf3</span> only for the chart render step. <span class="inline-code">ffprobe</span> (optional) verifies MP3s.</li>
+            <li>Apple Silicon + 24 GB unified memory for the <a href="../docs/FLUX2-RENDERER.md">FLUX.2 renderer</a> — local MPS text-to-image, torch on the CPU/MPS wheel index (no CUDA). <span class="inline-code">npm run flux2:setup</span> then <span class="inline-code">npm run render:flux2 -- --prompt "…"</span>.</li>
         </ul>
 
         <h3>Serve the site</h3>

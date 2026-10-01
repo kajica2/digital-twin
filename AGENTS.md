@@ -3002,3 +3002,48 @@ the deploy was verified as "up", never as "this commit".
   approval, irreversible); (b) `data/clip/samples.json` for the CLIP
   sample strip; (c) clip CLI `--out <file>`; (d) woody-shaw chart
   variants.
+
+### 2026-10-01 — sprint 0.35 (FLUX.2 renderer done-contract)
+
+Closes the completion gap left by commit `d0b27db` (the local FLUX.2
+renderer on Apple MPS). The commit added the renderer properly — but
+skipped the repo's standard per-tool completion pieces: no reference doc,
+no how-to pointer. New CLI tools in this repo ship with `docs/*.md`
+(see CLIP, LVS, chart, musicxml-pdf). Closed it without touching the
+repo's test or page contracts.
+
+- **Shipped:**
+  - **`docs/FLUX2-RENDERER.md`** — reference doc: local-first MPS text-to-
+    image, why bf16 klein-4B (NOT the -fp8 variants — Metal has no fp8
+    dtype), the single Qwen3 encoder (no `tokenizer_2`, no FLUX.1
+    pattern-matching), setup (incl. the one manual step — torch from the
+    CPU/MPS wheel index), flags table, exit codes (0/2/1), the `--json`
+    payload shape, device auto-selection, and flagged follow-ups.
+  - **`pages/how-to.html`** — one Requirements bullet in Quickstart
+    pointing at the renderer; non-named commands for the twin's first
+    fully-local generative backend.
+- **Decisions:**
+  - **How-to got a bullet, not a section.** The how-to spec asserts
+    exactly 9 nav links + 9 section ids + 13 code blocks/copy buttons
+    (sprint 0.20 pattern). A section would break that contract; a
+    Requirements list item surfaces the renderer without touching it.
+    The `e2e:howto` spec even auto-picks up the new `../docs/FLUX2-RENDERER.md`
+    link and verified it resolves 200.
+  - **No unit test on first pass.** `render.py` lazy-imports
+    torch/diffusers inside `main()`, so the CLI glue is thin and a
+    meaningful synthetic test would mean sys.modules-mocking a 3.9 GB
+    pipeline. Flagged as a follow-up for when (if ever) the renderer
+    grows real branching logic. Same reasoning as the repo's other model-
+    touching tools.
+- **Verified end-to-end:**
+  - `npm run e2e:howto` — 17/17 PASS on the repo-root `:5180` server,
+    including the new internal link resolving to `/docs/FLUX2-RENDERER.md → 200`
+    and 0 console errors.
+- **Open:**
+  - The renderer's exit-2 "model dir not found" path is exercised by
+    design (returns 2 before importing torch); an actual render wasn't
+    re-run this sprint (verified in `d0b27db`).
+- **Next:** the standing backlog — (a) reel LaunchAgent bootstrap (needs
+  user approval, irreversible); (b) `data/clip/samples.json` for the
+  CLIP sample strip; (c) clip CLI `--out <file>`; (d) woody-shaw chart
+  variants.
