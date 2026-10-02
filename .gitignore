@@ -85,3 +85,20 @@ lib/loopable-video-segmenter/dist/
 # Python bytecode
 __pycache__/
 *.pyc
+
+# Ruflo local secrets and runtime data
+.env.*.local
+.claude-flow/data/
+.claude-flow/logs/
+.claude-flow/sessions/
+
+# Ruflo runtime state (generated, local-only)
+.claude-flow/metrics/
+.claude-flow/security/
+.claude-flow/learning/
+.claude-flow/hooks/
+.claude-flow/agents/
+.claude-flow/workflows/
+.swarm/
+artifacts/
+ruvector.db
