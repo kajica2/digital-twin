@@ -62,11 +62,15 @@ def main():
     for idx, e in enumerate(entries):
         slug = e.get("slug") or f"render-{idx+1:02d}"
         prompt = e["prompt"]
+        # Per-entry dimensions let one manifest carry mixed aspect ratios
+        # (e.g. a 16:9, a 21:9, and a 1:1 tuned-still in the same batch).
+        w = int(e.get("width") or args.width)
+        h = int(e.get("height") or args.height)
         gen = torch.Generator(device="cpu").manual_seed(args.seed_base + idx)
         img = pipe(
             prompt=prompt,
-            height=args.height,
-            width=args.width,
+            height=h,
+            width=w,
             num_inference_steps=args.steps,
             guidance_scale=args.guidance,
             num_images_per_prompt=1,
