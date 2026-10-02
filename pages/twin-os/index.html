@@ -335,7 +335,7 @@
     }
     .agenda-item {
       display: grid;
-      grid-template-columns: 90px 1fr auto;
+      grid-template-columns: 22px 90px 1fr auto;
       align-items: center;
       gap: 16px;
       padding: 16px 22px;
@@ -477,6 +477,72 @@
     .agenda-item-remove:hover {
       background: var(--bg-warm);
       color: var(--primary);
+    }
+
+    /* Task state — done toggle + completion styling (sprint 0.37) */
+    .agenda-check {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      margin: 0;
+      border: 1.5px solid var(--line);
+      border-radius: 6px;
+      background: var(--bg);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      line-height: 1;
+      color: transparent;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+    .agenda-check:hover { border-color: var(--primary-mid); }
+    .agenda-check:focus-visible {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+    .agenda-check[aria-checked="true"] {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+    .agenda-item[data-done="true"] .agenda-label {
+      text-decoration: line-through;
+      text-decoration-color: var(--ink-faint);
+      opacity: 0.55;
+    }
+    .agenda-item[data-done="true"] .agenda-time { opacity: 0.55; }
+    .agenda-item[data-done="true"] .agenda-tag { opacity: 0.55; }
+
+    .agenda-tools {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .agenda-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      color: var(--ink-faint);
+    }
+    .agenda-count[data-all="true"] { color: var(--accent); }
+    .agenda-hint {
+      font-size: 12px;
+      color: var(--ink-faint);
+    }
+    .agenda-hint code {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--bg-warm);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 1px 5px;
+      font-size: 11px;
     }
 
     /* ============================================================
@@ -769,7 +835,7 @@
       .rail-item { flex: 1; justify-content: center; padding: 10px; font-size: 12px; }
       .canvas { padding: 24px 20px 32px; }
       .panel-h1 { font-size: 32px; }
-      .agenda-item { grid-template-columns: 70px 1fr; }
+      .agenda-item { grid-template-columns: 22px 70px 1fr; }
       .agenda-tag { grid-column: 2; justify-self: start; }
     }
 
@@ -848,22 +914,26 @@
         </div>
 
         <div class="agenda" aria-label="Today's agenda">
-          <div class="agenda-item">
+          <div class="agenda-item" data-id="seed-0">
+            <input type="checkbox" class="agenda-check" data-check aria-label="Mark Morning warm-up done" />
             <span class="agenda-time">09:00</span>
             <span class="agenda-label">Morning warm-up <small>horn, long tones, cycle-of-fifths pattern</small></span>
             <span class="agenda-tag" data-kind="now">suggested</span>
           </div>
-          <div class="agenda-item">
+          <div class="agenda-item" data-id="seed-1">
+            <input type="checkbox" class="agenda-check" data-check aria-label="Mark Deep work block done" />
             <span class="agenda-time">10:30</span>
             <span class="agenda-label">Deep work block <small>73-minute focus, kai-system follow-through</small></span>
             <span class="agenda-tag">scheduled</span>
           </div>
-          <div class="agenda-item">
+          <div class="agenda-item" data-id="seed-2">
+            <input type="checkbox" class="agenda-check" data-check aria-label="Mark Sprint review done" />
             <span class="agenda-time">14:00</span>
             <span class="agenda-label">Sprint review <small>digital-twin sprint 1 in flight</small></span>
             <span class="agenda-tag">scheduled</span>
           </div>
-          <div class="agenda-item">
+          <div class="agenda-item" data-id="seed-3">
+            <input type="checkbox" class="agenda-check" data-check aria-label="Mark Explore done" />
             <span class="agenda-time">20:00</span>
             <span class="agenda-label">Explore <small>new repos, paper feeds, quiet reading</small></span>
             <span class="agenda-tag">pattern</span>
@@ -871,6 +941,10 @@
         </div>
 
         <div class="panel-section">
+          <div class="agenda-tools">
+            <span class="agenda-count" data-agenda-count aria-live="polite">0 of 4 done</span>
+            <span class="agenda-hint">several at once: separate with <code>;</code></span>
+          </div>
           <form class="agenda-add" data-agenda-add aria-label="Add an agenda item">
             <input
               type="text"
@@ -1431,16 +1505,26 @@
   })();
 
   /* ===========================================================
-     Agenda — load user-added items from localStorage, render,
-     wire the add-form. Seeded items (Morning warm-up, Deep work,
-     Sprint review, Explore) stay as static markup; user items
-     render AFTER, with a small remove control.
+     Agenda — a task list, not just a note list.
+       - seeded items (Morning warm-up, Deep work, Sprint review,
+         Explore) are static markup; user items render AFTER with a
+         remove control.
+       - EVERY row carries a done toggle. Completed state lives in
+         localStorage['dt-agenda-done'] as {id: bool}, which is what
+         lets seeded rows (no stored item of their own) and user rows
+         share one source of truth. The item's documented `done` field
+         is mirrored for schema stability, but the map is what is read.
+         A legacy item with `done: true` is migrated into the map on
+         load and the field is folded in.
+       - the add form takes several tasks at once: separate with ';'.
      =========================================================== */
   (function () {
     const STORAGE_KEY = 'dt-agenda-items';
-    const form  = document.querySelector('[data-agenda-add]');
-    const input = document.querySelector('[data-agenda-input]');
+    const DONE_KEY    = 'dt-agenda-done';
+    const form   = document.querySelector('[data-agenda-add]');
+    const input  = document.querySelector('[data-agenda-input]');
     const agenda = document.querySelector('.agenda');
+    const countEl = document.querySelector('[data-agenda-count]');
     if (!form || !input || !agenda) return;
 
     function load() {
@@ -1455,10 +1539,59 @@
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); }
       catch (e) {}
     }
+    function loadDone() {
+      try {
+        const raw = localStorage.getItem(DONE_KEY);
+        if (!raw) return {};
+        const parsed = JSON.parse(raw);
+        return (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {};
+      } catch (e) { return {}; }
+    }
+    function saveDone(map) {
+      try { localStorage.setItem(DONE_KEY, JSON.stringify(map)); }
+      catch (e) {}
+    }
     function escapeHtml(s) {
       return String(s).replace(/[&<>"']/g, c => ({
         '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
       }[c]));
+    }
+
+    function refreshCount() {
+      if (!countEl) return;
+      const rows = agenda.querySelectorAll('.agenda-item');
+      const done = agenda.querySelectorAll('.agenda-item[data-done="true"]');
+      countEl.textContent = `${done.length} of ${rows.length} done`;
+      if (rows.length && done.length === rows.length) countEl.dataset.all = 'true';
+      else countEl.removeAttribute('data-all');
+    }
+
+    // Toggle completion for one row. Writes the authoritative map and
+    // mirrors `done` onto the stored item so the documented item shape
+    // stays true for any other reader.
+    function setDone(id, done) {
+      const map = loadDone();
+      if (done) map[id] = true; else delete map[id];
+      saveDone(map);
+      const items = load();
+      const it = items.find(x => x.id === id);
+      if (it) { it.done = !!done; save(items); }
+    }
+
+    function wireRow(row, id) {
+      const check = row.querySelector('[data-check]');
+      if (!check) return;
+      const isDone = !!loadDone()[id];
+      check.setAttribute('aria-checked', isDone ? 'true' : 'false');
+      check.checked = isDone;
+      if (isDone) row.dataset.done = 'true';
+      check.addEventListener('change', () => {
+        const next = check.checked;
+        check.setAttribute('aria-checked', next ? 'true' : 'false');
+        if (next) row.dataset.done = 'true'; else delete row.dataset.done;
+        setDone(id, next);
+        refreshCount();
+      });
     }
 
     function renderUserItem(item) {
@@ -1467,6 +1600,8 @@
       row.dataset.user = 'true';
       row.dataset.id = item.id;
       row.innerHTML =
+        `<input type="checkbox" class="agenda-check" data-check ` +
+          `aria-label="Mark ${escapeHtml(item.text)} done" />` +
         `<span class="agenda-time">+ added</span>` +
         `<span class="agenda-label">${escapeHtml(item.text)}` +
           `<small>added ${escapeHtml(item.addedAt)}</small>` +
@@ -1475,9 +1610,28 @@
       row.querySelector('.agenda-item-remove').addEventListener('click', () => {
         const next = load().filter(x => x.id !== item.id);
         save(next);
+        const map = loadDone();
+        if (map[item.id]) { delete map[item.id]; saveDone(map); }
         row.remove();
+        refreshCount();
       });
       agenda.appendChild(row);
+      wireRow(row, item.id);
+      refreshCount();
+    }
+
+    // Fold any legacy `done` flags into the map, then wire the seeded rows.
+    (function initStored() {
+      const items = load();
+      const map = loadDone();
+      let touched = false;
+      for (const it of items) {
+        if (it && it.done && !map[it.id]) { map[it.id] = true; touched = true; }
+      }
+      if (touched) saveDone(map);
+    })();
+    for (const row of agenda.querySelectorAll('.agenda-item[data-id]')) {
+      wireRow(row, row.dataset.id);
     }
 
     // Initial paint — only paint items not already in the DOM (defensive
@@ -1489,22 +1643,25 @@
     for (const it of load()) {
       if (!existingIds.has(it.id)) renderUserItem(it);
     }
+    refreshCount();
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      const text = input.value.trim();
-      if (!text) return;
-      const item = {
-        id: 't-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
-        text: text.slice(0, 200),
-        addedAt: new Date().toLocaleString(undefined,
-          { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' }),
-        done: false,
-      };
+      // Several tasks at once: "buy milk; call mum; practise" → 3 rows.
+      const parts = input.value.split(';').map(s => s.trim()).filter(Boolean);
+      if (!parts.length) return;
+      const stamp = new Date().toLocaleString(undefined,
+        { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' });
       const items = load();
-      items.push(item);
+      const added = parts.map((text, i) => ({
+        id: 't-' + Date.now() + '-' + i + '-' + Math.random().toString(36).slice(2, 7),
+        text: text.slice(0, 200),
+        addedAt: stamp,
+        done: false,
+      }));
+      items.push(...added);
       save(items);
-      renderUserItem(item);
+      added.forEach(renderUserItem);
       input.value = '';
       input.focus();
     });

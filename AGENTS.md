@@ -3122,3 +3122,72 @@ repo's test or page contracts.
 - **Next:** (a) drop the visual into landing / twin-os as a live panel;
   (b) jazz-solos corpus MIDI → visual picker (456 solos are sitting right
   there); (c) real-controller automap smoke.
+
+### 2026-10-02 — sprint 0.37 (agenda becomes a task list)
+
+Asked to "enable adding more tasks". The agenda already accepted unlimited
+adds — the real gap was that it was a *note* list, not a *task* list: the
+stored shape was `{id, text, addedAt, done}` and `done` was written on
+every item and read by nothing. Closed the loop and made adding scale.
+
+- **Shipped:**
+  - **Done toggle on every row** — a 20px rounded checkbox leads each
+    `.agenda-item`, seeded and user rows alike. Checking it sets
+    `data-done="true"` on the row (strike-through + 0.55 opacity on the
+    time, label and tag) and flips the checkbox to the copper primary.
+    `aria-checked` is kept in sync; the input's `aria-label` carries the
+    row's own text ("Mark Deep work block done").
+  - **`localStorage['dt-agenda-done']`** — `{id: bool}` is the
+    authoritative completion map, because seeded rows are static markup
+    with no stored item of their own and user rows need one key that
+    covers both. The documented `done` field on a stored item is mirrored
+    on write so `dt-agenda-items` keeps its documented shape for any other
+    reader; a legacy item with `done: true` is folded into the map on load
+    and then served from there.
+  - **Live counter** — `data-agenda-count` reads `N of M done`
+    (`aria-live="polite"`), turns to the accent colour when everything is
+    complete. Removing a row re-counts.
+  - **Batch add** — the form splits on `;`, so `alpha task; beta task;
+    gamma task` submits three rows in one Enter. Each is capped at 200
+    chars as before, all share one timestamp, and the list is saved once
+    before rendering (so a row's remove handler never reads a list that
+    predates it).
+  - **`e2e/twin-os.spec.mjs`** — 8 new assertions: 4 checkboxes for 4
+    rows, the counter's clean-profile reading `0 of 4 done`, toggle sets
+    `data-done` + bumps the counter, `;`-input yields 7 rows and
+    `1 of 7 done`, both survive a reload, and 0 console errors after the
+    interaction pass. The mutating interaction block runs **after** the
+    screenshots so the artifacts stay clean.
+- **Decisions:**
+  - **One completion map for seeded and user rows.** Splitting it
+    (`done` on items + a separate seed list) would have been two sources
+    of truth for one concept. The map is read; the item field is a mirror.
+  - **`;` as the batch separator, not newline or comma.** The input is
+    `type="text"` so newlines never arrive, and commas are common inside
+    a single task ("buy milk, eggs"). `;` is rare in a task and already
+    reads as a separator.
+  - **Checkbox as the first grid column** (`.agenda-item` goes
+    `22px 90px 1fr auto`, mobile `22px 70px 1fr`) rather than nesting the
+    toggle inside the label — keeps the row a clean 4-column grid and
+    leaves the label's `<small>` semantics untouched.
+  - **No "clear done" button.** The per-row remove already deletes, and a
+    bulk destructive action on a calm-by-default surface is the wrong
+    instinct. Counter first; bulk actions if they're ever asked for.
+- **Verified end-to-end:**
+  - `e2e/twin-os.spec.mjs` — 33/33 PASS, including the new task-list
+    interaction block.
+  - `npm run verify` — landing / twin-os / twin-os-songs all green, no
+    regressions.
+  - Screenshot review: the 4-column row renders cleanly against the
+    house palette; no layout break at 1280px.
+- **Open:**
+  - Seeded rows can be checked but not removed — by design (they're the
+    twin's suggestions, not the user's data).
+  - `dt-agenda-done` grows entries for user rows that were deleted only
+    via the map's own cleanup on remove; a hard prune on load is
+    unnecessary today.
+- **Next:** unchanged from sprint 0.36 — (a) drop the
+  `<meditate-temperature>` visual into landing / twin-os as a live panel;
+  (b) jazz-solos corpus MIDI → visual picker; (c) real-controller automap
+  smoke. Plus the standing 30-images question (subject + backend) which
+  is still unanswered.

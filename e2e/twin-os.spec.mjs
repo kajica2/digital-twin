@@ -6,6 +6,11 @@
 //   - panel switcher toggles aria-current + hidden correctly
 //   - 3 patterns cards render in Today
 //   - agenda has 4 items
+//   - every agenda row carries a done toggle (4 checkboxes)
+//   - the done-counter reads "0 of 4 done" on a clean profile
+//   - task list: toggle marks a row done and bumps the counter
+//   - task list: the add form takes several tasks at once (';'-separated)
+//   - task list: done state survives a reload (localStorage)
 //   - Twin panel has 3 stat cards
 //   - Songs panel renders the empty-state with the catalog path
 //   - theme-toggle has 3 buttons (light / system / dark)
@@ -183,6 +188,12 @@ async function main() {
     const agendaCount = await page.$$eval('.agenda-item', els => els.length);
     assert(agendaCount === 4, `agenda has 4 items (got ${agendaCount})`);
 
+    const checkCount = await page.$$eval('.agenda-item [data-check]', els => els.length);
+    assert(checkCount === 4, `every agenda row has a done toggle (got ${checkCount} checkboxes)`);
+
+    const countText = await page.$eval('[data-agenda-count]', el => el.textContent.trim());
+    assert(countText === '0 of 4 done', `done-counter reads "0 of 4 done" (got "${countText}")`);
+
     const patternCount = await page.$$eval('.pattern-card', els => els.length);
     assert(patternCount === 3, `patterns grid has 3 cards (got ${patternCount})`);
 
@@ -264,6 +275,38 @@ async function main() {
     await new Promise(r => setTimeout(r, 200));
     await page.screenshot({ path: join(ART, 'today-mobile.png'), fullPage: true });
     dim(`saved today-mobile.png`);
+
+    // --- 11. task list interaction (mutates the session; runs last) ---
+    log(`--- task list interaction ---`);
+    await page.setViewport({ width: 1280, height: 900 });
+    await new Promise(r => setTimeout(r, 150));
+
+    await page.click('.agenda-item[data-id="seed-0"] [data-check]');
+    await new Promise(r => setTimeout(r, 120));
+    const seedDone = await page.$eval('.agenda-item[data-id="seed-0"]', el => el.dataset.done);
+    assert(seedDone === 'true', `toggling a row sets data-done="true"`);
+    const countAfterToggle = await page.$eval('[data-agenda-count]', el => el.textContent.trim());
+    assert(countAfterToggle === '1 of 4 done', `counter tracks the toggle (got "${countAfterToggle}")`);
+
+    await page.type('[data-agenda-input]', 'alpha task; beta task; gamma task');
+    await page.click('.agenda-add-btn');
+    await new Promise(r => setTimeout(r, 120));
+    const afterAdd = await page.$$eval('.agenda-item', els => els.length);
+    assert(afterAdd === 7, `';'-separated input adds 3 tasks at once (got ${afterAdd} rows)`);
+    const countAfterAdd = await page.$eval('[data-agenda-count]', el => el.textContent.trim());
+    assert(countAfterAdd === '1 of 7 done', `counter grows with the list (got "${countAfterAdd}")`);
+
+    await page.reload({ waitUntil: 'networkidle0' });
+    await page.waitForSelector('.agenda-item[data-id="seed-0"]');
+    await new Promise(r => setTimeout(r, 150));
+    const seedDoneAfter = await page.$eval('.agenda-item[data-id="seed-0"]', el => el.dataset.done);
+    assert(seedDoneAfter === 'true', `done state survives a reload`);
+    const rowsAfterReload = await page.$$eval('.agenda-item', els => els.length);
+    assert(rowsAfterReload === 7, `added tasks survive a reload (got ${rowsAfterReload})`);
+    const countAfterReload = await page.$eval('[data-agenda-count]', el => el.textContent.trim());
+    assert(countAfterReload === '1 of 7 done', `counter survives a reload (got "${countAfterReload}")`);
+
+    assert(consoleErrors.length === 0, `0 console errors after the interaction pass (got ${consoleErrors.length}${consoleErrors.length ? ': ' + consoleErrors.join(' | ') : ''})`);
 
     // summary
     log('');
