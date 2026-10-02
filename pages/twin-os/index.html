@@ -490,13 +490,7 @@
       border-radius: 6px;
       background: var(--bg);
       cursor: pointer;
-      display: grid;
-      place-items: center;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      line-height: 1;
-      color: transparent;
-      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+      transition: background 0.15s ease, border-color 0.15s ease;
     }
     .agenda-check:hover { border-color: var(--primary-mid); }
     .agenda-check:focus-visible {
@@ -504,10 +498,11 @@
       border-color: var(--primary);
       box-shadow: 0 0 0 3px var(--primary-soft);
     }
+    /* An <input> has no text content and takes no pseudo-elements, so the
+       tick is a background glyph — not a font-rendered character. */
     .agenda-check[aria-checked="true"] {
-      background: var(--primary);
+      background: var(--primary) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6.5l2.5 2.5L10 3.5' stroke='%23fff' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px 12px no-repeat;
       border-color: var(--primary);
-      color: #fff;
     }
     .agenda-item[data-done="true"] .agenda-label {
       text-decoration: line-through;
@@ -836,7 +831,8 @@
       .canvas { padding: 24px 20px 32px; }
       .panel-h1 { font-size: 32px; }
       .agenda-item { grid-template-columns: 22px 70px 1fr; }
-      .agenda-tag { grid-column: 2; justify-self: start; }
+      /* col 3 = the content column (col 1 is the checkbox, col 2 the time) */
+      .agenda-tag { grid-column: 3; justify-self: start; }
     }
 
     @media (prefers-reduced-motion: reduce) {

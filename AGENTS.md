@@ -3152,7 +3152,8 @@ every item and read by nothing. Closed the loop and made adding scale.
     chars as before, all share one timestamp, and the list is saved once
     before rendering (so a row's remove handler never reads a list that
     predates it).
-  - **`e2e/twin-os.spec.mjs`** — 8 new assertions: 4 checkboxes for 4
+  - **`e2e/twin-os.spec.mjs`** — 10 new assertions (the commit message
+    says 8; that undercounts): 4 checkboxes for 4
     rows, the counter's clean-profile reading `0 of 4 done`, toggle sets
     `data-done` + bumps the counter, `;`-input yields 7 rows and
     `1 of 7 done`, both survive a reload, and 0 console errors after the
