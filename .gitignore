@@ -8,6 +8,7 @@ free-output/
 # FLUX.2 local model weights (22GB) + generated renders — never commit
 assets/flux2/FLUX.2-klein-4B/
 assets/flux2/*.png
+assets/flux2/*/
 lib/flux2-renderer/.venv/
 lib/flux2-renderer/__pycache__/
 

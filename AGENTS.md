@@ -3192,3 +3192,111 @@ every item and read by nothing. Closed the loop and made adding scale.
   (b) jazz-solos corpus MIDI → visual picker; (c) real-controller automap
   smoke. Plus the standing 30-images question (subject + backend) which
   is still unanswered.
+
+### 2026-10-02 — sprint 0.38 (project memory init + FLUX.2 batch mode)
+
+Two things, one thread: make the agent durable (memory) and make it
+credible (a real media run). The user asked "is it safe to consider you my
+go-to agent for media distribution and all my other pages" — the honest
+answer required both.
+
+**A. `.kai/` project memory — initialized.** My own spec calls for this at
+first run and it had never been done; continuity rested entirely on the
+tail of this file.
+
+- `memory.yaml` — project metadata (vanilla HTML/CSS/JS + Web Components,
+  npm, Puppeteer + plain node/py test scripts), flags, and **8 active
+  prevention rules extracted from this file's own postmortems**: two-stage
+  deploy verification, "suspect the local harness before the page", specs
+  must not race live services, output/input collision namespacing,
+  validate before spawning a renderer that hangs, single-resolution flag
+  composition, launchd TCC shim placement, content-not-position feed
+  attribution. Plus a `tech_debt_watch` block (4 entries) and env var
+  NAMES only.
+- `conventions/coding-style.md` + `conventions/testing.md` — naming table
+  (npm scripts, specs, localStorage keys, per-page theme keys, commit
+  types), CSS/token rules, state rules, and the testing hard rules.
+- `preferences/user.yaml` — **the most valuable thing learned this
+  session**: the user issues terse commands ("diff", "stage", "comit",
+  "push", "go", "yes") and expects interpretation plus momentum. The
+  question tool was dismissed with "go" and the 30-images ask sat
+  unanswered for three rounds because I kept asking instead of shipping a
+  first cut. Encoded as `prefer_action_over_questions: true` and
+  `max_questions_per_task: 1`.
+- `tech-debt/register.md` — P1/P2/P3 register with 6 open items and a
+  closed-recently table.
+- **Decision: `.kai/` stays gitignored** (rule at `.gitignore:72`, added
+  before this sprint). Respected rather than overridden — but the tradeoff
+  is real: if this machine dies the memory goes with it. Mitigation if it
+  ever matters: commit a redacted `memory.yaml` (prevention rules are the
+  durable part and carry no secrets) and keep the rest local.
+
+**B. FLUX.2 batch mode** — the answer to "can we generate 30 images",
+which I had deflected three times. The blocker was real though: `render.py`
+had no batch mode and reloaded the 22 GB model per invocation.
+
+- **`lib/flux2-renderer/prompts.py`** — new pure module (no torch, no
+  diffusers): `extract_prompts`, `parse_aspect`, `format_for_render`,
+  `slugify`. Reads the repo's existing prompt-pack convention (top-level
+  bullets, `--ar` stripped and surfaced separately, frontmatter /
+  blockquotes / code fences ignored) so the SAME pack files serve both the
+  MJ watcher and the local renderer.
+- **`lib/flux2-renderer/test_prompts.py`** — 47 stdlib checks. Closes the
+  follow-up flagged in sprint 0.35 ("no unit test yet … revisit if the
+  renderer grows real branching logic"). Batch mode introduced exactly
+  that branching, so the note's own condition was met.
+- **`render.py` batch mode** — `--prompt-file` / `--outdir`, model loads
+  **once**, seeds are `--seed + index`, outputs named `NN-<slug>.png`, and
+  a `manifest.json` is written beside the images mapping every file to its
+  prompt/size/seed/aspect (matching the MJ pipeline's `meta.json`
+  evidence convention). Single-render `--json` keeps its original flat
+  shape so existing callers are unaffected.
+- **Fail-fast is real**: usage errors, unreadable prompt files and
+  bullet-less packs are caught **before** the model loads. Measured
+  **0.027 s** to exit 2, versus a 22 GB load. This follows the repo rule
+  about validating before invoking an expensive renderer.
+- `assets/mural-prompts/two-am-infrastructure-30.md` — 30 prompts across
+  the five existing SWR families (neon-church, morning-haunt,
+  system-error, dream-sequence, brutalist-grid; 6 each), in the marketplace
+  "Two A.M. Infrastructure" mood. Subject-first per the sprint-0.32 matcher
+  rule, so acceptance matching cannot collapse them.
+- `npm run test:flux2`, wired into `test:all` (**442 assertions / 13
+  suites**). `.gitignore` extended to `assets/flux2/*/` per the file's own
+  "never commit auto-generated images" rule.
+
+**Corrected an invented claim.** My first `format_for_render` snapped
+dimensions to multiples of 16 on the stated grounds that diffusers' latent
+math requires it. That was fabricated — the repo's own proven-working
+default is **832×468**, and 468 is neither a multiple of 16 nor of 8. The
+evidence disproved the claim, so the claim changed (now: even pixels) and
+the correction is recorded in `docs/FLUX2-RENDERER.md` rather than quietly
+swallowed. Same class of error as the assertion miscount in sprint 0.37.
+
+**Verified:**
+- `npm run test:flux2` — 47/47.
+- `npm run test:all` — 442 assertions / 13 suites, 0 failures (was 12
+  suites; the suite count grew, and one real bug surfaced mid-run: the test
+  imported three of four names and died on `NameError: slugify`).
+- Fail-fast measured: 0.027 s / exit 2 for a bullet-less pack.
+- Pack pre-flight before spending model time: 30 prompts parsed, 30
+  distinct texts, all `--ar 16:9`, all shaping to 832×468, subjects leading.
+- Hygiene: no absolute filesystem paths in new files (the one hit was
+  `project.root` in `memory.yaml`, rewritten home-relative so a public repo
+  does not carry the username); secrets scan of `.kai/` clean.
+
+**Open:**
+- The 30-render batch is running on MPS. Sizes, timings and the manifest
+  land in the next entry — this one is written before the results, and
+  results get recorded when they exist (same rule as sprint 0.34).
+- `.kai/` is local-only, so its prevention rules do not travel to another
+  machine or to CI.
+- "All my other pages" in other repos (kai-systems, RESONA, bob-mover)
+  remains unclaimed. Each needs its own AGENTS.md read before any work;
+  my filesystem boundary is this project.
+- **Not done:** actual media *distribution*. The reel pipeline is
+  pre-publish-only by design (no sanctioned third-party IG publish API), so
+  "it ships without you" is an architectural gap, not a bug.
+- **Next:** (a) record the batch results; (b) decide whether the 30 stills
+  feed the marketplace page or the SWR packs; (c) run one watcher pipeline
+  (reel-inbox) end to end as the distribution-side proof, since images were
+  the only half demonstrated.

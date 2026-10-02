@@ -67,22 +67,29 @@ CPU on Metal) and invokes the renderer. The default output is
 
 | Flag | Default | Meaning |
 |------|---------|---------|
-| `--prompt` | *(required)* | the text prompt |
-| `--out` | `assets/flux2/out.png` | output PNG path |
-| `--width` / `--height` | `832` / `468` | output size (16:9 by default) |
+| `--prompt` | — | the text prompt (single render) |
+| `--prompt-file` | — | prompt pack, one top-level bullet per prompt (**batch**) |
+| `--out` | `assets/flux2/out.png` | output PNG path (single render) |
+| `--outdir` | `assets/flux2/out` | output directory (batch) |
+| `--width` / `--height` | `832` / `468` | default output size; a bullet's `--ar` overrides the shape |
 | `--guidance` | `3.5` | accepted but **ignored** by klein-4B (distilled) |
 | `--steps` | `20` | inference steps |
-| `--seed` | `0` | CPU generator seed — reproducible renders |
+| `--seed` | `0` | base seed — batch renders use `seed + index` |
 | `--model` | `assets/flux2/FLUX.2-klein-4B` | model dir (`FLUX2_MODEL_PATH` env overrides) |
 | `--json` | off | emit a single JSON result line |
+
+Pass **exactly one** of `--prompt` or `--prompt-file`.
 
 ### Exit codes
 
 | Code | Meaning |
 |------|---------|
-| `0` | rendered and wrote the PNG |
-| `2` | usage error, or model dir not found |
+| `0` | rendered and wrote the PNG(s) |
+| `2` | usage error, unreadable/empty prompt file, or model dir not found |
 | `1` | runtime error |
+
+Usage and prompt-file errors are detected **before** the model loads, so a
+bad call returns in ~30 ms rather than after a 22 GB load.
 
 ### JSON output
 
@@ -102,6 +109,63 @@ CPU on Metal) and invokes the renderer. The default output is
 Use `--json` when scripting or chaining into the MJ prompt packs — the model
 loading banner stays on stderr so the payload parses clean.
 
+---
+
+## Batch mode
+
+The point of batch mode is that the **model loads once** and renders N
+prompts. Calling `--prompt` in a loop would pay the ~12 s model load every
+single time.
+
+```bash
+npm run render:flux2 -- \
+  --prompt-file assets/mural-prompts/two-am-infrastructure-30.md \
+  --outdir assets/flux2/two-am-infrastructure-30
+```
+
+Input is the repo's existing prompt-pack convention (see
+`assets/mural-prompts/PROMPT-EXPANSION-FORMAT.md`) — the same files the MJ
+watcher consumes. One top-level bullet per prompt; frontmatter, blockquotes
+and code fences are ignored.
+
+- A trailing `--ar WxH` on a bullet is stripped from the prompt text and
+  used to shape the output. It is scaled to the **default area** (832×468),
+  so a 1:1 bullet does not accidentally render at 832×832 — twice the
+  pixels. Bullets without `--ar` fall back to the default 16:9.
+- Output names are `NN-<slug>.png`, index-first so the pack order survives
+  sorting. `slugify()` falls back to `frame` rather than emit an empty
+  filename.
+- Seeds are `--seed + index`, so a batch is reproducible and two prompts
+  never share a seed.
+- A `manifest.json` is written beside the images mapping every filename
+  back to its prompt, size, seed and aspect. This is the machine-checkable
+  evidence trail, matching the MJ pipeline's `meta.json` convention.
+
+Batch `--json` emits `{ok, model, device, steps, guidance, loadSeconds,
+renderSeconds, totalSeconds, count, manifest, images: [...]}`. A single
+render keeps the original flat shape so existing callers are unaffected.
+
+### Prompt parsing is a pure module
+
+`lib/flux2-renderer/prompts.py` holds `extract_prompts`, `parse_aspect`,
+`format_for_render` and `slugify` — **no torch, no diffusers**. It is unit
+tested by `lib/flux2-renderer/test_prompts.py` (stdlib only):
+
+```bash
+npm run test:flux2
+```
+
+That separation is deliberate: the parsing rules change far more often than
+the model does, and testing them must not require a 22 GB pipeline.
+
+### Sizing note (corrected)
+
+An earlier draft of `format_for_render` snapped dimensions to multiples of
+16, claiming diffusers' latent math requires it. **That was wrong and the
+shipped default disproves it** — the proven-working 832×468 is not a
+multiple of 16 (nor of 8). Dimensions are snapped to **even** pixels, which
+is the constraint the evidence actually supports.
+
 ### Device selection
 
 `pick_device()` auto-selects `mps` when `torch.backends.mps.is_available()`
@@ -113,14 +177,20 @@ to stay comfortably under the 24 GB unified-memory ceiling.
 
 ## Reference
 - Script: `lib/flux2-renderer/render.py`
+- Prompt parsing (pure, tested): `lib/flux2-renderer/prompts.py`
+- Tests: `lib/flux2-renderer/test_prompts.py`
 - Deps: `lib/flux2-renderer/requirements.txt`
-- npm: `flux2:setup`, `render:flux2`
+- npm: `flux2:setup`, `render:flux2`, `test:flux2`
 
 ## Follow-ups (flagged, not done)
-- No unit test yet. `render.py` lazy-imports `torch`/`diffusers` inside
-  `main()` so the CLI glue is thin; a meaningful synthetic test would require
-  sys.modules mocking of a 3.9 GB pipeline — low value for a personal tool.
-  Revisit only if the renderer grows real branching logic.
+- ~~No unit test yet.~~ **Done** — `prompts.py` is a pure module and
+  `test_prompts.py` covers it (39 checks, stdlib only, no model). The
+  original reasoning was that the CLI glue was too thin to test; adding
+  batch mode introduced real branching (pack parsing, aspect shaping,
+  filename slugging), which is exactly the condition the note said should
+  trigger a revisit.
 - No `docs` mention on how-to as a numbered section (the how-to page has a
   strict 9-section e2e contract). A Requirements bullet was the non-breaking
   way to surface it.
+- Batch renders are serial and single-image. A `--images-per-prompt` flag
+  for 4-up variants would match the MJ mental model; not needed yet.
