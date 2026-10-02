@@ -53,8 +53,8 @@ function check(name, ok, detail = '') {
 
   check('market: hero <h1> "Mood Frames"', await page.evaluate(() =>
     document.querySelector('h1')?.textContent === 'Mood Frames'));
-  check('market: seven story cards', await page.evaluate(() =>
-    document.querySelectorAll('.story').length === 7));
+  check('market: eight story cards', await page.evaluate(() =>
+    document.querySelectorAll('.story').length === 8));
   check('market: story badges present', await page.evaluate(() =>
     document.querySelectorAll('.badge').length >= 7));
   check('market: extras row has 3 figures', await page.evaluate(() =>
