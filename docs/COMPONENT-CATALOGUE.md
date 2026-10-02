@@ -4,6 +4,10 @@ All components are Web Components (custom elements) defined inline in
 `pages/landing.html`. No bundler, no framework, no runtime cost
 beyond the browser's built-in support.
 
+Exception: `<meditate-temperature>` lives in `lib/meditate-temperature.js`
+so any page (inside this repo or outside it) can drop it in — see its
+entry below.
+
 ---
 
 ## `<theme-toggle>`
@@ -60,6 +64,36 @@ beyond the browser's built-in support.
 - **States:** task-checkmarks animate from empty → done every 1.6s,
   loop forever. Waveform bars pulse on a 1.4s loop with staggered
   delays. Reduced-motion stops both, marks all checks done immediately.
+
+## `<meditate-temperature>`
+
+- **Purpose:** a temperature-driven meditation visual — the thing the
+  Temple of Control drives. Renders a breathing core with an aura,
+  grain and (when a score is loaded) note-onset rings, on a `<canvas>`.
+  "Meditation → visual image" in one element: heat is the colour
+  temperature, breath the motion temperature, glow the light
+  temperature.
+- **Home:** `lib/meditate-temperature.js` (the first shared component
+  that lives in `lib/` rather than inline in a page — it is meant to be
+  dropped into any page with one `<script>` + one tag).
+- **Props / attrs:** `heat`, `breath`, `glow` (all 0..1). Also exposed
+  as JS properties and via `setTemp({ heat, breath, glow })`.
+- **MIDI:** `loadMidi(fileOrBufferOrUrl)` parses a Standard MIDI File
+  (running status, vel-0 note-on, tempo map) and drives the visual from
+  the note events — rings on note-ons, velocity → opacity, pitch class →
+  hue, tempo map → breath rate. Dispatches a `midi` event with
+  `{ notes, bpm, duration }`.
+- **Transport:** `play()` / `pause()`; `midi` property exposes the
+  parsed score.
+- **Calm-by-default:** the rAF loop parks when the element leaves the
+  viewport (IntersectionObserver) and honours `prefers-reduced-motion`.
+- **Companion:** `lib/midi-automap.js` (`window.MIDI_AUTOMAP`) maps a
+  hardware controller's knobs to the three temperatures. Maschine Mikro
+  is profiled; unknown devices fall back to the generic profile. Three
+  automap modes — `temperature` / `score` / `tint` — cycle from the
+  controller's mode button or `desk.mode = n`. `map(profile, mode, cc,
+  value)` is pure and unit-tested; `desk.receive(cc, value)` is the
+  no-hardware test seam.
 
 ## Reusable SVG icon library
 

@@ -217,6 +217,34 @@ npm run lvs:segment -- video.mp4 --segments 4
 
 Details, CLI flags, exit codes and e2e: [`docs/LOOPABLE-VIDEO-SEGMENTER.md`](docs/LOOPABLE-VIDEO-SEGMENTER.md).
 
+## Run the Temple of Control
+
+Pure client-side — no server, no Python, no build step. Two files:
+`lib/meditate-temperature.js` (the visual) and `lib/midi-automap.js`
+(hardware knobs). Open the page:
+
+```bash
+node lib/serve.js --port 5173
+# → http://127.0.0.1:5173/pages/temple-of-control.html
+```
+
+Three temperature sliders drive a meditation visual — **heat** (colour
+temperature), **breath** (motion temperature), **glow** (light
+temperature). Drop a `.mid` on it and the score becomes the meditation:
+note-ons ripple out, velocity drives their weight, pitch class shifts
+their hue, the tempo map sets the breath rate.
+
+To put it on any page:
+
+```html
+<script src="/lib/meditate-temperature.js"></script>
+<meditate-temperature heat="0.38" breath="0.5" glow="0.58"></meditate-temperature>
+```
+
+Hardware (Maschine Mikro profiled, generic fallback) on top of it via
+`lib/midi-automap.js` — three automap modes cycle from the controller's
+mode button. Reference: [`docs/COMPONENT-CATALOGUE.md`](docs/COMPONENT-CATALOGUE.md).
+
 ## Run the e2e test
 
 ```bash
@@ -249,8 +277,10 @@ npm run e2e:refael
 ```
 
 The how-to page test uses the same convention (`npm run e2e:howto`),
-as does the Loopable Video Segmenter test (`npm run e2e:lvs`), and
-`npm run test:all` covers the watcher unit tests (chart / songs / MJ).
+as does the Loopable Video Segmenter test (`npm run e2e:lvs`) and the
+Temple of Control test (`npm run e2e:temple`), and `npm run test:all`
+covers the watcher unit tests (chart / songs / MJ) plus
+`test:midi-automap`.
 
 ## Architecture (sprint 0 + planned)
 

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temple of Control — Tools</title>
+    <meta name="description" content="Three temperature sliders that turn a meditation into a visual — heat, breath, glow. MIDI-driven, pluggable on any page. Part of the digital twin.">
+    <meta property="og:title" content="Temple of Control — Tools">
+    <meta property="og:description" content="Heat, breath, glow: three temperature sliders driving a meditation visual. Drop in a .mid and the score becomes the meditation.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://kajica2.github.io/digital-twin/pages/temple-of-control.html">
+    <link rel="canonical" href="https://kajica2.github.io/digital-twin/pages/temple-of-control.html">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%8C%A1%3C/text%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #fafaf9; --bg-secondary: #f5f5f4; --bg-card: #ffffff;
+            --text-primary: #1c1917; --text-secondary: #57534e; --text-tertiary: #78716c;
+            --border-light: #e7e5e4; --border-medium: #d6d3d1;
+            --accent: #0f766e; --accent-text: #0f766e; --accent-2: #b45309; --accent-2-text: #92400e;
+            --code-bg: #f5f5f4; --code-text: #44403c;
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --radius-md: 10px; --radius-lg: 16px;
+            --mono: 'JetBrains Mono', ui-monospace, monospace;
+        }
+        [data-theme="dark"] {
+            --bg-primary: #0c0a09; --bg-secondary: #1c1917; --bg-card: #1c1917;
+            --text-primary: #fafaf9; --text-secondary: #a8a29e; --text-tertiary: #78716c;
+            --border-light: #292524; --border-medium: #44403c;
+            --accent: #2dd4bf; --accent-text: #2dd4bf; --accent-2: #fbbf24; --accent-2-text: #fbbf24;
+            --code-bg: #292524; --code-text: #e7e5e4;
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg-primary); color: var(--text-primary);
+            font-family: 'Inter', system-ui, sans-serif; line-height: 1.65;
+            -webkit-font-smoothing: antialiased;
+        }
+        .wrap { max-width: 940px; margin: 0 auto; padding: 0 24px; }
+        header { padding: 30px 0 8px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        .back { font-family: var(--mono); font-size: 12px; color: var(--text-secondary); text-decoration: none; }
+        .back:hover { color: var(--accent-text); }
+        #themeToggle {
+            font-family: var(--mono); font-size: 12px; padding: 6px 12px; cursor: pointer;
+            background: var(--bg-card); color: var(--text-secondary);
+            border: 1px solid var(--border-light); border-radius: var(--radius-md);
+        }
+        .hero { padding: 26px 0 30px; border-bottom: 1px solid var(--border-light); }
+        .kicker { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent-text); }
+        h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.12; letter-spacing: -0.02em; margin: 10px 0 12px; font-weight: 700; }
+        .lede { font-size: 17px; color: var(--text-secondary); max-width: 64ch; }
+        h2 { font-size: 21px; letter-spacing: -0.01em; margin: 42px 0 12px; font-weight: 650; }
+        p { color: var(--text-secondary); max-width: 70ch; }
+        section { padding-bottom: 14px; }
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-md);
+        }
+        .visual-shell { padding: 0; overflow: hidden; }
+        meditate-temperature { --mt-bg: #0b0d12; --mt-mono: var(--mono); border-radius: 0; }
+
+        /* three temperature sliders */
+        .desk { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 18px; }
+        .slider { display: flex; flex-direction: column; gap: 8px; }
+        .slider-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+        .slider-label { font-family: var(--mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-secondary); }
+        .slider-val { font-family: var(--mono); font-size: 13px; color: var(--accent-text); }
+        input[type="range"] {
+            -webkit-appearance: none; appearance: none; width: 100%; height: 4px; border-radius: 4px;
+            background: var(--border-medium); outline: none; cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%;
+            background: var(--accent); border: 2px solid var(--bg-card); box-shadow: var(--shadow-md); cursor: grab;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 18px; height: 18px; border-radius: 50%; background: var(--accent);
+            border: 2px solid var(--bg-card); cursor: grab;
+        }
+        .slider-hint { font-family: var(--mono); font-size: 10.5px; color: var(--text-tertiary); letter-spacing: .02em; }
+
+        .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 16px; }
+        button.act {
+            font-family: var(--mono); font-size: 12px; padding: 8px 14px; cursor: pointer;
+            background: var(--bg-card); color: var(--text-primary);
+            border: 1px solid var(--border-medium); border-radius: var(--radius-md);
+        }
+        button.act:hover { border-color: var(--accent); color: var(--accent-text); }
+        button.act.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        button.act.primary:hover { filter: brightness(1.07); color: #fff; }
+        .pill { font-family: var(--mono); font-size: 11px; padding: 3px 9px; border-radius: 999px;
+                border: 1px solid var(--border-light); color: var(--text-secondary); }
+        .pill.live { border-color: var(--accent); color: var(--accent-text); }
+        .status { font-family: var(--mono); font-size: 12px; color: var(--text-tertiary); }
+
+        pre {
+            background: var(--code-bg); color: var(--code-text); border: 1px solid var(--border-light);
+            border-radius: var(--radius-md); padding: 16px; overflow-x: auto;
+            font-family: var(--mono); font-size: 12.5px; line-height: 1.7;
+        }
+        .code-wrap { position: relative; }
+        .copy-btn {
+            position: absolute; top: 10px; right: 10px; font-family: var(--mono); font-size: 11px;
+            padding: 5px 11px; cursor: pointer; background: var(--bg-card); color: var(--text-secondary);
+            border: 1px solid var(--border-medium); border-radius: 7px;
+        }
+        .copy-btn:hover { color: var(--accent-text); border-color: var(--accent); }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border-light); }
+        th { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-tertiary); font-weight: 500; }
+        td code, .inline-code { font-family: var(--mono); font-size: 12px; background: var(--code-bg);
+                                padding: 2px 6px; border-radius: 5px; color: var(--code-text); }
+        footer { border-top: 1px solid var(--border-light); margin-top: 48px; padding: 26px 0 56px;
+                 color: var(--text-tertiary); font-size: 13px; }
+        footer a { color: var(--accent-text); text-decoration: none; }
+        @media (max-width: 700px) {
+            .desk { grid-template-columns: 1fr; }
+            h1 { font-size: 30px; }
+        }
+    </style>
+    <script>
+        // no-flash theme bootstrap
+        (function () {
+            try {
+                var m = localStorage.getItem('tc-theme');
+                if (m === 'dark' || (m !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                }
+            } catch (e) {}
+        })();
+    </script>
+</head>
+<body>
+<div class="wrap">
+    <header>
+        <a class="back" href="how-to.html">← how-to</a>
+        <button id="themeToggle" aria-label="Toggle colour theme">theme</button>
+    </header>
+
+    <div class="hero">
+        <div class="kicker">tools · temperature</div>
+        <h1>Temple of Control</h1>
+        <p class="lede">Three temperature sliders turn a meditation into a visual. <b>Heat</b> is the colour
+            temperature, <b>breath</b> the motion temperature, <b>glow</b> the light temperature. Drop in a
+            <code class="inline-code">.mid</code> and the score becomes the meditation — note-ons ripple out,
+            velocity drives their weight, pitch class shifts their hue. One script tag, one custom element,
+            anywhere.</p>
+    </div>
+
+    <section>
+        <h2>The desk</h2>
+        <div class="card visual-shell">
+            <meditate-temperature id="tempVisual" heat="0.38" breath="0.5" glow="0.58"></meditate-temperature>
+        </div>
+
+        <div class="desk">
+            <div class="slider">
+                <div class="slider-top">
+                    <span class="slider-label">heat</span>
+                    <span class="slider-val" data-val="heat">0.38</span>
+                </div>
+                <input type="range" min="0" max="1" step="0.01" value="0.38" data-temp="heat"
+                       aria-label="Heat — colour temperature">
+                <span class="slider-hint">colour · steel-blue → ember</span>
+            </div>
+            <div class="slider">
+                <div class="slider-top">
+                    <span class="slider-label">breath</span>
+                    <span class="slider-val" data-val="breath">0.50</span>
+                </div>
+                <input type="range" min="0" max="1" step="0.01" value="0.5" data-temp="breath"
+                       aria-label="Breath — motion temperature">
+                <span class="slider-hint">motion · still → alive</span>
+            </div>
+            <div class="slider">
+                <div class="slider-top">
+                    <span class="slider-label">glow</span>
+                    <span class="slider-val" data-val="glow">0.58</span>
+                </div>
+                <input type="range" min="0" max="1" step="0.01" value="0.58" data-temp="glow"
+                       aria-label="Glow — light temperature">
+                <span class="slider-hint">light · dim → incandescent</span>
+            </div>
+        </div>
+
+        <div class="row">
+            <button class="act" data-preset="frost">frost</button>
+            <button class="act" data-preset="still">still</button>
+            <button class="act" data-preset="ember">ember</button>
+            <button class="act" data-preset="incandescent">incandescent</button>
+            <span class="status" id="playState">no score · breathing</span>
+        </div>
+    </section>
+
+    <section>
+        <h2>Feed it a score</h2>
+        <p>Choose a Standard MIDI File and the visual is driven by the note events themselves — beat and
+           onset come out exact, because a note-on <em>is</em> an onset. The tempo map sets the breath rate.</p>
+        <div class="row">
+            <input type="file" id="midiInput" accept=".mid,.midi,audio/midi" aria-label="Choose a MIDI file">
+            <button class="act" id="playBtn" disabled>pause</button>
+            <span class="status" id="midiStatus">no score loaded</span>
+        </div>
+    </section>
+
+    <section>
+        <h2>Automap — hardware as the desk</h2>
+        <p>A MIDI controller can drive the three temperatures directly. <b>Maschine Mikro</b> is profiled:
+           its eight encoders auto-map to the current mode's three targets, and the mode button cycles the
+           <em>automap modes</em> — <span class="inline-code">temperature</span>,
+           <span class="inline-code">score</span>, <span class="inline-code">tint</span>. Unknown devices fall
+           back to the generic profile.</p>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>mode</th><th>knob 1</th><th>knob 2</th><th>knob 3</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>temperature</code></td><td>heat</td><td>breath</td><td>glow</td></tr>
+                    <tr><td><code>score</code></td><td>heat</td><td>glow</td><td>ring rate</td></tr>
+                    <tr><td><code>tint</code></td><td>heat</td><td>glow</td><td>hue shift</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="row">
+            <button class="act primary" id="automapBtn">connect controller</button>
+            <button class="act" id="modeBtn">cycle mode</button>
+            <span class="pill" id="automapMode">mode: temperature</span>
+            <span class="status" id="automapDevice">no controller</span>
+        </div>
+    </section>
+
+    <section>
+        <h2>Plug it into any page</h2>
+        <p>Two files, no build step. The element is a Web Component, so it works on any page in this repo or
+           outside it.</p>
+        <div class="code-wrap">
+            <button class="copy-btn" data-copy>copy</button>
+            <pre data-copy-source>&lt;script src="/lib/meditate-temperature.js"&gt;&lt;/script&gt;
+
+&lt;meditate-temperature heat="0.38" breath="0.5" glow="0.58"&gt;&lt;/meditate-temperature&gt;
+
+&lt;script&gt;
+  const v = document.querySelector('meditate-temperature');
+  v.loadMidi('/audios/score.mid').then(console.log);   // optional: MIDI-driven
+  v.setTemp({ heat: 0.8 });                            // three temperatures, 0..1
+&lt;/script&gt;</pre>
+        </div>
+        <p style="margin-top:12px">Knob support on top of it:</p>
+        <div class="code-wrap">
+            <button class="copy-btn" data-copy>copy</button>
+            <pre data-copy-source>&lt;script src="/lib/midi-automap.js"&gt;&lt;/script&gt;
+
+MIDI_AUTOMAP.create({
+  onMap:  m =&gt; v.setTemp(m),          // { heat } | { breath } | { glow }
+  onMode: mode =&gt; console.log(mode)  // temperature | score | tint
+}).request();</pre>
+        </div>
+    </section>
+
+    <footer>
+        Part of <a href="how-to.html" data-rel>the digital twin</a> · component reference in
+        <a href="../docs/COMPONENT-CATALOGUE.md" data-rel>docs/COMPONENT-CATALOGUE.md</a> ·
+        <a href="cognitive-twin.html" data-rel>cognitive twin</a>.
+    </footer>
+</div>
+
+<script src="../lib/meditate-temperature.js"></script>
+<script src="../lib/midi-automap.js"></script>
+<script>
+(function () {
+    'use strict';
+
+    // ---- theme -----------------------------------------------------------
+    var themeBtn = document.getElementById('themeToggle');
+    function applyTheme() {
+        var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+        themeBtn.textContent = dark ? 'light' : 'dark';
+    }
+    applyTheme();
+    themeBtn.addEventListener('click', function () {
+        var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+        if (dark) {
+            document.documentElement.removeAttribute('data-theme');
+            try { localStorage.setItem('tc-theme', 'light'); } catch (e) {}
+        } else {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            try { localStorage.setItem('tc-theme', 'dark'); } catch (e) {}
+        }
+        applyTheme();
+    });
+
+    // ---- the desk --------------------------------------------------------
+    var visual = document.getElementById('tempVisual');
+    var readouts = {};
+    document.querySelectorAll('[data-val]').forEach(function (el) {
+        readouts[el.getAttribute('data-val')] = el;
+    });
+
+    function setTemp(key, value) {
+        var v = Math.max(0, Math.min(1, Number(value)));
+        var update = {}; update[key] = v;
+        visual.setTemp(update);
+        if (readouts[key]) readouts[key].textContent = v.toFixed(2);
+    }
+
+    document.querySelectorAll('input[data-temp]').forEach(function (input) {
+        var key = input.getAttribute('data-temp');
+        setTemp(key, input.value);
+        input.addEventListener('input', function () { setTemp(key, input.value); });
+    });
+
+    // Presets are just temperature triples.
+    var PRESETS = {
+        frost: { heat: 0.06, breath: 0.22, glow: 0.34 },
+        still: { heat: 0.30, breath: 0.06, glow: 0.42 },
+        ember: { heat: 0.78, breath: 0.62, glow: 0.66 },
+        incandescent: { heat: 0.96, breath: 0.84, glow: 0.94 }
+    };
+    document.querySelectorAll('[data-preset]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var p = PRESETS[btn.getAttribute('data-preset')];
+            if (!p) return;
+            Object.keys(p).forEach(function (key) {
+                var input = document.querySelector('input[data-temp="' + key + '"]');
+                if (input) input.value = p[key];
+                setTemp(key, p[key]);
+            });
+        });
+    });
+
+    // ---- MIDI file -------------------------------------------------------
+    var midiInput = document.getElementById('midiInput');
+    var midiStatus = document.getElementById('midiStatus');
+    var playBtn = document.getElementById('playBtn');
+    var playState = document.getElementById('playState');
+
+    midiInput.addEventListener('change', function () {
+        var file = midiInput.files && midiInput.files[0];
+        if (!file) return;
+        midiStatus.textContent = 'reading ' + file.name + ' …';
+        visual.loadMidi(file).then(function (info) {
+            midiStatus.textContent = info.notes + ' notes · ' + info.bpm + ' bpm · ' +
+                info.duration.toFixed(1) + 's';
+            playState.textContent = 'score · ' + info.bpm + ' bpm';
+            playBtn.disabled = false;
+            visual.play();
+            playBtn.textContent = 'pause';
+        }).catch(function (err) {
+            midiStatus.textContent = '✕ ' + err.message;
+        });
+    });
+
+    playBtn.addEventListener('click', function () {
+        if (visual._playing === false) {
+            visual.play();
+            playBtn.textContent = 'pause';
+            playState.textContent = 'score · playing';
+        } else {
+            visual.pause();
+            playBtn.textContent = 'play';
+            playState.textContent = 'score · paused';
+        }
+    });
+
+    // ---- automap ---------------------------------------------------------
+    var automapBtn = document.getElementById('automapBtn');
+    var automapMode = document.getElementById('automapMode');
+    var automapDevice = document.getElementById('automapDevice');
+    var modeBtn = document.getElementById('modeBtn');
+    var desk = null;
+
+    function showMode(mode) {
+        automapMode.textContent = 'mode: ' + mode.name;
+        automapMode.classList.add('live');
+    }
+
+    automapBtn.addEventListener('click', function () {
+        if (desk) return;
+        desk = window.MIDI_AUTOMAP.create({
+            onMap: function (m) {
+                Object.keys(m).forEach(function (key) {
+                    if (key === 'heat' || key === 'breath' || key === 'glow') {
+                        var input = document.querySelector('input[data-temp="' + key + '"]');
+                        if (input) input.value = m[key];
+                        setTemp(key, m[key]);
+                    }
+                });
+            },
+            onDevice: function (d) {
+                automapDevice.textContent = 'auto-mapped: ' + d.name;
+                automapBtn.textContent = 'controller connected';
+            },
+            onMode: showMode
+        });
+        desk.request().then(function (ok) {
+            if (!ok) {
+                automapDevice.textContent = 'Web MIDI unavailable in this browser';
+                automapBtn.disabled = true;
+            } else if (!desk.device) {
+                automapDevice.textContent = 'waiting for a controller…';
+            }
+        });
+    });
+
+    modeBtn.addEventListener('click', function () {
+        if (!desk) {
+            // Cycle the label even without hardware so the modes are visible.
+            var modes = window.MIDI_AUTOMAP.modes;
+            var idx = (Number(automapMode.getAttribute('data-i') || 0) + 1) % modes.length;
+            automapMode.setAttribute('data-i', String(idx));
+            showMode(modes[idx]);
+            return;
+        }
+        desk.mode = (desk.mode + 1) % desk.modes.length;
+    });
+
+    // ---- copy blocks -----------------------------------------------------
+    document.querySelectorAll('[data-copy]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var pre = btn.parentElement.querySelector('[data-copy-source]');
+            if (!pre) return;
+            // Flip immediately: the click's feedback must be synchronous, the
+            // clipboard write is fire-and-forget behind it.
+            btn.textContent = 'copied';
+            setTimeout(function () { btn.textContent = 'copy'; }, 1400);
+            var text = pre.textContent;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).catch(function () { fallbackCopy(text); });
+            } else {
+                fallbackCopy(text);
+            }
+        });
+    });
+
+    // execCommand fallback: a click must never throw in headless.
+    function fallbackCopy(text) {
+        try {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+        } catch (e) { /* no-op: copy is a convenience, never a gate */ }
+    }
+})();
+</script>
+</body>
+</html>

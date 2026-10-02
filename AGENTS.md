@@ -3071,3 +3071,54 @@ repo's test or page contracts.
   Project context still lives here in `AGENTS.md`. Optional next steps if
   wanted: `ruflo daemon start` / `ruflo swarm init` / `ruflo metaharness
   score` (deliberately NOT auto-started — the twin stays calm).
+
+### 2026-10-02 — sprint 0.36 (Temple of Control + `<meditate-temperature>`)
+
+- **Shipped:**
+  - **`lib/meditate-temperature.js`** — the first shared Web Component to
+    live in `lib/` rather than inline in a page, because its whole point is
+    "pluggable on any page". `<meditate-temperature heat breath glow>` renders
+    a breathing core + aura + grain on canvas; three temperatures, all 0..1:
+    **heat** = colour temperature (steel-blue → ember), **breath** = motion
+    temperature (still → alive), **glow** = light temperature (dim →
+    incandescent). "Meditation → visual image" in one tag.
+  - **MIDI-driven** (`loadMidi(fileOrBufferOrUrl)`) via an embedded SMF reader
+    — running status, vel-0 note-on, tempo map. Note-ons emit rings, velocity
+    → opacity, pitch class → hue, tempo map → breath rate. Beat and onset are
+    **exact** (they come off the score), not estimated.
+  - **`lib/midi-automap.js`** (`window.MIDI_AUTOMAP`) — hardware knob
+    auto-mapping. **Maschine Mikro profiled** (8 encoders, CC 16-23), generic
+    fallback. Three **automap modes** — `temperature` / `score` / `tint` —
+    cycle from the controller's mode button (CC 3) or `desk.mode = n`.
+  - **`pages/temple-of-control.html`** — the desk: live visual, three sliders,
+    4 presets (frost / still / ember / incandescent), MIDI file input, automap
+    panel with mode cycling, two copy-button embed snippets.
+  - **`e2e/temple-of-control.spec.mjs`** — 15/15. Includes that the slider
+    actually drives the component (not just its label), presets land on their
+    documented triples, the API contract (`setTemp` / `loadMidi` / `play` /
+    `pause`), automap mode cycling without hardware, and 0 console errors.
+  - **`lib/midi-automap.test.js`** — 36 checks on the pure mapping + the
+    `desk.receive()` seam (the Web MIDI code path with no device).
+- **Decisions:**
+  - Custom element built with the ES5 `Reflect.construct` subclassing pattern.
+    The first version passed a plain object to `customElements.define`, which
+    throws "Illegal constructor" and left the page dead — caught by the e2e,
+    not by eye.
+  - Copy buttons flip to `copied` **synchronously** on click (the clipboard
+    write is fire-and-forget behind it). The async version made feedback lag
+    and the contract untestable.
+  - 8 encoders wrap onto 3 targets (knob 4 → heat again) rather than going
+    unused — every knob does something in every mode.
+  - Calm-by-default: the rAF loop parks via IntersectionObserver off-viewport
+    and honours `prefers-reduced-motion`.
+- **Verified:** `e2e:temple` 15/15 · `npm run verify` green · `test:all` 11
+  suites green (12 with `test:midi-automap`, 36/36) · `e2e:howto` green after
+  the page-map row + "nine pages" bump (also fixed the marketplace row's stale
+  "seven stills" → eight).
+- **Open:** no score persists across reload (MIDI is re-picked); the score path
+  is covered through the API in e2e but a real `.mid` drop → rings is a manual
+  check; the Maschine Mikro profile is verified by the pure map only — a real
+  controller smoke is still open (needs hardware).
+- **Next:** (a) drop the visual into landing / twin-os as a live panel;
+  (b) jazz-solos corpus MIDI → visual picker (456 solos are sitting right
+  there); (c) real-controller automap smoke.
