@@ -107,11 +107,20 @@ def format_for_render(entry, default_width=832, default_height=468):
     The aspect only picks the shape; it is never applied by multiplying a
     ratio into a number the model cannot use.
 
-    Dimensions are snapped to EVEN pixels, not to multiples of 16. That is
-    the constraint the evidence supports: the proven-working default is
-    832x468, and 468 is neither a multiple of 16 nor of 8 — so rounding to
-    /16 would have been an invented rule that also reshapes the default.
-    Even pixels is what image encoders actually need.
+    Dimensions are snapped to MULTIPLES OF 16. This is not an assumption:
+    diffusers requires it and enforces it SILENTLY —
+
+        "`height` and `width` have to be divisible by 16 but are 468 and 832.
+         Dimensions will be resized accordingly"
+
+    — and then renders at the rounded size. A 832x468 request produces an
+    832x464 file. So snapping here is what makes the requested size and the
+    produced size agree, which is the only way a manifest can be trusted.
+
+    Note the shipped DEFAULT (832x468) is itself not /16 and gets rounded by
+    the pipeline to 832x464. It is left as-is for caller compatibility; only
+    aspect-derived sizes are snapped. See docs/FLUX2-RENDERER.md for the
+    full story, including the correction history.
     """
     entry = entry or {}
     prompt = str(entry.get("text", "")).strip()
@@ -122,15 +131,24 @@ def format_for_render(entry, default_width=832, default_height=468):
         # out at 832x832 (twice the pixels of 832x468) by accident.
         area = float(default_width) * float(default_height)
         scale = (area / (float(rw) * float(rh))) ** 0.5
-        w = int(rw * scale) // 2 * 2
-        h = int(rh * scale) // 2 * 2
+        w = _snap16(rw * scale)
+        h = _snap16(rh * scale)
     else:
         w, h = int(default_width), int(default_height)
 
     # Never let a bad ratio collapse to zero.
-    w = max(2, w)
-    h = max(2, h)
+    w = max(16, w)
+    h = max(16, h)
     return {"prompt": prompt, "width": w, "height": h}
+
+
+def _snap16(value):
+    """Round to the nearest multiple of 16, minimum 16.
+
+    Round-to-nearest, not round-down: 468 is 29.25 * 16, so truncation
+    loses 4px of height while 480 would gain 12. 464 is closer.
+    """
+    return max(16, int(round(float(value) / 16.0)) * 16)
 
 
 _SLUG_DROP = re.compile(r"[^a-z0-9]+")

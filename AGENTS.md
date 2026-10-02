@@ -3300,3 +3300,72 @@ swallowed. Same class of error as the assertion miscount in sprint 0.37.
   feed the marketplace page or the SWR packs; (c) run one watcher pipeline
   (reel-inbox) end to end as the distribution-side proof, since images were
   the only half demonstrated.
+
+### 2026-10-02 — sprint 0.38.b (batch results + the `/16` correction)
+
+Records the batch results that sprint 0.38 left open — and, more usefully,
+a second correction that the results forced.
+
+**The 30 renders.** `assets/mural-prompts/two-am-infrastructure-30.md` →
+`assets/flux2/two-am-infrastructure-30/`:
+
+- **30/30 written**, 22 MB total, 693 KB – 862 KB per PNG.
+- Seeds 0–29, all unique, one per prompt in pack order.
+- `manifest.json` present with `count: 30`, `device: mps`, `steps: 20`,
+  `baseSeed: 0`, and every file existing on disk.
+- Model load 113.1 s; the 30 rendered in the background alongside a full
+  test-suite run, so per-image wall time is not meaningful this pass.
+
+**The correction — `/16` was right, and my "fix" was the error.**
+
+Sprint 0.38 recorded that `format_for_render` snapping to multiples of 16
+was an invented rule and moved to even pixels. The batch log settled it:
+
+```
+`height` and `width` have to be divisible by 16 but are 468 and 832.
+Dimensions will be resized accordingly
+```
+
+diffusers **does** require `/16`. It does not fail — it warns and resizes.
+`sips` measured the produced files: **30/30 are 832×464**, not the 832×468
+that was requested (468 = 29.25 × 16 → 29 × 16 = 464).
+
+So the sequence was: correct rule with an unverified justification →
+"correction" that was itself wrong, because "832×468 renders fine" is
+evidence of *silent rounding*, not of the rule being false → rule restored
+with measured evidence. The tell I missed: a working default is not proof
+that a constraint is absent, only that something absorbed it.
+
+**Fixed:**
+
+- `_snap16()` — round-to-nearest multiple of 16 (468 → 464; truncation
+  would lose 4px where 480 would gain 12). Aspect-derived sizes snap; the
+  no-`--ar` default passes 832×468 through untouched for caller
+  compatibility and is the documented exception.
+- **The manifest recorded what was asked for, not what was produced** — so
+  it was wrong about all 30 files. It now records `width`/`height` read
+  back from the rendered image, plus `requestedWidth`/`requestedHeight`
+  and a `resized` boolean.
+- `test_prompts.py` +16 checks (**63**), including
+  `test_diffusers_rounding_is_real`, which pins the 468→464 arithmetic
+  against the measured batch so a future `_snap16` change cannot silently
+  diverge from what the pipeline does.
+- `docs/FLUX2-RENDERER.md` keeps the full correction history rather than
+  the cleaned-up version.
+
+**Verified:**
+
+- 2-prompt probe batch after the fix: 16:9 → **832×464**, 1:1 → **624×624**
+  (exactly the default area, 389376 px), **no `/16` warning emitted**,
+  `resized: false` on both.
+- Manifest cross-checked against the files with `sips`: **MATCH** on both.
+- `npm run test:all` — **505 assertions / 13 suites**, 0 failures.
+- The 30-image batch is *not* re-rendered. 832×464 is within 4px of 16:9
+  and the cost is another ~30 renders; the code is correct for the next
+  run and the existing set is honest in its manifest history.
+
+**Open / next:** unchanged from 0.38 — (a) decide whether the 30 stills
+feed the marketplace page or the SWR packs; (b) run one watcher pipeline
+(reel-inbox) end to end as the distribution-side proof; (c) the `.kai/`
+durability question (commit a redacted `memory.yaml`) is still the user's
+call.

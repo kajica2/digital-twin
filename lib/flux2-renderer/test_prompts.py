@@ -14,7 +14,13 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from prompts import extract_prompts, format_for_render, parse_aspect, slugify  # noqa: E402
+from prompts import (  # noqa: E402
+    _snap16,
+    extract_prompts,
+    format_for_render,
+    parse_aspect,
+    slugify,
+)
 
 _failures = []
 _count = 0
@@ -107,18 +113,20 @@ def test_parse_aspect():
 def test_format_for_render():
     print("format_for_render — shape + area conservation")
     one = format_for_render({"text": "a", "ar": None})
-    eq((one["width"], one["height"]), (832, 468), "no ar -> the proven default 16:9")
+    eq((one["width"], one["height"]), (832, 468), "no ar -> the caller-compatible default")
 
     nine = format_for_render({"text": "a", "ar": "16:9"})
-    eq(nine["width"] % 2, 0, "width is even")
-    eq(nine["height"] % 2, 0, "height is even")
+    eq(nine["width"] % 16, 0, "derived width is a multiple of 16")
+    eq(nine["height"] % 16, 0, "derived height is a multiple of 16")
     check(nine["width"] > nine["height"], "16:9 comes out landscape")
 
     square = format_for_render({"text": "a", "ar": "1:1"})
-    check(abs(square["width"] - square["height"]) <= 2, "square stays square (within 2px)")
+    check(abs(square["width"] - square["height"]) <= 16, "square stays square (within 16px)")
+    eq(square["width"] % 16, 0, "square width is a multiple of 16")
 
     tall = format_for_render({"text": "a", "ar": "9:16"})
     check(tall["height"] > tall["width"], "9:16 renders taller than wide")
+    eq(tall["height"] % 16, 0, "tall height is a multiple of 16")
 
     # Area is conserved so a 1:1 pack does not blow up the pixel count.
     default_area = 832 * 468
@@ -128,9 +136,37 @@ def test_format_for_render():
     )
 
     bad = format_for_render({"text": "a", "ar": "0:0"})
-    check(bad["width"] >= 2 and bad["height"] >= 2, "a bad ratio never collapses to zero")
+    check(bad["width"] >= 16 and bad["height"] >= 16, "a bad ratio never collapses to zero")
 
     eq(format_for_render({"text": "  spaced  "})["prompt"], "spaced", "prompt is trimmed")
+
+
+def test_snap16():
+    print("_snap16 — the constraint diffusers enforces")
+    eq(_snap16(468), 464, "468 rounds DOWN to 464 (29.25 * 16)")
+    eq(_snap16(832), 832, "832 is already /16")
+    eq(_snap16(480), 480, "480 is already /16")
+    eq(_snap16(1), 16, "tiny values floor at 16")
+    eq(_snap16(0), 16, "zero floors at 16")
+    eq(_snap16(8), 16, "8 rounds to 16")
+    for v in (100, 250, 468, 777, 1024):
+        check(_snap16(v) % 16 == 0, f"{v} -> {_snap16(v)} is divisible by 16")
+
+
+def test_diffusers_rounding_is_real():
+    """Evidence that /16 is not an invented rule.
+
+    The 30-render batch of 2026-10-02 requested 832x468 and diffusers
+    warned "Dimensions will be resized accordingly"; every produced PNG
+    measured 832x464. This pins the rounding arithmetic so a future change
+    to _snap16 cannot quietly diverge from what the pipeline does.
+    """
+    print("the /16 rule is the pipeline's, not ours")
+    requested = format_for_render({"text": "x", "ar": None})
+    eq((requested["width"], requested["height"]), (832, 468), "caller default is 832x468")
+    eq(_snap16(requested["height"]), 464, "the pipeline's rounding of 468 is 464")
+    check(_snap16(requested["height"]) != requested["height"],
+          "requested != produced, which is why the manifest must record both")
 
 
 def test_round_trip_with_pack():
@@ -145,12 +181,20 @@ def test_round_trip_with_pack():
     check(rendered[0]["prompt"] == "A window at night, chipped mug on the sill", "prompt body clean")
     check(rendered[0]["height"] > rendered[0]["width"], "2:3 comes out portrait")
     check(rendered[1]["width"] > rendered[1]["height"], "16:9 comes out landscape")
-    check(rendered[2]["width"] == 832 and rendered[2]["height"] == 468, "unspecified falls back")
-    for r in rendered:
+    # Derived shapes must satisfy the pipeline's /16 constraint.
+    for r in rendered[:2]:
         check(
-            r["width"] % 2 == 0 and r["height"] % 2 == 0 and r["width"] >= 2 and r["height"] >= 2,
-            f"even, non-zero dimensions: {r['width']}x{r['height']}",
+            r["width"] % 16 == 0 and r["height"] % 16 == 0 and r["width"] >= 16 and r["height"] >= 16,
+            f"/16 and non-zero: {r['width']}x{r['height']}",
         )
+    # The no-ar fallback is the documented exception: it is passed through
+    # untouched for caller compatibility and the pipeline rounds it.
+    eq(
+        (rendered[2]["width"], rendered[2]["height"]),
+        (832, 468),
+        "fallback passes the caller default through unchanged",
+    )
+    eq(_snap16(rendered[2]["height"]), 464, "…and the pipeline rounds 468 to 464")
 
 
 def test_slugify():
@@ -173,6 +217,8 @@ def main():
     test_prefix_and_shared()
     test_parse_aspect()
     test_format_for_render()
+    test_snap16()
+    test_diffusers_rounding_is_real()
     test_round_trip_with_pack()
     test_slugify()
 

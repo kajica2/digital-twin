@@ -158,13 +158,40 @@ npm run test:flux2
 That separation is deliberate: the parsing rules change far more often than
 the model does, and testing them must not require a 22 GB pipeline.
 
-### Sizing note (corrected)
+### Sizing: the `/16` constraint, and a two-step correction
 
-An earlier draft of `format_for_render` snapped dimensions to multiples of
-16, claiming diffusers' latent math requires it. **That was wrong and the
-shipped default disproves it** — the proven-working 832×468 is not a
-multiple of 16 (nor of 8). Dimensions are snapped to **even** pixels, which
-is the constraint the evidence actually supports.
+**The rule:** diffusers requires dimensions divisible by 16. It does not
+fail when you violate it — it warns and silently resizes:
+
+```
+`height` and `width` have to be divisible by 16 but are 468 and 832.
+Dimensions will be resized accordingly
+```
+
+Confirmed empirically in the 30-render batch of 2026-10-02: **requested**
+832×468, **produced** 832×464 on all 30 files (468 = 29.25 × 16, so it
+rounds to 29 × 16 = 464).
+
+`format_for_render` therefore snaps aspect-derived sizes to multiples of 16
+(round-to-nearest, via `_snap16`), so requested and produced agree.
+
+**Correction history, kept because it is instructive:**
+
+1. First version snapped to `/16` — correct rule, but I justified it with a
+   claim I had not verified ("diffusers' latent math silently mis-shapes
+   otherwise").
+2. Seeing the shipped default 832×468 render fine, I "corrected" it to
+   even pixels and recorded that the `/16` rule was invented. **That was
+   the error.** 832×468 renders fine precisely *because* diffusers rounds
+   it — the very silent reshaping I had originally described.
+3. The batch log surfaced the warning and `sips` measured 832×464 on every
+   output. Rule restored, this time with the evidence attached.
+
+**Consequence:** `manifest.json` records **both** `width`/`height` (what
+the file actually is, read back from the image) and
+`requestedWidth`/`requestedHeight`, plus a `resized` boolean. An earlier
+manifest recorded only the request and was therefore wrong about all 30
+files. Evidence that cannot be wrong is the only kind worth writing down.
 
 ### Device selection
 

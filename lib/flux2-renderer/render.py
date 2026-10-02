@@ -143,19 +143,31 @@ def main():
         os.makedirs(os.path.dirname(out_abs) or ".", exist_ok=True)
         img.save(out_abs)
 
+        # Record what the file actually IS, not what was asked for. diffusers
+        # silently rounds non-/16 sizes (a 832x468 request renders 832x464),
+        # so the requested values alone would make the manifest a liar.
+        try:
+            actual_w, actual_h = img.size
+        except Exception:
+            actual_w, actual_h = job["width"], job["height"]
+
         rec = {
             "ok": True,
             "out": out_abs,
             "prompt": job["prompt"],
             "ar": job["ar"],
-            "width": job["width"],
-            "height": job["height"],
+            "width": actual_w,
+            "height": actual_h,
+            "requestedWidth": job["width"],
+            "requestedHeight": job["height"],
+            "resized": (actual_w, actual_h) != (job["width"], job["height"]),
             "seed": job["seed"],
         }
         results.append(rec)
         if len(jobs) > 1:
+            note = " (resized)" if rec["resized"] else ""
             print(f"[flux2] [{n}/{len(jobs)}] {os.path.basename(out_abs)} "
-                  f"{job['width']}x{job['height']} seed={job['seed']}", file=sys.stderr)
+                  f"{actual_w}x{actual_h} seed={job['seed']}{note}", file=sys.stderr)
 
     render_s = time.time() - render_t0
     total_s = time.time() - t0
