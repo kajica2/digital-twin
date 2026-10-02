@@ -3047,3 +3047,27 @@ repo's test or page contracts.
   user approval, irreversible); (b) `data/clip/samples.json` for the
   CLIP sample strip; (c) clip CLI `--out <file>`; (d) woody-shaw chart
   variants.
+
+### 2026-10-02 — tooling (RuFlo enrollment)
+
+- **Added:** the repo is now enrolled in **RuFlo V3 (3.50.0)**, the
+  claude-flow coordination framework behind the swarm / agentdb / SPARC /
+  reasoningbank skill stack. Run via `npx ruflo init --no-signup
+  --no-global --no-skills-sh` (project-scoped: no cloud enrollment, no
+  `~/.claude/CLAUDE.md` edit, no redundant skills registration).
+- **Ships:** `.claude/settings.json` (**7 hook types enabled** — tool use
+  in this repo now emits ruflo telemetry hooks; they are best-effort and
+  never block a turn), `.claude/{skills:30, commands:16, agents:17,
+  helpers}/`, `CLAUDE.md` (ruflo project rules + capability-brain loop),
+  and `.claude-flow/{config.yaml,CAPABILITIES.md,memory-package.json}`.
+- **Decisions:** ruflo runtime state is gitignored, matching this repo's
+  generated-state convention (`.agent/`, catalogs): `data/`, `logs/`,
+  `sessions/`, `metrics/`, `learning/`, `hooks/`, `agents/`, `workflows/`,
+  plus `.swarm/`, `artifacts/`, `ruvector.db`. Only config + capability
+  docs are tracked. Secret scan of `.mcp.json` / `settings.json` /
+  `config.yaml` was clean.
+- **Note for future agents:** `CLAUDE.md` is now ruflo's rules file, not
+  free-form project notes — read it before assuming it is scratch space.
+  Project context still lives here in `AGENTS.md`. Optional next steps if
+  wanted: `ruflo daemon start` / `ruflo swarm init` / `ruflo metaharness
+  score` (deliberately NOT auto-started — the twin stays calm).
