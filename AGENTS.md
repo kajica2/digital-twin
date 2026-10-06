@@ -3369,3 +3369,38 @@ feed the marketplace page or the SWR packs; (b) run one watcher pipeline
 (reel-inbox) end to end as the distribution-side proof; (c) the `.kai/`
 durability question (commit a redacted `memory.yaml`) is still the user's
 call.
+
+### 2026-10-07 — sprint 0.39 (12 marketplace covers, batch render)
+
+Asked for "12 images"; asked one question (subject), got the answer: the
+first 12 prompts of the existing `covers-marketplace.json` manifest.
+Rendered with `render-many.py` (the manifest-driven batch), not
+`render.py --prompt-file` — the manifest carries slugs, so outputs are
+named per cover.
+
+- **Shipped:**
+  - `lib/flux2-renderer/manifests/covers-marketplace-12.json` — the
+    exact 12-entry subset rendered (tracked, evidence record).
+  - `assets/flux2/covers-marketplace-12/01..12-*.png` — 5 × neon-pulse,
+    5 × smoke, 2 × type-loud covers. All **832×832 RGB PNG**, 524 KB –
+    1.5 MB, verified with `sips` + `file` (produced size == requested
+    size, no silent resize — 832 is /16-clean, so sprint 0.38.b's snap
+    question doesn't arise here).
+  - Pre-flight before spawning (per the hang-not-error rule): 12
+    entries, unique slugs, non-empty prompts, no unexpected keys.
+- **Run facts:** model load 47.8 s (was 113 s on the 0.38 run), seeds
+  9000–9011, `steps=12` (render-many default), 1575 s wall ≈ 2 min per
+  image. Output dir gitignored (`assets/flux2/*/`), manifest tracked.
+- **Noted:** diffusers reports *"Guidance scale 3.5 is ignored for
+  step-wise distilled models"* on every call — klein-4B is step-wise
+  distilled, so `--guidance` is a no-op in both `render.py` and
+  `render-many.py`. Harmless noise today; a follow-up could drop the
+  flag from the CLI surface or document it as ignored.
+- **Open:** the remaining 18 of 30 covers-marketplace prompts are
+  unrendered (`covers-marketplace.json` lines 13–30) — same command,
+  next 12 whenever wanted. Preview to the user failed this session (no
+  desktop browser connected), so the art is unviewed by human eyes so
+  far.
+- **Next:** unchanged — (a) decide whether stills feed the marketplace
+  page or the SWR packs (this batch is the marketplace side of that);
+  (b) reel-inbox distribution proof; (c) `.kai/` durability call.
