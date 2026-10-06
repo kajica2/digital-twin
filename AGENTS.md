@@ -3404,3 +3404,74 @@ named per cover.
 - **Next:** unchanged — (a) decide whether stills feed the marketplace
   page or the SWR packs (this batch is the marketplace side of that);
   (b) reel-inbox distribution proof; (c) `.kai/` durability call.
+
+### 2026-10-07 — sprint 0.40 (cover studies wired into the marketplace page)
+
+Follows sprint 0.39's twelve covers from "rendered" to "shipped". The open
+question there was whether the stills feed the marketplace page or the SWR
+packs; the answer was the marketplace page.
+
+- **Shipped:**
+  - **`assets/marketplace/covers/`** — the 12 covers converted PNG → JPG
+    (quality 82, 832×832), 2.9 MB total. Deliberately NOT referenced from
+    `assets/flux2/`, which is gitignored: a page that points at a
+    gitignored path renders fine locally and 404s on Pages. This is
+    prevention rule PM-2026-09-31 applied before the fact.
+  - **`pages/marketplace.html` — new `#covers` section, "Cover Studies"**,
+    between Studio Extras and the footer. Three family groups (neon pulse
+    5 / smoke 5 / type loud 2) with mono kicker labels and the existing
+    `.grid figure` + `figcaption` pattern. Alt text describes the shared
+    family subject — the prompts within a family are identical, so the
+    only variation is the seed, and alt text must not invent per-image
+    scenes. Footer gained a provenance line.
+  - **`e2e/marketplace.spec.mjs` — +5 assertions (14 total):** 12 figures,
+    3 family groups, declared 832×832 on all 12, alt text > 20 chars on
+    every cover, and the lettering caveat disclosed.
+  - **`pages/how-to.html`** — the marketplace page-map row was stale
+    ("eight music-video stills"); now reads eight stills + three studio
+    extras + twelve cover studies.
+- **The finding that mattered: the art misspells.** Diffusion models paint
+  letter-shaped marks; they do not compose glyphs. The renders bake in
+  CHIOME HEART (Chrome Heart), MIDNNIGHT CIRCET (Midnight Circuit),
+  HIREAARS (Afterhours), VEAL (Veil), AZZ AZE (Haze), TYE. LOUD
+  (TYPE : LOUD), OVERDDVIVE (Overdrive). For a page selling "book covers,
+  editorial imagery" that is a real quality problem, so the section now
+  carries an explicit heads-up and the e2e asserts the disclosure cannot
+  be silently removed. Logged as **TD-007** with the rule: any cover that
+  must *read* correctly gets its lettering set in the layout, never
+  generated.
+- **Decisions:**
+  - **JPG at 82, not the source PNGs.** 14 MB of PNG vs 2.9 MB of JPG;
+    the existing `assets/marketplace/` is ~200 KB per JPG and the page
+    should not carry 5× the weight for no visible gain at 832px.
+  - **A new section rather than more story cards.** The e2e contract pins
+    `#works` at 8 cards and `#extras` at 3 figures; adding a 4th section
+    extends the page without breaking either.
+  - **Caveat in the page, not only in docs.** Disclosing the lettering
+    problem in `docs/` would not reach the person looking at the art.
+  - **Captions carry the intended titles.** Correcting the captions to
+    match the misspellings would enshrine a rendering bug as the title.
+- **Verified:**
+  - `e2e:marketplace` — **14/14 PASS**, 23 images all `naturalWidth > 0`.
+  - `e2e:howto` — all PASS after the page-map row edit.
+  - `npm run verify` — all green.
+  - Live DOM measured, not assumed: `#covers` occupies y 2311–4015 of a
+    4209px page, screenshot geometry matches the DOM exactly.
+  - Covers confirmed **not gitignored** and their `../assets/...` refs
+    resolve identically under `/pages/` locally and under `/digital-twin/`
+    on Pages.
+- **Debugging note worth keeping:** my first screenshot read appeared to
+  show the section missing. It was a stale artifact —
+  `artifacts/marketplace-light.png` (repo root, from an Oct 2 run) versus
+  `e2e/artifacts/marketplace-light.png` (this run). The spec writes to
+  `process.cwd()/artifacts`, so the path depends on how it is invoked.
+  Re-running after deleting the old file settled it. **TD-008:** one
+  artifacts location, not two.
+- **Open:**
+  - The 12 covers are 5+5+2 *seed variants of three prompts*, not twelve
+    distinct prompts. If real variety is wanted, the packs need twelve
+    prompts.
+  - Type family is composition-only; the lettering is unusable as lockup.
+- **Next:** (a) reel-inbox distribution proof — still the unproven half;
+  (b) lettering-in-layout for covers that must read (SVG type over the
+  plate); (c) `.kai/` durability call.

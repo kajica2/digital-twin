@@ -59,6 +59,25 @@ function check(name, ok, detail = '') {
     document.querySelectorAll('.badge').length >= 7));
   check('market: extras row has 3 figures', await page.evaluate(() =>
     document.querySelectorAll('#extras figure').length === 3));
+  check('market: cover studies has 12 figures', await page.evaluate(() =>
+    document.querySelectorAll('#covers figure').length === 12), 'covers');
+  check('market: cover studies has 3 family groups', await page.evaluate(() =>
+    document.querySelectorAll('#covers .grid').length === 3));
+  check('market: covers are square (832x832)', await page.evaluate(() => {
+    const imgs = Array.from(document.querySelectorAll('#covers img'));
+    return imgs.length === 12 && imgs.every(i =>
+      i.getAttribute('width') === '832' && i.getAttribute('height') === '832');
+  }));
+  check('market: every cover has alt text', await page.evaluate(() => {
+    const imgs = Array.from(document.querySelectorAll('#covers img'));
+    return imgs.length > 0 && imgs.every(i => (i.getAttribute('alt') || '').trim().length > 20);
+  }));
+  // The model misspells the baked-in lettering. The page must say so — a cover
+  // studio that hides this sells broken typography as finished work.
+  check('market: cover lettering caveat is disclosed', await page.evaluate(() => {
+    const el = document.querySelector('#covers');
+    return !!el && /misspell|lettering/i.test(el.innerText);
+  }), 'diffusion text renders wrong');
 
   // every image must actually render (naturalWidth > 0)
   await page.waitForFunction(() => {
