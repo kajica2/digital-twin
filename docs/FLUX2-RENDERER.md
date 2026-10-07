@@ -202,12 +202,93 @@ to stay comfortably under the 24 GB unified-memory ceiling.
 
 ---
 
+## Lettering: setting type over a plate (TD-007)
+
+A diffusion model **paints letter-shaped marks; it does not compose glyphs.**
+Ask FLUX for "Chrome Heart" and you get `CHIOME HEART`. Verified across a
+whole cover batch:
+
+| Wanted | Rendered |
+|---|---|
+| Chrome Heart | CHIOME HEART |
+| Midnight Circuit | MIDNNIGHT CIRCET |
+| Afterhours | HIREAARS |
+| Veil | VEAL |
+| Haze | AZZ AZE |
+| TYPE : LOUD | TYE. LOUD |
+| Overdrive | OVERDDVIVE |
+
+So a cover that has to *read* is a two-part artefact:
+
+1. **A clean plate** — rendered with the subject only. The prompt must not
+   merely *ask* for no text; it must not **contain** the title or any
+   clause like "bold minimal typography". A prompt that both demands and
+   forbids type paints type. See
+   `lib/flux2-renderer/manifests/covers-marketplace-12-plates.json`.
+2. **A lettering pass** — real type set over the plate from a real font.
+
+### Modules
+
+| File | Role |
+|---|---|
+| `lib/flux2-renderer/lettering.py` | `plan()` (pure) + `compose()` (PIL) + `scrim_gradient()` |
+| `lib/flux2-renderer/letter-covers.py` | batch driver: plates + manifest → lettered covers |
+| `lib/flux2-renderer/test_lettering.py` | 90 checks, no model |
+
+```bash
+lib/flux2-renderer/.venv/bin/python lib/flux2-renderer/letter-covers.py \
+  --manifest lib/flux2-renderer/manifests/covers-marketplace-12-plates.json \
+  --plates   assets/flux2/covers-marketplace-plates \
+  --out-dir  assets/marketplace/covers
+```
+
+`--dry-run` prints the plan and writes nothing. Pre-flight refuses the whole
+batch if *any* entry lacks a plate or a title, before a single file is
+written.
+
+### Why `plan()` is separate from `compose()`
+
+Without OCR you cannot read rendered pixels back and assert "this says
+Chrome Heart". `plan()` is pure and its output carries the **literal
+strings** that will be drawn, so the tests can assert the right letters
+reach the renderer. That is the honest way to test typography generation.
+
+### Design rules encoded
+
+- **Scrim is a ramp, not a slab.** `scrim_gradient()` fades from the outer
+  edge inward (`bottom` / `top` / `center`). A hard-edged rectangle reads as
+  a UI panel pasted on the art.
+- **Separators never strand.** `split_units()` keeps a standalone `:` `—`
+  `,` with the *following* word, so "TYPE : LOUD" cannot break into
+  `TYPE / : / LOUD`. Punctuation glued to a word stays with that word.
+- **One line when it is affordable.** `fit_font_size()` finds the largest
+  multi-line fit and the largest single-line fit, then takes the single line
+  only when it costs no more than `single_ratio` (default 0.5) of the
+  multi-line size.
+- **Fonts are resolved, never bundled.** `Arial Black` first (a heavy
+  grotesque standing in for the Archivo Black the prompts asked for), then
+  Helvetica. Override with `COVER_FONT`. Committing a typeface means
+  checking its licence; a system font is always present.
+- **Fails loudly without a font** — never falls back to PIL's bitmap
+  default, which is unshippable at cover size.
+
+### Bug found and fixed here
+
+`fit_font_size` first ran `size = max(min_size, size - 2)` inside
+`while size >= min_size`. At the floor that pins `size` and **spins forever**
+on an over-long title in a small box — the test run hung with no output.
+Termination is now explicit and the impossible-fit case is a regression test.
+
+---
 ## Reference
 - Script: `lib/flux2-renderer/render.py`
+- Batch render: `lib/flux2-renderer/render-many.py`
 - Prompt parsing (pure, tested): `lib/flux2-renderer/prompts.py`
-- Tests: `lib/flux2-renderer/test_prompts.py`
+- Lettering (pure `plan()` + PIL `compose()`): `lib/flux2-renderer/lettering.py`
+- Lettering driver: `lib/flux2-renderer/letter-covers.py`
+- Tests: `lib/flux2-renderer/test_prompts.py`, `lib/flux2-renderer/test_lettering.py`
 - Deps: `lib/flux2-renderer/requirements.txt`
-- npm: `flux2:setup`, `render:flux2`, `test:flux2`
+- npm: `flux2:setup`, `render:flux2`, `test:flux2`, `test:lettering`
 
 ## Follow-ups (flagged, not done)
 - ~~No unit test yet.~~ **Done** — `prompts.py` is a pure module and

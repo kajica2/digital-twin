@@ -72,12 +72,42 @@ function check(name, ok, detail = '') {
     const imgs = Array.from(document.querySelectorAll('#covers img'));
     return imgs.length > 0 && imgs.every(i => (i.getAttribute('alt') || '').trim().length > 20);
   }));
-  // The model misspells the baked-in lettering. The page must say so — a cover
-  // studio that hides this sells broken typography as finished work.
-  check('market: cover lettering caveat is disclosed', await page.evaluate(() => {
-    const el = document.querySelector('#covers');
-    return !!el && /misspell|lettering/i.test(el.innerText);
-  }), 'diffusion text renders wrong');
+  // TD-007: the lettering is SET IN LAYOUT, not generated. Two things are
+  // asserted — the page says so, and each displayed caption matches the title
+  // that was actually drawn onto that plate (from lettering-manifest.json).
+  // That ties the art to the caption at the source instead of trusting markup.
+  check('market: lettering is described as set in layout', await page.evaluate(() => {
+    const t = document.querySelector('#covers')?.innerText || '';
+    return /lettering/i.test(t) && /(layout|font)/i.test(t);
+  }), 'type is real, not generated');
+
+  const captionCheck = await page.evaluate(async () => {
+    const rel = '../assets/marketplace/covers/lettering-manifest.json';
+    const res = await fetch(new URL(rel, location.href).href, { cache: 'no-store' });
+    if (!res.ok) return { ok: false, why: 'manifest HTTP ' + res.status };
+    const man = await res.json();
+    const byFile = {};
+    for (const c of (man.covers || [])) {
+      byFile[String(c.out || '').split('/').pop()] = c.title;
+    }
+    const figs = Array.from(document.querySelectorAll('#covers figure'));
+    const bad = [];
+    for (const f of figs) {
+      const img = f.querySelector('img');
+      const cap = f.querySelector('figcaption');
+      const file = (img?.getAttribute('src') || '').split('/').pop();
+      const want = byFile[file];
+      const got = (cap?.textContent || '').replace(/\s+/g, ' ').trim();
+      if (want === undefined) bad.push(`${file}: not in manifest`);
+      else if (got !== want) bad.push(`${file}: caption ${JSON.stringify(got)} != manifest ${JSON.stringify(want)}`);
+    }
+    return { ok: bad.length === 0, why: bad.join(' | '), n: figs.length, listed: Object.keys(byFile).length };
+  });
+  check('market: every caption matches the title actually drawn',
+        captionCheck.ok,
+        captionCheck.ok
+          ? `${captionCheck.n} captions vs ${captionCheck.listed} manifest entries`
+          : captionCheck.why);
 
   // every image must actually render (naturalWidth > 0)
   await page.waitForFunction(() => {

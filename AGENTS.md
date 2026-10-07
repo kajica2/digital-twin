@@ -3475,3 +3475,99 @@ packs; the answer was the marketplace page.
 - **Next:** (a) reel-inbox distribution proof — still the unproven half;
   (b) lettering-in-layout for covers that must read (SVG type over the
   plate); (c) `.kai/` durability call.
+
+### 2026-10-07 — sprint 0.41 (lettering-in-layout — TD-007 fixed properly)
+
+"Lettering-in-layout" — the second open item. The naive reading is
+"put type over the cover", which does not work: the misspelled lettering is
+*baked into the pixels*. The fix has to be two-part.
+
+**The two-part artefact.** A cover that must read is a **clean plate** plus a
+**lettering pass**:
+
+1. **Clean plates** — `manifests/covers-marketplace-12-plates.json`, derived
+   from the sprint-0.39 manifest with the title REMOVED from the prompt and
+   every type-asking clause stripped ("bold minimal typography", "huge
+   condensed black type filling the frame", "beat-synced", "stark poster"),
+   plus an explicit no-text tail. Negating alone is not enough: a prompt that
+   both demands and forbids type paints type. The `type-loud` family is
+   nothing but type, so its subject was replaced with an abstract
+   high-contrast composition that can carry a lockup. Rendered via
+   `render-many.py` at the same seeds 9000–9011, 12/12 at 832×832.
+2. **Lettering pass** — `lib/flux2-renderer/lettering.py` + `letter-covers.py`.
+   Real type from a real font over the plate.
+
+**`lettering.py`** is split so the unverifiable part is testable:
+`plan()` is **pure** (plate size + strings → the literal draw commands) and
+`compose()` executes one. Without OCR you cannot read pixels back and assert
+"this says Chrome Heart"; asserting the strings that reach the renderer is
+the honest equivalent. Also `scrim_gradient()`, `split_units()`,
+`fit_font_size()`, `family_for_slug()`, `relpath_for_manifest()`.
+
+**`letter-covers.py`** — batch driver. Pre-flight refuses the whole batch if
+any entry lacks a plate or a title, *before* writing anything; `--dry-run`
+prints the plan. `lettering-manifest.json` records plate → cover → title.
+
+**`test_lettering.py` — 98 checks**, no model, no network. npm
+`test:lettering` wired into `test:all`.
+
+**Three bugs found by running it:**
+
+- **`fit_font_size` spun forever.** `size = max(min_size, size - 2)` inside
+  `while size >= min_size` pins `size` at the floor and never terminates on
+  an impossible fit. The first test run hung with *no output at all* — which
+  is exactly what the repo's "hang-not-error" rule predicts. Termination is
+  now explicit and the impossible-fit case is a regression test.
+- **`scrim_gradient` used `Image` without importing it** (PIL is imported
+  lazily inside `compose()`). Caught by the test, not by review.
+- **The manifest leaked 24 absolute paths** (`/Users/<name>/…`) into a
+  TRACKED file. Fixed with `relpath_for_manifest()` (repo-relative →
+  `~/…` → basename) plus a belt-and-braces rewrite of the home dir before
+  writing. New test asserts `/Users/` never appears.
+
+**Two design defects in my own first output**, fixed rather than shipped:
+the scrim was a hard-edged rectangle (reads as a UI panel pasted on the art;
+now a `scrim_gradient` ramp — bottom/top/center), and `TYPE : LOUD` broke as
+`TYPE :` / `LOUD`. The real defect there was that `:` was a free-standing
+wrap unit; `split_units()` now keeps a standalone separator attached to the
+*following* word, so the unit `: LOUD` travels together. Punctuation glued
+to a word stays with that word. The 62% single-line floor I first wrote was
+also arbitrary — replaced with an explicit trade-off (`single_ratio`, 0.5):
+take the one-line lockup only when it costs no more than half the
+multi-line size.
+
+**Verified:**
+- `e2e:marketplace` **15/15**, including two new assertions: the page
+  describes the lettering as set in layout, and **every figcaption matches
+  the title actually drawn** (fetched from `lettering-manifest.json`, 12
+  captions vs 12 entries). That ties the art to the caption at the source
+  instead of trusting markup.
+- `npm run test:all` — **603 assertions / 14 suites**, 0 failures (442 +
+  63 prompts + 98 lettering).
+- `npm run verify` — all green.
+- Plates confirmed clean of painted lettering: high-contrast horizontal
+  edge density in the former type bands drops 13× (neon) and to *exactly
+  0.00000* (smoke-03 top and bottom), where painted lettering leaves many.
+  `type_loud-02` rises, correctly — its new prompt is "solid geometric
+  blocks", which legitimately has hard edges.
+
+**Honest tooling note.** The image preview served me the *wrong file* twice
+this session — once a stale Oct-2 screenshot, once a page capture when I
+asked for an 832×832 plate. I could not do a reliable eyeball check of the
+plates, so the "no baked-in text" claim rests on the prompt audit (title
+absent, clauses stripped, no-text tail) plus the edge-density measurement
+above. If someone with a working preview wants to confirm, the plates are at
+`assets/flux2/covers-marketplace-plates/` and the finished covers at
+`assets/marketplace/covers/`.
+
+**Page copy changed accordingly** — the "it misspells" caveat is no longer
+true, so it is gone. The section now explains that the subject is generated
+and the words are not. Footer provenance updated. Alt text for the
+`type-loud` pair rewritten to describe the new plates (the old alt still
+claimed "huge condensed black type filling the frame").
+
+**Closed:** TD-007 (moved to the closed table).
+
+**Open / next:** (a) reel-inbox distribution proof — still the only unproven
+half of the media pipeline; (b) `.kai/` durability call; (c) the 12 covers
+remain 5+5+2 seed variants of three prompts if genuine variety is wanted.
