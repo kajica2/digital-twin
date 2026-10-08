@@ -1,0 +1,840 @@
+{
+  "date": "2026-10-08",
+  "days": 14,
+  "images": [
+    {
+      "path": "assets/flux2/cinematic-music-video-stills/01-cinestill-01.png",
+      "size_bytes": 1527731,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": true
+    },
+    {
+      "path": "assets/flux2/cinematic-music-video-stills/02-cinestill-02.png",
+      "size_bytes": 1435033,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/cinematic-music-video-stills/03-cinestill-03.png",
+      "size_bytes": 1281219,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/cinematic-music-video-stills/04-cinestill-04.png",
+      "size_bytes": 1134190,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/covers-marketplace-12/01-neon_pulse-01.png",
+      "size_bytes": 1441893,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": true
+    },
+    {
+      "path": "assets/flux2/covers-marketplace-12/02-neon_pulse-02.png",
+      "size_bytes": 1512955,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/covers-marketplace-12/03-neon_pulse-03.png",
+      "size_bytes": 1465891,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/covers-marketplace-12/04-neon_pulse-04.png",
+      "size_bytes": 1420952,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/covers-marketplace-12/05-neon_pulse-05.png",
+      "size_bytes": 1463649,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/covers-marketplace-12/06-smoke-01.png",
+      "size_bytes": 1154453,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/covers-marketplace-12/07-smoke-02.png",
+      "size_bytes": 1082738,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/covers-marketplace-12/08-smoke-03.png",
+      "size_bytes": 981390,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/covers-marketplace-12/09-smoke-04.png",
+      "size_bytes": 1085875,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/covers-marketplace-12/10-smoke-05.png",
+      "size_bytes": 1109949,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/covers-marketplace-12/11-type_loud-01.png",
+      "size_bytes": 1032214,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/covers-marketplace-12/12-type_loud-02.png",
+      "size_bytes": 532947,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/covers-marketplace-plates/01-neon_pulse-01.png",
+      "size_bytes": 772583,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": true
+    },
+    {
+      "path": "assets/flux2/covers-marketplace-plates/02-neon_pulse-02.png",
+      "size_bytes": 1127540,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/covers-marketplace-plates/03-neon_pulse-03.png",
+      "size_bytes": 1073657,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/covers-marketplace-plates/04-neon_pulse-04.png",
+      "size_bytes": 783803,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/covers-marketplace-plates/05-neon_pulse-05.png",
+      "size_bytes": 657816,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/covers-marketplace-plates/06-smoke-01.png",
+      "size_bytes": 1175029,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/covers-marketplace-plates/07-smoke-02.png",
+      "size_bytes": 1075888,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/covers-marketplace-plates/08-smoke-03.png",
+      "size_bytes": 1008280,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/covers-marketplace-plates/09-smoke-04.png",
+      "size_bytes": 998665,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/covers-marketplace-plates/10-smoke-05.png",
+      "size_bytes": 1203600,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/covers-marketplace-plates/11-type_loud-01.png",
+      "size_bytes": 137860,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/covers-marketplace-plates/12-type_loud-02.png",
+      "size_bytes": 93931,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/system-error-cinematic/00-a-portrait-dissolving-into-rgb-channel.png",
+      "size_bytes": 793039,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": true
+    },
+    {
+      "path": "assets/flux2/system-error-cinematic/01-a-city-skyline-mid-datamosh-buildings.png",
+      "size_bytes": 851055,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/system-error-cinematic/02-a-crt-static-and-colour-bar-test.png",
+      "size_bytes": 511378,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/system-error-cinematic/03-a-pixel-sorted-skyline-vertical-smear.png",
+      "size_bytes": 772447,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/system-error-cinematic/04-a-corrupted-file-texture-macroblocks.png",
+      "size_bytes": 659125,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/00-a-disused-tram-depot-converted-into-a.png",
+      "size_bytes": 811301,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": true
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/01-a-cathedral-rose-window-rebuilt-from.png",
+      "size_bytes": 810598,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/02-a-flooded-underpass-where-the-ceiling.png",
+      "size_bytes": 805231,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/03-a-rooftop-water-tower-ringed-by-a-halo.png",
+      "size_bytes": 783712,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/04-an-empty-escalator-descending-into-a.png",
+      "size_bytes": 789680,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/05-a-neon-lit-laundrette-at-the-end-of-a.png",
+      "size_bytes": 802053,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/06-first-light-on-a-bus-depot-s-fuel-apron.png",
+      "size_bytes": 713796,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/07-a-bakery-s-back-door-open-onto-an-alley.png",
+      "size_bytes": 729302,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/08-an-empty-municipal-swimming-pool-at.png",
+      "size_bytes": 780964,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/09-a-night-shift-cleaner-s-cart-parked-in.png",
+      "size_bytes": 783243,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/10-a-train-carriage-interior-at-first.png",
+      "size_bytes": 757446,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/11-a-florist-s-bucket-of-unsold-stems.png",
+      "size_bytes": 775524,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/12-a-motorway-gantry-sign-whose-matrix.png",
+      "size_bytes": 803877,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/13-a-server-room-door-propped-open-by-a.png",
+      "size_bytes": 750962,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/14-a-car-park-barrier-stuck-half-raised.png",
+      "size_bytes": 811624,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/15-a-wall-of-dead-television-sets-stacked.png",
+      "size_bytes": 806952,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/16-a-hospital-corridor-s-fluorescent-bank.png",
+      "size_bytes": 759980,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/17-an-electronic-timetable-board-on-a.png",
+      "size_bytes": 759325,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/18-a-grand-piano-standing-on-a-drained.png",
+      "size_bytes": 861918,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/19-a-staircase-rising-out-of-a-flooded.png",
+      "size_bytes": 693681,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/20-a-telephone-box-on-a-hill-of-dry-grass.png",
+      "size_bytes": 814118,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/21-a-ballroom-whose-chandelier-has-been.png",
+      "size_bytes": 723613,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/22-an-open-top-bus-converted-into-a-garden.png",
+      "size_bytes": 786051,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/23-a-hospital-waiting-room-filled-to-knee.png",
+      "size_bytes": 805017,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/24-a-housing-block-s-service-yard-at-night.png",
+      "size_bytes": 738779,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/25-a-multi-storey-car-park-ramp-seen-dead.png",
+      "size_bytes": 804654,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/26-the-underside-of-a-concrete-flyover.png",
+      "size_bytes": 741751,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/27-a-brutalist-library-s-window-grid-at.png",
+      "size_bytes": 746018,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/28-a-ventilation-shaft-tower-with-a-strict.png",
+      "size_bytes": 725430,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/two-am-infrastructure-30/29-a-civic-swimming-baths-exterior-wall-of.png",
+      "size_bytes": 861231,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": false
+    }
+  ],
+  "prompts": {
+    "total_issues": 0,
+    "packs": [
+      {
+        "pack": "brutalist-architecture.md",
+        "bullet_count": 8,
+        "issues": []
+      },
+      {
+        "pack": "cinematic-music-video-stills.md",
+        "bullet_count": 12,
+        "issues": []
+      },
+      {
+        "pack": "dream-sequence.md",
+        "bullet_count": 7,
+        "issues": []
+      },
+      {
+        "pack": "example-soft-lamp-at-the-window.md",
+        "bullet_count": 8,
+        "issues": []
+      },
+      {
+        "pack": "four-am-platform.md",
+        "bullet_count": 8,
+        "issues": []
+      },
+      {
+        "pack": "morning-haunt.md",
+        "bullet_count": 12,
+        "issues": []
+      },
+      {
+        "pack": "new-wave-poetic-7frames.md",
+        "bullet_count": 7,
+        "issues": []
+      },
+      {
+        "pack": "poetic-patterns-tiles.md",
+        "bullet_count": 6,
+        "issues": []
+      },
+      {
+        "pack": "source-frames-10days.md",
+        "bullet_count": 10,
+        "issues": []
+      },
+      {
+        "pack": "sunset-water-burst.md",
+        "bullet_count": 5,
+        "issues": []
+      },
+      {
+        "pack": "swr-assets-brutalist-grid-cinematic.md",
+        "bullet_count": 8,
+        "issues": []
+      },
+      {
+        "pack": "swr-assets-brutalist-grid.md",
+        "bullet_count": 8,
+        "issues": []
+      },
+      {
+        "pack": "swr-assets-dream-sequence-cinematic.md",
+        "bullet_count": 7,
+        "issues": []
+      },
+      {
+        "pack": "swr-assets-dream-sequence.md",
+        "bullet_count": 7,
+        "issues": []
+      },
+      {
+        "pack": "swr-assets-morning-haunt-cinematic.md",
+        "bullet_count": 8,
+        "issues": []
+      },
+      {
+        "pack": "swr-assets-morning-haunt.md",
+        "bullet_count": 8,
+        "issues": []
+      },
+      {
+        "pack": "swr-assets-neon-church-cinematic.md",
+        "bullet_count": 8,
+        "issues": []
+      },
+      {
+        "pack": "swr-assets-system-error-cinematic.md",
+        "bullet_count": 10,
+        "issues": []
+      },
+      {
+        "pack": "swr-pack-covers-1x1.md",
+        "bullet_count": 5,
+        "issues": []
+      },
+      {
+        "pack": "swr-pack-covers.md",
+        "bullet_count": 5,
+        "issues": []
+      },
+      {
+        "pack": "system-error.md",
+        "bullet_count": 10,
+        "issues": []
+      },
+      {
+        "pack": "tribalismo-ethio-jazz-graphics.md",
+        "bullet_count": 8,
+        "issues": []
+      },
+      {
+        "pack": "tribalismo-ethio-jazz-photos.md",
+        "bullet_count": 8,
+        "issues": []
+      },
+      {
+        "pack": "tribalismo.md",
+        "bullet_count": 8,
+        "issues": []
+      },
+      {
+        "pack": "two-am-infrastructure-30.md",
+        "bullet_count": 30,
+        "issues": []
+      },
+      {
+        "pack": "two-am-infrastructure.md",
+        "bullet_count": 3,
+        "issues": []
+      },
+      {
+        "pack": "whats-gonna-be-groove.md",
+        "bullet_count": 8,
+        "issues": []
+      }
+    ],
+    "issue_types": {}
+  },
+  "freshness": {
+    "stale_docs_count": 8,
+    "stale_docs": [
+      {
+        "path": "docs/CHART-EXPORT-WORKFLOW.md",
+        "age_days": 18.0,
+        "mtime": "2026-09-20T10:09:40.965953+00:00"
+      },
+      {
+        "path": "docs/CHART-SAMPLES.md",
+        "age_days": 18.0,
+        "mtime": "2026-09-20T10:09:40.966078+00:00"
+      },
+      {
+        "path": "docs/CHART-WATCHER.md",
+        "age_days": 18.0,
+        "mtime": "2026-09-20T10:09:40.966253+00:00"
+      },
+      {
+        "path": "docs/COLTRANE-SHAW-ENGRAVING.md",
+        "age_days": 18.0,
+        "mtime": "2026-09-20T10:09:40.966539+00:00"
+      },
+      {
+        "path": "docs/DESIGN-RATIONALE.md",
+        "age_days": 52.6,
+        "mtime": "2026-08-16T19:52:00.561691+00:00"
+      },
+      {
+        "path": "docs/MJ-WATCHER.md",
+        "age_days": 14.2,
+        "mtime": "2026-09-24T04:46:14.755847+00:00"
+      },
+      {
+        "path": "docs/REEL-WATCHER.md",
+        "age_days": 15.0,
+        "mtime": "2026-09-23T09:07:59.861996+00:00"
+      },
+      {
+        "path": "docs/SONGS-WATCHER.md",
+        "age_days": 18.0,
+        "mtime": "2026-09-20T10:09:40.966829+00:00"
+      }
+    ],
+    "recent_git": "12be13e feat(flux2): render-all-pending.py + 21 manifests for unreendered packs\n lib/flux2-renderer/manifests/brc.json    |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/brg.json    |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/dsc.json    |  30 ++++++++++++++\n lib/flux2-renderer/manifests/dsq.json    |  30 ++++++++++++++\n lib/flux2-renderer/manifests/eslw.json   |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/fap.json    |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/mha.json    |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/mhc.json    |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/nwp.json    |  30 ++++++++++++++\n lib/flux2-renderer/manifests/ppt.json    |  26 ++++++++++++\n lib/flux2-renderer/manifests/sec.json    |  42 +++++++++++++++++++\n lib/flux2-renderer/manifests/sfd.json    |  42 +++++++++++++++++++\n lib/flux2-renderer/manifests/snc.json    |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/swb.json    |  22 ++++++++++\n lib/flux2-renderer/manifests/swrc.json   |  22 ++++++++++\n lib/flux2-renderer/manifests/swrc1.json  |  22 ++++++++++\n lib/flux2-renderer/manifests/teg.json    |  50 +++++++++++++++++++++++\n lib/flux2-renderer/manifests/tep.json    |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/trib.json   |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/two-am.json |  14 +++++++\n lib/flux2-renderer/manifests/wgg.json    |  34 ++++++++++++++++\n lib/flux2-renderer/render-all-pending.py | 155 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n 22 files changed, 825 insertions(+)\n8d94dcb feat(prompts): five new packs — Morning Haunt, Brutalist Architecture, Dream Sequence, System Error, cinematic music video stills\n assets/mural-prompts/brutalist-architecture.md           | 36 ++++++++++++++++++++++++++++++++++++\n assets/mural-prompts/dream-sequence.md                   | 33 +++++++++++++++++++++++++++++++++\n assets/mural-prompts/morning-haunt.md                    | 45 +++++++++++++++++++++++++++++++++++++++++++++\n assets/mural-prompts/system-error.md                     | 40 ++++++++++++++++++++++++++++++++++++++++\n lib/flux2-renderer/manifests/brutalist-architecture.json | 34 ++++++++++++++++++++++++++++++++++\n lib/flux2-renderer/manifests/dream-sequence.json         | 30 ++++++++++++++++++++++++++++++\n lib/flux2-renderer/manifests/morning-haunt.json          | 50 ++++++++++++++++++++++++++++++++++++++++++++++++++\n lib/flux2-renderer/manifests/system-error.json           | 42 ++++++++++++++++++++++++++++++++++++++++++\n 8 files changed, 310 insertions(+)\n1eff62a feat(prompts): cinematic music video stills — 12-pack\n assets/mural-prompts/cinematic-music-video-stills.md           | 56 ++++++++++++++++++++++++++++++++++++++++++++++++++\n lib/flux2-renderer/manifests/cinematic-music-video-stills.json | 50 ++++++++++++++++++++++++++++++++++++++++++++\n 2 files changed, 106 insertions(+)\n8bf96ed feat(covers): lettering-in-layout — real type over clean plates (TD-007)\n AGENTS.md   ",
+    "last_sprint_date": "2026-10-07",
+    "scan_date": "2026-10-08",
+    "days": 14
+  },
+  "recommendations": [
+    {
+      "priority": "low",
+      "area": "freshness",
+      "text": "8 docs/pages older than 14 days",
+      "examples": [
+        "docs/CHART-EXPORT-WORKFLOW.md",
+        "docs/CHART-SAMPLES.md",
+        "docs/CHART-WATCHER.md",
+        "docs/COLTRANE-SHAW-ENGRAVING.md",
+        "docs/DESIGN-RATIONALE.md"
+      ]
+    }
+  ]
+}

@@ -1,20 +1,14 @@
 [
- {
-  "slug": "two-am-terminal-hero",
-  "width": 832,
-  "height": 468,
-  "prompt": "Hong Kong ferry terminal at 2AM in heavy rain, the terminal building glowing like a motherboard seen from across the plaza, every lit window a cooling fin, neon signs reflecting off wet pavement, harbor water breathing against the seawall, a lone figure at the railing seen from behind, cinematic cyberpunk urban futurism, neon cyan and green light pollution, anamorphic 35mm, film grain, atmospheric haze, electricity and loneliness and awe"
- },
- {
-  "slug": "two-am-rider",
-  "width": 832,
-  "height": 468,
-  "prompt": "A lone delivery rider crossing a rain-slicked plaza at 2AM under neon signage, moving at the exact speed the rain allows, slight motion blur, cyberpunk urban futurism Hong Kong, dark silhouettes and glowing signage reflections, cinematic anamorphic 35mm, heavy film grain, cool cyan and amber, loneliness and electricity, imperfect human framing"
- },
- {
-  "slug": "two-am-green-pulse",
-  "width": 832,
-  "height": 468,
-  "prompt": "Distant view across a dark harbor at 2AM, one green light pulsing on the far shore, rain streaking the lens, a city of glowing windows behind, a figure at a railing in silhouette in the foreground, cinematic urban futurism, cyberpunk, deep teal and green, atmospheric haze, film grain, awe and solitude, imperfect human framing"
- }
+  {
+    "slug": "two-am-01",
+    "prompt": "Hong Kong ferry terminal at 2AM in heavy rain, the terminal building glowing like a motherboard seen from across the plaza, every lit window a cooling fin, neon signs reflecting off wet pavement, harbor water breathing against the seawall, a lone figure at the railing seen from behind — cinematic cyberpunk urban futurism, neon cyan and green light pollution, anamorphic 35mm, film grain, atmospheric haze, electricity and loneliness and awe"
+  },
+  {
+    "slug": "two-am-02",
+    "prompt": "A lone delivery rider crossing a rain-slicked plaza at 2AM under neon signage, moving at the exact speed the rain allows, slight motion blur, cyberpunk urban futurism Hong Kong, dark silhouettes and glowing signage reflections, cinematic anamorphic 35mm, heavy film grain, cool cyan and amber, loneliness and electricity, imperfect human framing"
+  },
+  {
+    "slug": "two-am-03",
+    "prompt": "Distant view across a dark harbor at 2AM, one green light pulsing on the far shore, rain streaking the lens, a city of glowing windows behind, a figure at a railing in silhouette in the foreground — cinematic urban futurism, cyberpunk, deep teal and green, atmospheric haze, film grain, awe and solitude, imperfect human framing"
+  }
 ]
