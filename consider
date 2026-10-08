@@ -1,0 +1,31 @@
+A digital twin is a virtual, data-connected representation of a real physical object, system, or process. Unlike a static 3D model or ordinary simulation, it is continuously updated with real-world data and can be used to monitor, predict, simulate, and optimize the original system.
+
+Simple example
+For a factory machine, a digital twin might combine:
+
+Sensor readings such as temperature, vibration, and power consumption.
+
+A physics or machine-learning model of how the machine behaves.
+
+A dashboard showing its current condition.
+
+Simulations that estimate failure risk or test maintenance scenarios.
+
+This can enable predictive maintenance: detecting abnormal behavior before the physical machine breaks.
+
+Common applications
+Manufacturing: machine health, production scheduling, virtual commissioning.
+
+Buildings and cities: energy use, traffic, utilities, and infrastructure planning.
+
+Products: monitoring an aircraft engine, vehicle, or medical device across its lifecycle.
+
+Software and operations: modeling cloud systems, workflows, or customer journeys.
+
+Creative and interactive media: live 3D environments driven by sensor, MIDI, audio, or IoT data.
+
+A practical architecture often looks like:
+
+Physical system → sensors/API → data platform → simulation/model → dashboard or control actions
+
+The defining feature is the live feedback loop between the real system and its digital counterpart—not merely creating a digital copy.
