@@ -135,11 +135,20 @@ def main():
                 generator=gen,
             ).images[0]
             img.save(out_file)
+            # Free memory after every image — MPS accumulates tensor graphs otherwise
+            del img, gen
+            if device == "mps":
+                torch.mps.empty_cache()
             ok += 1
+            if ok % 10 == 0:
+                alloc = torch.mps.current_allocated() / 1024**3 if device == "mps" else 0
+                print(f"[all-pending]   {ok} rendered, MPS allocated={alloc:.2f} GB", file=sys.stderr)
             print(f"[all-pending]   {idx+1}/{len(entries)} {manifest_slug} -> {os.path.basename(out_dir)}/", flush=True)
 
         if ok:
             total_rendered += ok
+            alloc = torch.mps.current_allocated() / 1024**3 if device == "mps" else 0
+            print(f"[all-pending]   {slug} done: {ok} images, MPS allocated={alloc:.2f} GB", file=sys.stderr)
             print(f"[all-pending]   {ok} rendered in {time.time()-t0:.1f}s total", file=sys.stderr)
         else:
             print(f"[all-pending]   nothing to do (all existed)", file=sys.stderr)

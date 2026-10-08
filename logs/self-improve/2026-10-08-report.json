@@ -30,7 +30,7 @@
       "color_space": "<nil>",
       "bit_depth": "<nil>",
       "clip_description": null,
-      "_clip_sampled": false
+      "_clip_sampled": true
     },
     {
       "path": "assets/flux2/cinematic-music-video-stills/04-cinestill-04.png",
@@ -41,6 +41,16 @@
       "bit_depth": "<nil>",
       "clip_description": null,
       "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/cinematic-music-video-stills/05-cinestill-05.png",
+      "size_bytes": 1412401,
+      "width": 832,
+      "height": 832,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": true
     },
     {
       "path": "assets/flux2/covers-marketplace-12/01-neon_pulse-01.png",
@@ -110,7 +120,7 @@
       "color_space": "<nil>",
       "bit_depth": "<nil>",
       "clip_description": null,
-      "_clip_sampled": false
+      "_clip_sampled": true
     },
     {
       "path": "assets/flux2/covers-marketplace-12/08-smoke-03.png",
@@ -160,7 +170,7 @@
       "color_space": "<nil>",
       "bit_depth": "<nil>",
       "clip_description": null,
-      "_clip_sampled": false
+      "_clip_sampled": true
     },
     {
       "path": "assets/flux2/covers-marketplace-plates/01-neon_pulse-01.png",
@@ -230,7 +240,7 @@
       "color_space": "<nil>",
       "bit_depth": "<nil>",
       "clip_description": null,
-      "_clip_sampled": false
+      "_clip_sampled": true
     },
     {
       "path": "assets/flux2/covers-marketplace-plates/08-smoke-03.png",
@@ -280,7 +290,7 @@
       "color_space": "<nil>",
       "bit_depth": "<nil>",
       "clip_description": null,
-      "_clip_sampled": false
+      "_clip_sampled": true
     },
     {
       "path": "assets/flux2/system-error-cinematic/00-a-portrait-dissolving-into-rgb-channel.png",
@@ -320,7 +330,7 @@
       "color_space": "<nil>",
       "bit_depth": "<nil>",
       "clip_description": null,
-      "_clip_sampled": false
+      "_clip_sampled": true
     },
     {
       "path": "assets/flux2/system-error-cinematic/04-a-corrupted-file-texture-macroblocks.png",
@@ -331,6 +341,16 @@
       "bit_depth": "<nil>",
       "clip_description": null,
       "_clip_sampled": false
+    },
+    {
+      "path": "assets/flux2/system-error-cinematic/05-a-broken-lcd-panel-macro-leaking-liquid.png",
+      "size_bytes": 760122,
+      "width": 832,
+      "height": 464,
+      "color_space": "<nil>",
+      "bit_depth": "<nil>",
+      "clip_description": null,
+      "_clip_sampled": true
     },
     {
       "path": "assets/flux2/two-am-infrastructure-30/00-a-disused-tram-depot-converted-into-a.png",
@@ -490,7 +510,7 @@
       "color_space": "<nil>",
       "bit_depth": "<nil>",
       "clip_description": null,
-      "_clip_sampled": false
+      "_clip_sampled": true
     },
     {
       "path": "assets/flux2/two-am-infrastructure-30/16-a-hospital-corridor-s-fluorescent-bank.png",
@@ -630,7 +650,7 @@
       "color_space": "<nil>",
       "bit_depth": "<nil>",
       "clip_description": null,
-      "_clip_sampled": false
+      "_clip_sampled": true
     }
   ],
   "prompts": {
@@ -804,12 +824,12 @@
       },
       {
         "path": "docs/MJ-WATCHER.md",
-        "age_days": 14.2,
+        "age_days": 14.3,
         "mtime": "2026-09-24T04:46:14.755847+00:00"
       },
       {
         "path": "docs/REEL-WATCHER.md",
-        "age_days": 15.0,
+        "age_days": 15.1,
         "mtime": "2026-09-23T09:07:59.861996+00:00"
       },
       {
@@ -818,7 +838,7 @@
         "mtime": "2026-09-20T10:09:40.966829+00:00"
       }
     ],
-    "recent_git": "12be13e feat(flux2): render-all-pending.py + 21 manifests for unreendered packs\n lib/flux2-renderer/manifests/brc.json    |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/brg.json    |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/dsc.json    |  30 ++++++++++++++\n lib/flux2-renderer/manifests/dsq.json    |  30 ++++++++++++++\n lib/flux2-renderer/manifests/eslw.json   |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/fap.json    |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/mha.json    |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/mhc.json    |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/nwp.json    |  30 ++++++++++++++\n lib/flux2-renderer/manifests/ppt.json    |  26 ++++++++++++\n lib/flux2-renderer/manifests/sec.json    |  42 +++++++++++++++++++\n lib/flux2-renderer/manifests/sfd.json    |  42 +++++++++++++++++++\n lib/flux2-renderer/manifests/snc.json    |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/swb.json    |  22 ++++++++++\n lib/flux2-renderer/manifests/swrc.json   |  22 ++++++++++\n lib/flux2-renderer/manifests/swrc1.json  |  22 ++++++++++\n lib/flux2-renderer/manifests/teg.json    |  50 +++++++++++++++++++++++\n lib/flux2-renderer/manifests/tep.json    |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/trib.json   |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/two-am.json |  14 +++++++\n lib/flux2-renderer/manifests/wgg.json    |  34 ++++++++++++++++\n lib/flux2-renderer/render-all-pending.py | 155 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n 22 files changed, 825 insertions(+)\n8d94dcb feat(prompts): five new packs — Morning Haunt, Brutalist Architecture, Dream Sequence, System Error, cinematic music video stills\n assets/mural-prompts/brutalist-architecture.md           | 36 ++++++++++++++++++++++++++++++++++++\n assets/mural-prompts/dream-sequence.md                   | 33 +++++++++++++++++++++++++++++++++\n assets/mural-prompts/morning-haunt.md                    | 45 +++++++++++++++++++++++++++++++++++++++++++++\n assets/mural-prompts/system-error.md                     | 40 ++++++++++++++++++++++++++++++++++++++++\n lib/flux2-renderer/manifests/brutalist-architecture.json | 34 ++++++++++++++++++++++++++++++++++\n lib/flux2-renderer/manifests/dream-sequence.json         | 30 ++++++++++++++++++++++++++++++\n lib/flux2-renderer/manifests/morning-haunt.json          | 50 ++++++++++++++++++++++++++++++++++++++++++++++++++\n lib/flux2-renderer/manifests/system-error.json           | 42 ++++++++++++++++++++++++++++++++++++++++++\n 8 files changed, 310 insertions(+)\n1eff62a feat(prompts): cinematic music video stills — 12-pack\n assets/mural-prompts/cinematic-music-video-stills.md           | 56 ++++++++++++++++++++++++++++++++++++++++++++++++++\n lib/flux2-renderer/manifests/cinematic-music-video-stills.json | 50 ++++++++++++++++++++++++++++++++++++++++++++\n 2 files changed, 106 insertions(+)\n8bf96ed feat(covers): lettering-in-layout — real type over clean plates (TD-007)\n AGENTS.md   ",
+    "recent_git": "089faee feat(self-improve): auditor + prompt pack fixes\n assets/mural-prompts/dream-sequence.md                   |  16 +-\n assets/mural-prompts/poetic-patterns-tiles.md            |  16 +-\n assets/mural-prompts/swr-assets-neon-church-cinematic.md |  18 +-\n assets/mural-prompts/two-am-infrastructure.md            |  21 +-\n lib/flux2-renderer/manifests/two-am-infrastructure.json  |  30 +-\n lib/self-improve/auditor.py                              | 499 +++++++++++++++++++++++++++++++++\n logs/self-improve/2026-10-08-report.json                 | 840 +++++++++++++++++++++++++++++++++++++++++++++++++++++++\n logs/self-improve/2026-10-08-report.md                   |  50 ++++\n 8 files changed, 1432 insertions(+), 58 deletions(-)\n12be13e feat(flux2): render-all-pending.py + 21 manifests for unreendered packs\n lib/flux2-renderer/manifests/brc.json    |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/brg.json    |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/dsc.json    |  30 ++++++++++++++\n lib/flux2-renderer/manifests/dsq.json    |  30 ++++++++++++++\n lib/flux2-renderer/manifests/eslw.json   |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/fap.json    |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/mha.json    |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/mhc.json    |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/nwp.json    |  30 ++++++++++++++\n lib/flux2-renderer/manifests/ppt.json    |  26 ++++++++++++\n lib/flux2-renderer/manifests/sec.json    |  42 +++++++++++++++++++\n lib/flux2-renderer/manifests/sfd.json    |  42 +++++++++++++++++++\n lib/flux2-renderer/manifests/snc.json    |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/swb.json    |  22 ++++++++++\n lib/flux2-renderer/manifests/swrc.json   |  22 ++++++++++\n lib/flux2-renderer/manifests/swrc1.json  |  22 ++++++++++\n lib/flux2-renderer/manifests/teg.json    |  50 +++++++++++++++++++++++\n lib/flux2-renderer/manifests/tep.json    |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/trib.json   |  34 ++++++++++++++++\n lib/flux2-renderer/manifests/two-am.json |  14 +++++++\n lib/flux2-renderer/manifests/wgg.json    |  34 ++++++++++++++++\n lib/flux2-renderer/render-all-pending.py | 155 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n 22 files changed, 825 insertions(+)\n8d94dcb feat(prompts): five new packs — Morning Haunt, Brutalist Architecture, Dream Sequence, System Error, cinematic music video stills\n assets/mural-prompts/brutalist-architecture.md           | 36 ++++++++++++++++++++++++++++++++++++\n assets/mural-prompts/dream-sequence.md                   | 33 +++++++++++++++++++++++++++++++++\n assets/mural-prompts/morning-haunt.md                    | 45 +++++++++++++++++++++++++++++++++++++++++++++\n assets/mural-prompts/system-error.md                     | 40 ++++++++++++++++++++++++++++++++++++++++\n lib/flux2-renderer/manifests/brutalist-architecture.json | 34 ++++++++++++++++++++++++++++++++++\n lib/flux2-renderer/manifests/dream-sequence",
     "last_sprint_date": "2026-10-07",
     "scan_date": "2026-10-08",
     "days": 14

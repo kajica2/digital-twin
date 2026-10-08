@@ -395,8 +395,10 @@ def make_recommendations(images, prompts, freshness):
 def main():
     ap = argparse.ArgumentParser(description="Project quality auditor — on demand")
     ap.add_argument("--days", type=int, default=DAYS_DEFAULT, help="Days for freshness scan")
-    ap.add_argument("--clip", dest="clip_model", default=None, choices=["vit-l", "vit-h"],
-                    help="Enable CLIP visual quality check (slow: loads model per call)")
+    ap.add_argument("--clip", dest="clip_model", nargs="?", const="vit-l", default=None,
+                    choices=["vit-l", "vit-h"],
+                    help="Enable CLIP visual quality check (slow: loads model per call). "
+                         "Defaults to vit-l. Use --clip vit-h for the higher-capacity model.")
     ap.add_argument("--report-json", action="store_true", help="Output JSON report path and exit")
     ap.add_argument("--report-md", action="store_true", help="Output markdown report and exit")
     args = ap.parse_args()
