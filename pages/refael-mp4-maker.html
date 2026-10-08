@@ -271,7 +271,7 @@
         <button class="install-btn" id="install-btn" type="button" style="display: none;" title="Install as a standalone app (works without browser chrome).">install app</button>
       </div>
     </div>
-    <p class="lede">One HTML file. No install, no internet, no upload. Pick a track name and an MP3, get a 1920×1080 MP4 with a mood-keyword-driven auto cover. Single track or batch a folder.</p>
+    <p class="lede">One HTML file. No install, no internet, no upload. Pick a track name and an MP3, get an MP4 with a mood-keyword-driven auto cover at the resolution you choose. Single track or batch a folder.</p>
   </header>
 
   <div class="tabs" role="tablist">
@@ -299,6 +299,14 @@
             <span class="seg-sub">song-length — MediaRecorder</span>
           </button>
         </div>
+      </div>
+      <div class="field" style="flex: 1; min-width: 180px;">
+        <label for="speed-resolution">Resolution</label>
+        <select id="speed-resolution">
+          <option value="hd">HD · 1920×1080</option>
+          <option value="regular">Regular · 1280×720</option>
+        </select>
+        <div class="engine-hint" id="resolution-hint">HD · WebCodecs baseline 4.0</div>
       </div>
       <div class="field" style="flex: 1; min-width: 180px;">
         <label>Engine</label>
@@ -579,8 +587,11 @@
     <details>
       <summary>ffmpeg one-liner (alternative, requires <code>brew install ffmpeg</code>)</summary>
       <pre># ── single track (background.jpg + refael.mp3 in cwd) ──
+# match the chosen Resolution dropdown: hd → 1920x1080, regular → 1280x720
+W=1920; H=1080
 ffmpeg -loop 1 -framerate 30 -i background.jpg -i refael.mp3 \
   -c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p \
+  -vf "scale=${W}:${H}:flags=lanczos" \
   -c:a aac -b:a 192k \
   -shortest -movflags +faststart \
   refael.mp4
@@ -589,11 +600,12 @@ ffmpeg -loop 1 -framerate 30 -i background.jpg -i refael.mp3 \
 # drop your .mp3 files into ./tracks/ first, then:
 mkdir -p out
 setopt -o NULL_GLOB 2&gt;/dev/null || shopt -s nullglob  # zsh or bash
+W=1920; H=1080  # match the chosen Resolution dropdown
 
 for f in tracks/*.mp3; do
   base="${f##*/}"; base="${base%.mp3}"
   ffmpeg -y -hide_banner -loglevel error \
-    -f lavfi -i "color=c=0x0a0a14:s=1920x1080:r=30:d=86400" \
+    -f lavfi -i "color=c=0x0a0a14:s=${W}x${H}:r=30:d=86400" \
     -i "$f" \
     -vf "drawtext=text='${base}':fontcolor=0xe8e0d4:fontsize=140:x=(w-text_w)/2:y=(h-text_h)/2:font='Charter'" \
     -c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p \
@@ -1328,7 +1340,7 @@ void main() {
   }
 
   function drawCover(ctx, name, artist, opts = {}) {
-    const W = 1920, H = 1080;
+    const W = ctx.canvas.width, H = ctx.canvas.height;
     const { palette: autoPalette, mood: autoMood } = pickPalette(name, artist);
     const p = opts.overridePalette || autoPalette;
     const mood = (opts.overridePalette || opts.coverImage) ? null : autoMood;
@@ -1790,16 +1802,30 @@ void main() {
     };
   })();
   const wcReady = wcSupport.VideoEncoder && wcSupport.AudioEncoder && wcSupport.VideoFrame && wcSupport.AudioData;
+  // ===================== RESOLUTION TABLE =====================
+  // Codec string is H.264 baseline profile; the level suffix encodes the max resolution
+  // the codec string claims to support. We pick per-resolution so the WebCodecs config
+  // call succeeds (an under-specified level will reject the encoder configure).
+  //
+  //   0x28 = level 4.0 → up to 1920×1080 (2,228,224 pixels per frame)
+  //   0x1F = level 3.1 → up to 1280×720  ( 921,600 pixels per frame)
+  //
+  // Bitrate scales with pixel count so a regular render isn't paying for HD encode
+  // bandwidth and HD isn't starved. FFmpeg.wasm path uses the same dimensions but its
+  // libx264 picks level/high profile itself via the -vf scale.
+  const RESOLUTIONS = {
+    hd:      { label: 'HD · 1920×1080',  w: 1920, h: 1080, codec: 'avc1.420028', videoBitrate: 8_000_000 },
+    regular: { label: 'Regular · 1280×720', w: 1280, h:  720, codec: 'avc1.42001F', videoBitrate: 4_000_000 },
+  };
+  let _resolutionKey = 'hd';
+  function getRes() { return RESOLUTIONS[_resolutionKey] || RESOLUTIONS.hd; }
+
   // The H.264 baseline codec string we ask VideoEncoder to support.
-  // avc1.420028 = baseline profile, level 4.0 — supports up to 1920×1080 (max 2,228,224
-  // pixels per frame). The encoded bytes are length-prefixed NAL units (AVCC), which we
-  // drop into the MP4 mdat verbatim.
-  const FAST_VIDEO_CODEC = 'avc1.420028';
+  // Resolved per-resolution (see RESOLUTIONS table) — the level suffix must match.
+  // The encoded bytes are length-prefixed NAL units (AVCC), which we drop into the MP4
+  // mdat verbatim.
   const FAST_AUDIO_CODEC = 'mp4a.40.2';  // AAC-LC
-  const FAST_VIDEO_BITRATE = 8_000_000;
   const FAST_AUDIO_BITRATE = 192_000;
-  const FAST_WIDTH  = 1920;
-  const FAST_HEIGHT = 1080;
   const FAST_FPS    = 30;
   const AAC_FRAME_SAMPLES = 1024;
 
@@ -2306,7 +2332,7 @@ void main() {
 
   // ===================== CUSTOM-IMAGE COVER DRAW =====================
   function drawCustomFrameTo(ctx, img, opts) {
-    const W = 1920, H = 1080;
+    const W = ctx.canvas.width, H = ctx.canvas.height;
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, W, H);
     if (!img) return;
@@ -2346,6 +2372,13 @@ void main() {
   // overlayOpts() callback for the per-frame overlay.
   async function renderOne({ imageProvider, overlayOpts, audioBuffer, mime, fileBase, ext, onProgress }) {
     const renderCanvas = document.getElementById('renderCanvas');
+    const res = getRes();
+    // sync the offscreen render canvas to the current resolution so MediaRecorder's
+    // captureStream tracks the right dimensions.
+    if (renderCanvas.width !== res.w || renderCanvas.height !== res.h) {
+      renderCanvas.width = res.w;
+      renderCanvas.height = res.h;
+    }
     const ctx = renderCanvas.getContext('2d');
 
     // pre-load the first image
@@ -2357,7 +2390,7 @@ void main() {
       // both produce an image; we just blit it
       ctx.drawImage(firstImg, 0, 0);
     } else {
-      ctx.fillStyle = '#000'; ctx.fillRect(0,0,1920,1080);
+      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, res.w, res.h);
     }
     if (overlay0.title || overlay0.artist) {
       drawCustomFrameTo(ctx, firstImg, overlay0);
@@ -2382,7 +2415,7 @@ void main() {
 
     const recorder = new MediaRecorder(combined, {
       mimeType: mime,
-      videoBitsPerSecond: 8_000_000,
+      videoBitsPerSecond: res.videoBitrate,
       audioBitsPerSecond: 192_000,
     });
     const chunks = [];
@@ -2409,10 +2442,10 @@ void main() {
       const opts = overlayOpts();
       if (img) {
         // re-blit (in case provider returned something different — it won't for static)
-        ctx.clearRect(0,0,1920,1080);
+        ctx.clearRect(0, 0, res.w, res.h);
         ctx.drawImage(img, 0, 0);
       } else {
-        ctx.fillStyle = '#000'; ctx.fillRect(0,0,1920,1080);
+        ctx.fillStyle = '#000'; ctx.fillRect(0, 0, res.w, res.h);
       }
       // apply title overlay (used only by custom tab; for auto the title is baked in)
       if (opts.title || opts.artist) drawCustomFrameTo(ctx, img, opts);
@@ -2437,18 +2470,19 @@ void main() {
   // encodes a single H.264 IDR frame + AAC-LC audio chunks, muxes into MP4.
   // Typical speed: ~5-10× realtime on a modern CPU.
   async function renderOneFast({ imageProvider, overlayOpts, audioBuffer, onProgress, mime = 'video/mp4' }) {
+    const res = getRes();
     // 1. Paint the first (and only) video frame.
     const cover = document.createElement('canvas');
-    cover.width = FAST_WIDTH; cover.height = FAST_HEIGHT;
+    cover.width = res.w; cover.height = res.h;
     const ctx = cover.getContext('2d');
     const firstImg = await imageProvider();
-    if (firstImg) ctx.drawImage(firstImg, 0, 0, FAST_WIDTH, FAST_HEIGHT);
-    else { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, FAST_WIDTH, FAST_HEIGHT); }
+    if (firstImg) ctx.drawImage(firstImg, 0, 0, res.w, res.h);
+    else { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, res.w, res.h); }
     // overlay: custom tab uses title overlay; auto tab bakes it in.
     const overlay = overlayOpts();
     if (overlay.title || overlay.artist) {
-      // For the fast path, drawCustomFrameTo expects a 1920×1080 ctx; ours is already
-      // the right size, so just blit the same overlay.
+      // For the fast path, drawCustomFrameTo is canvas-size-aware (uses ctx.canvas
+      // width/height), so the same overlay blits at whatever resolution is current.
       drawCustomFrameTo(ctx, firstImg, overlay);
     }
     // 2. Prepare audio: convert AudioBuffer to interleaved Float32Array, then
@@ -2487,8 +2521,8 @@ void main() {
         muxer.addVideoChunk(chunk);
         if (meta?.decoderConfig?.description && !muxer.videoConfig) {
           muxer.setVideoConfig({
-            codec: FAST_VIDEO_CODEC,
-            width: FAST_WIDTH, height: FAST_HEIGHT,
+            codec: res.codec,
+            width: res.w, height: res.h,
             description: new Uint8Array(meta.decoderConfig.description),
           });
         }
@@ -2497,9 +2531,9 @@ void main() {
       error: (e) => { throw e; },
     });
     vEnc.configure({
-      codec: FAST_VIDEO_CODEC,
-      width: FAST_WIDTH, height: FAST_HEIGHT,
-      bitrate: FAST_VIDEO_BITRATE,
+      codec: res.codec,
+      width: res.w, height: res.h,
+      bitrate: res.videoBitrate,
       framerate: FAST_FPS,
       avc: { format: 'avc' }, // AVCC: length-prefixed NAL units, what we want
     });
@@ -2596,7 +2630,7 @@ void main() {
   // renders need no network.
   let _ffmpegInstance = null;        // shared across calls in the same session
   let _ffmpegLoading = null;          // promise dedupe
-  const FFMPEG_W = 1920, FFMPEG_H = 1080, FFMPEG_FPS = 30;
+  const FFMPEG_FPS = 30;
 
   async function ensureFfmpeg() {
     if (_ffmpegInstance) return _ffmpegInstance;
@@ -2693,15 +2727,16 @@ void main() {
       const elapsed = (performance.now() - _ffmpegRunT0) / 1000;
       onProgress(elapsed, _ffmpegRunTotal, Math.min(99, elapsed / _ffmpegRunTotal * 100));
     };
+    const res = getRes();
 
     // 1. Render the cover frame at the target resolution.
     tickProgress('rendering cover');
     const cover = document.createElement('canvas');
-    cover.width = FFMPEG_W; cover.height = FFMPEG_H;
+    cover.width = res.w; cover.height = res.h;
     const ctx = cover.getContext('2d');
     const firstImg = await imageProvider();
-    if (firstImg) ctx.drawImage(firstImg, 0, 0, FFMPEG_W, FFMPEG_H);
-    else { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, FFMPEG_W, FFMPEG_H); }
+    if (firstImg) ctx.drawImage(firstImg, 0, 0, res.w, res.h);
+    else { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, res.w, res.h); }
     const overlay = overlayOpts();
     if (overlay.title || overlay.artist) {
       drawCustomFrameTo(ctx, firstImg, overlay);
@@ -2748,7 +2783,7 @@ void main() {
         '-loop', '1', '-framerate', String(FFMPEG_FPS), '-i', 'cover.png',
         '-i', 'audio.wav',
         '-c:v', 'libx264', '-preset', 'ultrafast', '-tune', 'stillimage',
-        '-pix_fmt', 'yuv420p', '-vf', `scale=${FFMPEG_W}:${FFMPEG_H}:flags=lanczos`,
+        '-pix_fmt', 'yuv420p', '-vf', `scale=${res.w}:${res.h}:flags=lanczos`,
         '-c:a', 'aac', '-b:a', '192k',
         '-shortest', '-movflags', '+faststart',
         'output.mp4',
@@ -3523,7 +3558,12 @@ void main() {
 
   function refreshSinglePreview() {
     const ctx = single.preview.getContext('2d');
-    ctx.clearRect(0, 0, 1920, 1080);
+    const res = getRes();
+    if (single.preview.width !== res.w || single.preview.height !== res.h) {
+      single.preview.width = res.w;
+      single.preview.height = res.h;
+    }
+    ctx.clearRect(0, 0, res.w, res.h);
     const name = single.title.value.trim() || 'Untitled';
     const artist = single.artist.value.trim();
     const { mood, hits } = detectMood(name, artist);
@@ -3561,9 +3601,9 @@ void main() {
     // Optional cover image (if checkbox on and an image is loaded)
     const useImg = single.useImage.checked && single.coverImageEl;
     const coverImg = useImg ? single.coverImageEl : null;
-    // re-render into a fresh offscreen canvas, then blit to preview
+    // re-render into a fresh offscreen canvas at the current resolution, then blit
     const off = document.createElement('canvas');
-    off.width = 1920; off.height = 1080;
+    off.width = res.w; off.height = res.h;
     const octx = off.getContext('2d');
     drawCover(octx, name, artist, {
       overridePalette: override,
@@ -3815,7 +3855,8 @@ void main() {
       const useImg = single.useImage.checked && single.coverImageEl;
       // pre-render the cover into an offscreen canvas (so the image-provider returns it)
       const cover = document.createElement('canvas');
-      cover.width = 1920; cover.height = 1080;
+      const resS = getRes();
+      cover.width = resS.w; cover.height = resS.h;
       drawCover(cover.getContext('2d'), name, artist, {
         overridePalette: override,
         fontKey: fk,
@@ -4000,6 +4041,11 @@ void main() {
 
   function drawCustomPreview() {
     const ctx = custom.preview.getContext('2d');
+    const resC = getRes();
+    if (custom.preview.width !== resC.w || custom.preview.height !== resC.h) {
+      custom.preview.width = resC.w;
+      custom.preview.height = resC.h;
+    }
     const opts = {
       title: custom.showOverlay.checked ? (custom.title.value.trim() || '') : '',
       artist: custom.artist.value.trim(),
@@ -4307,7 +4353,8 @@ void main() {
           ? { bg1: customPalette.bg1, bg2: customPalette.bg2, fg: customPalette.fg, accent: customPalette.accent }
           : null;
         const cover = document.createElement('canvas');
-        cover.width = 1920; cover.height = 1080;
+        const resB = getRes();
+        cover.width = resB.w; cover.height = resB.h;
         drawCover(cover.getContext('2d'), it.name.trim(), '', { overridePalette: override });
         const coverImg = await loadImage(cover.toDataURL('image/png'));
         const onProgress = (elapsed, total, pct) => {
@@ -4595,11 +4642,12 @@ void main() {
         log('decoded', audioBuffer.numberOfChannels, audioBuffer.sampleRate, audioBuffer.length, 'duration', audioBuffer.duration.toFixed(2) + 's');
 
         const cover = document.createElement('canvas');
-        cover.width = 1920; cover.height = 1080;
+        const resT = getRes();
+        cover.width = resT.w; cover.height = resT.h;
         const ctx = cover.getContext('2d');
-        const g = ctx.createLinearGradient(0, 0, 1920, 1080);
+        const g = ctx.createLinearGradient(0, 0, resT.w, resT.h);
         g.addColorStop(0, '#0a0a14'); g.addColorStop(1, '#1a0a2a');
-        ctx.fillStyle = g; ctx.fillRect(0, 0, 1920, 1080);
+        ctx.fillStyle = g; ctx.fillRect(0, 0, resT.w, resT.h);
         ctx.fillStyle = '#e8e0d4';
         ctx.font = 'bold 240px serif';
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -4644,6 +4692,46 @@ void main() {
     };
     setTimeout(() => window.__selftest().catch(e => console.error('[selftest] failed', e)), 100);
   }
+
+  // ===================== RESOLUTION WIRING =====================
+  // applyResolution() is the single mutator for the resolution dropdown. It
+  // updates the global key, refreshes the footer output-info text + per-resolution
+  // hint, resizes any preview canvases that are mounted, and re-renders the active
+  // preview (single or custom tab) so the on-screen canvas matches the export.
+  function applyResolution(key) {
+    if (!RESOLUTIONS[key]) key = 'hd';
+    _resolutionKey = key;
+    const res = RESOLUTIONS[key];
+    // footer output text reflects the chosen export dimensions
+    const outInfo = document.getElementById('out-info');
+    if (outInfo) outInfo.textContent = `${res.w}×${res.h} · H.264 · AAC · .mp4`;
+    // per-resolution hint: codec level + bitrate, since the dropdown is the only place
+    // a user finds out the actual codec constraint of their pick.
+    const hint = document.getElementById('resolution-hint');
+    if (hint) {
+      const level = key === 'hd' ? 'baseline 4.0' : 'baseline 3.1';
+      const kbps = (res.videoBitrate / 1_000_000).toFixed(1);
+      hint.textContent = `${res.label.replace(/^.*?·\s*/, '')} · H.264 ${level} · ${kbps} Mbps`;
+    }
+    // resize preview canvases to match the new resolution, then re-render whichever
+    // tab is active so the on-screen preview mirrors what will be encoded.
+    const sp = document.getElementById('s-previewCanvas');
+    if (sp && (sp.width !== res.w || sp.height !== res.h)) { sp.width = res.w; sp.height = res.h; }
+    const cp = document.getElementById('c-previewCanvas');
+    if (cp && (cp.width !== res.w || cp.height !== res.h)) { cp.width = res.w; cp.height = res.h; }
+    // re-render whichever tab is visible; ignore errors (no audio loaded yet, etc.)
+    try { if (typeof refreshSinglePreview === 'function') refreshSinglePreview(); } catch (_) {}
+    try { if (typeof drawCustomPreview === 'function') drawCustomPreview(); } catch (_) {}
+  }
+
+  // wire the dropdown
+  const _resSel = document.getElementById('speed-resolution');
+  if (_resSel) {
+    _resSel.value = _resolutionKey;
+    _resSel.addEventListener('change', e => applyResolution(e.target.value));
+  }
+  // initial sync so footer / hint text reflect the default ('hd') on first paint
+  applyResolution(_resolutionKey);
 
 })();
 </script>

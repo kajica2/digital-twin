@@ -1,9 +1,11 @@
 # Refael MP4 Maker
 
-**Refael** turns an MP3 into a 1920×1080 MP4 with an auto-generated
-typographic cover — fully offline, in the browser, no upload. Single
-track, custom image, or batch a folder. It is the third local tool in
-the Twin OS Songs panel (after MuScriptor and the CLIP Interrogator).
+**Refael** turns an MP3 into an MP4 (HD · 1920×1080 by default, with a
+Regular · 1280×720 option in the **Resolution** dropdown) with an
+auto-generated typographic cover — fully offline, in the browser, no
+upload. Single track, custom image, or batch a folder. It is the third
+local tool in the Twin OS Songs panel (after MuScriptor and the CLIP
+Interrogator).
 
 ## Origin
 
@@ -72,13 +74,14 @@ PORT=5180 node refael.spec.mjs       # requires: python3 -m http.server 5180 --d
 ```
 
 Asserts: title + hero, offline badge, 3-tab tablist with the first
-active, 3 engine radios with Fast checked, engine pill + hint, render
-buttons disabled until input, 1920×1080 canvases, output-info row,
-"0 network calls" footer claim, ffmpeg one-liner `<details>`, the
-random-name generator actually fills the title input, internal links
-don't 404 on the page, the Twin OS `data-tool-refael` card, and 0
-console errors / failed requests on both pages (dark screenshot in
-`e2e/artifacts/`).
+active, 3 engine radios with Fast checked, **resolution dropdown with
+HD + Regular + the regular option resizing canvases + updating the
+output-info text**, engine pill + hint, render buttons disabled until
+input, output-info row, "0 network calls" footer claim, ffmpeg one-
+liner `<details>`, the random-name generator actually fills the title
+input, internal links don't 404 on the page, the Twin OS
+`data-tool-refael` card, and 0 console errors / failed requests on
+both pages (dark screenshot in `e2e/artifacts/`).
 
 The selftest render (`?selftest=1`) is deliberately NOT in the spec —
 WebCodecs in headless Chrome is flaky across versions; it stays a

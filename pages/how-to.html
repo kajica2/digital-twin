@@ -425,14 +425,14 @@ npm run clip:interrogate -- path/to/image.jpg --model vit-l --mode fast --json</
     <!-- 04 Refael -->
     <section id="refael" class="section">
         <div class="section-header"><span class="section-num">04</span><h2>Refael MP4 Maker</h2></div>
-        <p class="lede">MP3 → 1920×1080 MP4 with mood-keyword auto-covers. Single self-contained HTML file, works from <span class="inline-code">file://</span>.</p>
+        <p class="lede">MP3 → MP4 with mood-keyword auto-covers, at the resolution you choose (HD · 1920×1080 by default, or Regular · 1280×720 from the Resolution dropdown). Single self-contained HTML file, works from <span class="inline-code">file://</span>.</p>
 
         <div class="code-block"><button class="copy-btn" data-copy>copy</button><pre><code>open pages/refael-mp4-maker.html
 # or served: http://127.0.0.1:5180/pages/refael-mp4-maker.html</code></pre></div>
 
         <ul class="tight">
-            <li>Drop an MP3, pick a track name (or 🎲 random), choose a render mode.</li>
-            <li>Three engines: ⚡ <strong>Fast</strong> (WebCodecs, fully offline — the default, zero network calls), 🛡 <strong>FFmpeg.wasm</strong> (lazy-loads from unpkg on first use, then browser-cached), 🐢 <strong>Real-time</strong> (MediaRecorder).</li>
+            <li>Drop an MP3, pick a track name (or 🎲 random), choose a render mode + resolution.</li>
+            <li>Three engines: ⚡ <strong>Fast</strong> (WebCodecs, fully offline — the default, zero network calls), 🛡 <strong>FFmpeg.wasm</strong> (lazy-loads from unpkg on first use, then browser-cached), 🐢 <strong>Real-time</strong> (MediaRecorder). Resolution is consumed by all three: WebCodecs codec string + bitrate, FFmpeg <span class="inline-code">-vf scale</span>, MediaRecorder <span class="inline-code">videoBitsPerSecond</span>.</li>
             <li>Single / Custom image / Batch tabs; deterministic cover art from track + artist (dark/light/fire/love/ocean/earth, EN + SR-Cyrillic).</li>
             <li><span class="inline-code">?selftest=1</span> runs a built-in end-to-end render self-test (manual smoke lever — WebCodecs is flaky in headless CI).</li>
         </ul>

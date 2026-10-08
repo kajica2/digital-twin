@@ -88,7 +88,52 @@ try {
     const btn = document.querySelector('#s-render');
     return !!btn && btn.disabled === true;
   }));
-  check('refael: single preview canvas is 1920×1080', await page.evaluate(() => {
+  check('refael: single preview canvas defaults to HD (1920×1080)', await page.evaluate(() => {
+    const c = document.querySelector('#s-previewCanvas');
+    return !!c && c.width === 1920 && c.height === 1080;
+  }));
+  check('refael: resolution dropdown exists with HD + Regular', await page.evaluate(() => {
+    const sel = document.querySelector('#speed-resolution');
+    if (!sel) return false;
+    const opts = Array.from(sel.querySelectorAll('option')).map(o => o.value);
+    return opts.length === 2 && opts.includes('hd') && opts.includes('regular');
+  }), await page.evaluate(() =>
+    Array.from(document.querySelectorAll('#speed-resolution option')).map(o => o.value).join(',')));
+  check('refael: resolution dropdown defaults to hd', await page.evaluate(() => {
+    const sel = document.querySelector('#speed-resolution');
+    return !!sel && sel.value === 'hd';
+  }));
+  check('refael: resolution-hint shows codec level (HD = baseline 4.0)', await page.evaluate(() =>
+    (document.querySelector('#resolution-hint')?.textContent || '').toLowerCase().includes('baseline 4.0')));
+  check('refael: output-info declares HD (1920×1080) by default', await page.evaluate(() => {
+    const t = document.querySelector('#out-info')?.textContent || '';
+    return t.includes('1920×1080') && t.includes('H.264') && t.includes('AAC');
+  }));
+  // Switching resolution: the canvases resize AND the out-info text updates.
+  await page.evaluate(() => {
+    const sel = document.querySelector('#speed-resolution');
+    sel.value = 'regular';
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await new Promise(r => setTimeout(r, 100));
+  check('refael: selecting Regular resizes single preview canvas to 1280×720', await page.evaluate(() => {
+    const c = document.querySelector('#s-previewCanvas');
+    return !!c && c.width === 1280 && c.height === 720;
+  }));
+  check('refael: selecting Regular updates output-info to 1280×720', await page.evaluate(() => {
+    const t = document.querySelector('#out-info')?.textContent || '';
+    return t.includes('1280×720') && t.includes('H.264');
+  }));
+  check('refael: selecting Regular updates hint (baseline 3.1)', await page.evaluate(() =>
+    (document.querySelector('#resolution-hint')?.textContent || '').toLowerCase().includes('baseline 3.1')));
+  // Reset to HD for the rest of the spec (random-name click is size-agnostic).
+  await page.evaluate(() => {
+    const sel = document.querySelector('#speed-resolution');
+    sel.value = 'hd';
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await new Promise(r => setTimeout(r, 100));
+  check('refael: selecting HD restores canvases to 1920×1080', await page.evaluate(() => {
     const c = document.querySelector('#s-previewCanvas');
     return !!c && c.width === 1920 && c.height === 1080;
   }));
@@ -101,16 +146,13 @@ try {
     const panel = document.querySelector('[data-panel="batch"]');
     return !!panel && !!panel.querySelector('#b-progress');
   }));
-  check('refael: output info row declares H.264 · AAC', await page.evaluate(() =>
-    (document.querySelector('#out-info')?.textContent || '').includes('H.264') &&
-    (document.querySelector('#out-info')?.textContent || '').includes('AAC')));
   check('refael: footer claims offline · 0 network calls', await page.evaluate(() =>
     document.body.innerText.includes('0 network calls')));
   check('refael: ffmpeg one-liner details block', await page.evaluate(() => {
     const d = document.querySelector('.footer details');
     return !!d && !!d.querySelector('summary') && !!d.querySelector('pre');
   }));
-  check('refael: hidden render canvas exists', await page.evaluate(() => {
+  check('refael: hidden render canvas exists (1920×1080 default = HD)', await page.evaluate(() => {
     const c = document.querySelector('#renderCanvas');
     return !!c && c.width === 1920 && c.height === 1080;
   }));

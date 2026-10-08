@@ -188,10 +188,11 @@ python3 -m http.server 5173 --directory .
 ```
 
 Drop an MP3, pick a track name (or hit 🎲 random), choose a render
-mode, and get a 1920×1080 MP4 with a mood-keyword auto-cover. Fast
-mode is WebCodecs (offline, zero network); FFmpeg.wasm lazy-loads
-from unpkg on first use; Real-time uses MediaRecorder. Open with
-`?selftest=1` for a built-in end-to-end render self-test.
+mode + a resolution (HD · 1920×1080 default, or Regular · 1280×720
+from the Resolution dropdown), and get an MP4 with a mood-keyword
+auto-cover. Fast mode is WebCodecs (offline, zero network); FFmpeg.wasm
+lazy-loads from unpkg on first use; Real-time uses MediaRecorder. Open
+with `?selftest=1` for a built-in end-to-end render self-test.
 
 Details and offline caveats: [`docs/REFAEL-MP4-MAKER.md`](docs/REFAEL-MP4-MAKER.md).
 
