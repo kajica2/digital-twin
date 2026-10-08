@@ -1,0 +1,42 @@
+[
+  {
+    "slug": "system-error-01",
+    "prompt": "A portrait with severe RGB channel separation, the red green and blue components displaced laterally, the face still recognisable but wrong, digital decay glitch aesthetic \u2014 controlled chaos, RGB split, digital glitch, chromatic aberration, 35mm"
+  },
+  {
+    "slug": "system-error-02",
+    "prompt": "A city street with the image corrupted by block artefacts and colour banding, the buildings still standing but the pixels shifting, the sky split into vertical RGB stripes \u2014 digital decay, controlled chaos, RGB split glitch, block artefact, city corruption, 35mm"
+  },
+  {
+    "slug": "system-error-03",
+    "prompt": "A microphone in a dark studio, the image fragmented by horizontal tearing lines, the diaphragm barely visible through the corruption, signal noise visible \u2014 digital decay, glitch aesthetic, controlled chaos, RGB split, studio dark, 35mm"
+  },
+  {
+    "slug": "system-error-04",
+    "prompt": "An oscilloscope display showing a waveform that has been deliberately corrupted, the signal clipping and folding back on itself, the CRT phosphor glow in green \u2014 controlled chaos, digital glitch, oscilloscope waveform, CRT phosphor, electronic signal decay, 35mm"
+  },
+  {
+    "slug": "system-error-05",
+    "prompt": "A vinyl record seen close up with visible digitalArtefacts painted across its surface, the grooves still readable but the surface broken, data moshing aesthetic \u2014 controlled chaos, digital glitch, vinyl data moshing, surface corruption, 35mm"
+  },
+  {
+    "slug": "system-error-06",
+    "prompt": "A speaker cone mid-vibration, the image stabilised with motion blur on the edges but frozen in the centre by digital corruption, the room dark \u2014 controlled chaos, digital glitch, motion blur corruption, speaker cone, 35mm"
+  },
+  {
+    "slug": "system-error-07",
+    "prompt": "A dark server room with the lights flickering in RGB, the server racks casting shifting coloured shadows, the corruption arriving through the power grid \u2014 controlled chaos, RGB flicker, server room, digital corruption, power grid glitch, 35mm"
+  },
+  {
+    "slug": "system-error-08",
+    "prompt": "A close-up of a circuit board with the traces glowing from electrical overload, the image split into two frames displaced horizontally, signal bleeding between \u2014 controlled chaos, digital glitch, circuit board, electrical overload, signal noise, 35mm"
+  },
+  {
+    "slug": "system-error-09",
+    "prompt": "An old CRT monitor displaying a frozen glitch frame, the screen burn-in and phosphor ghost visible, the image torn horizontally and the top half displaced \u2014 controlled chaos, CRT burn-in, screen tear, phosphor ghost, hardware failure aesthetic, 35mm"
+  },
+  {
+    "slug": "system-error-10",
+    "prompt": "A DJ booth at night with LED strips going wrong \u2014 the red blue and green channels separating and drifting, the mixer and turntables barely visible through the chromatic chaos, the crowd a dark smear \u2014 controlled chaos, RGB split, DJ booth, LED malfunction, chromatic aberration, 35mm"
+  }
+]
