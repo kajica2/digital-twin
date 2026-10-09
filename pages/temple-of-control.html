@@ -90,6 +90,11 @@
         button.act:hover { border-color: var(--accent); color: var(--accent-text); }
         button.act.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
         button.act.primary:hover { filter: brightness(1.07); color: #fff; }
+        button.link-btn {
+            font-family: var(--mono); font-size: 12px; background: none; border: none;
+            color: var(--accent); cursor: pointer; text-decoration: underline; padding: 0;
+        }
+        button.link-btn:hover { color: var(--accent-text); }
         .pill { font-family: var(--mono); font-size: 11px; padding: 3px 9px; border-radius: 999px;
                 border: 1px solid var(--border-light); color: var(--text-secondary); }
         .pill.live { border-color: var(--accent); color: var(--accent-text); }
@@ -207,12 +212,19 @@
     </section>
 
     <section>
-        <h2>Automap — hardware as the desk</h2>
-        <p>A MIDI controller can drive the three temperatures directly. <b>Maschine Mikro</b> is profiled:
+        <h2>Automap — hardware or keyboard as the desk</h2>
+        <p>A MIDI controller can drive the three temperatures directly. <b>8-knob controllers</b> are profiled:
            its eight encoders auto-map to the current mode's three targets, and the mode button cycles the
            <em>automap modes</em> — <span class="inline-code">temperature</span>,
            <span class="inline-code">score</span>, <span class="inline-code">tint</span>. Unknown devices fall
            back to the generic profile.</p>
+        <p style="margin-top:12px"><b>Keyboard fallback</b> (no controller needed):</p>
+        <ul style="margin-top:8px">
+            <li><span class="inline-code">1–9</span>, <span class="inline-code">0</span> → heat (0.1 → 1.0)</li>
+            <li><span class="inline-code">Shift+1–9</span>, <span class="inline-code">Shift+0</span> → breath (0.1 → 1.0)</li>
+            <li><span class="inline-code">Ctrl+1–9</span>, <span class="inline-code">Ctrl+0</span> → glow (0.1 → 1.0)</li>
+            <li><span class="inline-code">M</span> → cycle mode</li>
+        </ul>
         <div class="table-wrap">
             <table>
                 <thead>
@@ -337,6 +349,22 @@ MIDI_AUTOMAP.create({
     var midiStatus = document.getElementById('midiStatus');
     var playBtn = document.getElementById('playBtn');
     var playState = document.getElementById('playState');
+    var STORAGE_KEY = 'tc-last-midi';
+
+    // Restore previously loaded MIDI on page load
+    (function () {
+        var last = localStorage.getItem(STORAGE_KEY);
+        if (last) {
+            midiStatus.innerHTML = '<button id="restoreMidi" class="link-btn">restore: ' + last + '</button>';
+            var restoreBtn = document.getElementById('restoreMidi');
+            if (restoreBtn) {
+                restoreBtn.addEventListener('click', function () {
+                    midiStatus.textContent = 'select the same file to restore';
+                    midiInput.click();
+                });
+            }
+        }
+    })();
 
     midiInput.addEventListener('change', function () {
         var file = midiInput.files && midiInput.files[0];
@@ -349,6 +377,8 @@ MIDI_AUTOMAP.create({
             playBtn.disabled = false;
             visual.play();
             playBtn.textContent = 'pause';
+            // Persist filename for next visit
+            try { localStorage.setItem(STORAGE_KEY, file.name); } catch (e) {}
         }).catch(function (err) {
             midiStatus.textContent = '✕ ' + err.message;
         });
@@ -372,6 +402,15 @@ MIDI_AUTOMAP.create({
     var automapDevice = document.getElementById('automapDevice');
     var modeBtn = document.getElementById('modeBtn');
     var desk = null;
+    var sourceEl = document.getElementById('sourceDisplay') || (function () {
+        var d = document.createElement('span');
+        d.id = 'sourceDisplay';
+        d.className = 'pill';
+        d.style.marginLeft = '8px';
+        d.textContent = 'input: none';
+        automapDevice.parentNode.appendChild(d);
+        return d;
+    })();
 
     function showMode(mode) {
         automapMode.textContent = 'mode: ' + mode.name;
@@ -380,8 +419,10 @@ MIDI_AUTOMAP.create({
 
     automapBtn.addEventListener('click', function () {
         if (desk) return;
+        sourceEl.textContent = 'input: MIDI…';
         desk = window.MIDI_AUTOMAP.create({
             onMap: function (m) {
+                sourceEl.textContent = 'input: MIDI';
                 Object.keys(m).forEach(function (key) {
                     if (key === 'heat' || key === 'breath' || key === 'glow') {
                         var input = document.querySelector('input[data-temp="' + key + '"]');
@@ -400,10 +441,52 @@ MIDI_AUTOMAP.create({
             if (!ok) {
                 automapDevice.textContent = 'Web MIDI unavailable in this browser';
                 automapBtn.disabled = true;
+                sourceEl.textContent = 'input: none';
             } else if (!desk.device) {
                 automapDevice.textContent = 'waiting for a controller…';
             }
         });
+    });
+
+    // ---- keyboard control: 1-9, 0 for heat; Q-I for breath; A-K for glow ----
+    document.addEventListener('keydown', function (e) {
+        // Ignore if typing in an input
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        var key = e.key;
+        var set = null;
+        // Heat: 1-9 → 0.1-0.9, 0 → 1.0
+        if (key >= '1' && key <= '9') {
+            set = { temp: 'heat', value: (key.charCodeAt(0) - 48) / 9 };
+        } else if (key === '0') {
+            set = { temp: 'heat', value: 1.0 };
+        }
+        // Breath: Shift+1-9 → 0.1-0.9, Shift+0 → 1.0
+        else if (e.shiftKey && key >= '1' && key <= '9') {
+            set = { temp: 'breath', value: (key.charCodeAt(0) - 48) / 9 };
+        } else if (e.shiftKey && key === '0') {
+            set = { temp: 'breath', value: 1.0 };
+        }
+        // Glow: Ctrl/Cmd+1-9 → 0.1-0.9, Ctrl/Cmd+0 → 1.0
+        else if ((e.ctrlKey || e.metaKey) && key >= '1' && key <= '9') {
+            set = { temp: 'glow', value: (key.charCodeAt(0) - 48) / 9 };
+        } else if ((e.ctrlKey || e.metaKey) && key === '0') {
+            set = { temp: 'glow', value: 1.0 };
+        }
+        // Mode cycle: M key
+        else if (key === 'm' || key === 'M') {
+            var modes = window.MIDI_AUTOMAP.modes;
+            var idx = (Number(automapMode.getAttribute('data-i') || 0) + 1) % modes.length;
+            automapMode.setAttribute('data-i', String(idx));
+            showMode(modes[idx]);
+            return;
+        }
+        if (set) {
+            e.preventDefault();
+            sourceEl.textContent = 'input: keyboard';
+            var input = document.querySelector('input[data-temp="' + set.temp + '"]');
+            if (input) input.value = set.value;
+            setTemp(set.temp, set.value);
+        }
     });
 
     modeBtn.addEventListener('click', function () {

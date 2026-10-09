@@ -3087,9 +3087,10 @@ repo's test or page contracts.
     → opacity, pitch class → hue, tempo map → breath rate. Beat and onset are
     **exact** (they come off the score), not estimated.
   - **`lib/midi-automap.js`** (`window.MIDI_AUTOMAP`) — hardware knob
-    auto-mapping. **Maschine Mikro profiled** (8 encoders, CC 16-23), generic
-    fallback. Three **automap modes** — `temperature` / `score` / `tint` —
-    cycle from the controller's mode button (CC 3) or `desk.mode = n`.
+    auto-mapping. **8-knob controller profile** (CC 16-23), generic fallback
+    for other controllers. Three **automap modes** — `temperature` /
+    `score` / `tint` — cycle from the controller's mode button (CC 3) or
+    `desk.mode = n`.
   - **`pages/temple-of-control.html`** — the desk: live visual, three sliders,
     4 presets (frost / still / ember / incandescent), MIDI file input, automap
     panel with mode cycling, two copy-button embed snippets.
@@ -3115,10 +3116,13 @@ repo's test or page contracts.
   suites green (12 with `test:midi-automap`, 36/36) · `e2e:howto` green after
   the page-map row + "nine pages" bump (also fixed the marketplace row's stale
   "seven stills" → eight).
-- **Open:** no score persists across reload (MIDI is re-picked); the score path
-  is covered through the API in e2e but a real `.mid` drop → rings is a manual
-  check; the Maschine Mikro profile is verified by the pure map only — a real
-  controller smoke is still open (needs hardware).
+- **Open:** the score path is covered through the API in e2e but a real
+  `.mid` drop → rings is a manual check; the 8-knob controller profile is
+  verified by the pure map only — a real controller smoke is still open (needs
+  hardware). MIDI filename persists in localStorage — page reload shows a
+  "restore: filename.mid" button that re-opens the file picker. Keyboard
+  control added: 1-9/0 for heat, Shift+1-9/0 for breath, Ctrl+1-9/0 for
+  glow, M to cycle mode.
 - **Next:** (a) drop the visual into landing / twin-os as a live panel;
   (b) jazz-solos corpus MIDI → visual picker (456 solos are sitting right
   there); (c) real-controller automap smoke.
