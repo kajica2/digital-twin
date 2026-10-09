@@ -1,0 +1,45 @@
+{
+    "_note": "Asset pipeline configuration - converts images/GIFs to MP4 with analysis and tagging",
+
+    "input": {
+        "supportedFormats": [".jpg", ".jpeg", ".png", ".gif", ".webp"],
+        "defaultFps": 30,
+        "defaultDuration": 5,
+        "defaultResolution": "1080x1920"
+    },
+
+    "output": {
+        "dir": "export-ready",
+        "format": "mp4",
+        "codec": "libx264",
+        "videoBitrate": "4M",
+        "audio": false
+    },
+
+    "motion": {
+        "type": "ken-burns",
+        "zoomRange": [1.0, 1.15],
+        "panRange": ["-5%", "5%"],
+        "ease": "ease-in-out"
+    },
+
+    "naming": {
+        "pattern": "{family}-{index:02d}-{mood}-{colorslug}",
+        "lowercase": true,
+        "spacesToDash": true
+    },
+
+    "analysis": {
+        "extractColors": true,
+        "detectMood": true,
+        "extractKeywords": true,
+        "colorCount": 5
+    },
+
+    "metadata": {
+        "includeHashtags": true,
+        "hashtagCount": 10,
+        "includeDescription": true,
+        "descriptionTemplate": "Created with #SaintedWordRecords #AIArt #{mood} #{genre}"
+    }
+}

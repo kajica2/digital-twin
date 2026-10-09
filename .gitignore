@@ -31,6 +31,8 @@ audio-inbox/processed/
 
 # Reel-inbox test artifacts (e2e reel processing)
 reel-inbox/processed/
+# Instagram posted reels (moved after successful post)
+reel-inbox/posted/
 
 # Chart export artifacts (e2e tests leave these in chart-inbox/)
 chart-inbox/*.pdf
