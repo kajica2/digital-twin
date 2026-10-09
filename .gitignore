@@ -2,6 +2,14 @@
 mj-output/
 prompts-inbox/processed/
 
+# MJ watcher runtime state — per-prompt done markers + in-flight lockfile.
+# The other watchers' lockfiles live in their own inbox dirs; same pattern
+# (chart-inbox/.processing-*, reel-inbox/.processing-*, etc.) are covered by
+# `*/processed/` since they move out on completion. The MJ watcher's markers
+# stay in place until the whole pack finishes, so they need explicit rules.
+prompts-inbox/.mj-done-*
+prompts-inbox/.processing-*
+
 # Local free-model test renders (pollinations / draw-things)
 free-output/
 
