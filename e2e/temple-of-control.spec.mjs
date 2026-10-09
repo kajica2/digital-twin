@@ -139,7 +139,7 @@ function check(name, ok, detail = '') {
     } catch (e) { clicked = 'threw: ' + e.message; }
     return { blocks, btns: btns.length, clicked };
   });
-  check('temple: copy blocks + buttons', copy.blocks === 2 && copy.btns === 2, JSON.stringify(copy));
+  check('temple: copy blocks + buttons', copy.blocks === 3 && copy.btns === 3, JSON.stringify(copy));
   check('temple: copy click flips the label without throwing', copy.clicked === 'copied', copy.clicked);
 
   // Theme: toggle to dark and persist across reload.

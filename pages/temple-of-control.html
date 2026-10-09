@@ -245,6 +245,20 @@
         </div>
     </section>
 
+    <section id="swrBridge">
+        <h2>SWR Bridge — control the visual engine</h2>
+        <p>Connect to <b>SWR</b> (Sainted Word Records engine) to drive FX parameters directly:
+           <span class="inline-code">heat</span> → warmth,
+           <span class="inline-code">breath</span> → intensity,
+           <span class="inline-code">glow</span> → bloom.
+           Works with or without MIDI hardware.</p>
+        <div class="row">
+            <button class="act" id="swrConnectBtn">connect to SWR</button>
+            <span class="pill" id="swrStatus">SWR: disconnected</span>
+        </div>
+        <p style="margin-top:8px;font-size:13px;color:var(--text-secondary)">Also works in standalone mode — the sliders and keyboard (1-9, Shift+1-9, Ctrl+1-9, M) control the visual directly.</p>
+    </section>
+
     <section>
         <h2>Plug it into any page</h2>
         <p>Two files, no build step. The element is a Web Component, so it works on any page in this repo or
@@ -270,6 +284,25 @@ MIDI_AUTOMAP.create({
   onMap:  m =&gt; v.setTemp(m),          // { heat } | { breath } | { glow }
   onMode: mode =&gt; console.log(mode)  // temperature | score | tint
 }).request();</pre>
+        </div>
+        <p style="margin-top:12px">Unified lib + SWR bridge (keyboard shortcuts work too):</p>
+        <div class="code-wrap">
+            <button class="copy-btn" data-copy>copy</button>
+            <pre data-copy-source>&lt;script src="/lib/temperature-control.js"&gt;&lt;/script&gt;
+
+// Standalone: keyboard (1-9, Shift+1-9, Ctrl+1-9, M) + MIDI
+var ctrl = TEMPERATURE_CONTROL.create({
+  onChange: t =&gt; console.log(t),      // { heat, breath, glow }
+  onSource: s =&gt; console.log(s)      // 'keyboard' | 'MIDI'
+});
+ctrl.connect();
+
+// Or bridge to SWR:
+var ctrl = TEMPERATURE_CONTROL.create({
+  swr: window.SWR,                   // SWR instance
+  swrTarget: 'automix'               // 'automix' uses _fxOverride
+});
+ctrl.connect();</pre>
         </div>
     </section>
 
@@ -499,6 +532,66 @@ MIDI_AUTOMAP.create({
             return;
         }
         desk.mode = (desk.mode + 1) % desk.modes.length;
+    });
+
+    // ---- SWR Bridge ------------------------------------------------------
+    var swrConnectBtn = document.getElementById('swrConnectBtn');
+    var swrStatus = document.getElementById('swrStatus');
+    var swrConnected = false;
+    var swrInstance = null;
+
+    swrConnectBtn.addEventListener('click', function () {
+        if (swrConnected) {
+            swrStatus.textContent = 'SWR: already connected';
+            return;
+        }
+        // Try to find SWR instance
+        if (typeof window.SWR !== 'undefined') {
+            swrInstance = window.SWR;
+        } else if (typeof window.swr !== 'undefined') {
+            swrInstance = window.swr;
+        }
+        
+        if (swrInstance) {
+            swrConnected = true;
+            swrStatus.textContent = 'SWR: connected';
+            swrStatus.classList.add('live');
+            swrConnectBtn.textContent = 'SWR connected';
+            swrConnectBtn.disabled = true;
+            
+            // Initialize SWR _fxOverride if needed
+            if (!swrInstance._fxOverride) {
+                swrInstance._fxOverride = {
+                    warmth: 0.5, intensity: 0.5, bloom: 0.3,
+                    vignette: 0, chroma: 0, grain: 0, sepia: 0,
+                    grayscale: 0, blur: 0, liquid: 0, pearl: 0,
+                    glitch: 0, contrast: 0, saturation: 0
+                };
+            }
+            
+            // Sync current temps to SWR
+            var mapping = { heat: 'warmth', breath: 'intensity', glow: 'bloom' };
+            Object.keys(mapping).forEach(function (key) {
+                var swrKey = mapping[key];
+                if (swrInstance._fxOverride.hasOwnProperty(swrKey)) {
+                    var input = document.querySelector('input[data-temp="' + key + '"]');
+                    swrInstance._fxOverride[swrKey] = input ? parseFloat(input.value) : 0.5;
+                }
+            });
+            
+            console.log('[SWR Bridge] Connected - heat→warmth, breath→intensity, glow→bloom');
+        } else {
+            swrStatus.textContent = 'SWR: not found on this page';
+            swrStatus.classList.add('live');
+            // Still allow manual mode for testing
+            swrConnected = true;
+            swrInstance = { 
+                _fxOverride: { warmth: 0.5, intensity: 0.5, bloom: 0.3 },
+                fx: { warmth: 0.5, intensity: 0.5, bloom: 0.3 }
+            };
+            swrConnectBtn.textContent = 'demo mode (no SWR)';
+            console.log('[SWR Bridge] Demo mode - connect to an SWR page to see effect');
+        }
     });
 
     // ---- copy blocks -----------------------------------------------------
