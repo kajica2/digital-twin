@@ -3571,3 +3571,81 @@ claimed "huge condensed black type filling the frame").
 **Open / next:** (a) reel-inbox distribution proof — still the only unproven
 half of the media pipeline; (b) `.kai/` durability call; (c) the 12 covers
 remain 5+5+2 seed variants of three prompts if genuine variety is wanted.
+
+### 2026-10-09 — sprint 0.42 (System Error plates rendered locally + shipped)
+
+Brief: *"generate images in flux locally 16:9 10 assets — System Error.
+Digital decay, RGB splits, controlled chaos. For experimental, breakcore,
+glitch and noise artists who break rules on purpose. 100–170 BPM."*
+
+**No new pack was authored** — `assets/mural-prompts/swr-assets-system-error-cinematic.md`
+was already exactly this brief: 10 prompts, `--ar 16:9` on every bullet,
+subject-first (the sprint-0.32 acceptance-matcher rule). The work was render
+→ ship, not write.
+
+**Rendered** — `render.py --prompt-file`, steps 20, seed base 9600, outdir
+`assets/flux2/system-error-cinematic/` (gitignored, working product):
+
+- **10/10 PNGs, all 832×464**, `resized: false` on every entry — the
+  aspect-derived size goes through `_snap16`, so nothing was silently
+  rounded by diffusers.
+- Seeds 9600–9609, distinct. `manifest.json` carries the per-image prompt,
+  aspect, dims and seed.
+- Every prompt pre-flighted before the model load: 10 parsed, 10 distinct
+  slugs, all 16:9 → 832×464. (Repo rule: validate before spawning a
+  renderer that hangs rather than errors.)
+- **Wall-clock oddity, recorded not smoothed:** the JSON reports
+  `renderSeconds: 17667` (~4.9 h) and file mtimes span 10:44 → 15:37, while
+  the per-image step loops each finished in under a second. The machine was
+  idling/napping between images; the pipeline was never the slow part.
+
+**Shipped** — PNG → JPG (q82) into a tracked dir, the sprint-0.40 pattern:
+
+- `assets/marketplace/system-error/system-error-01..10.jpg` — 980 KB total,
+  832×464 preserved. Deliberately **not** referenced from `assets/flux2/`,
+  which is gitignored — a page pointing there renders locally and 404s on
+  Pages (prevention rule PM-2026-09-31).
+- `assets/marketplace/system-error/plates.json` — provenance manifest:
+  `file → caption / alt / seed / aspect / width / height / source / prompt`,
+  plus the pack brief and the renderer line. Absolute paths stripped
+  (sprint-0.41 hygiene rule, asserted at write time).
+- `pages/marketplace.html` — new `#plates` section, "System Error", after
+  `#covers`. Ten figures in the existing `.grid` + `figure` pattern, mono
+  captions in the extras style. Copy carries the brief, the render facts
+  (seeds 9600–9609, 832×464), and — mirroring the covers' lettering
+  disclosure — **that these plates are deliberately text-free**. Footer
+  provenance line + meta description updated.
+- `pages/how-to.html` — page-map row now reads "…twelve cover studies and
+  ten System Error plates".
+- `e2e/marketplace.spec.mjs` — **+5 assertions (15 → 20)**: 10 plates,
+  every image declared 832×464, alt text > 20 chars, the copy says
+  text-free, and **every figcaption + alt + declared dimension matches its
+  `plates.json` entry** — the same tie-the-art-to-the-source trick the cover
+  lettering manifest uses, so captions cannot drift from the render.
+
+**Verified:**
+
+- `e2e:marketplace` — **20/20**, 33 images all `naturalWidth > 0`.
+- `e2e:howto` — 17/17 after the page-map row edit.
+- `npm run verify` (landing / twin-os / twin-os-songs) — all green.
+- Files checked on disk with `sips` (832×464 ×10) and the manifest
+  cross-checked against the filesystem — no missing outputs.
+
+**Parallel-session note.** The repo moved three commits ahead while this was
+in flight (`render-all-pending.py` + 21 manifests). That tool renders the
+same System Error prompts into `assets/flux2/system-error/` and
+`assets/flux2/swr-assets-system-error-cinematic/` — both gitignored. There
+are now three renderings of this pack on disk; the tracked/shipped set is
+the `system-error-cinematic` one this entry describes. Left alone rather
+than reconciled: a deletion of `prompts-inbox/glitch-traffic-4-prompts.md`
+was also sitting in the working tree from that session's watcher activity,
+and was **not** staged.
+
+**Open / next:** (a) **nobody has actually looked at these plates** — the
+Review-pane preview had no desktop browser attached and this model takes no
+image input, so the only checks are structural (dims, manifest, load). The
+contact sheet is at
+`assets/flux2/system-error-cinematic/contact-sheet.jpg` (2×5, 856×1208)
+for an eyeball pass; (b) reel-inbox distribution proof — still the unproven
+half; (c) `.kai/` durability call; (d) decide whether the three System Error
+render dirs should collapse to one canonical set.

@@ -109,6 +109,52 @@ function check(name, ok, detail = '') {
           ? `${captionCheck.n} captions vs ${captionCheck.listed} manifest entries`
           : captionCheck.why);
 
+  // System Error plates — same contract shape as the covers: count, shape,
+  // alt text, and the caption tied to the tracked plates.json provenance.
+  check('market: system error has 10 plates', await page.evaluate(() =>
+    document.querySelectorAll('#plates figure').length === 10));
+  check('market: plates are 16:9 (832x464)', await page.evaluate(() => {
+    const imgs = Array.from(document.querySelectorAll('#plates img'));
+    return imgs.length === 10 && imgs.every(i =>
+      i.getAttribute('width') === '832' && i.getAttribute('height') === '464');
+  }));
+  check('market: every plate has alt text', await page.evaluate(() => {
+    const imgs = Array.from(document.querySelectorAll('#plates img'));
+    return imgs.length > 0 && imgs.every(i => (i.getAttribute('alt') || '').trim().length > 20);
+  }));
+  check('market: plates are described as text-free', await page.evaluate(() => {
+    const t = document.querySelector('#plates')?.innerText || '';
+    return /text-free|no lettering/i.test(t);
+  }));
+
+  const plateCheck = await page.evaluate(async () => {
+    const rel = '../assets/marketplace/system-error/plates.json';
+    const res = await fetch(new URL(rel, location.href).href, { cache: 'no-store' });
+    if (!res.ok) return { ok: false, why: 'plates.json HTTP ' + res.status };
+    const man = await res.json();
+    const byFile = {};
+    for (const p of (man.plates || [])) byFile[p.file] = p;
+    const figs = Array.from(document.querySelectorAll('#plates figure'));
+    const bad = [];
+    for (const f of figs) {
+      const img = f.querySelector('img');
+      const cap = f.querySelector('figcaption');
+      const file = (img?.getAttribute('src') || '').split('/').pop();
+      const src = byFile[file];
+      const got = (cap?.textContent || '').replace(/\s+/g, ' ').trim();
+      if (!src) bad.push(`${file}: not in plates.json`);
+      else if (got !== src.caption) bad.push(`${file}: caption ${JSON.stringify(got)} != ${JSON.stringify(src.caption)}`);
+      else if ((img.getAttribute('alt') || '').trim() !== src.alt) bad.push(`${file}: alt text != plates.json`);
+      else if (src.width !== 832 || src.height !== 464) bad.push(`${file}: manifest ${src.width}x${src.height}`);
+    }
+    return { ok: bad.length === 0, why: bad.join(' | '), n: figs.length, listed: Object.keys(byFile).length };
+  });
+  check('market: every plate matches its plates.json entry',
+        plateCheck.ok,
+        plateCheck.ok
+          ? `${plateCheck.n} plates vs ${plateCheck.listed} manifest entries`
+          : plateCheck.why);
+
   // every image must actually render (naturalWidth > 0)
   await page.waitForFunction(() => {
     const imgs = Array.from(document.querySelectorAll('img'));
