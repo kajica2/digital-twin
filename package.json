@@ -61,6 +61,9 @@
     "render:flux2": "PYTORCH_ENABLE_MPS_FALLBACK=1 lib/flux2-renderer/.venv/bin/python lib/flux2-renderer/render.py",
     "flux2:setup": "uv venv lib/flux2-renderer/.venv --python 3.12 && uv pip install --python lib/flux2-renderer/.venv/bin/python -r lib/flux2-renderer/requirements.txt",
     "verify": "npm run e2e",
+    "yt:batch": "node lib/youtube-batch.js",
+    "yt:batch:dry": "node lib/youtube-batch.js --dry-run",
+    "yt:playlist": "node lib/youtube-batch.js --create-playlist",
     "test-args": "/tmp/test-npm.sh \"$@\""
   }
 }

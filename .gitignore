@@ -113,3 +113,9 @@ __pycache__/
 .swarm/
 artifacts/
 ruvector.db
+.mp4
+.webm
+.png
+.jpg
+*.mp4
+*.webm
