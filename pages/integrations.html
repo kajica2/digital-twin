@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="en" data-theme="system">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Integrations — digital_twin</title>
+  <meta name="description" content="Connect external services to your digital twin. Enter API keys and cookies for Midjourney, Instagram, YouTube, and more." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
+
+  <!-- Brand mark: the hex + dot, in copper -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='16,4 28,11 28,21 16,28 4,21 4,11' fill='none' stroke='%23c97b3f' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23c97b3f'/%3E%3C/svg%3E" />
+
+  <script>
+    // Theme bootstrap - applied before first paint to prevent flash
+    (function () {
+      try {
+        var saved = localStorage.getItem('int-theme');
+        var pref = saved || 'system';
+        var resolved = pref === 'system'
+          ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : pref;
+        document.documentElement.setAttribute('data-theme', resolved);
+        document.documentElement.classList.add('js');
+      } catch (e) {}
+    })();
+  </script>
+
+  <style>
+    /* ============================================================
+       1. DESIGN TOKENS — kai-systems house style
+       ============================================================ */
+    :root {
+      --bg:           #f7f5f0;
+      --bg-warm:      #f4f0e7;
+      --surface:      #ffffff;
+      --line:         #e9e3d6;
+      --line-soft:    #f0eadf;
+      --ink:          #14171e;
+      --ink-muted:    #3a4256;
+      --ink-faint:    #7c7a72;
+      --primary:      #c97b3f;
+      --primary-2:    #a85f28;
+      --primary-soft: rgba(201, 123, 63, 0.08);
+      --primary-mid:  rgba(201, 123, 63, 0.18);
+      --accent:       #2f6f5e;
+      --accent-2:     #1f4f43;
+      --accent-soft:  rgba(47, 111, 94, 0.08);
+      --success:      #2d8a4e;
+      --success-bg:   rgba(45, 138, 78, 0.1);
+
+      --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
+      --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
+      --space-9: 96px;
+
+      --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px;
+      --radius-xl: 20px; --radius-pill: 999px;
+
+      --shadow-sm: 0 1px 2px rgba(20, 23, 30, .04), 0 2px 6px rgba(20, 23, 30, .05);
+      --shadow-md: 0 1px 2px rgba(20, 23, 30, .05), 0 8px 24px rgba(20, 23, 30, .08);
+      --shadow-lg: 0 1px 2px rgba(20, 23, 30, .06), 0 16px 48px rgba(20, 23, 30, .12);
+
+      --font-display: 'DM Serif Display', ui-serif, Georgia, serif;
+      --font-body:    'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      --font-mono:    'JetBrains Mono', ui-monospace, Menlo, monospace;
+      --fs-xs: 12px;  --fs-sm: 14px;  --fs-base: 16px; --fs-md: 20px;
+      --fs-lg: 24px;  --fs-xl: 32px;  --fs-2xl: 40px;  --fs-3xl: 56px;
+
+      --container: 640px;
+      --container-wide: 900px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg:        #0f1117;
+        --bg-warm:   #161921;
+        --surface:   #1c1f29;
+        --line:       #2a2f3c;
+        --line-soft:  #232830;
+        --ink:        #e8e4dc;
+        --ink-muted:  #9ca3b0;
+        --ink-faint:  #5c6170;
+        --primary-soft: rgba(201, 123, 63, 0.12);
+        --primary-mid: rgba(201, 123, 63, 0.22);
+        --accent-soft: rgba(47, 111, 94, 0.12);
+        --success-bg: rgba(45, 138, 78, 0.15);
+      }
+    }
+
+    [data-theme="dark"] {
+      --bg:        #0f1117;
+      --bg-warm:   #161921;
+      --surface:   #1c1f29;
+      --line:       #2a2f3c;
+      --line-soft:  #232830;
+      --ink:        #e8e4dc;
+      --ink-muted:  #9ca3b0;
+      --ink-faint:  #5c6170;
+      --primary-soft: rgba(201, 123, 63, 0.12);
+      --primary-mid: rgba(201, 123, 63, 0.22);
+      --accent-soft: rgba(47, 111, 94, 0.12);
+      --success-bg: rgba(45, 138, 78, 0.15);
+    }
+
+    /* ============================================================
+       2. BASE
+       ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: var(--font-body);
+      font-size: var(--fs-base);
+      line-height: 1.6;
+      color: var(--ink);
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ============================================================
+       3. LAYOUT
+       ============================================================ */
+    .container {
+      width: 100%;
+      max-width: var(--container);
+      margin: 0 auto;
+      padding: 0 var(--space-5);
+    }
+
+    .container-wide {
+      width: 100%;
+      max-width: var(--container-wide);
+      margin: 0 auto;
+      padding: 0 var(--space-5);
+    }
+
+    main {
+      flex: 1;
+      padding: var(--space-9) 0 var(--space-8);
+    }
+
+    /* ============================================================
+       4. HEADER / LOGO
+       ============================================================ */
+    .logo {
+      text-align: center;
+      margin-bottom: var(--space-7);
+    }
+
+    .logo svg {
+      width: 48px;
+      height: 48px;
+    }
+
+    .logo-sub {
+      font-size: var(--fs-sm);
+      color: var(--ink-faint);
+      margin-top: var(--space-2);
+      font-weight: 500;
+    }
+
+    /* ============================================================
+       5. SUCCESS STATE (Desktop Commander style)
+       ============================================================ */
+    .success-state {
+      text-align: center;
+      margin-bottom: var(--space-8);
+    }
+
+    .checkmark-list {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-6);
+    }
+
+    .checkmark-item {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-4);
+      background: var(--success-bg);
+      border-radius: var(--radius-pill);
+      font-size: var(--fs-sm);
+      color: var(--accent-2);
+      font-weight: 500;
+    }
+
+    .checkmark-item svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .success-state h1 {
+      font-family: var(--font-display);
+      font-size: var(--fs-3xl);
+      font-weight: 400;
+      line-height: 1.1;
+      margin-bottom: var(--space-4);
+      color: var(--ink);
+    }
+
+    .success-state .lede {
+      font-size: var(--fs-md);
+      color: var(--ink-muted);
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* ============================================================
+       6. CREDENTIALS SECTION
+       ============================================================ */
+    .credentials-section {
+      margin-top: var(--space-8);
+    }
+
+    .credentials-section h2 {
+      font-family: var(--font-display);
+      font-size: var(--fs-xl);
+      font-weight: 400;
+      margin-bottom: var(--space-5);
+      text-align: center;
+    }
+
+    .credentials-grid {
+      display: grid;
+      gap: var(--space-4);
+    }
+
+    .credential-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      transition: border-color var(--dur-fast) ease;
+    }
+
+    .credential-card:hover {
+      border-color: var(--primary-mid);
+    }
+
+    .credential-card.has-token {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .credential-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-3);
+    }
+
+    .credential-title {
+      font-weight: 600;
+      font-size: var(--fs-base);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .credential-title svg {
+      width: 20px;
+      height: 20px;
+      color: var(--ink-muted);
+    }
+
+    .credential-status {
+      font-size: var(--fs-xs);
+      padding: var(--space-1) var(--space-2);
+      border-radius: var(--radius-pill);
+      font-weight: 500;
+    }
+
+    .credential-status.connected {
+      background: var(--success-bg);
+      color: var(--accent-2);
+    }
+
+    .credential-status.missing {
+      background: var(--primary-soft);
+      color: var(--primary-2);
+    }
+
+    .credential-desc {
+      font-size: var(--fs-sm);
+      color: var(--ink-muted);
+      margin-bottom: var(--space-4);
+      line-height: 1.5;
+    }
+
+    .credential-input-group {
+      display: flex;
+      gap: var(--space-2);
+    }
+
+    .credential-input {
+      flex: 1;
+      padding: var(--space-3) var(--space-4);
+      font-family: var(--font-mono);
+      font-size: var(--fs-sm);
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      color: var(--ink);
+      outline: none;
+      transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+    }
+
+    .credential-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+
+    .credential-input::placeholder {
+      color: var(--ink-faint);
+    }
+
+    .btn {
+      padding: var(--space-3) var(--space-5);
+      font-family: var(--font-body);
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all var(--dur-fast) ease;
+      border: none;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-2);
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--primary-mid);
+      background: var(--primary-soft);
+    }
+
+    .credential-note {
+      font-size: var(--fs-xs);
+      color: var(--ink-faint);
+      margin-top: var(--space-3);
+    }
+
+    /* ============================================================
+       7. THEME TOGGLE
+       ============================================================ */
+    .theme-toggle {
+      position: fixed;
+      top: var(--space-4);
+      right: var(--space-4);
+      display: flex;
+      gap: var(--space-1);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-pill);
+      padding: var(--space-1);
+      z-index: 100;
+    }
+
+    .theme-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      color: var(--ink-faint);
+      transition: all var(--dur-fast) ease;
+    }
+
+    .theme-btn:hover { color: var(--ink); }
+    .theme-btn[aria-pressed="true"] {
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
+    .theme-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* ============================================================
+       8. FOOTER
+       ============================================================ */
+    footer {
+      text-align: center;
+      padding: var(--space-6) 0;
+      border-top: 1px solid var(--line);
+      margin-top: auto;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-5);
+      margin-bottom: var(--space-3);
+    }
+
+    .footer-links a {
+      font-size: var(--fs-sm);
+      color: var(--ink-muted);
+    }
+
+    .footer-links a:hover {
+      color: var(--primary);
+    }
+
+    .footer-copy {
+      font-size: var(--fs-xs);
+      color: var(--ink-faint);
+    }
+
+    /* ============================================================
+       9. UTILITY
+       ============================================================ */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .success-state { animation: fadeIn 0.6s var(--ease-out-expo) forwards; }
+    .credentials-section { animation: fadeIn 0.6s var(--ease-out-expo) 0.2s both; }
+  </style>
+</head>
+<body>
+  <!-- Theme Toggle -->
+  <div class="theme-toggle" role="group" aria-label="Theme">
+    <button class="theme-btn" data-theme="light" aria-label="Light" title="Light">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="5"/>
+        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+      </svg>
+    </button>
+    <button class="theme-btn" data-theme="system" aria-label="System" title="System">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <rect x="2" y="3" width="20" height="14" rx="2"/>
+        <path d="M8 21h8M12 17v4"/>
+      </svg>
+    </button>
+    <button class="theme-btn" data-theme="dark" aria-label="Dark" title="Dark">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  </div>
+
+  <main>
+    <div class="container">
+      <!-- Logo -->
+      <div class="logo">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+          <polygon points="16,4 28,11 28,21 16,28 4,21 4,11" fill="none" stroke="var(--primary)" stroke-width="2"/>
+          <circle cx="16" cy="16" r="3" fill="var(--primary)"/>
+        </svg>
+        <div class="logo-sub">digital_twin</div>
+      </div>
+
+      <!-- Success State -->
+      <div class="success-state">
+        <div class="checkmark-list">
+          <div class="checkmark-item">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+            </svg>
+            Server running
+          </div>
+          <div class="checkmark-item">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+            </svg>
+            Twin OS ready
+          </div>
+        </div>
+        <h1>You're all set.</h1>
+        <p class="lede">Your digital twin is running. Connect external services below to enable AI-powered automation for Midjourney, Instagram, YouTube, and more.</p>
+      </div>
+
+      <!-- Credentials Section -->
+      <section class="credentials-section">
+        <h2>Connect your tools</h2>
+
+        <div class="credentials-grid">
+          <!-- Midjourney -->
+          <div class="credential-card" data-credential="midjourney">
+            <div class="credential-header">
+              <div class="credential-title">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                Midjourney
+              </div>
+              <span class="credential-status missing">Not connected</span>
+            </div>
+            <p class="credential-desc">Connect your Midjourney account to generate images via the web interface. Requires a browser logged into midjourney.com.</p>
+            <div class="credential-input-group">
+              <input type="text" class="credential-input" id="mj-cookies" placeholder="Path to cookies file (e.g., ~/.midjourney-cookies.txt)" />
+              <button class="btn btn-primary" data-save="midjourney">Save</button>
+            </div>
+            <p class="credential-note">Export cookies using a "Get Cookies.txt" browser extension, or from DevTools → Application → Cookies</p>
+          </div>
+
+          <!-- Instagram -->
+          <div class="credential-card" data-credential="instagram">
+            <div class="credential-header">
+              <div class="credential-title">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="2" width="20" height="20" rx="5"/>
+                  <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37zM17.5 6.5h.01"/>
+                </svg>
+                Instagram
+              </div>
+              <span class="credential-status missing">Not connected</span>
+            </div>
+            <p class="credential-desc">Connect your Instagram account to post Reels automatically. Requires a browser logged into instagram.com.</p>
+            <div class="credential-input-group">
+              <input type="text" class="credential-input" id="ig-cookies" placeholder="Path to cookies file" />
+              <button class="btn btn-primary" data-save="instagram">Save</button>
+            </div>
+            <p class="credential-note">Export cookies from your browser while logged into Instagram</p>
+          </div>
+
+          <!-- YouTube -->
+          <div class="credential-card" data-credential="youtube">
+            <div class="credential-header">
+              <div class="credential-title">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                  <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                YouTube
+              </div>
+              <span class="credential-status missing">Not connected</span>
+            </div>
+            <p class="credential-desc">Connect your YouTube account to upload videos automatically. Requires a browser logged into youtube.com.</p>
+            <div class="credential-input-group">
+              <input type="text" class="credential-input" id="yt-cookies" placeholder="Path to cookies file" />
+              <button class="btn btn-primary" data-save="youtube">Save</button>
+            </div>
+            <p class="credential-note">Export cookies from your browser while logged into YouTube</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-links">
+        <a href="./landing.html">Home</a>
+        <a href="./twin-os/">Twin OS</a>
+        <a href="./how-to.html">Docs</a>
+        <a href="https://github.com/kajica2/digital_twin">GitHub</a>
+      </div>
+      <p class="footer-copy">Part of kai-systems · Local-first, privacy-respecting</p>
+    </div>
+  </footer>
+
+  <script>
+    // Theme toggle logic
+    (function () {
+      const btns = document.querySelectorAll('.theme-btn');
+      const root = document.documentElement;
+
+      function setTheme(theme) {
+        const resolved = theme === 'system'
+          ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : theme;
+        root.setAttribute('data-theme', resolved);
+        localStorage.setItem('int-theme', theme);
+        btns.forEach(b => b.setAttribute('aria-pressed', b.dataset.theme === theme));
+      }
+
+      btns.forEach(btn => {
+        btn.addEventListener('click', () => setTheme(btn.dataset.theme));
+      });
+
+      // Init
+      const saved = localStorage.getItem('int-theme') || 'system';
+      setTheme(saved);
+    })();
+
+    // Credential management
+    (function () {
+      const STORAGE_KEY = 'dt-integrations';
+      const services = ['midjourney', 'instagram', 'youtube'];
+
+      function loadCredentials() {
+        try {
+          return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+        } catch {
+          return {};
+        }
+      }
+
+      function saveCredentials(creds) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(creds));
+      }
+
+      function updateUI() {
+        const creds = loadCredentials();
+        services.forEach(service => {
+          const card = document.querySelector(`[data-credential="${service}"]`);
+          const status = card.querySelector('.credential-status');
+          const input = card.querySelector('.credential-input');
+          const hasCred = creds[service] && creds[service].path;
+
+          if (hasCred) {
+            status.textContent = 'Connected';
+            status.classList.remove('missing');
+            status.classList.add('connected');
+            input.value = creds[service].path;
+          } else {
+            status.textContent = 'Not connected';
+            status.classList.remove('connected');
+            status.classList.add('missing');
+          }
+        });
+      }
+
+      // Save button handlers
+      document.querySelectorAll('[data-save]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const service = btn.dataset.save;
+          const input = document.getElementById(
+            service === 'midjourney' ? 'mj-cookies' :
+            service === 'instagram' ? 'ig-cookies' : 'yt-cookies'
+          );
+          const path = input.value.trim();
+
+          const creds = loadCredentials();
+          if (path) {
+            creds[service] = { path, updatedAt: Date.now() };
+          } else {
+            delete creds[service];
+          }
+          saveCredentials(creds);
+          updateUI();
+        });
+      });
+
+      // Enter key to save
+      document.querySelectorAll('.credential-input').forEach(input => {
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            const card = input.closest('.credential-card');
+            const saveBtn = card.querySelector('[data-save]');
+            saveBtn.click();
+          }
+        });
+      });
+
+      // Init
+      updateUI();
+    })();
+  </script>
+</body>
+</html>
