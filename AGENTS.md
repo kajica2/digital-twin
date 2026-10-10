@@ -3653,3 +3653,42 @@ contact sheet is at
 for an eyeball pass; (b) reel-inbox distribution proof — still the unproven
 half; (c) `.kai/` durability call; (d) decide whether the three System Error
 render dirs should collapse to one canonical set.
+
+### 2026-10-10 — tooling (DeepSeek + agent plan)
+
+- **Added:**
+  - **`docs/AGENT-PLAN.md`** — the routing table. Roles (Mavis / Coder /
+    Coder-hard / Reviewer / Quick / Reasoning / Visual / MIDI) mapped
+    to models (gpt-5.4, claude-sonnet-4.6, claude-opus-4.8,
+    claude-opus-5.5, haiku, local FLUX.2, local ingest+ffprobe) with
+    the invocation pattern for each. `copilot` is the executor;
+    `AGENTS.md` and `CLAUDE.md` auto-load as instructions. `.github/
+    copilot/settings.json` sets `model: auto`; override per task.
+  - **`lib/deepseek.js`** + **`lib/deepseek.test.js`** (20/20) — the
+    DeepSeek API client. OpenAI-compatible (`/v1/chat/completions`,
+    Bearer auth). Reads the key from `DEEPSEEK_API_KEY`; throws a
+    `NO_KEY` error with a how-to-fix when the env is unset. 401/429
+    surface as structured errors; the key is never echoed in messages.
+- **The hard finding** — probed the user's chat.deepseek.com cookie jar
+  (smidV2 / ds_session_id) against `api.deepseek.com`: **401,
+  "Authentication Fails, Your api key: ****1cf0 is invalid."** The
+  web session and the API are **separate auth systems**; the chat
+  cookies do NOT authenticate the API. To use DeepSeek as a model
+  you need a real key from https://platform.deepseek.com. The
+  module + plan document this explicitly so the next agent does
+  not re-derive it the hard way.
+- **Security heads-up** — the cookie jar was pasted in chat to
+  integrate. It is now in the conversation transcript (not the
+  repo — safe). The right long-term store is an env var
+  (`DEEPSEEK_API_KEY`) or a gitignored file outside the repo. The
+  web session could be rotated since it was shared, but it was
+  not committed anywhere and the API rejects it anyway, so the
+  practical exposure is to the chat app only.
+- **Verified:** `test:all` exit 0, 16 suites, all 0 failures
+  (including the new `test:deepseek` 20/20). `copilot instruction
+  list` shows `AGENTS.md` + `CLAUDE.md` auto-loaded.
+- **Next:** (a) commit the pending `lib/ingest.js` work (the Suno
+  link dropped a 4.7KB preview; the real auth is on the user);
+  (b) once `DEEPSEEK_API_KEY` is exported, add the DeepSeek
+  models to the copilot default routing; (c) the rest of the
+  standing backlog is unchanged.

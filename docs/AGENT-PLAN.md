@@ -26,6 +26,7 @@ concrete `copilot` invocations and the model that fits the work.
 | **Reasoning** | Architecture, hard debugging ("why is this 3.5s not 2.0s?"), design across modules | `claude-opus-5.5` (reasoning `max`) | When the answer is not obvious, pay the latency for the reasoning. |
 | **Visual** | Image / video / cover art | **local FLUX.2** (not Copilot) | `lib/flux2-renderer/` is the established pipeline; no reason to pay for a hosted image model. |
 | **MIDI / audio** | Audio analysis, format conversion | **local** (`lib/ingest.js`, `ffmpeg`/`ffprobe`) | Local tools beat a hosted model on a 4 MB file. |
+| **DeepSeek** (optional) | Coding, reasoning — OpenAI-compatible API | `deepseek-chat` (default) or `deepseek-reasoner` | Cheap, strong. **Requires `DEEPSEEK_API_KEY` from `platform.deepseek.com`** — the `chat.deepseek.com` web session cookies do NOT authenticate the API. Module: `lib/deepseek.js` (20 checks, no real key needed to ship). |
 
 The plan defaults to the cheapest model that can do the job and escalates
 when the work demands it. The orchestrator (Mavis / this session) chooses
@@ -105,6 +106,13 @@ copilot instruction list
 #    Leave it at "auto" for most work; override per task with --model.
 #    .github/copilot/settings.json:
 #      { "model": "auto" }
+
+# 4. (optional) DeepSeek — export the API key in your shell:
+#    export DEEPSEEK_API_KEY=sk-...    # from https://platform.deepseek.com
+#    npm run test:deepseek               # 20 checks, no network to the real API
+#    Use --model deepseek-chat / deepseek-reasoner on copilot invocations,
+#    or call lib/deepseek.js directly. The chat.deepseek.com web session
+#    cookies do NOT authenticate the API — that is a separate account.
 ```
 
 That's it. No `copilot init` needed — the repo's existing `AGENTS.md` is
