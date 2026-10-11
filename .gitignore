@@ -61,6 +61,11 @@ logs/*.gz
 e2e/artifacts/
 e2e/node_modules/
 
+# Browser debug monitor dependencies and generated reports
+debug-monitor/node_modules/
+debug-report.json
+debug-report.html
+
 # Environment
 .env
 .env.local
