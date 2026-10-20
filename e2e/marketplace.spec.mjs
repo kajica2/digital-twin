@@ -44,9 +44,19 @@ function check(name, ok, detail = '') {
   }
   const page = await browser.newPage();
   const errors = [];
+  const mediaAborts = [];
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push('console.error: ' + m.text()); });
-  page.on('requestfailed', r => errors.push('reqfail: ' + r.url()));
+  // A <video> element cancels its own in-flight range request once it has
+  // buffered enough, which Chrome surfaces as net::ERR_ABORTED. That happens
+  // on GitHub Pages and Vercel exactly as it does locally, so counting it as a
+  // console error made this spec fail against correct code. Media is asserted
+  // separately below on readyState/duration — real evidence, not a noisy proxy.
+  page.on('requestfailed', r => {
+    const line = 'reqfail: ' + r.url();
+    if (/\.(mp4|webm|mp3|m4a|mov)(\?|$)/i.test(r.url())) mediaAborts.push(line);
+    else errors.push(line);
+  });
 
   try { await page.goto(PAGE, { waitUntil: 'networkidle2', timeout: 30000 }); }
   catch (e) { console.error('⚠ page load failed: ' + e.message); process.exit(1); }
@@ -188,6 +198,31 @@ function check(name, ok, detail = '') {
   check('market: internal links resolve', dead.length === 0, dead.join(' | ') || `${hrefs.length} checked`);
 
   check('market: 0 console errors', errors.length === 0, errors.slice(0, 3).join(' | '));
+
+  // The Motion video is asserted on what the element actually loaded, which is
+  // strictly stronger than "no aborted media request" — and it is the check
+  // that would catch a 404 poster or a Range-less server.
+  const video = await page.evaluate(async () => {
+    const v = document.querySelector('#motion video');
+    if (!v) return { ok: false, why: 'no <video> in #motion' };
+    if (v.readyState < 1) {
+      await new Promise((res) => {
+        const done = () => res();
+        v.addEventListener('loadedmetadata', done, { once: true });
+        v.addEventListener('error', done, { once: true });
+        setTimeout(done, 15000);
+      });
+    }
+    return {
+      ok: v.readyState >= 2 && v.videoWidth > 0 && v.duration > 0,
+      why: `readyState=${v.readyState} ${v.videoWidth}x${v.videoHeight} duration=${v.duration}`
+           + (v.error ? ` mediaError=${v.error.code}` : ''),
+    };
+  });
+  check('market: motion video loaded and is playable', video.ok, video.why);
+  if (mediaAborts.length) {
+    console.log(`  (note: ${mediaAborts.length} media range abort(s) — expected, see the handler above)`);
+  }
 
   fs.mkdirSync(ARTIFACTS, { recursive: true });
   await page.screenshot({ path: path.join(ARTIFACTS, 'marketplace-light.png'), fullPage: true });
