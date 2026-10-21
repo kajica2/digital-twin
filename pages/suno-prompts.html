@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="system" data-variant="1">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎵 Suno Reference Prompts — Digital Twin</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='16,4 28,11 28,21 16,28 4,21 4,11' fill='none' stroke='%23c97b3f' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23c97b3f'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <script>
+    (function(){try{var s=localStorage.getItem('dt-theme-pref')||'system';var r=s==='system'?(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):s;document.documentElement.setAttribute('data-theme',r)}catch(e){}})();
+    </script>
+    <style>
+        :root{--bg:#f7f5f0;--bg-warm:#f4f0e7;--surface:#fff;--line:#e9e3d6;--line-soft:#f0eadf;--ink:#14171e;--ink-muted:#3a4256;--ink-faint:#7c7a72;--primary:#c97b3f;--primary-2:#a85f28;--accent:#2f6f5e;--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:24px;--space-6:32px;--radius-sm:6px;--radius-md:10px;--radius-lg:14px;--shadow-sm:0 1px 2px rgba(20,23,30,.04),0 2px 6px rgba(20,23,30,.05);--shadow-md:0 1px 2px rgba(20,23,30,.05),0 8px 24px rgba(20,23,30,.08);--font-display:'DM Serif Display',serif;--font-body:'Outfit',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace}
+        [data-theme="dark"]{--bg:#1a1812;--bg-warm:#211e16;--surface:#25221a;--line:#3a342a;--line-soft:#2d2a22;--ink:#f4efe2;--ink-muted:#c0b8a8;--ink-faint:#807868;--primary:#d9925a;--primary-2:#e6a674;--accent:#6ab098;--shadow-sm:0 1px 2px rgba(0,0,0,.3),0 2px 6px rgba(0,0,0,.25);--shadow-md:0 1px 2px rgba(0,0,0,.35),0 8px 24px rgba(0,0,0,.35)}
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:var(--font-body);background:var(--bg);color:var(--ink);line-height:1.5;min-height:100vh}
+        
+        .header{background:linear-gradient(135deg,var(--primary),var(--primary-2));padding:1.5rem 2rem;color:#fff;position:relative}
+        .header::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='m0 0h20v20h-20zm20 20h20v20h-20z'/%3E%3C/g%3E%3C/svg%3E")}
+        .header-content{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1}
+        .logo{font-family:var(--font-display);font-size:1.5rem;display:flex;align-items:center;gap:0.5rem}
+        .logo-icon{width:36px;height:36px;background:rgba(255,255,255,0.2);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center}
+        .header-nav{display:flex;gap:0.75rem}
+        .header-nav a{padding:0.5rem 1rem;border-radius:var(--radius-md);background:rgba(255,255,255,0.15);color:#fff;font-weight:500;font-size:0.9rem;transition:background 0.2s}
+        .header-nav a:hover{background:rgba(255,255,255,0.25)}
+        
+        main{max-width:1200px;margin:0 auto;padding:var(--space-5)}
+        
+        .card{background:var(--surface);border-radius:var(--radius-lg);padding:var(--space-5);margin-bottom:var(--space-5);box-shadow:var(--shadow-sm);border:1px solid var(--line)}
+        .card-title{font-weight:700;font-size:1.1rem;margin-bottom:var(--space-4);display:flex;align-items:center;gap:0.5rem;font-family:var(--font-display)}
+        
+        .grid{grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:var(--space-4);display:grid}
+        
+        .preset-btn{display:block;width:100%;padding:1rem;border:2px solid var(--line);background:var(--surface);border-radius:var(--radius-lg);cursor:pointer;transition:all 0.2s;text-align:left}
+        .preset-btn:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:var(--shadow-md)}
+        .preset-btn.active{border-color:var(--primary);background:rgba(201,123,63,0.08)}
+        .preset-btn-name{font-weight:700;font-size:1rem;margin-bottom:0.25rem;display:flex;align-items:center;gap:0.5rem}
+        .preset-btn-target{font-size:0.75rem;color:var(--primary);font-weight:600;margin-bottom:0.25rem}
+        .preset-btn-desc{font-size:0.8rem;color:var(--ink-faint);margin-bottom:0.5rem}
+        .preset-btn-meta{font-size:0.7rem;color:var(--ink-muted);font-family:var(--font-mono)}
+        
+        .output{background:linear-gradient(135deg,#1a1812,#25221a);color:#f4efe2;padding:1.25rem;border-radius:var(--radius-md);font-family:var(--font-mono);font-size:0.85rem;word-break:break-all;min-height:120px;position:relative;white-space:pre-wrap;line-height:1.6}
+        .output-copy{position:absolute;top:0.75rem;right:0.75rem;background:rgba(255,255,255,0.1);border:none;color:#f4efe2;padding:0.5rem;border-radius:var(--radius-sm);cursor:pointer;font-size:0.8rem}
+        
+        .btn{display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;padding:0.75rem 1.5rem;font-size:0.9rem;font-weight:600;border:none;border-radius:var(--radius-md);cursor:pointer;transition:all 0.2s;white-space:nowrap}
+        .btn-primary{background:var(--primary);color:#fff}
+        .btn-secondary{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+        
+        .selected-preset{background:var(--primary-soft,rgba(201,123,63,0.08));border-color:var(--primary)}
+        
+        footer{text-align:center;padding:var(--space-5);color:var(--ink-faint);font-size:0.85rem;border-top:1px solid var(--line);margin-top:var(--space-6)}
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">🎵</div>
+                <div>Suno Reference Prompts</div>
+            </div>
+            <nav class="header-nav">
+                <a href="landing.html">← Tools</a>
+                <a href="dashboard.html">Dashboard</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="grid">
+            <button class="preset-btn" onclick="selectPreset(0)">
+                <div class="preset-btn-name">1️⃣ Absolute Fidelity Lock</div>
+                <div class="preset-btn-target">🎯 Target: Universal Audio Upload | Audio Influence: 90% - 95%</div>
+                <div class="preset-btn-desc">Master reference cloning, exact re-renders, prevent AI creative liberties</div>
+                <div class="preset-btn-meta">Master Replica • 887 chars</div>
+            </button>
+            
+            <button class="preset-btn" onclick="selectPreset(1)">
+                <div class="preset-btn-name">2️⃣ Cover Feature Fidelity</div>
+                <div class="preset-btn-target">🎯 Target: Cover Audio | Audio Influence: 85% - 92%</div>
+                <div class="preset-btn-desc">Stay close to original when using Suno's Cover feature</div>
+                <div class="preset-btn-meta">Cover Feature • 850 chars</div>
+            </button>
+            
+            <button class="preset-btn" onclick="selectPreset(2)">
+                <div class="preset-btn-name">3️⃣ Seamless Extend Preservation</div>
+                <div class="preset-btn-target">🎯 Target: Extend Only | Audio Influence: 80% - 90%</div>
+                <div class="preset-btn-desc">Continue song seamlessly without sonic seams</div>
+                <div class="preset-btn-meta">Extend Clip • 894 chars</div>
+            </button>
+            
+            <button class="preset-btn" onclick="selectPreset(3)">
+                <div class="preset-btn-name">4️⃣ Vocal Performance Preservation</div>
+                <div class="preset-btn-target">🎯 Target: Stem / Inpainting | Audio Influence: 85% - 95%</div>
+                <div class="preset-btn-desc">Keep every syllable, breath, inflection, and emotional nuance locked</div>
+                <div class="preset-btn-meta">Vocal Lock • 887 chars</div>
+            </button>
+            
+            <button class="preset-btn" onclick="selectPreset(4)">
+                <div class="preset-btn-name">5️⃣ Instrumental Performance Preservation</div>
+                <div class="preset-btn-target">🎯 Target: Universal Audio Upload | Audio Influence: 85% - 92%</div>
+                <div class="preset-btn-desc">Lock rhythm, fills, riffs, bassline, and tuning</div>
+                <div class="preset-btn-meta">Instrumental Lock • 818 chars</div>
+            </button>
+            
+            <button class="preset-btn" onclick="selectPreset(5)">
+                <div class="preset-btn-name">6️⃣ Structure and Arrangement Lock</div>
+                <div class="preset-btn-target">🎯 Target: Cover Audio | Audio Influence: 85% - 90%</div>
+                <div class="preset-btn-desc">Preserve exact order and length of every section</div>
+                <div class="preset-btn-meta">Structure Lock • 864 chars</div>
+            </button>
+            
+            <button class="preset-btn" onclick="selectPreset(6)">
+                <div class="preset-btn-name">7️⃣ Mix and Sonic Texture Preservation</div>
+                <div class="preset-btn-target">🎯 Target: Stem / Inpainting | Audio Influence: 88% - 94%</div>
+                <div class="preset-btn-desc">Protect EQ balance, compression, reverb depth, and loudness</div>
+                <div class="preset-btn-meta">Mix Texture • 846 chars</div>
+            </button>
+            
+            <button class="preset-btn" onclick="selectPreset(7)">
+                <div class="preset-btn-name">8️⃣ Minimal Technical Change Only</div>
+                <div class="preset-btn-target">🎯 Target: Universal Audio Upload | Audio Influence: 92% - 96%</div>
+                <div class="preset-btn-desc">Strictly minimum computational modifications required</div>
+                <div class="preset-btn-meta">Master Replica • 853 chars</div>
+            </button>
+            
+            <button class="preset-btn" onclick="selectPreset(8)">
+                <div class="preset-btn-name">9️⃣ Strict Reproduction, Not Remix</div>
+                <div class="preset-btn-target">🎯 Target: Cover Audio | Audio Influence: 88% - 95%</div>
+                <div class="preset-btn-desc">Forbids remixing, reimagining, and stylistic modernizations</div>
+                <div class="preset-btn-meta">Anti-Remix • 890 chars</div>
+            </button>
+            
+            <button class="preset-btn" onclick="selectPreset(9)">
+                <div class="preset-btn-name">🔟 Ultimate Reference Lock</div>
+                <div class="preset-btn-target">🎯 Target: Universal Audio Upload | Audio Influence: 90% - 95%</div>
+                <div class="preset-btn-desc">Absolute authority for every musical, vocal, structural, and sonic decision</div>
+                <div class="preset-btn-meta">Master Replica • 887 chars</div>
+            </button>
+        </div>
+        
+        <div class="card" style="margin-top:var(--space-5)">
+            <div class="card-title">📋 Selected Prompt</div>
+            <div class="output" id="output">Click a preset above to load the prompt...</div>
+            <div style="margin-top:1rem;display:flex;gap:0.75rem">
+                <button class="btn btn-primary" onclick="copyPrompt()">📋 Copy</button>
+                <button class="btn btn-secondary" onclick="emailPrompt()">📧 Email Me</button>
+            </div>
+        </div>
+    </main>
+
+    <footer>Suno Reference Prompts • Digital Twin</footer>
+
+<script>
+const PRESETS = [
+    {
+        name: "Absolute Fidelity Lock",
+        target: "Universal Audio Upload",
+        influence: "90% - 95%",
+        prompt: `Master Conditioning Directive:
+
+Copy Prompt
+Use the uploaded audio as the only and definitive reference. Reproduce it as faithfully as possible, with no creative interpretation. Do not change, rewrite, rearrange, replace, add, remove, shorten, extend, or embellish anything. Preserve the exact melody, vocal phrasing, lyrics, breaths, ad-libs, timing, rhythm, groove, tempo, key, tuning, chord progression, bassline, drum pattern, instrumentation, arrangement, song structure, dynamics, mix balance, stereo image, effects, genre, mood, energy, emotional delivery, vocal tone, accent, and atmosphere. Make only the minimum technical changes required for the generation to work. No new sections, no new harmonies, no new instruments, no stylistic changes, no production choices beyond the source. Follow the upload like a strict blueprint and output the closest possible replica.
+
+Best for: Master reference cloning, exact re-renders, and preventing any AI creative liberties.
+Strict Exclusions: no creative interpretation, no embellishment, no new harmonies, no stylistic changes
+
+Execution Instructions:
+Paste into the Style of Music or Description box when initiating generation from an uploaded audio clip.
+Pair with Audio Influence set between 90% and 95% in Suno to pin down pitch, groove, and timbral identity.
+Ensures zero hallucinations of new bridges, drum breaks, or synth layers.`
+    },
+    {
+        name: "Cover Feature Fidelity",
+        target: "Cover Audio",
+        influence: "85% - 92%",
+        prompt: `Master Conditioning Directive:
+
+Copy Prompt
+Create a cover that stays as close as possible to the uploaded audio reference. Treat the original clip as the master and final authority. Do not alter the melody, lyrics, vocal phrasing, rhythm, tempo, key, chord progression, bassline, drum pattern, instrumentation, arrangement, or song structure. Preserve the same vocal style, vocal tone, emotional delivery, accent, timing, breaths, inflections, and ad-libs. Keep the original genre, mood, energy, dynamics, mix character, stereo image, reverb, and atmosphere. Make only the minimum technical changes required for the cover generation to work. No creative reinterpretation, no added sections, no removed sections, no new harmonies, no production embellishments. Reproduce the uploaded clip as faithfully as the system allows.
+
+Best for: Using Suno's 'Cover' feature without allowing it to deviate from the original performance or arrangement.
+Strict Exclusions: no creative reinterpretation, no added sections, no removed sections, no production embellishments
+
+Execution Instructions:
+Suno's Cover algorithm naturally tries to reinvent the genre; this prompt acts as an iron governor.
+Locks the vocal inflections, breaths, and accent identical to the source singer.
+Maintains the exact same chord progression, baseline groove, and song structure.`
+    },
+    {
+        name: "Seamless Extend Preservation",
+        target: "Extend Only",
+        influence: "80% - 90%",
+        prompt: `Master Conditioning Directive:
+
+Copy Prompt
+Extend the uploaded clip seamlessly while preserving every musical and performance detail of the original. Continue the song as if it were always meant to be there, without changing the melody, lyrics, vocal phrasing, rhythm, groove, tempo, key, tuning, chord progression, bassline, drum pattern, instrumentation, arrangement, dynamics, mix balance, stereo image, effects, genre, mood, energy, emotional delivery, vocal tone, accent, or atmosphere. Do not rewrite, rearrange, replace, add, remove, or reinterpret anything in the original section. Make only the minimum technical changes required for the extension to function. The new section must match the upload's style, timing, performance nuances, and sonic texture exactly. No new instruments, no new harmonies, no stylistic shifts, no creative liberties.
+
+Best for: Extending clips past the initial generation mark while maintaining seamless continuity in reverb and mix.
+Strict Exclusions: no stylistic shifts, no creative liberties, no new instruments, no new harmonies
+
+Execution Instructions:
+Set your Extend timestamp exactly at the start of the final chord or natural vocal breath.
+Matches the room tone, stereo image, and tape hiss/reverb decay of the parent clip perfectly.
+Prevents the common Suno bug where extensions suddenly speed up or switch vocalists.`
+    },
+    {
+        name: "Vocal Performance Preservation",
+        target: "Stem / Inpainting",
+        influence: "85% - 95%",
+        prompt: `Master Conditioning Directive:
+
+Copy Prompt
+Preserve the exact vocal performance from the uploaded audio. Keep every lyric, syllable, breath, pause, inflection, accent, ad-lib, and emotional nuance in the same place and with the same delivery. Do not change the vocal tone, vocal gender, range, phrasing, timing, vibrato, rasp, softness, power, or expression. Maintain the original melody and melodic contours exactly. Do not rewrite, rearrange, replace, add, remove, or reinterpret any vocal line. Keep the same relationship between the vocals and the instrumental, including dynamics, mix balance, reverb, delay, and stereo placement. Make only the minimum technical changes required for generation to work. No stylistic reinterpretation, no new vocal layers, no harmonies added, no effects added. Reproduce the uploaded vocal as faithfully as possible.
+
+Best for: Preserving human vocal authenticity, speech inflections, dialect, and breathing cadence.
+Strict Exclusions: no vocal gender changes, no new vocal layers, no harmonies added, no effects added
+
+Execution Instructions:
+Use when the uploaded audio has an irreplaceable vocal take you cannot afford to have morphed.
+Guarantees the vocal gender, rasp, chest-voice/head-voice balance, and vibrato remain identical.
+Crucial for preserving unquantized micro-timing in vocal deliveries.`
+    },
+    {
+        name: "Instrumental Performance Preservation",
+        target: "Universal Audio Upload",
+        influence: "85% - 92%",
+        prompt: `Master Conditioning Directive:
+
+Copy Prompt
+Preserve the exact instrumental performance from the uploaded audio. Keep the same melody, chord progression, bassline, drum pattern, rhythm, groove, timing, tempo, key, tuning, riffs, fills, transitions, and arrangement. Do not alter, replace, add, remove, or reinterpret any instrument or musical part. Maintain the original genre, mood, energy, dynamics, mix balance, stereo image, EQ character, reverb, delay, and atmosphere. Make only the minimum technical changes required for the generation to work. No new instruments, no new sections, no new harmonies, no production embellishments, no creative changes. Treat the uploaded clip as the definitive instrumental blueprint and reproduce it as closely as possible.
+
+Best for: Backing tracks, instrumental busking solos, rhythm section tracks, and odd-meter grooves.
+Strict Exclusions: no new instruments, no new sections, no new harmonies, no production embellishments
+
+Execution Instructions:
+Preserves custom acoustic tuning, modal basslines, and intricate drum pocket nuances.
+Forbids Suno from inserting generic synth pads or guitar solos over your acoustic groove.
+Ideal for re-rendering 1965 Afro rhythm sections or Mulatu Astatke modal compositions.`
+    },
+    {
+        name: "Structure and Arrangement Lock",
+        target: "Cover Audio",
+        influence: "85% - 90%",
+        prompt: `Master Conditioning Directive:
+
+Copy Prompt
+Keep the song structure and arrangement identical to the uploaded audio. Preserve the exact order and length of every section: intro, verse, pre-chorus, chorus, bridge, instrumental break, outro, and any transitions. Do not add, remove, shorten, extend, rearrange, or replace any section. Maintain the same melody, lyrics, vocal phrasing, rhythm, tempo, key, chord progression, bassline, drum pattern, instrumentation, dynamics, and emotional arc. Keep the original genre, mood, energy, mix balance, stereo image, effects, and atmosphere. Make only the minimum technical changes required for generation to work. No creative reinterpretation, no new parts, no stylistic changes, no production decisions beyond the source. Follow the uploaded clip as the definitive structural reference.
+
+Best for: Fixing bar counts, song form, verse-chorus transitions, and break durations.
+Strict Exclusions: no new parts, no stylistic changes, no production decisions beyond source
+
+Execution Instructions:
+Prevents Suno from inserting an unrequested 30-second EDM drop or repeating a chorus three times.
+Locks the structural architecture so that verse 1 is exactly 16 bars and the break is 4 bars.
+Pair with explicit timestamp tags like [Verse 1: 00:00 - 00:24] in the lyrics field.`
+    },
+    {
+        name: "Mix and Sonic Texture Preservation",
+        target: "Stem / Inpainting",
+        influence: "88% - 94%",
+        prompt: `Master Conditioning Directive:
+
+Copy Prompt
+Preserve the original mix, sonic texture, and production character of the uploaded audio. Keep the same EQ balance, compression feel, reverb, delay, stereo image, panning, loudness, dynamics, and frequency response. Do not change the vocal tone, instrumental tone, drum sound, bass sound, guitar tone, synth texture, or any other sonic element. Maintain the original genre, mood, energy, atmosphere, and emotional delivery. Make only the minimum technical changes required for the generation to work. No creative changes, no stylistic reinterpretation, no added effects, no removed effects, no remixing, no mastering changes beyond what is strictly necessary. Treat the uploaded clip as the final sonic reference and reproduce it as faithfully as possible.
+
+Best for: Preserving analog room ambience, tape saturation, vintage console warmth, and dynamic headroom.
+Strict Exclusions: no remixing, no mastering changes, no added effects, no removed effects
+
+Execution Instructions:
+Crucial for live room recordings (e.g. Abbey Road Studio 2, Van Gelder, stone church acoustics).
+Stops Suno's internal limiter from squashing delicate acoustic dynamic range.
+Retains the authentic panning separation and stereo image of the original upload.`
+    },
+    {
+        name: "Minimal Technical Change Only",
+        target: "Universal Audio Upload",
+        influence: "92% - 96%",
+        prompt: `Master Conditioning Directive:
+
+Copy Prompt
+Treat the uploaded audio as a master reference that must remain virtually unchanged. Make only the minimum technical changes required for Suno to generate the output. Do not change, rewrite, rearrange, replace, add, remove, shorten, extend, or reinterpret anything. Preserve the exact melody, lyrics, vocal phrasing, rhythm, groove, tempo, key, tuning, chord progression, bassline, drum pattern, instrumentation, arrangement, song structure, dynamics, mix balance, stereo image, effects, genre, mood, energy, emotional delivery, vocal tone, accent, and atmosphere. No new sections, no new harmonies, no new instruments, no stylistic changes, no creative liberties. The output should sound as close to the uploaded clip as the system can possibly produce.
+
+Best for: Master stem recovery, fidelity audio cleanup, and direct bit-exact model conditioning.
+Strict Exclusions: no creative liberties, no stylistic changes, no new instruments, no new harmonies
+
+Execution Instructions:
+The phrase 'minimum technical changes required' forces Suno's diffusion model into low-temperature fidelity.
+Best choice when re-exporting audio to get higher bitrates without changing the composition.
+Audio Influence should be set at maximum stable threshold (92% - 96%).`
+    },
+    {
+        name: "Strict Reproduction, Not Remix",
+        target: "Cover Audio",
+        influence: "88% - 95%",
+        prompt: `Master Conditioning Directive:
+
+Copy Prompt
+This is a strict reproduction task, not a remix, reimagining, cover, or stylistic reinterpretation. Use the uploaded audio as the definitive and only reference. Reproduce it as faithfully as possible. Do not change, rewrite, rearrange, replace, add, remove, shorten, extend, or embellish anything. Preserve the exact melody, vocal phrasing, lyrics, breaths, ad-libs, timing, rhythm, groove, tempo, key, tuning, chord progression, bassline, drum pattern, instrumentation, arrangement, song structure, dynamics, mix balance, stereo image, effects, genre, mood, energy, emotional delivery, vocal tone, accent, and atmosphere. Make only the minimum technical changes required for generation to work. No creative choices, no production embellishments, no new parts. Follow the upload exactly and output the closest possible replica.
+
+Best for: Overcoming Suno's bias towards modernizing vintage, folk, jazz, or classical tracks.
+Strict Exclusions: not a remix, not a reimagining, no creative choices, no production embellishments
+
+Execution Instructions:
+The opening sentence explicitly counters the internal prompt priors that favor pop/EDM remixing.
+Maintains vintage acoustic textures without Suno trying to 'enhance' them with sub-bass or 808s.
+Protects organic rubato tempo and human performance quirks from being quantized.`
+    },
+    {
+        name: "Ultimate Reference Lock",
+        target: "Universal Audio Upload",
+        influence: "90% - 95%",
+        prompt: `Master Conditioning Directive:
+
+Copy Prompt
+Use the uploaded clip as the absolute authority for every musical, vocal, structural, and sonic decision. Reproduce it as faithfully as possible with no creative deviation. Do not change, rewrite, rearrange, replace, add, remove, shorten, extend, or reinterpret anything. Preserve the exact melody, lyrics, vocal phrasing, breaths, ad-libs, timing, rhythm, groove, tempo, key, tuning, chord progression, bassline, drum pattern, instrumentation, arrangement, song structure, dynamics, mix balance, stereo image, effects, genre, mood, energy, emotional delivery, vocal tone, accent, and atmosphere. Make only the minimum technical changes required for the generation to work. No new sections, no new harmonies, no new instruments, no stylistic changes, no production choices beyond the source. Treat the upload as the final master and output the closest possible match.
+
+Best for: The most authoritative, comprehensive reference lock for high-stakes generation tasks.
+Strict Exclusions: no creative deviation, no production choices beyond source, treat as final master
+
+Execution Instructions:
+Our most robust all-in-one fidelity prompt. Use this as your standard upload conditioning directive.
+Covers all four pillars: melodic/vocal, harmonic/rhythmic, structural, and mix/mastering.
+Use in conjunction with 'no new instruments, no auto-tune, no digital polish' negative exclusions.`
+    }
+];
+
+let selectedIdx = null;
+
+function selectPreset(idx) {
+    selectedIdx = idx;
+    document.querySelectorAll('.preset-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', i === idx);
+    });
+    document.getElementById('output').textContent = PRESETS[idx].prompt;
+}
+
+function copyPrompt() {
+    if (selectedIdx === null) return alert('Select a preset first');
+    navigator.clipboard.writeText(PRESETS[selectedIdx].prompt);
+    showToast('Copied!');
+}
+
+function emailPrompt() {
+    if (selectedIdx === null) return alert('Select a preset first');
+    const email = 'kai.djuric@gmail.com';
+    const subject = encodeURIComponent('My Suno Reference Prompt: ' + PRESETS[selectedIdx].name);
+    const body = encodeURIComponent(PRESETS[selectedIdx].prompt);
+    window.location.href = 'mailto:' + email + '?subject=' + subject + '&body=' + body;
+}
+
+function showToast(msg) {
+    const toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;padding:0.75rem 1.5rem;border-radius:var(--radius-md);font-weight:600;z-index:1000';
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2000);
+}
+</script>
+</body>
+</html>
