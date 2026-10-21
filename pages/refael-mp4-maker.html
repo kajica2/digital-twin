@@ -2622,12 +2622,19 @@ void main() {
   }
 
   // ===================== FFMPEG.WASM RENDER =====================
-  // Universal fallback. Loads @ffmpeg/ffmpeg + @ffmpeg/util lazily from unpkg ESM on
-  // first use, then renders via the real ffmpeg binary compiled to WASM. Always outputs
-  // H.264/AAC MP4. Slower than WebCodecs (no hardware accel, ~song-length on a mid Mac),
-  // but works in every modern browser including Firefox and Safari where WebCodecs is
-  // missing or locked down. Once the WASM core is cached by the browser, subsequent
-  // renders need no network.
+  // Universal fallback. Uses the repo-wide shared loader
+  // (pages/assets/ffmpeg-client.mjs), which boots the vendored, sha256-pinned
+  // copy of @ffmpeg/ffmpeg from /vendor/ffmpeg. Always outputs H.264/AAC MP4.
+  // Slower than WebCodecs (no hardware accel, ~song-length on a mid Mac), but
+  // works in every modern browser including Firefox and Safari where WebCodecs
+  // is missing or locked down.
+  //
+  // This page used to carry its own loader: it imported @ffmpeg/ffmpeg from
+  // unpkg at runtime and hand-patched the worker into a blob URL. That is the
+  // exact shape of bug that produced "FFmpeg is not defined" in a sibling tool
+  // — a page inventing its own copy of the bootstrap. The loader now lives in
+  // one file, and `node bin/doctor.mjs` fails the build if a page goes back to
+  // rolling its own.
   let _ffmpegInstance = null;        // shared across calls in the same session
   let _ffmpegLoading = null;          // promise dedupe
   const FFMPEG_FPS = 30;
@@ -2636,12 +2643,8 @@ void main() {
     if (_ffmpegInstance) return _ffmpegInstance;
     if (_ffmpegLoading) return _ffmpegLoading;
     _ffmpegLoading = (async () => {
-      // Dynamic ESM import — works on http(s) and on file:// (browsers allow import() from
-      // https URLs even when the page is local). First-load downloads ~30 MB of WASM/worker.
-      const { FFmpeg } = await import('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js');
-      const { toBlobURL } = await import('https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js');
-      const ff = new FFmpeg();
-      ff.on('log', ({ message }) => { /* ffmpeg log lines — silently dropped by default */ });
+      const { loadFFmpeg } = await import('/pages/assets/ffmpeg-client.mjs');
+      const ff = await loadFFmpeg();
       ff.on('progress', ({ progress }) => {
         // progress is 0..1 across the whole run; mapped by caller via onProgress
         if (_ffmpegOnProgress) {
@@ -2651,15 +2654,6 @@ void main() {
           _ffmpegOnProgress(elapsed, total, pct);
         }
       });
-      // CRITICAL: blob-URL every cross-origin asset (@ffmpeg constructs a Worker from
-      // the worker.js URL; modern browsers block cross-origin Worker construction).
-      // toBlobURL fetches + wraps as blob: so the Worker passes the same-origin check.
-      const [workerURL, coreURL, wasmURL] = await Promise.all([
-        toBlobURL('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/worker.js', 'text/javascript'),
-        toBlobURL('https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.js', 'text/javascript'),
-        toBlobURL('https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.wasm', 'application/wasm'),
-      ]);
-      await ff.load({ coreURL, wasmURL, classWorkerURL: workerURL });
       _ffmpegInstance = ff;
       return ff;
     })();

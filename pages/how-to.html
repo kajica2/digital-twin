@@ -433,12 +433,12 @@ npm run clip:interrogate -- path/to/image.jpg --model vit-l --mode fast --json</
 
         <ul class="tight">
             <li>Drop an MP3, pick a track name (or 🎲 random), choose a render mode + resolution.</li>
-            <li>Three engines: ⚡ <strong>Fast</strong> (WebCodecs, fully offline — the default, zero network calls), 🛡 <strong>FFmpeg.wasm</strong> (lazy-loads from unpkg on first use, then browser-cached), 🐢 <strong>Real-time</strong> (MediaRecorder). Resolution is consumed by all three: WebCodecs codec string + bitrate, FFmpeg <span class="inline-code">-vf scale</span>, MediaRecorder <span class="inline-code">videoBitsPerSecond</span>.</li>
+            <li>Three engines: ⚡ <strong>Fast</strong> (WebCodecs, fully offline — the default, zero network calls), 🛡 <strong>FFmpeg.wasm</strong> (loads the repo's vendored, sha256-pinned core from <span class="inline-code">/vendor/ffmpeg</span> — no CDN, works offline), 🐢 <strong>Real-time</strong> (MediaRecorder). Resolution is consumed by all three: WebCodecs codec string + bitrate, FFmpeg <span class="inline-code">-vf scale</span>, MediaRecorder <span class="inline-code">videoBitsPerSecond</span>.</li>
             <li>Single / Custom image / Batch tabs; deterministic cover art from track + artist (dark/light/fire/love/ocean/earth, EN + SR-Cyrillic).</li>
             <li><span class="inline-code">?selftest=1</span> runs a built-in end-to-end render self-test (manual smoke lever — WebCodecs is flaky in headless CI).</li>
         </ul>
         <div class="callout warn">
-            <strong>Offline caveat:</strong> the footer's "0 network calls" claim is true only for Fast + Real-time modes. FFmpeg.wasm touches the network once (unpkg), then caches. Documented in <span class="inline-code">docs/REFAEL-MP4-MAKER.md</span>.
+            <strong>Offline caveat:</strong> the footer's "0 network calls" claim is true for all three engines. FFmpeg.wasm now loads the vendored core under <span class="inline-code">/vendor/ffmpeg</span> (installed by <span class="inline-code">bin/setup.sh</span>), so it never reaches a CDN. Documented in <span class="inline-code">docs/REFAEL-MP4-MAKER.md</span>.
         </div>
     </section>
 

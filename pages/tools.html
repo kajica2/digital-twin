@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="system">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛠️ Creator Tools Hub — Digital Twin</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='16,4 28,11 28,21 16,28 4,21 4,11' fill='none' stroke='%23c97b3f' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23c97b3f'/%3E%3C/svg%3E">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root{--bg:#f7f5f0;--surface:#fff;--line:#e9e3d6;--ink:#14171e;--ink-muted:#3a4256;--primary:#c97b3f;--accent:#2f6f5e;--space-2:8px;--space-4:16px;--space-5:24px;--radius-md:10px;--radius-lg:14px;--font-body:'Outfit',sans-serif;--font-display:'DM Serif Display',serif}
+        [data-theme="dark"]{--bg:#1a1812;--surface:#25221a;--line:#3a342a;--ink:#f4efe2;--ink-muted:#c0b8a8;--primary:#d9925a;--accent:#6ab098}
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:var(--font-body);background:var(--bg);color:var(--ink);line-height:1.5}
+        .header{background:linear-gradient(135deg,var(--primary),#a85f28);padding:1.5rem 2rem;color:#fff}
+        .header-content{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center}
+        .logo{font-family:var(--font-display);font-size:1.5rem}
+        main{max-width:1200px;margin:0 auto;padding:var(--space-5)}
+        .hero{text-align:center;margin-bottom:2.5rem}
+        .hero h1{font-size:2.5rem;font-family:var(--font-display);margin-bottom:0.5rem}
+        .hero p{color:var(--ink-muted)}
+        .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:var(--space-5)}
+        .tool-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:var(--space-5);text-decoration:none;color:inherit;transition:transform 0.2s,box-shadow 0.2s;display:flex;flex-direction:column;justify-content:space-between}
+        .tool-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.06);border-color:var(--primary)}
+        .tool-icon{font-size:2.5rem;margin-bottom:1rem}
+        .tool-name{font-weight:700;font-size:1.2rem;margin-bottom:0.5rem;font-family:var(--font-display)}
+        .tool-desc{color:var(--ink-muted);font-size:0.9rem;margin-bottom:1.5rem}
+        .tool-footer{display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;font-weight:600;color:var(--primary)}
+        nav a{color:#fff;text-decoration:none;font-weight:500}
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">🛠️ Digital Twin Tools</div>
+            <nav style="display:flex;gap:1.5rem">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="landing.html">Landing</a>
+                <a href="twin-os/index.html">Twin OS</a>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <section class="hero">
+            <h1>Creator Tools Index</h1>
+            <p>11 local-first utilities for AI music, Midjourney prompting, video processing, and social automation.</p>
+        </section>
+
+        <div class="grid">
+            <a href="instagram-autopilot.html" class="tool-card">
+                <div>
+                    <div class="tool-icon">📸</div>
+                    <div class="tool-name">Instagram Autopilot</div>
+                    <div class="tool-desc">Viral caption generator, hashtag sets (30 tags), best posting times, and weekly calendar planner.</div>
+                </div>
+                <div class="tool-footer"><span>Launch Tool</span><span>→</span></div>
+            </a>
+
+            <a href="suno-prompts.html" class="tool-card">
+                <div>
+                    <div class="tool-icon">🎵</div>
+                    <div class="tool-name">Suno Prompts</div>
+                    <div class="tool-desc">10 reference lock presets for Suno audio generation with batch upload and API webhook support.</div>
+                </div>
+                <div class="tool-footer"><span>Launch Tool</span><span>→</span></div>
+            </a>
+
+            <a href="mj-style-prefix.html" class="tool-card">
+                <div>
+                    <div class="tool-icon">🎨</div>
+                    <div class="tool-name">MJ Prompt Studio</div>
+                    <div class="tool-desc">Midjourney prompt generator with presets, image upload via imgbb CDN, and API webhook controls.</div>
+                </div>
+                <div class="tool-footer"><span>Launch Tool</span><span>→</span></div>
+            </a>
+
+            <a href="vhs-gif-maker.html" class="tool-card">
+                <div>
+                    <div class="tool-icon">📼</div>
+                    <div class="tool-name">VHS GIF Maker</div>
+                    <div class="tool-desc">Client-side retro VHS video effects processor exporting 5-second looping GIFs.</div>
+                </div>
+                <div class="tool-footer"><span>Launch Tool</span><span>→</span></div>
+            </a>
+
+            <a href="images-to-mov.html" class="tool-card">
+                <div>
+                    <div class="tool-icon">🎬</div>
+                    <div class="tool-name">Images → MOV</div>
+                    <div class="tool-desc">Client-side FFmpeg sequence converter with Ken Burns zoom/pan effects into video.</div>
+                </div>
+                <div class="tool-footer"><span>Launch Tool</span><span>→</span></div>
+            </a>
+
+            <a href="email-watermark.html" class="tool-card">
+                <div>
+                    <div class="tool-icon">💧</div>
+                    <div class="tool-name">Watermark Tool</div>
+                    <div class="tool-desc">Add custom text watermarks to images with adjustable position, opacity, and instant download.</div>
+                </div>
+                <div class="tool-footer"><span>Launch Tool</span><span>→</span></div>
+            </a>
+
+            <a href="gallery.html" class="tool-card">
+                <div>
+                    <div class="tool-icon">🖼️</div>
+                    <div class="tool-name">Gallery</div>
+                    <div class="tool-desc">Unified image gallery with filtering and catalog browsing.</div>
+                </div>
+                <div class="tool-footer"><span>Launch Tool</span><span>→</span></div>
+            </a>
+
+            <a href="garageband-mixer.html" class="tool-card">
+                <div>
+                    <div class="tool-icon">🎛️</div>
+                    <div class="tool-name">GarageBand Mixer</div>
+                    <div class="tool-desc">Audio mixing controls and session routing utility.</div>
+                </div>
+                <div class="tool-footer"><span>Launch Tool</span><span>→</span></div>
+            </a>
+
+            <a href="stills-to-loop.html" class="tool-card">
+                <div>
+                    <div class="tool-icon">🔁</div>
+                    <div class="tool-name">Stills to Loop</div>
+                    <div class="tool-desc">Turn static image stills into seamless video loops.</div>
+                </div>
+                <div class="tool-footer"><span>Launch Tool</span><span>→</span></div>
+            </a>
+
+            <a href="loopable-video-segmenter.html" class="tool-card">
+                <div>
+                    <div class="tool-icon">✂️</div>
+                    <div class="tool-name">Video Segmenter</div>
+                    <div class="tool-desc">Segment long video files into loopable clips.</div>
+                </div>
+                <div class="tool-footer"><span>Launch Tool</span><span>→</span></div>
+            </a>
+
+            <a href="twin-os/index.html" class="tool-card">
+                <div>
+                    <div class="tool-icon">🤖</div>
+                    <div class="tool-name">Twin OS</div>
+                    <div class="tool-desc">The cognitive meta-layer interface for filesystem indexing and autonomous agent ops.</div>
+                </div>
+                <div class="tool-footer"><span>Launch Tool</span><span>→</span></div>
+            </a>
+        </div>
+    </main>
+</body>
+</html>

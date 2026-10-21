@@ -4,6 +4,11 @@
   "private": true,
   "description": "Personal AI twin — sprint 0 landing + sprint 1 PWA shell. Static site, no framework.",
   "scripts": {
+    "setup": "bin/setup.sh",
+    "doctor": "node bin/doctor.mjs",
+    "vendor:install": "node bin/install-vendor.mjs",
+    "vendor:verify": "node bin/install-vendor.mjs --verify",
+    "e2e:media": "cd e2e && node media-set.spec.mjs",
     "serve": "node lib/serve.js --port 5173",
     "e2e": "cd e2e && node landing.spec.mjs && cd ../e2e && node twin-os.spec.mjs && cd ../e2e && node twin-os-songs.spec.mjs",
     "e2e:landing": "cd e2e && node landing.spec.mjs",

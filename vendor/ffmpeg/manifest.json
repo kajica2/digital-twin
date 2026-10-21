@@ -1,0 +1,140 @@
+{
+  "generatedAt": "2026-10-21T18:20:01.781Z",
+  "versions": {
+    "ffmpeg": "0.12.10",
+    "util": "0.12.1",
+    "core": "0.12.6"
+  },
+  "files": {
+    "ffmpeg/0.12.10/esm/classes.js": {
+      "url": "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/classes.js",
+      "sha256": "ac411e19c69cffcf2669aa9e56c90dc120d5f6ac89d7aafb0000fc7841376c70",
+      "bytes": 8698
+    },
+    "ffmpeg/0.12.10/esm/const.js": {
+      "url": "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/const.js",
+      "sha256": "e16b2532be2545bc9537dfbd3db834447462ad90aa201e4c5ca238fdc7a9df95",
+      "bytes": 974
+    },
+    "ffmpeg/0.12.10/esm/errors.js": {
+      "url": "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/errors.js",
+      "sha256": "619310d7ef5fe5fefa0a31927db862b7c291713cfef4d71753fa8aafd18f4db6",
+      "bytes": 332
+    },
+    "ffmpeg/0.12.10/esm/index.js": {
+      "url": "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js",
+      "sha256": "b08695fea8eff663c7e4ff4c28bd6e356aeb95e608f2a8a3f12fc1fe29d91123",
+      "bytes": 30
+    },
+    "ffmpeg/0.12.10/esm/types.js": {
+      "url": "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/types.js",
+      "sha256": "72f80e6fd44fcd18b55c9a0deb3bc70b9bb37480cf969045ca4521f5a11300f5",
+      "bytes": 295
+    },
+    "ffmpeg/0.12.10/esm/utils.js": {
+      "url": "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/utils.js",
+      "sha256": "8c2e0e16445f8d3a0acbb812f2c60541a92c88ed0bf9ffe96c52e7fb6c8b1d72",
+      "bytes": 138
+    },
+    "ffmpeg/0.12.10/esm/worker.js": {
+      "url": "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/worker.js",
+      "sha256": "b35bf79766eb53547655c5142ab90b50134f0b6de56ab5cdb2ae73d1e8aeaca5",
+      "bytes": 4810
+    },
+    "ffmpeg/0.12.10/esm/empty.mjs": {
+      "url": "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/empty.mjs",
+      "sha256": "92f665ead7579ff7cd0f08d63e2eb6b27bce16be06991b2aa93510ba07741dbf",
+      "bytes": 157
+    },
+    "ffmpeg/0.12.10/esm/empty.d.mts": {
+      "url": "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/empty.d.mts",
+      "sha256": "c01e3642ad0641ccdd73bac48fb7fdff3f86197ef0c8f8a97ed033d5d9a41234",
+      "bytes": 51
+    },
+    "ffmpeg/0.12.10/esm/classes.d.ts": {
+      "url": "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/classes.d.ts",
+      "sha256": "d5346c364d45b89af8f9b33591b4a4c9226ccd94f48e7e000b4a44ff70058c0c",
+      "bytes": 4339
+    },
+    "ffmpeg/0.12.10/esm/const.d.ts": {
+      "url": "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/const.d.ts",
+      "sha256": "e8c12a37f3086f2ae55997df8770527ca9d11760359e87af049f94f5fa7cca18",
+      "bytes": 624
+    },
+    "ffmpeg/0.12.10/esm/errors.d.ts": {
+      "url": "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/errors.d.ts",
+      "sha256": "5294c974aef3d7442a39dc317fbc2308572e6cbbdb6a0e70336683d994c809be",
+      "bytes": 198
+    },
+    "ffmpeg/0.12.10/esm/index.d.ts": {
+      "url": "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.d.ts",
+      "sha256": "b08695fea8eff663c7e4ff4c28bd6e356aeb95e608f2a8a3f12fc1fe29d91123",
+      "bytes": 30
+    },
+    "ffmpeg/0.12.10/esm/types.d.ts": {
+      "url": "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/types.d.ts",
+      "sha256": "b6f91d557f8532d654af6a59116bf7f7c22f3039ba71510243f85f99fd9c5371",
+      "bytes": 3740
+    },
+    "ffmpeg/0.12.10/esm/utils.d.ts": {
+      "url": "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/utils.d.ts",
+      "sha256": "037067fa9584af7d4c2d134d1dd49f6636cb3c3f3c83fdb624d2cd3788bc3c92",
+      "bytes": 91
+    },
+    "ffmpeg/0.12.10/esm/worker.d.ts": {
+      "url": "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/worker.d.ts",
+      "sha256": "e8623f15b69ec07e4bb15d6ac9f545f0063bcc45954f8314ad2476da849b4152",
+      "bytes": 276
+    },
+    "util/0.12.1/esm/const.js": {
+      "url": "https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/const.js",
+      "sha256": "f08f7b0bf73a3e74270343a6892a305a2c98039b1e586260d185ca0dfafd510c",
+      "bytes": 53
+    },
+    "util/0.12.1/esm/errors.js": {
+      "url": "https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/errors.js",
+      "sha256": "3658a446ec7df01b5406cdfbc6c9338466db0fc673b69eefe141ded8dda5a147",
+      "bytes": 175
+    },
+    "util/0.12.1/esm/index.js": {
+      "url": "https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js",
+      "sha256": "0b33f10af6800c3ca00a4533963f66a8adc541269ec40e605b0336dc026880c0",
+      "bytes": 4775
+    },
+    "util/0.12.1/esm/types.js": {
+      "url": "https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/types.js",
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "bytes": 11
+    },
+    "util/0.12.1/esm/const.d.ts": {
+      "url": "https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/const.d.ts",
+      "sha256": "a69846490486380ff81c6b57b16fc81df6914634d98fedf0ebbafaab763460ed",
+      "bytes": 61
+    },
+    "util/0.12.1/esm/errors.d.ts": {
+      "url": "https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/errors.d.ts",
+      "sha256": "c577922a9d2013d8541fedab3a6172b4aa05e3d173150b1680e679faffaf3187",
+      "bytes": 112
+    },
+    "util/0.12.1/esm/index.d.ts": {
+      "url": "https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.d.ts",
+      "sha256": "f0ff8ea5237bebecfed33eacbfeb6bf599a0c3cfbdbe06f5c383ca97856f05fd",
+      "bytes": 1483
+    },
+    "util/0.12.1/esm/types.d.ts": {
+      "url": "https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/types.d.ts",
+      "sha256": "63f0ec970b9a648cf7f8307e9e63a5f24a62f48c1a51c22b5271a9f18a36e903",
+      "bytes": 216
+    },
+    "core/0.12.6/esm/ffmpeg-core.js": {
+      "url": "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.js",
+      "sha256": "c972f5abeafcd5f3949e54edfbdc74a9badb27025809feb1945d468ffbcfb7f1",
+      "bytes": 114494
+    },
+    "core/0.12.6/esm/ffmpeg-core.wasm": {
+      "url": "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.wasm",
+      "sha256": "2390efa7fb66e7e42dbae15427571a5ffc96b829480904c30f471f0a78967f61",
+      "bytes": 32129114
+    }
+  }
+}

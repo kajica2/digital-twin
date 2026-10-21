@@ -120,3 +120,15 @@ ruvector.db
 *.mp4
 *.webm
 .vercel
+
+# Vendored ffmpeg.wasm binaries (~30MB) — never commit the binaries.
+# The pin manifest IS committed: it records the sha256 of every vendored file,
+# so a fresh clone can re-download and verify the exact same bytes.
+vendor/ffmpeg/*
+!vendor/ffmpeg/manifest.json
+
+# Credit ledger (SQLite, WAL mode) and server render job output.
+data/credits.sqlite
+data/credits.sqlite-shm
+data/credits.sqlite-wal
+data/jobs/job_*/
