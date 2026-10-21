@@ -70,6 +70,11 @@ For now, what's here:
   clause that produced it. Built by `lib/mj-contact-sheet.js`.
 - **`lib/songs-indexer.js`** — walks audio dirs, builds
   `data/songs/catalog.json`.
+- **`lib/social-engine.js`** — the social worker: it discovers the
+  catalogue and the reels, tags them, writes the per-platform copy
+  (through `lib/social-shared.js`), prices them and stages a POST.md
+  the poster can publish. Deterministic, no model call.
+  Reference in `docs/SOCIAL-ENGINE.md`.
 - **`assets/mural-prompts/STYLE-PRESETS.md`** — the 23-entry MJ style
   registry, with its generated style-study pack
   (`prompts-inbox/style-presets-vol-1.md`, dry-run validated through
@@ -296,6 +301,37 @@ functional (close / collapse / widen), and the position is remembered.
 It renders in a shadow root, so it cannot fight the host page's CSS, and
 it picks up the skin tokens for free. Reference:
 [`docs/FLOATING-TOOLSET.md`](docs/FLOATING-TOOLSET.md).
+
+## Run the social worker
+
+The twin's social worker: it discovers the catalogue (`assets/marketplace/`)
+and the produced reels (`reel-inbox/processed/`), tags them, writes the
+per-platform copy, prices them and stages a `POST.md` the poster can
+publish. Deterministic — no model call, so the same asset always yields
+the same post.
+
+```bash
+npm run social:once     # one pass, then exit
+npm run social:worker   # poll forever (this is what the LaunchAgent runs)
+npm run social:dry      # compute and print, write nothing
+npm run test:social     # the unit suite
+```
+
+It also runs as a launchd service:
+
+```bash
+launchctl print gui/$UID/com.kaidjuric.digital-twin.social-worker
+pgrep -fl social-engine.js
+tail -f logs/social-worker.out.log
+```
+
+**Nothing is published by default.** `posting.autoPublish` is `false`
+and each item has to say `publish: true`; `posting.dryRunPoster: true`
+runs the whole path — worker → `lib/ig-poster.js --dry-run` — without
+reaching Instagram. The price plan (`data/social/pricing.json`) is a
+document: Gumroad has no API wired here, so a human applies it.
+
+Reference: [`docs/SOCIAL-ENGINE.md`](docs/SOCIAL-ENGINE.md).
 
 ## Run the Suno style variants
 

@@ -1,0 +1,166 @@
+{
+    "_note": "Social engine configuration. Pure data — no secrets, no absolute paths.",
+    "outputDir": "data/social",
+    "logFile": "logs/social-worker.log",
+    "intervalMs": 5000,
+    "sources": {
+        "inbox": {
+            "enabled": true,
+            "dir": "social-inbox",
+            "_note": "Drop zone. One directory per item, with an optional item.json (title, kind, description, tags, publish, price)."
+        },
+        "reels": {
+            "enabled": true,
+            "dir": "reel-inbox/processed",
+            "_note": "Reels the reel-watcher already produced (mp4 + cover.jpg + POST.md)."
+        },
+        "catalogue": {
+            "enabled": true,
+            "dir": "assets/marketplace",
+            "_note": "The store's catalogue: cover studies and System Error plates. Metadata comes from lettering-manifest.json / plates.json."
+        }
+    },
+    "posting": {
+        "enabled": true,
+        "_note_enabled": "Master switch for handing a package to lib/ig-poster.js. The poster is the only thing that publishes, and it publishes to a real account — so the second switch matters more.",
+        "poster": "lib/ig-poster.js",
+        "autoPublish": false,
+        "_note_autoPublish": "false = a package is staged unless the item opts in (publish: true in its item.json). true = every packaged item is posted. A public post is irreversible; the opt-in is the gate.",
+        "dryRunPoster": false,
+        "_note_dryRunPoster": "true = the worker still runs the poster, but with --dry-run. This is how the handoff is smoke-tested without publishing."
+    },
+    "tags": {
+        "primary": [
+            "jazz",
+            "modaljazz",
+            "ambient",
+            "experimental",
+            "glitch",
+            "coverart",
+            "albumart",
+            "studypack",
+            "printmaking",
+            "artprint"
+        ],
+        "secondary": [
+            "soundcloud",
+            "bandcamp",
+            "spotify",
+            "vinyl",
+            "saxophone",
+            "trumpet",
+            "piano",
+            "improvisation",
+            "contrafact",
+            "lofi"
+        ],
+        "niche": [
+            "weimarjazzdatabase",
+            "bebop",
+            "dorianmode",
+            "quartalvoicings",
+            "generativeart",
+            "diffusionmodels",
+            "midjourney",
+            "notanaiimage"
+        ],
+        "caps": {
+            "primary": 7,
+            "secondary": 10,
+            "niche": 15
+        },
+        "stopwords": [
+            "the",
+            "and",
+            "for",
+            "with",
+            "that",
+            "this",
+            "from",
+            "into",
+            "over",
+            "under",
+            "a",
+            "an",
+            "of",
+            "in",
+            "on",
+            "at",
+            "to",
+            "by",
+            "its",
+            "it",
+            "is",
+            "are",
+            "was",
+            "were",
+            "be",
+            "been",
+            "as",
+            "portrait",
+            "image",
+            "photo",
+            "shot",
+            "style",
+            "cinematic",
+            "film",
+            "still",
+            "medium",
+            "close",
+            "wide",
+            "high",
+            "low",
+            "study",
+            "seed",
+            "seeded",
+            "variant",
+            "variants",
+            "layout",
+            "artwork",
+            "artworks",
+            "square",
+            "pixels",
+            "px",
+            "type",
+            "types",
+            "set",
+            "sets"
+        ]
+    },
+    "price": {
+        "currency": "EUR",
+        "roundTo": 1,
+        "table": {
+            "cover": {
+                "base": 12,
+                "floor": 8,
+                "ceiling": 24,
+                "lettering": 3,
+                "variant": 1
+            },
+            "plate": {
+                "base": 9,
+                "floor": 6,
+                "ceiling": 18,
+                "lettering": 0,
+                "variant": 1
+            },
+            "reel": {
+                "base": 6,
+                "floor": 4,
+                "ceiling": 12,
+                "lettering": 0,
+                "variant": 0
+            },
+            "generic": {
+                "base": 8,
+                "floor": 5,
+                "ceiling": 20,
+                "lettering": 0,
+                "variant": 0
+            }
+        },
+        "bundleDiscount": 0.2,
+        "_note_bundleDiscount": "The bundle is the whole catalogue at a fifth off — a real price decision, computed from the item prices rather than typed in."
+    }
+}

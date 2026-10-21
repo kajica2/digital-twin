@@ -4925,3 +4925,105 @@ it waits for is still arriving will blame the code. Budgets must clear
 the worst observed latency, and a gate must be able to tell "the build
 is late" from "the build is broken" — otherwise every slow deploy
 reads as a code regression.
+
+### 2026-10-21 — sprint 0.49 (the social worker)
+
+Asked for: *"start worker that starts socialengine auto tagging posting
+pricing etc look for appropriate skills"*. Shipped a worker and started
+it as a service.
+
+**Shipped:**
+
+- **`lib/social-engine.js`** — the worker. One asset in, one priced,
+  tagged, written and staged post out. Discovery (the catalogue, the
+  produced reels, an inbox), tagging in three capped tiers, per-platform
+  copy, a price, a POST.md the poster reads, a registry and a poll loop.
+  Deterministic: no model call, no network. CLI: `--once`, `--dry-run`,
+  `--interval N`.
+- **`lib/social-shared.js`** — the shared rules: one tag alphabet
+  (`[A-Za-z0-9_]`), one tier contract (caps 7/10/15, minimums 5/7/10,
+  never padded), one POST.md shape. The engine does not reimplement
+  them; it builds a persona-shaped object and hands it over.
+- **`lib/social-config.json`** — sources, tag pools, stopwords, the
+  price table (base + lettering + variants, clamped to a band), the
+  bundle discount and the posting gate. Pure data, no secrets, no
+  absolute paths.
+- **`lib/social-engine.test.js`** (83 assertions) and
+  **`lib/social-shared.test.js`** (36) — plain node, no framework.
+- **`bin/social-worker.sh`** — the in-repo wrapper, mirroring
+  `bin/songs-watcher.sh`.
+- **`docs/SOCIAL-ENGINE.md`** — the reference.
+- **The service** — `~/Library/LaunchAgents/com.kaidjuric.digital-twin.
+  social-worker.plist` + `social-worker-launcher.sh`, bootstrapped and
+  running (the shim, not `bin/`: launchd on Sequoia cannot `execve()`
+  anything under `$HOME` — the sprint-0.25/0.26 rule).
+- **npm** — `social:worker`, `social:once`, `social:dry`, `test:social`,
+  `test:social-shared`; both wired into `test:all`.
+
+**Decisions:**
+
+- **The skill that matched was the repo's own, not a skill file.**
+  `skill://Hooks Automation` is claude-flow's CLI hook system (pre/post
+  task, MCP, neural training) — the wrong shape for one local worker.
+  The right pattern is the one the repo already proves: a poll loop, a
+  registry, a stale-source prune and a launchd wrapper, exactly like the
+  chart / songs / reel / MJ watchers.
+- **Deterministic, not a model.** The same asset must always produce the
+  same caption, so a diff between two runs means the inputs changed and
+  nothing else. A worker you can reason about beats one that surprises
+  you.
+- **The store is the pricing domain.** A cover family is one product
+  (its seeds are variants of one work), a plate is a product, a reel is
+  a product. `data/social/pricing.json` is the price plan — every
+  product, its price and the rationale, plus the catalogue total and the
+  bundle. **Gumroad has no API wired here, so the plan is applied by
+  hand**; the engine computes, a human commits.
+- **Publishing stays gated.** `posting.autoPublish: false` plus a
+  per-item `publish: true`; `posting.dryRunPoster: true` runs the whole
+  path (worker → `lib/ig-poster.js --dry-run`) without reaching
+  Instagram. A package without a video is staged, never posted. The
+  poster is the only thing in the repo that publishes to a real account.
+- **The shared rules live in `lib/social-shared.js`, not in the persona
+  pack.** `lib/persona-social-pack.js` is a parallel session's
+  uncommitted file (sprint 0.48, not on `main`), so a worker that
+  required it would break on a fresh clone. The rules were mirrored
+  into a committed module; when the persona pack lands, it should
+  require this module instead of keeping a second copy.
+- **A catalogue item does not mine its machine copy for tags.** The
+  cover description is written for the caption, not for the tag tier:
+  an explicit empty `tagText` keeps "#rather" and "#than" out of the
+  hashtag line.
+- **Stale packages are pruned.** A package whose source is gone is
+  removed with a log line — the registry and the package directory are
+  both generated state, and the source is the truth.
+
+**Verified:**
+
+- `node lib/social-engine.test.js` — 83 passed, 0 failed.
+- `node lib/social-shared.test.js` — 36 passed, 0 failed.
+- `npm run social:once` — 14 products packaged (3 cover families, 10
+  System Error plates, 1 reel), the price plan at 150 EUR with a 120
+  EUR bundle, every package carrying `post.json` / `POST.md` /
+  `price.json` and the media symlinked (never copied).
+- **The live service** — dropped a real item into `social-inbox/`; the
+  running worker picked it up inside one poll interval (5 s), packaged
+  it, linked the media and rewrote the plan. `launchctl print` shows
+  `state = running` with a live pid, and `pgrep -fl social-engine.js`
+  confirms the process (never `state = running` alone).
+- **The poster handoff, dry** — with `posting.dryRunPoster: true` the
+  worker invoked `lib/ig-poster.js --dry-run`, which read the generated
+  POST.md ("Caption: Test Reel — reel…") and reported "Would post to
+  Instagram". Nothing published, nothing moved.
+- Two bugs found and fixed while running it: the price plan was built
+  from the last pass only (it shrank on every new item — now it covers
+  the whole registry), and a dry-run poster was recorded as a post (a
+  dry run is not a publication — `postedAt` is left alone).
+
+**Open:**
+
+- The price plan is a document; nothing writes to Gumroad.
+- The copy is template-driven. Serviceable, not a campaign.
+- The catalogue and the reels are discovered; anything else has to be
+  dropped into `social-inbox/`.
+- `lib/persona-social-pack.js` still carries its own copy of the shared
+  rules; the migration is a one-line require once it lands on `main`.
