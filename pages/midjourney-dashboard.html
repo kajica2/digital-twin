@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Midjourney run dashboard for the twin — every generation, prompt, task id and timestamp, with the 4-up grid thumbnails and the prompt library the runs were submitted from.">
+<title>Midjourney Dashboard — Digital Twin</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2314120e'/%3E%3Ctext x='16' y='22' font-family='Georgia' font-size='17' fill='%23d9913f' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E">
+<script>
+  // no-flash theme bootstrap
+  (function () {
+    var t = localStorage.getItem("mjd-theme");
+    if (t === "dark" || (!t && matchMedia("(prefers-color-scheme: dark)").matches)) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  })();
+</script>
+<style>
+  :root {
+    --bg: #f7f4ec; --surface: #fffdf6; --ink: #23201a; --ink-2: #57503f;
+    --accent: #b06a2a; --accent-2: #3a5a3f; --line: #e4decf;
+    --warn: #9a5b12; --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: Inter, system-ui, -apple-system, Segoe UI, sans-serif;
+  }
+  [data-theme="dark"] {
+    --bg: #14120e; --surface: #1c1913; --ink: #ece7db; --ink-2: #a69b85;
+    --accent: #d9913f; --accent-2: #7fa587; --line: #332e24;
+    --warn: #e0a75a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font-family: var(--sans); line-height: 1.55; }
+  a { color: var(--accent); }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 28px 72px; }
+
+  header.hero { padding: 44px 0 22px; border-bottom: 1px solid var(--line); }
+  .kicker { font-family: var(--mono); font-size: 12px; letter-spacing: .12em;
+            text-transform: uppercase; color: var(--ink-2); }
+  h1 { font-family: var(--serif); font-size: 42px; margin: 8px 0 6px; letter-spacing: -0.01em; }
+  h1 em { font-style: italic; color: var(--accent); }
+  .lede { color: var(--ink-2); max-width: 66ch; margin-top: 10px; }
+
+  .stats { display: flex; flex-wrap: wrap; gap: 26px; margin-top: 22px; }
+  .stat { min-width: 96px; }
+  .stat b { display: block; font-family: var(--mono); font-size: 26px; font-weight: 500; }
+  .stat span { font-family: var(--mono); font-size: 11px; letter-spacing: .06em;
+               text-transform: uppercase; color: var(--ink-2); }
+
+  section { margin: 44px 0; }
+  h2 { font-family: var(--serif); font-size: 25px; margin: 0 0 6px; }
+  .sub { color: var(--ink-2); font-size: 14px; max-width: 70ch; margin: 0 0 16px; }
+
+  .callout { border: 1px solid var(--warn); border-left-width: 4px; border-radius: 8px;
+             padding: 14px 16px; background: var(--surface); margin: 0 0 18px; }
+  .callout b { color: var(--warn); }
+  .callout code { font-family: var(--mono); font-size: 12.5px; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+  input[type="search"], select {
+    font-family: var(--mono); font-size: 13px; padding: 8px 11px;
+    background: var(--surface); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 6px;
+  }
+  input[type="search"] { flex: 1; min-width: 220px; }
+  input[type="search"]:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .controls .count { font-family: var(--mono); font-size: 12px; color: var(--ink-2); margin-left: auto; }
+
+  table.rec { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.rec th { text-align: left; font-family: var(--mono); font-size: 10.5px;
+                 letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2);
+                 border-bottom: 1px solid var(--line); padding: 7px 10px 7px 0; }
+  table.rec td { border-bottom: 1px solid var(--line); padding: 9px 10px 9px 0; vertical-align: top; }
+  table.rec tr:hover td { background: var(--surface); }
+  .pr { font-size: 12.5px; color: var(--ink); }
+  .tid { font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
+  .pk { font-family: var(--mono); font-size: 11px; color: var(--accent); }
+  .pk small { display: block; font-size: 9.5px; color: var(--ink-2); letter-spacing: .02em;
+              margin-top: 2px; max-width: 118px; overflow: hidden; text-overflow: ellipsis;
+              white-space: nowrap; }
+  .when { font-family: var(--mono); font-size: 11px; color: var(--ink-2); white-space: nowrap; }
+  .pill { display: inline-block; font-family: var(--mono); font-size: 10px;
+          letter-spacing: .05em; text-transform: uppercase; padding: 1px 7px;
+          border: 1px solid var(--line); border-radius: 99px; color: var(--ink-2); }
+  .pill.ok { border-color: var(--accent-2); color: var(--accent-2); }
+  .pill.fix { border-color: var(--warn); color: var(--warn); }
+
+  /* thumbnails */
+  .thumb { display: block; width: 76px; height: 48px; border: 1px solid var(--line);
+           border-radius: 5px; background: var(--surface); object-fit: cover; cursor: zoom-in; }
+  .thumb-fallback { display: flex; align-items: center; justify-content: center;
+                     width: 76px; height: 48px; border: 1px dashed var(--line);
+                     border-radius: 5px; background: var(--surface);
+                     font-family: var(--mono); font-size: 8.5px; letter-spacing: .04em;
+                     text-transform: uppercase; color: var(--ink-2); text-align: center;
+                     line-height: 1.2; cursor: default; }
+
+  .packbar { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 18px;
+             max-height: 88px; overflow-y: auto; padding-right: 4px; }
+  .packbar button { font-family: var(--mono); font-size: 11px; padding: 4px 9px;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink-2);
+    border-radius: 99px; cursor: pointer; }
+  .packbar button:hover { border-color: var(--accent); color: var(--accent); }
+  .packbar button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 8px; }
+  figure { margin: 0; }
+  figure img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block;
+               border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+  figcaption { font-family: var(--mono); font-size: 10px; color: var(--ink-2);
+               margin-top: 4px; word-break: break-all; line-height: 1.35; }
+
+  .lib { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+  .lib a { display: block; padding: 12px 14px; background: var(--surface);
+           border: 1px solid var(--line); border-radius: 8px; text-decoration: none; color: inherit; }
+  .lib a:hover { border-color: var(--accent); }
+  .lib b { display: block; font-family: var(--serif); font-size: 15px; font-weight: 400; }
+  .lib span { font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
+  .empty { color: var(--ink-2); font-size: 14px; padding: 18px 0; }
+  footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
+           color: var(--ink-2); font-size: 12.5px; }
+  footer a { color: var(--accent); }
+
+  /* lightbox */
+  .lightbox { position: fixed; inset: 0; background: rgba(10, 8, 5, .88);
+              display: flex; align-items: center; justify-content: center;
+              padding: 28px; z-index: 50; }
+  .lightbox[hidden] { display: none; }
+  .lightbox .box { max-width: 1000px; width: 100%; }
+  .lightbox .lhead { display: flex; justify-content: space-between; align-items: baseline;
+                     gap: 14px; color: #f3eee2; margin-bottom: 10px; }
+  .lightbox .lhead b { font-family: var(--serif); font-weight: 400; font-size: 17px; }
+  .lightbox .lhead span { font-family: var(--mono); font-size: 11px; color: #c9c0ab; }
+  .lightbox .lgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .lightbox .lgrid img { width: 100%; border-radius: 8px; display: block; background: #111; }
+  .lightbox .lgrid .blocked { display: flex; align-items: center; justify-content: center;
+    aspect-ratio: 16 / 9; border: 1px dashed #6b6152; border-radius: 8px; color: #c9c0ab;
+    font-family: var(--mono); font-size: 11px; text-transform: uppercase; }
+  .lightbox button { font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+    text-transform: uppercase; padding: 6px 12px; border: 1px solid #6b6152;
+    background: transparent; color: #f3eee2; border-radius: 99px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="kicker">Digital twin · Midjourney</div>
+    <h1>Run <em>dashboard</em></h1>
+    <p class="lede">
+      Every Midjourney generation this twin has submitted, with the prompt, the task id
+      and the timestamp — and the 4-up grid the CDN still serves. Plus the prompt library
+      it was drawn from, and the local artwork that survives.
+    </p>
+    <div class="stats" id="stats"></div>
+    <button id="themeBtn" aria-label="Toggle light and dark theme"
+            style="margin-top:20px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;
+                   text-transform:uppercase;padding:7px 13px;border:1px solid var(--line);
+                   background:var(--surface);color:var(--ink-2);border-radius:99px;cursor:pointer">
+      Toggle theme
+    </button>
+  </header>
+
+  <section>
+    <h2>The images are behind a bot check, not gone.</h2>
+    <div class="callout" id="cdncallout">
+      <b>Midjourney's CDN serves the 4-up grids to a real browser</b> — the thumbnails and the
+      lightbox below load the actual pixels. But <code>cdn.midjourney.com</code> answers
+      <code>curl</code> and headless browsers with a Cloudflare bot challenge
+      (<code>403</code>), so a non-browser client may not resolve an image. When that happens
+      the tile says <em>blocked</em> rather than showing a broken picture — that label is the
+      challenge talking, not a missing file.
+    </div>
+  </section>
+
+  <section>
+    <h2>The run record</h2>
+    <p class="sub" id="recsub"></p>
+    <div class="packbar" id="packbar"></div>
+    <div class="controls">
+      <input type="search" id="q" placeholder="Search prompts, task ids, packs…" aria-label="Search generations">
+      <select id="sort" aria-label="Sort generations">
+        <option value="pack">Sort by pack</option>
+        <option value="time">Sort by time (newest first)</option>
+        <option value="images">Sort by image count</option>
+      </select>
+      <span class="count" id="reccount"></span>
+    </div>
+    <table class="rec">
+      <thead><tr><th>#</th><th>Frame</th><th>Prompt</th><th>Task id</th><th>Grid</th><th>Submitted</th><th>Match</th></tr></thead>
+      <tbody id="recbody"></tbody>
+    </table>
+    <p class="empty" id="recempty" hidden>No generation matches that.</p>
+  </section>
+
+  <section>
+    <h2>Surviving artwork</h2>
+    <p class="sub" id="artsub"></p>
+    <div class="grid" id="artgrid"></div>
+  </section>
+
+  <section>
+    <h2>Prompt library</h2>
+    <p class="sub" id="libsub"></p>
+    <div class="lib" id="lib"></div>
+  </section>
+
+  <footer>
+    Generated by <code>lib/mj-dashboard-index.js</code> · index at <code>data/mj/index.json</code> ·
+    <a href="../index.html">twin</a>
+  </footer>
+</div>
+
+<div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="Midjourney 4-up grid">
+  <div class="box">
+    <div class="lhead">
+      <b id="lbTitle"></b>
+      <span id="lbMeta"></span>
+      <button id="lbClose" type="button">Close</button>
+    </div>
+    <div class="lgrid" id="lbGrid"></div>
+  </div>
+</div>
+
+<script type="module">
+const $ = (s) => document.querySelector(s);
+const fmtN = (n) => Number(n || 0).toLocaleString();
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+// ---------- load the index ----------
+let idx = null;
+try {
+  const res = await fetch('../data/mj/index.json', { cache: 'no-store' });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  idx = await res.json();
+} catch (err) {
+  document.querySelector('#stats').innerHTML =
+    `<div class="stat"><b>—</b><span>index unavailable</span></div>`;
+  const sub = document.querySelector('#recsub');
+  if (sub) {
+    sub.textContent =
+      'Could not load data/mj/index.json (' + (err && err.message ? err.message : 'unknown error') +
+      '). Run `npm run mj:dashboard` to rebuild it, and serve the repo root so /data/ is reachable.';
+  }
+  throw err;
+}
+
+const T = idx.totals;
+
+$('#stats').innerHTML = [
+  [fmtN(T.generations), 'generations'],
+  [fmtN(T.packs), 'packs'],
+  [fmtN(T.distinctTasks), 'task ids'],
+  [fmtN(T.images), 'grid images'],
+  [fmtN(T.promptPacks), 'prompt packs'],
+  [fmtN(T.promptLines), 'prompts'],
+].map(([b, s]) => `<div class="stat"><b>${b}</b><span>${s}</span></div>`).join('');
+
+if (idx.range.first) {
+  $('#recsub').textContent =
+    `${fmtN(T.generations)} generations across ${fmtN(T.packs)} packs, ` +
+    `${idx.range.first.slice(0, 10)} to ${idx.range.last.slice(0, 10)}. ` +
+    `${T.repaired} were repaired after a misattributed task id.`;
+}
+
+// ---------- run record ----------
+let pack = null;
+let query = '';
+
+const packbar = $('#packbar');
+packbar.innerHTML =
+  `<button data-p="" aria-pressed="${pack === null}">All packs</button>` +
+  idx.packs.map((p) => `<button data-p="${esc(p.pack)}" aria-pressed="false">${esc(p.pack)} · ${p.count}</button>`).join('');
+packbar.addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  pack = b.dataset.p || null;
+  packbar.querySelectorAll('button').forEach((x) =>
+    x.setAttribute('aria-pressed', String((x.dataset.p || null) === pack)));
+  render();
+});
+$('#q').addEventListener('input', (e) => { query = e.target.value.trim().toLowerCase(); render(); });
+$('#sort').addEventListener('change', render);
+
+// A thumbnail that fails to load (Cloudflare challenge, offline, dead CDN
+// path) becomes a labelled tile. Never a broken-image icon.
+function thumbHtml(g) {
+  const src = g.thumbUrl;
+  if (!src) {
+    return `<span class="thumb-fallback" data-fallback="no image recorded">no image</span>`;
+  }
+  const alt = `Midjourney 4-up frame 1 of ${g.pack} prompt ${g.index}`;
+  return `<img class="thumb" src="${esc(src)}" alt="${esc(alt)}" loading="lazy" decoding="async"
+            data-src="${esc(src)}" data-pack="${esc(g.pack)}" data-index="${esc(g.index)}">`;
+}
+
+// Every MJ image (thumbnail or lightbox frame) that fails to load becomes a
+// labelled tile. A Cloudflare challenge is a 403 with an HTML body, so the
+// <img> errors out — the visitor gets an honest label, not a broken image.
+document.addEventListener('error', (e) => {
+  const el = e.target;
+  if (!(el instanceof HTMLImageElement)) return;
+  if (!el.classList.contains('thumb') && !el.classList.contains('lframe')) return;
+  const fb = document.createElement('span');
+  fb.className = el.classList.contains('thumb') ? 'thumb-fallback' : 'blocked';
+  fb.setAttribute('data-fallback', 'blocked');
+  // Keep the url on the tile so the "this is a MJ thumbnail" contract stays
+  // assertable even after the image was replaced.
+  fb.setAttribute('data-src', el.getAttribute('src') || '');
+  // The alt text moves with the image, so the tile still describes itself.
+  const alt = el.getAttribute('alt');
+  if (alt) { fb.setAttribute('data-alt', alt); fb.setAttribute('title', alt); }
+  // The fallback tile is still a record entry — keep the identity so it can
+  // still open the lightbox.
+  if (el.dataset.pack) fb.setAttribute('data-pack', el.dataset.pack);
+  if (el.dataset.index) fb.setAttribute('data-index', el.dataset.index);
+  fb.textContent = 'blocked';
+  if (el.parentNode) el.parentNode.replaceChild(fb, el);
+}, true);
+
+function render() {
+  let rows = idx.generations.filter((g) => !pack || g.pack === pack);
+  if (query) {
+    rows = rows.filter((g) =>
+      (g.prompt || '').toLowerCase().includes(query) ||
+      (g.taskId || '').toLowerCase().includes(query) ||
+      (g.pack || '').toLowerCase().includes(query));
+  }
+  const mode = $('#sort').value;
+  // The generator's own order is pack, then prompt index — the page uses the
+  // same comparator so "Sort by pack" is the archive order, not a re-sort.
+  if (mode === 'time') rows = rows.slice().sort((a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || ''));
+  else if (mode === 'images') rows = rows.slice().sort((a, b) => b.imageCount - a.imageCount);
+  else rows = rows.slice().sort((a, b) =>
+    (a.pack < b.pack ? -1 : a.pack > b.pack ? 1 : a.index - b.index));
+
+  const LIMIT = 250;
+  const shown = rows.slice(0, LIMIT);
+  $('#recbody').innerHTML = shown.map((g) => `
+    <tr>
+      <td class="pk">${esc(g.index)}<small title="${esc(g.pack)}">${esc(g.pack)}</small></td>
+      <td>${thumbHtml(g)}</td>
+      <td class="pr">${esc(g.prompt)}</td>
+      <td class="tid">${esc((g.taskId || '—').slice(0, 13))}</td>
+      <td class="tid">${esc(g.gridCount)}</td>
+      <td class="when">${esc(g.submittedAt ? g.submittedAt.slice(0, 16).replace('T', ' ') : '—')}</td>
+      <td>${g.repaired ? '<span class="pill fix">repaired</span>'
+          : g.matchedBy ? `<span class="pill ok">${esc(g.matchedBy)}</span>` : ''}</td>
+    </tr>`).join('');
+  $('#recempty').hidden = rows.length > 0;
+  $('#reccount').textContent = rows.length > LIMIT
+    ? `${fmtN(rows.length)} matches — showing first ${LIMIT}`
+    : `${fmtN(rows.length)} of ${fmtN(T.generations)}`;
+}
+render();
+
+// ---------- lightbox ----------
+const lb = $('#lightbox');
+function openLightbox(g) {
+  const grid = Array.isArray(g.gridUrls) ? g.gridUrls : [];
+  $('#lbTitle').textContent = `${g.pack} · prompt ${g.index}`;
+  $('#lbMeta').textContent = `${grid.length} image${grid.length === 1 ? '' : 's'} · ${g.taskId || 'no task id'}`;
+  $('#lbGrid').innerHTML = grid.length
+    ? grid.map((u, i) => {
+        const alt = `Midjourney 4-up frame ${i + 1} of ${g.pack} prompt ${g.index}`;
+        return `<img class="lframe" src="${esc(u)}" alt="${esc(alt)}" loading="lazy" decoding="async">`;
+      }).join('')
+    : `<span class="blocked">no image recorded</span>`;
+  lb.hidden = false;
+}
+function closeLightbox() { lb.hidden = true; $('#lbGrid').innerHTML = ''; }
+
+document.addEventListener('click', (e) => {
+  const tile = e.target.closest('img.thumb, .thumb-fallback[data-pack]');
+  if (tile) {
+    const g = idx.generations.find((x) => x.pack === tile.dataset.pack && String(x.index) === tile.dataset.index);
+    if (g) { openLightbox(g); return; }
+  }
+  if (e.target === lb || e.target.id === 'lbClose') closeLightbox();
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
+
+// ---------- surviving artwork ----------
+$('#artsub').textContent =
+  `${fmtN(T.localImages)} tracked images (${(T.localBytes / 1048576).toFixed(1)} MB) from the local FLUX.2 renderer ` +
+  `and the shipped marketplace art. ${fmtN(T.untrackedImages)} more exist on disk but are not published: ` +
+  `${fmtN(T.untrackedIgnored)} are gitignored and ${fmtN(T.untrackedNotIgnored)} are simply not committed yet.`;
+$('#artgrid').innerHTML = idx.artifacts.map((a) => `
+  <figure>
+    <img src="../${esc(a.file)}" alt="${esc('Local render: ' + a.file)}" loading="lazy" decoding="async">
+    <figcaption>${esc(a.file.replace(/^assets\//, ''))}</figcaption>
+  </figure>`).join('');
+
+// ---------- prompt library ----------
+$('#libsub').textContent =
+  `${fmtN(T.promptPacks)} markdown packs, ${fmtN(T.promptLines)} prompts — the source the runs were submitted from.` +
+  (idx.promptExcluded && idx.promptExcluded.length
+    ? ` ${idx.promptExcluded.length} pack${idx.promptExcluded.length === 1 ? '' : 's'} are excluded (documentation, or not tracked in the commit).`
+    : '');
+$('#lib').innerHTML = idx.promptFiles.map((p) => `
+  <a href="../${esc(p.file)}">
+    <b>${esc(p.name)}</b>
+    <span>${esc(p.prompts)} prompt${p.prompts === 1 ? '' : 's'}${p.ar ? ' · --ar ' + esc(p.ar) : ''}</span>
+  </a>`).join('');
+
+// ---------- theme ----------
+document.getElementById('themeBtn')?.addEventListener('click', () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem('mjd-theme', next); } catch (e) {}
+});
+</script>
+</body>
+</html>

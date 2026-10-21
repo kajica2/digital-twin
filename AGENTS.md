@@ -3692,3 +3692,79 @@ render dirs should collapse to one canonical set.
   (b) once `DEEPSEEK_API_KEY` is exported, add the DeepSeek
   models to the copilot default routing; (c) the rest of the
   standing backlog is unchanged.
+
+### 2026-10-21 — sprint 0.43 (Midjourney dashboard: real images, honest numbers)
+
+- **Shipped:**
+  - **`lib/mj-dashboard-index.js`** — rewritten generator for
+    `data/mj/index.json`. It now emits the REAL per-generation
+    `imageUrls` (plus a derived 4-up `gridUrls` and a `thumbUrl`)
+    instead of a count, so the page can actually show the pictures.
+    The prompt library is counted with the submitter's own parser
+    (`lib/mj-submitter.js` → `extractPrompts`) — the local reimplementation
+    is gone (it disagreed by 2). Documentation files
+    (`PROMPT-EXPANSION-FORMAT.md`, `STYLE-PRESETS.md`) are excluded by an
+    explicit list, and every excluded pack is REPORTED with a reason in
+    the stdout summary and in the index. `--ar` comes from the parsed
+    prompts, never from a regex over the raw file. The tracked set is
+    `git ls-tree -r HEAD --name-only` (what Pages actually serves, not
+    the index), and it is applied to the prompt library too, so no
+    published link 404s. External URLs in published prompt text are
+    redacted to `[redacted-url]` (the artist's face-reference photo URLs
+    must not ship) while the `imageUrls` array keeps its CDN URLs. The
+    generator refuses to write an index when nothing is tracked.
+  - **`lib/mj-dashboard-index.test.js`** (33/33) — unit tests for the
+    pure logic: the doc-file exclusion, the URL redaction, the tracked
+    filter, the nothing-tracked guard, prompt-count parity with
+    `extractPrompts`, and the 4-up grid derivation.
+  - **`pages/midjourney-dashboard.html`** — a thumbnail column (first
+    frame of the 4-up, lazy-loaded) with a lightbox showing the full
+    grid. A thumbnail that fails to load degrades to a labelled
+    "blocked" tile, never a broken image. The CDN callout now states the
+    accurate thing: the CDN serves real browsers and challenges
+    curl/headless with a Cloudflare 403 — the images are not gone. The
+    fetch checks `r.ok`, every interpolation is escaped, the meta
+    description no longer hardcodes counts, and the "gitignored" copy is
+    accurate (306 gitignored, 4 merely uncommitted).
+  - **`e2e/mj-dashboard.spec.mjs`** — every vacuous assertion fixed:
+    the search term now matches (12 of 469), the stats check asserts
+    non-zero VALUES, the CDN check is scoped to the callout, the
+    artwork check scrolls and waits instead of trusting `loading="lazy"`,
+    and the spec adds an internal-link check, an alt-text check, an
+    artifacts-dir mkdir and a `CHROME_PATH` read.
+- **The `--sref` duplication, fixed at the source.** `buildFullPrompt`
+  now resolves `--sref` exactly once on every path: a `--sref` in the
+  prompt wins, otherwise the LAST `--sref` in the defaults string wins
+  (which is the user's, because `lib/mj-web.js` appends the user
+  fragment after the config default) and the config default is dropped
+  rather than emitted alongside it. Flags are parsed as segments so a
+  multi-value `--sref url1 url2` keeps its values together. Unit
+  coverage for the two-`--sref` defaults case is in
+  `lib/mj-submitter.test.js` (7c).
+- **Console-error exception (deliberate, scoped).** The spec runs
+  headless, and Cloudflare challenges headless clients on
+  `cdn.midjourney.com`, so every MJ thumbnail request fails in the
+  spec's browser even though the same images load in a headed browser
+  (verified: 640x358 and 1141x640 real pixels, full 4-up). Those
+  failures are filtered out of the console-error assertion BY URL;
+  every other host still fails the spec. The contract "the page shows MJ
+  thumbnails" is still guarded — the spec asserts the thumbnail elements
+  exist with `cdn.midjourney.com` sources, and that a blocked thumbnail
+  ends up LABELLED rather than broken.
+- **Verified:** `node lib/mj-submitter.test.js` 61/61, `node
+  lib/mj-dashboard-index.test.js` 33/33, `node lib/mj-dashboard-index.js`
+  prints an explainable summary (469 generations, 64 packs, 448 tasks,
+  1,823 grid images across 1,885 CDN urls, 32 prompt packs / 266 prompts,
+  6 excluded packs named with reasons, 0 of 469 prompts truncated, 44
+  tracked local images and 310 unpublished = 306 gitignored + 4
+  untracked). The e2e spec WAS run by the lead against a repo-root
+  server on :5180 — 35/35 checks pass, including the lightbox, the
+  internal-link resolution (33 links) and the alt-text check. In a
+  HEADED browser the MJ thumbnails actually render (verified: 23
+  loaded / 0 blocked after scrolling the record table, at 1141x640), so
+  the headless spec's 0-loaded/250-labelled result is the Cloudflare
+  challenge, not a broken page.
+- **Open / next:** the deploy-test loop still needs to run — the spec
+  must be re-run against the deployed URL once Pages has the commit.
+  The `data/mj/index.json` (751,083 bytes with the real URLs — they are
+  not reconstructible from the task id) ships with the commit.
