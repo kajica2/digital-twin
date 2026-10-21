@@ -1,7 +1,7 @@
-[2026-10-10T21:14:22.894Z] [TWIN] SWR-Twin starting...
-[2026-10-10T21:14:22.895Z] [TWIN] Loaded 0 memories
-[TWIN] Ready. Use command.txt or pipe commands.
-(node:23629) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/kaidejuricmasscmbook/Documents/digital_twin/lib/agent-hub/agents/twin/swr-twin.js is not specified and it doesn't parse as CommonJS.
+(node:21631) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/kajicadjuric/Documents/digital_twin/lib/agent-hub/agents/twin/swr-twin.js is not specified and it doesn't parse as CommonJS.
 Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
-To eliminate this warning, add "type": "module" to /Users/kaidejuricmasscmbook/Documents/digital_twin/package.json.
+To eliminate this warning, add "type": "module" to /Users/kajicadjuric/Documents/digital_twin/package.json.
 (Use `node --trace-warnings ...` to show where the warning was created)
+[2026-10-21T04:34:54.494Z] [TWIN] SWR-Twin starting...
+[2026-10-21T04:34:54.499Z] [TWIN] Loaded 0 memories
+[TWIN] Ready. Use command.txt or pipe commands.

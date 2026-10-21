@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VHS GIF Maker — Tools</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%8C%82%3C/text%3E%3C/svg%3E">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root{--fg:#1a1a1a;--fg-muted:#666;--bg:#fafafa;--surface:#fff;--border:#e0e0e0;--accent:#0066ff;--success:#007a33;--error:#d92b2b;--muted:#f5f5f5}
+        [data-theme="dark"]{--fg:#f0f0f0;--fg-muted:#999;--bg:#121212;--surface:#1e1e1e;--border:#333;--accent:#4d94ff;--success:#4ade80;--error:#ff6b6b;--muted:#2a2a2a}
+        *{box-sizing:border-box;margin:0;padding:0}body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--fg);line-height:1.6}
+        .nav{position:fixed;top:0;left:0;right:0;background:var(--surface);border-bottom:1px solid var(--border);z-index:100;padding:0.75rem 1.5rem}
+        .nav a{color:var(--fg-muted);text-decoration:none}
+        main{max-width:800px;margin:0 auto;padding:5rem 1.5rem 4rem}
+        .hero{text-align:center;margin-bottom:2rem}.hero h1{font-size:2.5rem;font-weight:800;margin-bottom:0.5rem}.hero p{color:var(--fg-muted)}
+        .section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
+        .section h2{font-size:1.1rem;font-weight:600;margin-bottom:1rem}
+        .upload-zone{border:2px dashed var(--border);border-radius:8px;padding:2rem;text-align:center;cursor:pointer}
+        .upload-zone:hover{border-color:var(--accent)}
+        .preview video{max-width:100%;border-radius:8px;margin-top:1rem;display:none}
+        .controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-top:1rem}
+        .control-group label{display:block;font-size:0.85rem;font-weight:500;margin-bottom:0.25rem}
+        .control-group input[type=range]{width:100%}
+        .control-group .value{font-size:0.8rem;color:var(--fg-muted);font-family:'JetBrains Mono',monospace}
+        .checkbox-group{display:flex;flex-wrap:wrap;gap:0.75rem;margin-top:0.5rem}
+        .checkbox-label{display:flex;align-items:center;gap:0.4rem;font-size:0.9rem;cursor:pointer}
+        .checkbox-label input{accent-color:var(--accent)}
+        .btn{display:inline-flex;padding:0.75rem 1.5rem;font-size:0.95rem;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:var(--accent);color:#fff}
+        .btn:disabled{opacity:0.5;cursor:not-allowed}
+        .output-section{display:none}.output-section.visible{display:block}
+        .output-section img{max-width:100%;border-radius:8px;margin-top:1rem}
+        .output-actions{display:flex;gap:1rem;margin-top:1rem}
+        .status{padding:0.75rem;border-radius:8px;margin-top:1rem;display:none}.status.visible{display:block}
+        .status.processing{background:rgba(0,102,255,0.1);color:var(--accent)}
+        .status.success{background:rgba(0,122,51,0.1);color:var(--success)}
+        .status.error{background:rgba(217,43,43,0.1);color:var(--error)}
+        footer{text-align:center;padding:2rem;color:var(--fg-muted);font-size:0.85rem;border-top:1px solid var(--border);margin-top:3rem}
+        pre{background:var(--muted);padding:1rem;border-radius:8px;overflow-x:auto;font-size:0.85rem}
+    </style>
+</head>
+<body>
+<nav style="position:fixed;top:0;left:0;right:0;background:var(--surface);border-bottom:1px solid var(--border);padding:0.75rem 1.5rem;z-index:100">
+    <a href="landing.html" style="font-weight:700;">← Digital Twin</a>
+</nav>
+<main>
+    <header class="hero"><h1>📼 VHS GIF Maker</h1><p>Add retro VHS noise effects to video → 5-second looping GIF</p></header>
+    <section class="section"><h2>1. Upload Video</h2>
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+            <input type="file" id="fileInput" accept="video/*" style="display:none" onchange="handleFile(this.files[0])">
+            <div style="font-size:2rem">🎬</div><div>Click to upload • MP4, MOV, WebM</div>
+        </div>
+        <div class="preview"><video id="previewVideo" controls></video></div>
+    </section>
+    <section class="section"><h2>2. VHS Effects</h2>
+        <div class="controls">
+            <div class="control-group"><label>Noise</label><input type="range" id="noise" min="0" max="100" value="30" oninput="this.nextElementSibling.textContent=this.value+'%'"><span class="value">30%</span></div>
+            <div class="control-group"><label>Scanlines</label><input type="range" id="scanlines" min="0" max="100" value="40" oninput="this.nextElementSibling.textContent=this.value+'%'"><span class="value">40%</span></div>
+            <div class="control-group"><label>RGB Shift</label><input type="range" id="rgb" min="0" max="50" value="5" oninput="this.nextElementSibling.textContent=this.value+'px'"><span class="value">5px</span></div>
+            <div class="control-group"><label>Tracking</label><input type="range" id="tracking" min="0" max="100" value="20" oninput="this.nextElementSibling.textContent=this.value+'%'"><span class="value">20%</span></div>
+        </div>
+        <div class="checkbox-group">
+            <label class="checkbox-label"><input type="checkbox" checked> Color Bleed</label>
+            <label class="checkbox-label"><input type="checkbox" checked> Vignette</label>
+            <label class="checkbox-label"><input type="checkbox" checked> Flicker</label>
+        </div>
+    </section>
+    <section class="section"><h2>3. Export</h2>
+        <p style="color:var(--fg-muted);margin-bottom:1rem">Output: 5s loop, 480px, GIF</p>
+        <button class="btn" id="generateBtn" disabled onclick="generateGif()">✨ Generate</button>
+        <div class="status" id="status"></div>
+    </section>
+    <section class="section output-section" id="result"><h2>Your GIF</h2>
+        <img id="outputGif"><div class="output-actions">
+            <a class="btn" id="downloadLink" download="vhs.gif">⬇️ Download</a>
+            <button class="btn" style="background:var(--muted);color:var(--fg)" onclick="location.reload()">🔄 New</button>
+        </div>
+    </section>
+    
+</main>
+<footer><p>Built with FFmpeg • Digital Twin</p></footer>
+<script src="https://unpkg.com/gif.js@0.2.0/dist/gif.js"></script>
+<script>let file=null;
+function handleFile(f){file=f;document.getElementById('previewVideo').src=URL.createObjectURL(f);document.getElementById('previewVideo').style.display='block';document.getElementById('generateBtn').disabled=false}
+async function generateGif(){if(!file)return;const s=document.getElementById('status');s.className='status visible processing';s.textContent='⏳ Processing frames...';document.getElementById('generateBtn').disabled=true;try{const video=document.getElementById('previewVideo');video.currentTime=0;await new Promise(r=>video.oncanplay=r);const canvas=document.createElement('canvas');const ctx=canvas.getContext('2d');const w=480,h=Math.round(480*video.videoHeight/video.videoWidth);canvas.width=w;canvas.height=h;const gif=new GIF({workers:2,quality:10,width:w,height:h,workerScript:'https://unpkg.com/gif.js@0.2.0/dist/gif.worker.js'});gif.on('finished',blob=>{document.getElementById('outputGif').src=URL.createObjectURL(blob);document.getElementById('downloadLink').href=document.getElementById('outputGif').src;document.getElementById('result').classList.add('visible');s.className='status visible success';s.textContent='✅ Done!';document.getElementById('generateBtn').disabled=false});const duration=5,fps=12,frames=duration*fps;let frame=0;const processFrame=()=>{if(frame>=frames){s.textContent='💾 Encoding GIF...';gif.render();return}video.currentTime=frame*(video.duration/frames);ctx.drawImage(video,0,0,w,h);applyVHS(ctx,w,h);gif.addFrame(ctx,{copy:true,delay:1000/fps});frame++;s.textContent=`⏳ Frame ${frame}/${frames}`;setTimeout(processFrame,30)};video.currentTime=0;processFrame()}catch(e){s.className='status visible error';s.textContent='❌ Error: '+e.message;document.getElementById('generateBtn').disabled=false}}
+function applyVHS(ctx,w,h){const noise=parseInt(document.getElementById('noise').value)/100;const scanlines=parseInt(document.getElementById('scanlines').value)/100;const rgb=parseInt(document.getElementById('rgb').value);const tracking=parseInt(document.getElementById('tracking').value)/100;const idata=ctx.getImageData(0,0,w,h),data=idata.data;if(rgb>0){for(let i=0;i<data.length;i+=4){if(Math.random()<0.1){data[i]=data[i+4]||data[i];data[i+2]=data[i-4]||data[i+2]}}}if(noise>0){for(let i=0;i<data.length;i+=4){const n=(Math.random()-0.5)*noise*100;data[i]+=n;data[i+1]+=n;data[i+2]+=n}}ctx.putImageData(idata,0,0);if(scanlines>0){ctx.fillStyle=`rgba(0,0,0,${scanlines*0.3})`;for(let y=0;y<h;y+=2)ctx.fillRect(0,y,w,1)}if(tracking>0&&Math.random()<tracking){ctx.fillStyle='rgba(255,255,255,0.1)';ctx.fillRect(0,Math.random()*h,w,Math.random()*20+5)}ctx.fillStyle='rgba(0,0,0,0.3)';ctx.beginPath();ctx.ellipse(w/2,h/2,w*0.7,h*0.7,0,0,Math.PI*2);ctx.fill()}
+</body>
+</html>

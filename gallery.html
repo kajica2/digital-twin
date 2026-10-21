@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery — Digital Twin</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%8C%BC%3C/text%3E%3C/svg%3E">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root{--fg:#1a1a1a;--fg-muted:#666;--bg:#f5f5f5;--surface:#fff;--border:#e0e0e0;--accent:#0066ff;--success:#007a33;--error:#d92b2b}
+        [data-theme="dark"]{--fg:#f0f0f0;--fg-muted:#999;--bg:#0a0a0a;--surface:#161616;--border:#2a2a2a;--accent:#4d94ff;--success:#4ade80;--error:#f87171}
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--fg);line-height:1.5}
+        .header{background:var(--surface);border-bottom:1px solid var(--border);padding:1rem 2rem;position:sticky;top:0;z-index:100}
+        .header-content{display:flex;align-items:center;justify-content:space-between;max-width:1400px;margin:0 auto}
+        .logo{display:flex;align-items:center;gap:0.75rem;font-weight:700;font-size:1.25rem;text-decoration:none;color:inherit}
+        main{max-width:1400px;margin:0 auto;padding:2rem}
+        .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem}
+        .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:transform .2s,box-shadow .2s;cursor:pointer}
+        .card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,0.12)}
+        .card-img{width:100%;aspect-ratio:1;object-fit:cover;background:var(--bg)}
+        .card-body{padding:0.75rem}
+        .card-title{font-weight:600;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .card-meta{font-size:0.75rem;color:var(--fg-muted);margin-top:0.25rem}
+        .card-actions{display:flex;gap:0.5rem;margin-top:0.5rem}
+        .btn{inline-flex:inline-flex;align-items:center;gap:0.3rem;padding:0.4rem 0.75rem;font-size:0.8rem;font-weight:500;border:none;border-radius:6px;cursor:pointer}
+        .btn-primary{background:var(--accent);color:#fff}
+        .btn-secondary{background:var(--bg);color:var(--fg);border:1px solid var(--border)}
+        .filters{display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap}
+        .filter{background:var(--surface);border:1px solid var(--border);padding:0.5rem 1rem;border-radius:20px;font-size:0.85rem;cursor:pointer;transition:all .2s}
+        .filter:hover,.filter.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+        .empty{text-align:center;padding:4rem;color:var(--fg-muted)}
+        .modal{position:fixed;inset:0;background:rgba(0,0,0,0.8);display:none;align-items:center;justify-content:center;z-index:1000;padding:2rem}
+        .modal.open{display:flex}
+        .modal-content{max-width:90vw;max-height:90vh}
+        .modal-img{max-width:100%;max-height:80vh;border-radius:8px}
+        .modal-info{color:#fff;margin-top:1rem;text-align:center}
+        .modal-actions{display:flex;gap:0.5rem;justify-content:center;margin-top:1rem}
+        .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
+    </style>
+</head>
+<body>
+<header class="header">
+    <div class="header-content">
+        <a href="dashboard.html" class="logo">← Dashboard</a>
+        <a href="dashboard.html" class="logo"><span style="font-size:1.5rem">🖼️</span> Gallery</a>
+    </div>
+</header>
+<main>
+    <div class="toolbar">
+        <h1>Image Gallery</h1>
+        <div class="filters">
+            <button class="filter active" data-filter="all">All</button>
+            <button class="filter" data-filter="mj">Midjourney</button>
+            <button class="filter" data-filter="upload">Uploaded</button>
+            <button class="filter" data-filter="watermarked">Watermarked</button>
+        </div>
+    </div>
+    <div class="grid" id="gallery"></div>
+    <div class="empty" id="empty" style="display:none">No images yet. Generate some with Midjourney!</div>
+</main>
+
+<div class="modal" id="modal">
+    <div class="modal-content">
+        <img class="modal-img" id="modalImg">
+        <div class="modal-info">
+            <div id="modalTitle" style="font-weight:600;font-size:1.1rem"></div>
+            <div id="modalDate" style="font-size:0.85rem;opacity:0.7;margin-top:0.25rem"></div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-primary" onclick="watermarkSelected()">🖼️ Watermark</button>
+            <button class="btn btn-secondary" onclick="downloadSelected()" style="color:#fff;border-color:#fff">⬇️ Download</button>
+            <button class="btn btn-secondary" onclick="closeModal()" style="color:#fff;border-color:#fff">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>let images=[],selectedImg=null;
+async function loadGallery(){try{const r=await fetch('/data/gallery/catalog.json');const d=await r.json();images=d.images||[];render(images)}catch{e=>render([])}}
+function render(arr){const g=document.getElementById('gallery');const e=document.getElementById('empty');if(!arr.length){g.style.display='none';e.style.display='block';return}g.style.display='grid';e.style.display='none';g.innerHTML=arr.map((i,idx)=>`<div class="card" onclick="openModal(${idx})"><img class="card-img" src="${i.path||i.thumbnail}"><div class="card-body"><div class="card-title">${i.title||'Untitled'}</div><div class="card-meta">${new Date(i.createdAt).toLocaleDateString()}</div></div></div>`).join('')}
+function openModal(idx){selectedImg=images[idx];document.getElementById('modalImg').src=selectedImg.path||selectedImg.thumbnail;document.getElementById('modalTitle').textContent=selectedImg.title||'Untitled';document.getElementById('modalDate').textContent=new Date(selectedImg.createdAt).toLocaleString();document.getElementById('modal').classList.add('open')}
+function closeModal(){document.getElementById('modal').classList.remove('open');selectedImg=null}
+function watermarkSelected(){if(selectedImg)window.location.href=`email-watermark.html?image=${encodeURIComponent(selectedImg.path)}`}
+function downloadSelected(){if(selectedImg){const a=document.createElement('a');a.href=selectedImg.path||selectedImg.thumbnail;a.download='';a.click()}}
+document.querySelectorAll('.filter').forEach(f=>f.onclick=function(){document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));this.classList.add('active');const t=this.dataset.filter;render(t==='all'?images:images.filter(i=>i.type===t))});
+document.getElementById('modal').onclick=e=>{if(e.target.id==='modal')closeModal()};
+loadGallery();</script>
+</body>
+</html>

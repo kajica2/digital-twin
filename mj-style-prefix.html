@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="system" data-variant="1">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎨 MJ Prompt Studio — Digital Twin</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='16,4 28,11 28,21 16,28 4,21 4,11' fill='none' stroke='%23c97b3f' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23c97b3f'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <script>
+    (function(){try{var s=localStorage.getItem('dt-theme-pref')||'system';var r=s==='system'?(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):s;document.documentElement.setAttribute('data-theme',r)}catch(e){}})();
+    </script>
+    <style>
+        :root{--bg:#f7f5f0;--bg-warm:#f4f0e7;--surface:#fff;--line:#e9e3d6;--line-soft:#f0eadf;--ink:#14171e;--ink-muted:#3a4256;--ink-faint:#7c7a72;--primary:#c97b3f;--primary-2:#a85f28;--accent:#2f6f5e;--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:24px;--space-6:32px;--radius-sm:6px;--radius-md:10px;--radius-lg:14px;--shadow-sm:0 1px 2px rgba(20,23,30,.04),0 2px 6px rgba(20,23,30,.05);--shadow-md:0 1px 2px rgba(20,23,30,.05),0 8px 24px rgba(20,23,30,.08);--font-display:'DM Serif Display',serif;--font-body:'Outfit',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace}
+        [data-theme="dark"]{--bg:#1a1812;--bg-warm:#211e16;--surface:#25221a;--line:#3a342a;--line-soft:#2d2a22;--ink:#f4efe2;--ink-muted:#c0b8a8;--ink-faint:#807868;--primary:#d9925a;--primary-2:#e6a674;--accent:#6ab098;--shadow-sm:0 1px 2px rgba(0,0,0,.3),0 2px 6px rgba(0,0,0,.25);--shadow-md:0 1px 2px rgba(0,0,0,.35),0 8px 24px rgba(0,0,0,.35)}
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:var(--font-body);background:var(--bg);color:var(--ink);line-height:1.5;min-height:100vh}
+        
+        /* Header */
+        .header{background:linear-gradient(135deg,var(--primary),var(--primary-2));padding:1.5rem 2rem;color:#fff;position:relative}
+        .header::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='m0 0h20v20h-20zm20 20h20v20h-20z'/%3E%3C/g%3E%3C/svg%3E")}
+        .header-content{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1}
+        .logo{font-family:var(--font-display);font-size:1.5rem;display:flex;align-items:center;gap:0.5rem}
+        .logo-icon{width:36px;height:36px;background:rgba(255,255,255,0.2);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center}
+        .header-nav{display:flex;gap:0.75rem}
+        .header-nav a{padding:0.5rem 1rem;border-radius:var(--radius-md);background:rgba(255,255,255,0.15);color:#fff;font-weight:500;font-size:0.9rem;transition:background 0.2s}
+        .header-nav a:hover{background:rgba(255,255,255,0.25)}
+        
+        /* Main */
+        main{max-width:1200px;margin:0 auto;padding:var(--space-5)}
+        
+        /* Tabs */
+        .tabs{display:flex;gap:var(--space-2);margin-bottom:var(--space-5);background:var(--surface);padding:var(--space-2);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm)}
+        .tab{flex:1;padding:0.75rem 1.25rem;border:none;background:none;border-radius:var(--radius-md);font-weight:600;font-size:0.9rem;color:var(--ink-muted);cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:0.5rem}
+        .tab:hover{color:var(--ink);background:var(--line-soft)}
+        .tab.active{background:var(--primary);color:#fff}
+        
+        /* Cards */
+        .card{background:var(--surface);border-radius:var(--radius-lg);padding:var(--space-5);margin-bottom:var(--space-5);box-shadow:var(--shadow-sm);border:1px solid var(--line)}
+        .card-title{font-weight:700;font-size:1.1rem;margin-bottom:var(--space-4);display:flex;align-items:center;gap:0.5rem;font-family:var(--font-display)}
+        
+        /* Grid */
+        .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-5)}
+        .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-3)}
+        @media(max-width:768px){.grid-2,.grid-4{grid-template-columns:1fr}}
+        
+        /* Layout */
+        .col-main{flex:1}
+        .col-sidebar{width:340px}
+        .layout{display:flex;gap:var(--space-5)}
+        @media(max-width:1024px){.layout{flex-direction:column}.col-sidebar{width:100%}}
+        
+        /* Buttons */
+        .btn{display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;padding:0.75rem 1.5rem;font-size:0.9rem;font-weight:600;border:none;border-radius:var(--radius-md);cursor:pointer;transition:all 0.2s;white-space:nowrap}
+        .btn-primary{background:var(--primary);color:#fff}
+        .btn-primary:hover{background:var(--primary-2)}
+        .btn-secondary{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+        .btn-secondary:hover{background:var(--line-soft)}
+        .btn-stripe{background:#635bff;color:#fff}
+        .btn-stripe:hover{background:#4b44d4}
+        .btn-sm{padding:0.5rem 1rem;font-size:0.8rem}
+        
+        /* Preset buttons */
+        .preset-btn{display:flex;flex-direction:column;align-items:center;gap:0.25rem;padding:1rem;border:2px solid var(--line);background:var(--surface);border-radius:var(--radius-lg);cursor:pointer;transition:all 0.2s}
+        .preset-btn:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:var(--shadow-md)}
+        .preset-btn.active{border-color:var(--primary);background:var(--primary-soft,rgba(201,123,63,0.08))}
+        .preset-btn-icon{width:40px;height:40px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:1.25rem}
+        .preset-btn-label{font-size:0.75rem;font-weight:600;color:var(--ink-muted)}
+        
+        /* Inputs */
+        .input{width:100%;padding:0.875rem 1rem;border:2px solid var(--line);border-radius:var(--radius-md);background:var(--bg);color:var(--ink);font-size:0.95rem;transition:border-color 0.2s;font-family:var(--font-body)}
+        .input:focus{outline:none;border-color:var(--primary)}
+        .input::placeholder{color:var(--ink-faint)}
+        textarea.input{min-height:100px;resize:vertical;font-family:var(--font-mono);font-size:0.85rem}
+        
+        /* Output */
+        .output{background:linear-gradient(135deg,#1a1812,#25221a);color:#f4efe2;padding:1.25rem;border-radius:var(--radius-md);font-family:var(--font-mono);font-size:0.9rem;word-break:break-all;min-height:80px;position:relative}
+        .output-copy{position:absolute;top:0.75rem;right:0.75rem;background:rgba(255,255,255,0.1);border:none;color:#f4efe2;padding:0.5rem;border-radius:var(--radius-sm);cursor:pointer;font-size:0.8rem}
+        .output-copy:hover{background:rgba(255,255,255,0.2)}
+        
+        /* Upload */
+        .upload-zone{border:2px dashed var(--line);border-radius:var(--radius-lg);padding:2rem;text-align:center;cursor:pointer;transition:all 0.2s}
+        .upload-zone:hover{border-color:var(--primary);background:rgba(201,123,63,0.05)}
+        
+        /* Previews */
+        .preview-grid{display:flex;flex-wrap:wrap;gap:0.75rem;margin-top:var(--space-4)}
+        .preview-item{position:relative;width:100px;height:100px;border-radius:var(--radius-md);overflow:hidden}
+        .preview-item img{width:100%;height:100%;object-fit:cover}
+        .preview-item-remove{position:absolute;top:4px;right:4px;width:24px;height:24px;background:rgba(239,68,68,0.9);color:#fff;border:none;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+        .preview-item-num{position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,0.7);color:#fff;font-size:10px;padding:2px 6px;border-radius:4px}
+        
+        /* Preset list */
+        .preset-list{max-height:300px;overflow-y:auto}
+        .preset-item{display:flex;align-items:center;gap:0.75rem;padding:0.875rem;background:var(--line-soft);border-radius:var(--radius-md);margin-bottom:0.5rem;cursor:pointer;transition:all 0.2s;border:2px solid transparent}
+        .preset-item:hover{background:var(--line)}
+        .preset-item.active{border-color:var(--primary);background:rgba(201,123,63,0.08)}
+        .preset-item-icon{width:36px;height:36px;background:var(--primary);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center}
+        .preset-item-name{flex:1;font-weight:600}
+        .preset-item-prefix{font-size:0.75rem;color:var(--ink-faint);font-family:var(--font-mono)}
+        
+        /* Badge */
+        .badge{display:inline-flex;align-items:center;gap:0.25rem;padding:0.25rem 0.75rem;font-size:0.75rem;font-weight:600;border-radius:20px}
+        .badge-success{background:rgba(47,111,94,0.1);color:var(--accent)}
+        
+        /* Panel */
+        .panel{display:none}
+        .panel.active{display:block}
+        
+        /* Footer */
+        footer{text-align:center;padding:var(--space-5);color:var(--ink-faint);font-size:0.85rem;border-top:1px solid var(--line);margin-top:var(--space-6)}
+        
+        @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        .animate{animation:fadeIn 0.3s ease}
+        
+        .empty{text-align:center;padding:var(--space-5);color:var(--ink-faint)}
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">🎨</div>
+                <div>MJ Prompt Studio</div>
+            </div>
+            <nav class="header-nav">
+                <a href="landing.html">← Tools</a>
+                <a href="dashboard.html">Dashboard</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('create')">✨ Create</button>
+            <button class="tab" onclick="switchTab('batch')">📋 Batch</button>
+            <button class="tab" onclick="switchTab('images')">🖼️ Images</button>
+            <button class="tab" onclick="switchTab('presets')">💾 Presets</button>
+        </div>
+
+        <!-- CREATE -->
+        <div id="panel-create" class="panel active animate">
+            <div class="layout">
+                <div class="col-main">
+                    <!-- Quick Presets -->
+                    <div class="card">
+                        <div class="card-title">⚡ Quick Presets</div>
+                        <div class="grid-4" style="margin-top:1rem">
+                            <button class="preset-btn" onclick="applyPreset('--ar 21:9, --v 6, --style cinematic')">
+                                <div class="preset-btn-icon" style="background:linear-gradient(135deg,#c97b3f,#a85f28)">🎬</div>
+                                <span class="preset-btn-label">Cinematic</span>
+                            </button>
+                            <button class="preset-btn" onclick="applyPreset('--ar 3:4, --v 6, --style portrait')">
+                                <div class="preset-btn-icon" style="background:linear-gradient(135deg,#c97b3f,#a85f28)">👤</div>
+                                <span class="preset-btn-label">Portrait</span>
+                            </button>
+                            <button class="preset-btn" onclick="applyPreset('--ar 16:9, --v 6')">
+                                <div class="preset-btn-icon" style="background:linear-gradient(135deg,#c97b3f,#a85f28)">🏔️</div>
+                                <span class="preset-btn-label">Landscape</span>
+                            </button>
+                            <button class="preset-btn" onclick="applyPreset('--ar 1:1, --v 6, --q 2')">
+                                <div class="preset-btn-icon" style="background:linear-gradient(135deg,#c97b3f,#a85f28)">📦</div>
+                                <span class="preset-btn-label">Product</span>
+                            </button>
+                            <button class="preset-btn" onclick="applyPreset('--v 6, --nijis 5')">
+                                <div class="preset-btn-icon" style="background:linear-gradient(135deg,#c97b3f,#a85f28)">🎨</div>
+                                <span class="preset-btn-label">Anime</span>
+                            </button>
+                            <button class="preset-btn" onclick="applyPreset('--v 6, --style raw')">
+                                <div class="preset-btn-icon" style="background:linear-gradient(135deg,#c97b3f,#a85f28)">📸</div>
+                                <span class="preset-btn-label">Photoreal</span>
+                            </button>
+                            <button class="preset-btn" onclick="applyPreset('--ar 9:16, --v 6')">
+                                <div class="preset-btn-icon" style="background:linear-gradient(135deg,#c97b3f,#a85f28)">📱</div>
+                                <span class="preset-btn-label">Story</span>
+                            </button>
+                            <button class="preset-btn" onclick="applyPreset('--ar 16:9, --v 6, --style photo')">
+                                <div class="preset-btn-icon" style="background:linear-gradient(135deg,#c97b3f,#a85f28)">🖼️</div>
+                                <span class="preset-btn-label">Photo</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Generate -->
+                    <div class="card">
+                        <div class="card-title">✍️ Your Prompt</div>
+                        <textarea class="input" id="basePrompt" placeholder="Describe what you want to generate..." style="margin-top:1rem"></textarea>
+                        <div style="margin-top:1rem">
+                            <div class="output" id="output">Your prompt will appear here...<button class="output-copy" onclick="copyOutput()">📋 Copy</button></div>
+                        </div>
+                        <div style="margin-top:1rem;display:flex;gap:0.75rem;flex-wrap:wrap">
+                            <button class="btn btn-primary" onclick="generate()">✨ Generate</button>
+                            <button class="btn btn-secondary" onclick="copyOutput()">📋 Copy</button>
+                            <button class="btn btn-secondary" onclick="clearAll()">🗑️ Clear</button>
+                            <a href="https://buy.stripe.com/test_mj" target="_blank" class="btn btn-stripe">☁️ Upgrade</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sidebar">
+                    <!-- Attach Image -->
+                    <div class="card">
+                        <div class="card-title">🖼️ Attach Image</div>
+                        <div class="upload-zone" onclick="document.getElementById('attachInput').click()" style="margin-top:1rem">
+                            <input type="file" id="attachInput" accept="image/*" style="display:none" onchange="handleAttach(this.files[0])">
+                            <div style="font-size:2rem">📎</div>
+                            <div>Click to upload</div>
+                            <div style="font-size:0.8rem;color:var(--ink-faint)">for MJ reference</div>
+                        </div>
+                        <div id="attachPreview" class="preview-grid" style="display:none"></div>
+                        <div id="attachStatus" class="badge badge-success" style="margin-top:0.75rem;display:none">✅ Image attached</div>
+                        
+                        <div style="margin-top:1rem;border-top:1px solid var(--line);padding-top:1rem">
+                            <label style="font-size:0.85rem;font-weight:600">Or --cref URL:</label>
+                            <input type="text" class="input" id="crefUrl" placeholder="https://..." style="margin-top:0.5rem" oninput="manualcref(this.value)">
+                        </div>
+                    </div>
+
+                    <!-- Current Prefix -->
+                    <div class="card">
+                        <div class="card-title">📝 Current Prefix</div>
+                        <textarea class="input" id="prefixText" placeholder="--ar 16:9, --v 6" style="margin-top:1rem;min-height:60px"></textarea>
+                        <button class="btn btn-sm btn-secondary" style="margin-top:0.75rem" onclick="saveCurrentAsPreset()">💾 Save as Preset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BATCH -->
+        <div id="panel-batch" class="panel animate">
+            <div class="card">
+                <div class="card-title">📋 Batch Prompt Generator</div>
+                <p style="color:var(--ink-faint);margin-bottom:1rem">Enter multiple prompts (one per line).</p>
+                <div class="grid-2" style="gap:1.5rem">
+                    <div>
+                        <label style="font-weight:600;display:block;margin-bottom:0.5rem">Your Prompts</label>
+                        <textarea class="input" id="batchPrompts" placeholder="a cat&#10;a dog&#10;a bird" style="min-height:200px"></textarea>
+                    </div>
+                    <div>
+                        <label style="font-weight:600;display:block;margin-bottom:0.5rem">Generated</label>
+                        <div class="output" id="batchOutput" style="min-height:200px">Generated prompts will appear here...</div>
+                        <button class="btn btn-primary" style="margin-top:1rem" onclick="batchRun()">⚡ Generate</button>
+                        <button class="btn btn-secondary" style="margin-top:1rem" onclick="copyBatch()">📋 Copy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- IMAGES -->
+        <div id="panel-images" class="panel animate">
+            <div class="card">
+                <div class="card-title">🖼️ Multi-Image Batch</div>
+                <p style="color:var(--ink-faint);margin-bottom:1rem">Upload multiple reference images.</p>
+                
+                <div class="upload-zone" onclick="document.getElementById('multiInput').click()" style="margin-bottom:1rem">
+                    <input type="file" id="multiInput" accept="image/*" multiple style="display:none" onchange="handleMultiUpload(this.files)">
+                    <div style="font-size:2rem">🖼️</div>
+                    <div>Click to select multiple images</div>
+                </div>
+                
+                <div id="multiPreviewGrid" class="preview-grid"></div>
+                
+                <div class="grid-2" style="margin-top:1.5rem;gap:1rem">
+                    <div>
+                        <label style="font-weight:600;display:block;margin-bottom:0.5rem">Prompt Template</label>
+                        <input type="text" class="input" id="multiTemplate" placeholder="variation {i}" value="variation {i}">
+                    </div>
+                    <div>
+                        <label style="font-weight:600;display:block;margin-bottom:0.5rem">Style Prefix</label>
+                        <input type="text" class="input" id="multiStyle" placeholder="--ar 16:9, --v 6">
+                    </div>
+                </div>
+                
+                <div style="margin-top:1.5rem">
+                    <div class="output" id="multiOutput" style="min-height:100px">Generated prompts will appear here...</div>
+                    <div style="margin-top:1rem;display:flex;gap:0.75rem">
+                        <button class="btn btn-primary" onclick="generateMultiPrompts()">⚡ Generate</button>
+                        <button class="btn btn-secondary" onclick="copyMulti()">📋 Copy</button>
+                        <button class="btn btn-secondary" onclick="clearMulti()">🗑️ Clear</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PRESETS -->
+        <div id="panel-presets" class="panel animate">
+            <div class="layout">
+                <div class="col-main">
+                    <div class="card">
+                        <div class="card-title">💾 Your Presets</div>
+                        <div class="preset-list" id="presetList" style="margin-top:1rem"></div>
+                    </div>
+                </div>
+                <div class="col-sidebar">
+                    <div class="card">
+                        <div class="card-title">➕ Create New Preset</div>
+                        <div style="margin-top:1rem">
+                            <label style="font-weight:600;display:block;margin-bottom:0.5rem">Name</label>
+                            <input type="text" class="input" id="presetName" placeholder="e.g., My Style">
+                        </div>
+                        <div style="margin-top:1rem">
+                            <label style="font-weight:600;display:block;margin-bottom:0.5rem">Prefix</label>
+                            <textarea class="input" id="newPresetPrefix" placeholder="--ar 16:9, --v 6" style="min-height:80px"></textarea>
+                        </div>
+                        <button class="btn btn-primary" style="margin-top:1rem;width:100%" onclick="saveNewPreset()">💾 Save Preset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>MJ Prompt Studio • Digital Twin</footer>
+
+<script>
+const DEFAULT_PRESETS=[
+    {name:'Cinematic',prefix:'--ar 21:9, --v 6, --style cinematic',icon:'🎬'},
+    {name:'Portrait',prefix:'--ar 3:4, --v 6, --style portrait',icon:'👤'},
+    {name:'Landscape',prefix:'--ar 16:9, --v 6',icon:'🏔️'},
+    {name:'Product',prefix:'--ar 1:1, --v 6, --q 2',icon:'📦'},
+    {name:'Anime',prefix:'--v 6, --nijis 5',icon:'🎨'},
+    {name:'Photoreal',prefix:'--v 6, --style raw',icon:'📸'},
+    {name:'Story',prefix:'--ar 9:16, --v 6',icon:'📱'},
+    {name:'Photo',prefix:'--ar 16:9, --v 6, --style photo',icon:'🖼️'}
+];
+
+let savedPresets=JSON.parse(localStorage.getItem('mj-presets')||'null');
+let presets=savedPresets&&savedPresets.length>0?savedPresets:DEFAULT_PRESETS;
+if(!savedPresets){localStorage.setItem('mj-presets',JSON.stringify(presets))}
+let activePresetIdx=null;
+let attachedImageFile=null;
+let attachedImageUrl=null;
+let multiImages=[];
+
+renderPresets();
+
+function switchTab(tab){
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    document.querySelector(`.tab:nth-child(${['create','batch','images','presets'].indexOf(tab)+1})`).classList.add('active');
+    document.getElementById(`panel-${tab}`).classList.add('active');
+}
+
+function renderPresets(){
+    const list=document.getElementById('presetList');
+    if(presets.length===0){list.innerHTML='<div class="empty">No presets yet.</div>';return}
+    list.innerHTML=presets.map((p,i)=>`
+        <div class="preset-item ${activePresetIdx===i?'active':''}" onclick="selectPreset(${i})">
+            <div class="preset-item-icon">${p.icon||'📝'}</div>
+            <div style="flex:1">
+                <div class="preset-item-name">${p.name}</div>
+                <div class="preset-item-prefix">${p.prefix}</div>
+            </div>
+            <button class="btn btn-sm btn-secondary" onclick="deletePreset(${i},event)">🗑️</button>
+        </div>
+    `).join('');
+}
+
+function selectPreset(i){
+    activePresetIdx=i;
+    const p=presets[i];
+    document.getElementById('prefixText').value=p.prefix;
+    document.getElementById('presetName').value=p.name;
+    renderPresets();
+    generate();
+}
+
+function applyPreset(prefix){
+    document.getElementById('prefixText').value=prefix;
+    generate();
+}
+
+function deletePreset(i,e){
+    e.stopPropagation();
+    if(confirm('Delete this preset?')){
+        presets.splice(i,1);
+        if(activePresetIdx===i)activePresetIdx=null;
+        savePresets();
+    }
+}
+
+function savePresets(){
+    localStorage.setItem('mj-presets',JSON.stringify(presets));
+    renderPresets();
+}
+
+function saveNewPreset(){
+    const name=document.getElementById('presetName').value.trim();
+    const prefix=document.getElementById('newPresetPrefix').value.trim();
+    if(!name||!prefix)return alert('Enter name and prefix');
+    presets.push({name,prefix,icon:'📝'});
+    savePresets();
+    document.getElementById('presetName').value='';
+    document.getElementById('newPresetPrefix').value='';
+}
+
+function saveCurrentAsPreset(){
+    const name=document.getElementById('presetName').value.trim();
+    const prefix=document.getElementById('prefixText').value.trim();
+    if(!name||!prefix)return alert('Enter a name and prefix');
+    presets.push({name,prefix,icon:'📝'});
+    savePresets();
+}
+
+function generate(){
+    const base=document.getElementById('basePrompt').value.trim();
+    const prefix=document.getElementById('prefixText').value.trim();
+    let output='';
+    if(base&&prefix){output=prefix.replace(/,/g,' ')+' '+base;}
+    else if(base){output=base;}
+    else if(prefix){output=prefix.replace(/,/g,' ')+' [your prompt]';}
+    else{output='Enter a prompt above...';}
+    if(attachedImageUrl){output+=' --cref '+attachedImageUrl;}
+    else if(attachedImageFile){output+=' [📎 image attached]';}
+    document.getElementById('output').innerHTML=output.replace(/</g,'&lt;')+'<button class="output-copy" onclick="copyOutput()">📋 Copy</button>';
+}
+
+function copyOutput(){
+    const output=document.getElementById('output').textContent.replace('📋 Copy','').trim();
+    navigator.clipboard.writeText(output);
+    showToast('Copied!');
+}
+
+function clearAll(){
+    document.getElementById('basePrompt').value='';
+    document.getElementById('prefixText').value='';
+    attachedImageFile=null;
+    attachedImageUrl=null;
+    document.getElementById('attachPreview').innerHTML='';
+    document.getElementById('attachPreview').style.display='none';
+    document.getElementById('attachStatus').style.display='none';
+    generate();
+}
+
+function batchRun(){
+    const prompts=document.getElementById('batchPrompts').value.trim().split('\n').filter(p=>p.trim());
+    const prefix=document.getElementById('prefixText').value.trim().replace(/,/g,' ');
+    if(!prompts.length)return alert('Enter prompts!');
+    const output=prompts.map(p=>prefix?prefix+' '+p.trim():p.trim()).join('\n\n');
+    document.getElementById('batchOutput').innerHTML=output.replace(/</g,'&lt;');
+}
+
+function copyBatch(){
+    navigator.clipboard.writeText(document.getElementById('batchOutput').textContent);
+    showToast('Copied!');
+}
+
+function handleAttach(f){
+    if(!f)return;
+    attachedImageFile=f;
+    const url=URL.createObjectURL(f);
+    const preview=document.getElementById('attachPreview');
+    preview.innerHTML=`<div class="preview-item"><img src="${url}"><button class="preview-item-remove" onclick="removeAttach()">×</button></div>`;
+    preview.style.display='flex';
+    document.getElementById('attachStatus').style.display='inline-flex';
+    generate();
+}
+
+function removeAttach(){
+    attachedImageFile=null;
+    document.getElementById('attachPreview').innerHTML='';
+    document.getElementById('attachPreview').style.display='none';
+    document.getElementById('attachStatus').style.display='none';
+    generate();
+}
+
+function manualcref(url){
+    attachedImageUrl=url;
+    generate();
+}
+
+function handleMultiUpload(files){
+    multiImages=Array.from(files);
+    const grid=document.getElementById('multiPreviewGrid');
+    grid.innerHTML=multiImages.map((f,i)=>`<div class="preview-item"><img src="${URL.createObjectURL(f)}"><button class="preview-item-remove" onclick="removeMultiImage(${i})">×</button><span class="preview-item-num">${i+1}</span></div>`).join('');
+}
+
+function removeMultiImage(i){
+    multiImages.splice(i,1);
+    handleMultiUpload(multiImages);
+}
+
+function generateMultiPrompts(){
+    if(!multiImages.length)return alert('Upload images first!');
+    const template=document.getElementById('multiTemplate').value||'variation {i}';
+    const style=document.getElementById('multiStyle').value||'';
+    const prompts=multiImages.map((f,i)=>{
+        const t=template.replace('{i}',i+1);
+        return style?t+' '+style:t;
+    });
+    document.getElementById('multiOutput').innerHTML=prompts.join('\n\n').replace(/</g,'&lt;');
+}
+
+function copyMulti(){
+    navigator.clipboard.writeText(document.getElementById('multiOutput').textContent);
+    showToast('Copied!');
+}
+
+function clearMulti(){
+    multiImages=[];
+    document.getElementById('multiPreviewGrid').innerHTML='';
+    document.getElementById('multiOutput').innerHTML='Generated prompts will appear here...';
+}
+
+['basePrompt','prefixText'].forEach(id=>{document.getElementById(id).addEventListener('input',generate);});
+
+function showToast(msg){
+    const toast=document.createElement('div');
+    toast.style.cssText='position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;padding:0.75rem 1.5rem;border-radius:var(--radius-md);font-weight:600;z-index:1000';
+    toast.textContent=msg;
+    document.body.appendChild(toast);
+    setTimeout(()=>toast.remove(),2000);
+}
+</script>
+</body>
+</html>

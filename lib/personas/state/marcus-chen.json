@@ -6,7 +6,11 @@
       "twitter"
     ]
   },
-  "lastInteraction": null,
+  "lastInteraction": {
+    "target": "yuki-tanaka",
+    "type": "collab",
+    "timestamp": "2026-10-21T05:24:54.499Z"
+  },
   "contentQueue": [
     {
       "content": "Sometimes you just need to step away from the screen.",

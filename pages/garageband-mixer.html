@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GarageBand Mixer — Tools</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%8E%B5%3C/text%3E%3C/svg%3E">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root{--fg:#1a1a1a;--bg:#1a1a1a;--surface:#252525;--surface2:#2d2d2d;--border:#3d3d3d;--accent:#ff9500;--green:#30d158;--red:#ff453a}
+        *{box-sizing:border-box;margin:0;padding:0}body{font-family:'Inter',sans-serif;background:var(--bg);color:#f0f0f0;min-height:100vh}
+        .header{background:linear-gradient(90deg,#1a1a1a,#2d2d2d);padding:1rem 2rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+        .logo{display:flex;align-items:center;gap:0.75rem}.logo-icon{width:40px;height:40px;background:linear-gradient(135deg,#ff9500,#ff5500);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px}
+        .pay-btn{background:linear-gradient(90deg,#30d158,#34c759);color:#fff;border:none;padding:0.75rem 1.5rem;border-radius:8px;font-weight:600;cursor:pointer}
+        main{padding:2rem;max-width:900px;margin:0 auto}
+        .upload{background:var(--surface);border-radius:16px;padding:2rem;margin-bottom:2rem;border:2px dashed var(--border);text-align:center}
+        .track-list{display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:1rem}
+        .track-tag{background:var(--surface2);padding:0.5rem 1rem;border-radius:20px;font-size:0.85rem}
+        .mixer{background:var(--surface);border-radius:16px;padding:1.5rem;margin-bottom:2rem}
+        .mixer-title{font-size:1.25rem;font-weight:600;margin-bottom:1rem}
+        .channels{display:flex;gap:8px;overflow-x:auto}
+        .channel{width:70px;background:var(--surface2);border-radius:8px;padding:1rem 0.5rem;display:flex;flex-direction:column;align-items:center;gap:0.5rem;min-width:60px}
+        .channel.master{width:90px;border:1px solid var(--accent)}
+        .channel-name{font-size:0.7rem;font-weight:600;text-transform:uppercase;color:#999}
+        .fader{height:100px;width:20px;background:#1a1a1a;border-radius:4px;position:relative}
+        .fader-knob{width:24px;height:10px;background:#666;border-radius:2px;position:absolute;bottom:50%}
+        .meter{width:6px;height:100px;background:#1a1a1a;border-radius:2px;position:relative;overflow:hidden}
+        .meter-fill{position:absolute;bottom:0;width:100%;background:linear-gradient(to top,#32d74b 60%,#ffd60a 80%,#ff453a 100%)}
+        .daw-buttons{display:flex;gap:1rem;margin:1.5rem 0;flex-wrap:wrap;justify-content:center}
+        .daw-btn{background:var(--surface2);border:1px solid var(--border);color:#f0f0f0;padding:0.5rem 1rem;border-radius:6px;cursor:pointer}
+        .daw-btn.active{background:var(--accent);border-color:var(--accent)}
+        .pricing{background:var(--surface);border-radius:16px;padding:2rem;margin-bottom:2rem}
+        .pricing h2{text-align:center}
+        .pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-top:1.5rem}
+        .pricing-card{background:var(--surface2);border-radius:12px;padding:1.5rem;text-align:center;border:2px solid transparent;cursor:pointer}
+        .pricing-card:hover,.pricing-card.selected{border-color:var(--accent)}
+        .price{font-size:2.5rem;font-weight:700;color:var(--accent)}.price span{font-size:1rem;color:#999}
+        .mix-btn{width:100%;background:linear-gradient(90deg,#ff9500,#ff5500);color:#fff;border:none;padding:1rem;border-radius:8px;font-size:1.1rem;font-weight:700;cursor:pointer;max-width:400px;display:block;margin:2rem auto 0}
+        .status-bar{background:var(--surface);border-radius:12px;padding:1rem 1.5rem;display:flex;justify-content:space-between}
+    </style>
+</head>
+<body>
+<header class="header"><div class="logo"><div class="logo-icon">🎹</div><h1>GarageBand Mixer</h1></div><button class="pay-btn" onclick="document.getElementById('pricing').scrollIntoView({behavior:'smooth'})">💰 Pay & Mix</button></header>
+<main>
+    <div class="upload" onclick="document.getElementById('fileInput').click()">
+        <input type="file" id="fileInput" accept="audio/*" multiple style="display:none" onchange="handleFiles(this.files)">
+        <div style="font-size:3rem">🎵</div><div style="font-size:1.1rem">Drop tracks here</div><div style="color:#999">Separate stems = better mix</div>
+        <div class="track-list" id="trackList"></div>
+    </div>
+    <div class="mixer"><div class="mixer-title">🎛️ Channel Mixer</div><div class="channels" id="channels"></div></div>
+    <div class="status-bar"><div><span class="status-dot" id="statusDot" style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-right:0.5rem"></span><span id="statusText">Ready</span></div><div>Tracks: <span id="trackCount">0</span></div></div>
+    <div class="pricing" id="pricing">
+        <h2>💰 Submit for Professional Mixing</h2>
+        <div class="daw-buttons">
+            <button class="daw-btn active" onclick="selectDaw('garageband',this)">🎹 GarageBand</button>
+            <button class="daw-btn" onclick="selectDaw('logic',this)">🎛️ Logic Pro</button>
+            <button class="daw-btn" onclick="selectDaw('ableton',this)">🎚️ Ableton</button>
+        </div>
+        <div class="pricing-grid">
+            <div class="pricing-card" onclick="selectPrice(this,9.99)"><div class="price-name">Quick Mix</div><div class="price">$9.99<span>/song</span></div></div>
+            <div class="pricing-card selected" onclick="selectPrice(this,19.99)"><div class="price-name">Pro Mix</div><div class="price">$19.99<span>/song</span></div></div>
+            <div class="pricing-card" onclick="selectPrice(this,49.99)"><div class="price-name">Album</div><div class="price">$49.99<span>/song</span></div></div>
+        </div>
+        <button class="mix-btn" onclick="process()">🔒 Pay & Send to <span id="dawName">GarageBand</span> →</button>
+    </div>
+</main>
+<script>const tracks=[],ch=['Drums','Bass','Guitar','Keys','Vocals','Synth','FX'];let daw='garageband',price=19.99;
+function initMixer(){const c=document.getElementById('channels');ch.forEach(n=>{const ch=document.createElement('div');ch.className='channel';ch.innerHTML=`<div class="channel-name">${n}</div><div class="meter"><div class="meter-fill" style="height:${30+Math.random()*40}%"></div></div><div class="fader"><div class="fader-knob" style="bottom:${40+Math.random()*40}%"></div></div>`;c.appendChild(ch)});const m=document.createElement('div');m.className='channel master';m.innerHTML=`<div class="channel-name" style="color:var(--accent)">MASTER</div><div class="meter"><div class="meter-fill" style="height:60%"></div></div><div class="fader"><div class="fader-knob" style="bottom:70%"></div></div>`;c.appendChild(m);setInterval(()=>document.querySelectorAll('.meter-fill').forEach(m=>m.style.height=Math.min(95,Math.max(10,parseFloat(m.style.height)+(Math.random()-0.3)*20))+'%'),100)}
+function handleFiles(files){Array.from(files).forEach(f=>{if(f.type.startsWith('audio/'))tracks.push(f.name.replace(/\.[^/.]+$/,''))});updateList()}
+function updateList(){document.getElementById('trackCount').textContent=tracks.length;document.getElementById('trackList').innerHTML=tracks.map((t,i)=>`<span class="track-tag">🎵 ${t.substring(0,12)}<span style="cursor:pointer;margin-left:0.5rem" onclick="tracks.splice(${i},1);updateList()">✕</span></span>`).join('')}
+function selectDaw(d,btn){daw=d;document.querySelectorAll('.daw-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('dawName').textContent=d.charAt(0).toUpperCase()+d.slice(1)}
+function selectPrice(card,p){document.querySelectorAll('.pricing-card').forEach(c=>c.classList.remove('selected'));card.classList.add('selected');price=p}
+function process(){if(tracks.length===0)return alert('Add tracks first!');const sd=document.getElementById('statusDot'),st=document.getElementById('statusText');sd.style.background='var(--accent)';sd.style.animation='pulse 1s infinite';st.textContent='Processing...';setTimeout(()=>{st.textContent='Mixing...';setTimeout(()=>{st.textContent='Sending to DAW...';setTimeout(()=>{sd.style.background='var(--green)';sd.style.animation='none';st.textContent='Complete!';alert(`🎉 Payment $${price} successful!\n\nYour mix will be sent to ${daw}!`);tracks.length=0;updateList()},1500)},1500)},1500)}
+initMixer();</script>
+</body>
+</html>

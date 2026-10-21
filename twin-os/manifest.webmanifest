@@ -1,0 +1,26 @@
+{
+  "name": "Twin OS",
+  "short_name": "Twin OS",
+  "description": "The Twin OS shell. One calm surface for today, songs, and the twin itself. Local-first, no cloud roundtrip.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f7f5f0",
+  "theme_color": "#c97b3f",
+  "categories": ["productivity", "utilities", "music"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%23f7f5f0'/%3E%3Cpolygon points='90,28 152,62 152,118 90,152 28,118 28,62' fill='none' stroke='%23c97b3f' stroke-width='6'/%3E%3Ccircle cx='90' cy='90' r='10' fill='%23c97b3f'/%3E%3C/svg%3E",
+      "sizes": "180x180",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%231a1812'/%3E%3Cpolygon points='256,80 432,176 432,336 256,432 80,336 80,176' fill='none' stroke='%23d9925a' stroke-width='14'/%3E%3Ccircle cx='256' cy='256' r='28' fill='%23d9925a'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

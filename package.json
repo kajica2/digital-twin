@@ -2,7 +2,7 @@
   "name": "digital-twin",
   "version": "0.1.0",
   "private": true,
-  "description": "Personal AI twin \u2014 sprint 0 landing + sprint 1 PWA shell. Static site, no framework.",
+  "description": "Personal AI twin — sprint 0 landing + sprint 1 PWA shell. Static site, no framework.",
   "scripts": {
     "serve": "node lib/serve.js --port 5173",
     "e2e": "cd e2e && node landing.spec.mjs && cd ../e2e && node twin-os.spec.mjs && cd ../e2e && node twin-os-songs.spec.mjs",
@@ -76,5 +76,8 @@
     "yt:batch:dry": "node lib/youtube-batch.js --dry-run",
     "yt:playlist": "node lib/youtube-batch.js --create-playlist",
     "test-args": "/tmp/test-npm.sh \"$@\""
+  },
+  "dependencies": {
+    "puppeteer": "^25.15.0"
   }
 }

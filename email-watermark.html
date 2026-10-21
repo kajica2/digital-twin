@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Watermarked Image — Tools</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%AB%9B%3C/text%3E%3C/svg%3E">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root{--fg:#1a1a1a;--fg-muted:#666;--bg:#fafafa;--surface:#fff;--border:#e0e0e0;--accent:#0066ff;--success:#007a33;--error:#d92b2b;--muted:#f5f5f5}
+        [data-theme="dark"]{--fg:#f0f0f0;--fg-muted:#999;--bg:#121212;--surface:#1e1e1e;--border:#333;--accent:#4d94ff;--success:#4ade80;--error:#ff6b6b;--muted:#2a2a2a}
+        *{box-sizing:border-box;margin:0;padding:0}body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--fg);line-height:1.6}
+        .nav{position:fixed;top:0;left:0;right:0;background:var(--surface);border-bottom:1px solid var(--border);z-index:100;padding:0.75rem 1.5rem}
+        main{max-width:700px;margin:0 auto;padding:5rem 1.5rem 4rem}
+        .hero{text-align:center;margin-bottom:2rem}.hero h1{font-size:2.5rem;font-weight:800;margin-bottom:0.5rem}.hero p{color:var(--fg-muted)}
+        .section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
+        .section h2{font-size:1.1rem;font-weight:600;margin-bottom:1rem}
+        .upload-zone{border:2px dashed var(--border);border-radius:8px;padding:2rem;text-align:center;cursor:pointer;transition:all .2s}
+        .upload-zone:hover{border-color:var(--accent);background:rgba(0,102,255,0.05)}
+        .preview-img{max-width:100%;max-height:300px;border-radius:8px;margin-top:1rem;display:none}
+        .preview-img.visible{display:block}
+        .control-group{margin-bottom:1rem}.control-group label{display:block;font-size:0.85rem;font-weight:500;margin-bottom:0.5rem}
+        .control-group input,.control-group textarea{width:100%;padding:0.75rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--fg)}
+        .control-group textarea{min-height:80px;resize:vertical}
+        .checkbox-group{display:flex;flex-wrap:wrap;gap:1rem;margin-top:0.5rem}
+        .checkbox-label{display:flex;align-items:center;gap:0.4rem;cursor:pointer}
+        .checkbox-label input{accent-color:var(--accent)}
+        .btn{display:inline-flex;padding:0.75rem 1.5rem;font-size:0.95rem;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:var(--accent);color:#fff}
+        .btn:disabled{opacity:0.5;cursor:not-allowed}
+        .btn-secondary{background:var(--muted);color:var(--fg)}
+        .status{padding:0.75rem;border-radius:8px;margin-top:1rem;display:none}.status.visible{display:block}
+        .status.processing{background:rgba(0,102,255,0.1);color:var(--accent)}
+        .status.success{background:rgba(0,122,51,0.1);color:var(--success)}
+        .status.error{background:rgba(217,43,43,0.1);color:var(--error)}
+        .watermark-preview{position:relative;display:inline-block}
+        .watermark-preview img{max-width:100%;max-height:250px;border-radius:8px}
+        .watermark-preview .watermark{position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.7);color:#fff;padding:4px 8px;border-radius:4px;font-size:12px}
+        footer{text-align:center;padding:2rem;color:var(--fg-muted);font-size:0.85rem;border-top:1px solid var(--border);margin-top:3rem}
+    </style>
+</head>
+<body>
+<nav class="nav"><a href="landing.html" style="font-weight:700;text-decoration:none;color:var(--fg)">← Digital Twin</a></nav>
+<main>
+    <header class="hero"><h1>🖼️ Watermark Image</h1><p>Upload an image, add watermark, download or copy to email</p></header>
+    <section class="section">
+        <h2>1. Upload Image</h2>
+        <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+            <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFile(this.files[0])">
+            <div style="font-size:2rem">🖼️</div><div><strong>Click to upload</strong><br>PNG, JPG, WebP</div>
+        </div>
+        <div id="previewContainer" style="display:none;margin-top:1rem">
+            <img id="previewImg" class="preview-img">
+        </div>
+    </section>
+    <section class="section">
+        <h2>2. Watermark Settings</h2>
+        <div class="control-group"><label>Watermark Text</label><input type="text" id="watermarkText" value="PREVIEW ONLY" oninput="updatePreview()"></div>
+        <div class="control-group"><label>Position</label>
+            <select id="position" onchange="updatePreview()">
+                <option value="bottom-right">Bottom Right</option>
+                <option value="bottom-left">Bottom Left</option>
+                <option value="top-right">Top Right</option>
+                <option value="top-left">Top Left</option>
+                <option value="center">Center</option>
+            </select>
+        </div>
+        <div class="control-group"><label>Opacity</label><input type="range" id="opacity" min="10" max="100" value="50" oninput="updatePreview()"><span id="opacityVal">50%</span></div>
+        <div class="control-group"><label>Font Size</label><input type="range" id="fontSize" min="12" max="72" value="24" oninput="updatePreview()"><span id="fontSizeVal">24px</span></div>
+        <div id="watermarkPreview" class="watermark-preview" style="display:none;margin-top:1rem">
+            <img id="previewWithWatermark"><div class="watermark" id="watermarkOverlay"></div>
+        </div>
+    </section>
+    <section class="section">
+        <h2>3. Email Settings</h2>
+        <div class="control-group"><label>Your Email</label><input type="email" id="email" placeholder="your@email.com"></div>
+        <div class="control-group"><label>Subject (optional)</label><input type="text" id="subject" placeholder="Your image"></div>
+        <div class="control-group"><label>Message (optional)</label><textarea id="message" placeholder="Here's your watermarked image..."></textarea></div>
+        <button class="btn" id="sendBtn" disabled onclick="sendEmail()">✨ Create Watermarked Image</button>
+        <div class="status" id="status"></div>
+    </section>
+    <section class="section">
+        <h2>How it works</h2>
+        <ol style="padding-left:1.5rem;color:var(--fg-muted)">
+            <li>Upload an image</li>
+            <li>Customize the watermark text and style</li>
+            <li>Enter your email address</li>
+            <li>Click send - the watermarked image will be emailed to you</li>
+        </ol>
+    </section>
+</main>
+<footer><p>Email Watermarker • Digital Twin</p></footer>
+<script>let imageFile=null,watermarkedBlob=null;
+document.getElementById('opacity').oninput=function(){document.getElementById('opacityVal').textContent=this.value+'%'};
+document.getElementById('fontSize').oninput=function(){document.getElementById('fontSizeVal').textContent=this.value+'px'};
+// Load image from URL param
+(function(){
+    const p=new URLSearchParams(window.location.search).get('image');
+    if(p){const img=new Image();img.crossOrigin='anonymous';img.onload=()=>{document.getElementById('previewImg').src=img.src;document.getElementById('previewImg').classList.add('visible');document.getElementById('previewWithWatermark').src=img.src;document.getElementById('watermarkPreview').style.display='inline-block';document.getElementById('sendBtn').disabled=false;updatePreview()};img.src=p}
+})();
+function handleFile(f){if(!f)return;imageFile=f;const r=new FileReader();r.onload=e=>{document.getElementById('previewImg').src=e.target.result;document.getElementById('previewImg').classList.add('visible');document.getElementById('previewWithWatermark').src=e.target.result;document.getElementById('watermarkPreview').style.display='inline-block';document.getElementById('sendBtn').disabled=false;updatePreview()};r.readAsDataURL(f)}
+function updatePreview(){if(!imageFile)return;const txt=document.getElementById('watermarkText').value||'PREVIEW';const pos=document.getElementById('position').value;const op=document.getElementById('opacity').value;const fs=document.getElementById('fontSize').value;const ol=document.getElementById('watermarkOverlay');ol.textContent=txt;ol.style.opacity=op/100;ol.style.fontSize=fs+'px';ol.style.position='absolute';ol.style.padding='4px 8px';ol.style.background='rgba(0,0,0,0.7)';ol.style.color='#fff';ol.style.borderRadius='4px';ol.style.fontFamily='Inter,sans-serif';if(pos==='bottom-right'){ol.style.bottom='10px';ol.style.right='10px';ol.style.left='auto';ol.style.top='auto'}else if(pos==='bottom-left'){ol.style.bottom='10px';ol.style.left='10px';ol.style.right='auto';ol.style.top='auto'}else if(pos==='top-right'){ol.style.top='10px';ol.style.right='10px';ol.style.bottom='auto';ol.style.left='auto'}else if(pos==='top-left'){ol.style.top='10px';ol.style.left='10px';ol.style.bottom='auto';ol.style.right='auto'}else{ol.style.top='50%';ol.style.left='50%';ol.style.transform='translate(-50%,-50%)';ol.style.bottom='auto';ol.style.right='auto'}}
+async function sendEmail(){if(!imageFile)return;const email=document.getElementById('email').value.trim();if(!email)return alert('Please enter your email');const s=document.getElementById('status');s.className='status visible processing';s.textContent='⏳ Creating watermarked image...';document.getElementById('sendBtn').disabled=true;try{const c=document.getElementById('previewWithWatermark');const canvas=document.createElement('canvas');const ctx=canvas.getContext('2d');const img=new Image();img.onload=()=>{canvas.width=img.width;canvas.height=img.height;ctx.drawImage(img,0,0);const txt=document.getElementById('watermarkText').value||'PREVIEW';const pos=document.getElementById('position').value;const op=document.getElementById('opacity').value/100;const fs=Math.max(16,parseInt(document.getElementById('fontSize').value)*img.width/400);ctx.font=`bold ${fs}px Arial, sans-serif`;ctx.fillStyle=`rgba(255,255,255,${op})`;ctx.strokeStyle=`rgba(0,0,0,${op*0.6})`;ctx.lineWidth=Math.max(1,fs/15);const m=ctx.measureText(txt);let x,y,ax='left',ay='bottom';if(pos==='bottom-right'){x=canvas.width-10;y=canvas.height-10;ax='right';ay='top'}else if(pos==='bottom-left'){x=10;y=canvas.height-10}else if(pos==='top-right'){x=canvas.width-10;y=fs+10;ax='right';ay='bottom'}else if(pos==='top-left'){x=10;y=fs+10}else{x=canvas.width/2;y=canvas.height/2;ax='center'}ctx.textAlign=ax;ctx.textBaseline=ay;ctx.strokeText(txt,x,y);ctx.fillText(txt,x,y);const dataUrl=canvas.toDataURL('image/png');s.className='status visible success';s.innerHTML='✅ Watermarked!<br><a href="'+dataUrl+'" download="watermarked.png" class="btn" style="margin-top:0.5rem;display:inline-flex">⬇️ Download Image</a><br><small>Or right-click image to copy & paste into email</small>';document.getElementById('sendBtn').disabled=false};img.src=c.src}catch(e){s.className='status visible error';s.textContent='❌ Error: '+e.message;document.getElementById('sendBtn').disabled=false}}</script>
+</body>
+</html>

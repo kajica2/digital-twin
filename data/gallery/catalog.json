@@ -1,0 +1,36 @@
+{
+  "images": [
+    {
+      "id": "img-001",
+      "type": "mj",
+      "title": "Vintage comic book style, two women",
+      "path": "mj-output/retro_women/prompt-01/01_full.webp",
+      "thumbnail": "mj-output/retro_women/prompt-01/01.webp",
+      "createdAt": "2025-10-21T05:45:00.000Z"
+    },
+    {
+      "id": "img-002",
+      "type": "mj",
+      "title": "Vintage comic book style, two women",
+      "path": "mj-output/retro_women/prompt-01/02_full.webp",
+      "thumbnail": "mj-output/retro_women/prompt-01/02.webp",
+      "createdAt": "2025-10-21T05:45:00.000Z"
+    },
+    {
+      "id": "img-003",
+      "type": "mj",
+      "title": "Vintage comic book style, two women",
+      "path": "mj-output/retro_women/prompt-01/03_full.webp",
+      "thumbnail": "mj-output/retro_women/prompt-01/03.webp",
+      "createdAt": "2025-10-21T05:45:00.000Z"
+    },
+    {
+      "id": "img-004",
+      "type": "mj",
+      "title": "Vintage comic book style, two women",
+      "path": "mj-output/retro_women/prompt-01/04_full.webp",
+      "thumbnail": "mj-output/retro_women/prompt-01/04.webp",
+      "createdAt": "2025-10-21T05:45:00.000Z"
+    }
+  ]
+}
