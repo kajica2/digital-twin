@@ -17,6 +17,7 @@
     "e2e:temple": "cd e2e && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" PORT=5180 node temple-of-control.spec.mjs",
     "e2e:integrations": "cd e2e && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" PORT=5180 node integrations.spec.mjs",
     "e2e:lvs": "cd e2e && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" PORT=5180 node loopable-video-segmenter.spec.mjs",
+    "e2e:mj-dashboard": "cd e2e && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" PORT=5180 node mj-dashboard.spec.mjs",
     "e2e:skin": "cd e2e && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" PORT=5180 node skin.spec.mjs",
     "skin:check": "node lib/skin-lint.js",
     "skin:validate": "node lib/skin-tokens.js assets/skins/house.css assets/skins/studio.css",
