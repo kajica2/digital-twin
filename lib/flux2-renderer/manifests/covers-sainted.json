@@ -1,0 +1,26 @@
+[
+ {
+  "slug": "sainted-neon",
+  "prompt": "Neon Pulse sainted records neon engine synthwave cover, chrome sun, cyan magenta haze, album cover art, sainted records label, bold minimal typography, centered, film grain, square"
+ },
+ {
+  "slug": "sainted-smoke",
+  "prompt": "Smoke Portrait sainted records atmospheric smoke-overlay portrait cover, cinematic, album cover art, sainted records label, bold minimal typography, centered, film grain, square"
+ },
+ {
+  "slug": "sainted-type",
+  "prompt": "TYPE LOUD sainted records bold typography cover, album cover art, sainted records label, bold minimal typography, centered, film grain, square"
+ },
+ {
+  "slug": "sainted-collage",
+  "prompt": "COLLAGE MAG sainted records magazine-grid collage cover, mixed media, album cover art, sainted records label, bold minimal typography, centered, film grain, square"
+ },
+ {
+  "slug": "sainted-spectrum",
+  "prompt": "SPECTRUM BASS sainted records audio spectrum visualizer cover, blue to pink, album cover art, sainted records label, bold minimal typography, centered, film grain, square"
+ },
+ {
+  "slug": "sainted-glitch",
+  "prompt": "GLITCH IDM sainted records datamosh glitch cover, RGB split, album cover art, sainted records label, bold minimal typography, centered, film grain, square"
+ }
+]

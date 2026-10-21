@@ -1,0 +1,59 @@
+# Vercel upload exclusions.
+#
+# The repo is a local-first twin workspace, not a source-only package. The
+# working tree carries tens of gigabytes of generated and vendored material
+# that has no business in a static deploy:
+#
+#   assets/flux2/FLUX.2-klein-4B   23 GB  local model weights
+#   youtube-inbox/                  4.3 GB uploaded video
+#   lib/*/.venv                     2.6 GB uv-managed python envs
+#   e2e/node_modules                 46 MB puppeteer + deps
+#   mj-output/                     5.4 MB per-generation meta.json
+#   .git/                          4.3 GB history
+#
+# The site itself is pages/, assets/ (minus the model), data/, docs/, lib/
+# (minus the venvs), twin-os/ and the root-level html copies.
+
+# version control + vcs metadata
+.git
+.gitattributes
+.github
+
+# dependencies
+node_modules
+**/node_modules
+**/.venv
+**/__pycache__
+**/*.pyc
+.venv
+
+# model weights and caches
+assets/flux2/FLUX.2-klein-4B
+**/.cache
+**/*.safetensors
+**/*.ckpt
+**/*.pth
+
+# local media inboxes and working material
+youtube-inbox
+free-output
+artifacts
+e2e/artifacts
+mj-output
+chart-inbox
+reel-inbox
+audio-inbox
+prompts-inbox
+logs
+**/logs.txt
+**/*.log
+**/*.pid
+
+# agent runtime state
+lib/agent-hub/pids
+lib/agent-hub/*/logs.txt
+.agent
+
+# editor / os
+.DS_Store
+*.swp

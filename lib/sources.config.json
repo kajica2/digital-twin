@@ -1,0 +1,12 @@
+{
+  "_comment": "Roots the songs indexer walks. Path '~' is expanded to $HOME at runtime. Update these paths to point at wherever your audio actually lives. The indexer skips any root that doesn't exist (logged, not an error).",
+  "_schema": {
+    "roots[].label": "Short slug used as the catalog 'label' field — also used in the Songs panel grouping.",
+    "roots[].path": "Absolute path or '~/...' relative to $HOME. Recursively walked."
+  },
+  "roots": [
+    { "label": "jazz-solos",   "path": "~/Documents/jazz solos" },
+    { "label": "meditations",  "path": "~/Documents/meditations" },
+    { "label": "music-to-mp4", "path": "~/Documents/music_to_mp4" }
+  ]
+}

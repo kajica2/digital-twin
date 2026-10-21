@@ -1,0 +1,119 @@
+{
+  "pack": "System Error",
+  "brief": "Digital decay, RGB splits, controlled chaos. For experimental, breakcore, glitch and noise artists who break rules on purpose. 100-170 BPM.",
+  "renderer": "FLUX.2 klein-4B, Apple MPS, fp16, 20 steps",
+  "lettering": "none — these plates are deliberately text-free",
+  "seeds": "9600-9609",
+  "plates": [
+    {
+      "file": "system-error-01.jpg",
+      "caption": "portrait · rgb split",
+      "alt": "System Error plate 01 — a portrait dissolving into RGB channel splits and scanline tearing, magenta and cyan ghosting over black.",
+      "seed": 9600,
+      "aspect": "16:9",
+      "width": 832,
+      "height": 464,
+      "source": "00-a-portrait-dissolving-into-rgb-channel.png",
+      "prompt": "A portrait dissolving into RGB channel splits and scanline tearing, magenta and cyan ghosting over black — cinematic film still, anamorphic widescreen, shallow focus, filmic grade, 35mm grain and halation"
+    },
+    {
+      "file": "system-error-02.jpg",
+      "caption": "skyline · datamosh",
+      "alt": "System Error plate 02 — a city skyline mid-datamosh, buildings smearing into one another, corrupted macroblocks in saturated error colours.",
+      "seed": 9601,
+      "aspect": "16:9",
+      "width": 832,
+      "height": 464,
+      "source": "01-a-city-skyline-mid-datamosh-buildings.png",
+      "prompt": "A city skyline mid-datamosh, buildings smearing into one another, corrupted macroblocks, saturated error colours — cinematic film still, anamorphic widescreen, deep shadows, filmic grade, 35mm grain"
+    },
+    {
+      "file": "system-error-03.jpg",
+      "caption": "crt · test pattern",
+      "alt": "System Error plate 03 — CRT static and a colour-bar test pattern on a curved screen in a dark room, scanlines and chromatic fringing.",
+      "seed": 9602,
+      "aspect": "16:9",
+      "width": 832,
+      "height": 464,
+      "source": "02-a-crt-static-and-colour-bar-test.png",
+      "prompt": "A CRT static and colour-bar test pattern on a curved screen in a dark room, scanlines, chromatic fringing — cinematic film still, anamorphic widescreen, shallow focus, filmic grade, 35mm grain"
+    },
+    {
+      "file": "system-error-04.jpg",
+      "caption": "skyline · pixel sort",
+      "alt": "System Error plate 04 — a pixel-sorted skyline, vertical smear trails of building lights in deep blue and magenta.",
+      "seed": 9603,
+      "aspect": "16:9",
+      "width": 832,
+      "height": 464,
+      "source": "03-a-pixel-sorted-skyline-vertical-smear.png",
+      "prompt": "A pixel-sorted skyline, vertical smear trails of building lights, deep blue and magenta, digital corruption — cinematic film still, anamorphic widescreen, filmic grade, halation, 35mm grain"
+    },
+    {
+      "file": "system-error-05.jpg",
+      "caption": "file · macroblocks",
+      "alt": "System Error plate 05 — a corrupted-file texture, macroblocks and broken compression artefacts, neon noise over black.",
+      "seed": 9604,
+      "aspect": "16:9",
+      "width": 832,
+      "height": 464,
+      "source": "04-a-corrupted-file-texture-macroblocks.png",
+      "prompt": "A corrupted-file texture, macroblocks and broken compression artefacts, neon noise over black — cinematic film still, anamorphic widescreen, shallow focus, filmic grade, 35mm grain"
+    },
+    {
+      "file": "system-error-06.jpg",
+      "caption": "lcd · leak",
+      "alt": "System Error plate 06 — a broken LCD panel macro, leaking liquid-crystal rainbows across a cracked cell grid.",
+      "seed": 9605,
+      "aspect": "16:9",
+      "width": 832,
+      "height": 464,
+      "source": "05-a-broken-lcd-panel-macro-leaking-liquid.png",
+      "prompt": "A broken LCD panel macro, leaking liquid-crystal rainbows, cracked cell grid, dark ground — cinematic film still, anamorphic widescreen, very shallow depth of field, filmic grade, 35mm grain"
+    },
+    {
+      "file": "system-error-07.jpg",
+      "caption": "chrome · aberration",
+      "alt": "System Error plate 07 — a chrome sculpture fractured by chromatic aberration, RGB edges pulling apart under hard studio light.",
+      "seed": 9606,
+      "aspect": "16:9",
+      "width": 832,
+      "height": 464,
+      "source": "06-a-chrome-sculpture-fractured-by.png",
+      "prompt": "A chrome sculpture fractured by chromatic aberration, RGB edges pulling apart, hard studio light on black — cinematic film still, anamorphic widescreen, filmic grade, halation, 35mm grain"
+    },
+    {
+      "file": "system-error-08.jpg",
+      "caption": "blocks · misalign",
+      "alt": "System Error plate 08 — saturated red, green and blue blocks sliding out of alignment over black, hard edges, chaotic.",
+      "seed": 9607,
+      "aspect": "16:9",
+      "width": 832,
+      "height": 464,
+      "source": "07-saturated-red-green-and-blue-blocks.png",
+      "prompt": "Saturated red, green and blue blocks sliding out of alignment over black, hard edges, chaotic — cinematic film still, anamorphic widescreen, filmic grade, halation, 35mm grain"
+    },
+    {
+      "file": "system-error-09.jpg",
+      "caption": "mesh · tear",
+      "alt": "System Error plate 09 — a wireframe mesh tearing apart, vertices flying, magenta wireframe on black.",
+      "seed": 9608,
+      "aspect": "16:9",
+      "width": 832,
+      "height": 464,
+      "source": "08-a-wireframe-mesh-tearing-apart-vertices.png",
+      "prompt": "A wireframe mesh tearing apart, vertices flying, magenta wireframe on black — cinematic film still, anamorphic widescreen, shallow focus, filmic grade, 35mm grain"
+    },
+    {
+      "file": "system-error-10.jpg",
+      "caption": "noise · halftone",
+      "alt": "System Error plate 10 — a dither and halftone noise field collapsing into bands, monochrome with RGB accents.",
+      "seed": 9609,
+      "aspect": "16:9",
+      "width": 832,
+      "height": 464,
+      "source": "09-a-dither-and-halftone-noise-field.png",
+      "prompt": "A dither and halftone noise field collapsing into bands, monochrome with RGB accents — cinematic film still, anamorphic widescreen, chaotic texture, filmic grade, 35mm grain"
+    }
+  ]
+}

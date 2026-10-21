@@ -1,0 +1,174 @@
+{
+  "count": 12,
+  "font": "Arial Black.ttf",
+  "covers": [
+    {
+      "ok": true,
+      "out": "assets/marketplace/covers/neon-pulse-01.jpg",
+      "plate": "assets/flux2/covers-marketplace-plates/01-neon_pulse-01.png",
+      "width": 832,
+      "height": 832,
+      "family": "neon-pulse",
+      "title": "Neon Pulse",
+      "titleLines": [
+        "Neon Pulse"
+      ],
+      "titleSize": 114,
+      "font": "/System/Library/Fonts/Supplemental/Arial Black.ttf"
+    },
+    {
+      "ok": true,
+      "out": "assets/marketplace/covers/neon-pulse-02.jpg",
+      "plate": "assets/flux2/covers-marketplace-plates/02-neon_pulse-02.png",
+      "width": 832,
+      "height": 832,
+      "family": "neon-pulse",
+      "title": "Midnight Circuit",
+      "titleLines": [
+        "Midnight Circuit"
+      ],
+      "titleSize": 80,
+      "font": "/System/Library/Fonts/Supplemental/Arial Black.ttf"
+    },
+    {
+      "ok": true,
+      "out": "assets/marketplace/covers/neon-pulse-03.jpg",
+      "plate": "assets/flux2/covers-marketplace-plates/03-neon_pulse-03.png",
+      "width": 832,
+      "height": 832,
+      "family": "neon-pulse",
+      "title": "Chrome Heart",
+      "titleLines": [
+        "Chrome Heart"
+      ],
+      "titleSize": 92,
+      "font": "/System/Library/Fonts/Supplemental/Arial Black.ttf"
+    },
+    {
+      "ok": true,
+      "out": "assets/marketplace/covers/neon-pulse-04.jpg",
+      "plate": "assets/flux2/covers-marketplace-plates/04-neon_pulse-04.png",
+      "width": 832,
+      "height": 832,
+      "family": "neon-pulse",
+      "title": "Afterhours",
+      "titleLines": [
+        "Afterhours"
+      ],
+      "titleSize": 128,
+      "font": "/System/Library/Fonts/Supplemental/Arial Black.ttf"
+    },
+    {
+      "ok": true,
+      "out": "assets/marketplace/covers/neon-pulse-05.jpg",
+      "plate": "assets/flux2/covers-marketplace-plates/05-neon_pulse-05.png",
+      "width": 832,
+      "height": 832,
+      "family": "neon-pulse",
+      "title": "Static Drive",
+      "titleLines": [
+        "Static Drive"
+      ],
+      "titleSize": 110,
+      "font": "/System/Library/Fonts/Supplemental/Arial Black.ttf"
+    },
+    {
+      "ok": true,
+      "out": "assets/marketplace/covers/smoke-01.jpg",
+      "plate": "assets/flux2/covers-marketplace-plates/06-smoke-01.png",
+      "width": 832,
+      "height": 832,
+      "family": "smoke",
+      "title": "Smoke Portrait",
+      "titleLines": [
+        "Smoke Portrait"
+      ],
+      "titleSize": 86,
+      "font": "/System/Library/Fonts/Supplemental/Arial Black.ttf"
+    },
+    {
+      "ok": true,
+      "out": "assets/marketplace/covers/smoke-02.jpg",
+      "plate": "assets/flux2/covers-marketplace-plates/07-smoke-02.png",
+      "width": 832,
+      "height": 832,
+      "family": "smoke",
+      "title": "Ember",
+      "titleLines": [
+        "Ember"
+      ],
+      "titleSize": 128,
+      "font": "/System/Library/Fonts/Supplemental/Arial Black.ttf"
+    },
+    {
+      "ok": true,
+      "out": "assets/marketplace/covers/smoke-03.jpg",
+      "plate": "assets/flux2/covers-marketplace-plates/08-smoke-03.png",
+      "width": 832,
+      "height": 832,
+      "family": "smoke",
+      "title": "Veil",
+      "titleLines": [
+        "Veil"
+      ],
+      "titleSize": 128,
+      "font": "/System/Library/Fonts/Supplemental/Arial Black.ttf"
+    },
+    {
+      "ok": true,
+      "out": "assets/marketplace/covers/smoke-04.jpg",
+      "plate": "assets/flux2/covers-marketplace-plates/09-smoke-04.png",
+      "width": 832,
+      "height": 832,
+      "family": "smoke",
+      "title": "Haze",
+      "titleLines": [
+        "Haze"
+      ],
+      "titleSize": 128,
+      "font": "/System/Library/Fonts/Supplemental/Arial Black.ttf"
+    },
+    {
+      "ok": true,
+      "out": "assets/marketplace/covers/smoke-05.jpg",
+      "plate": "assets/flux2/covers-marketplace-plates/10-smoke-05.png",
+      "width": 832,
+      "height": 832,
+      "family": "smoke",
+      "title": "Ash",
+      "titleLines": [
+        "Ash"
+      ],
+      "titleSize": 128,
+      "font": "/System/Library/Fonts/Supplemental/Arial Black.ttf"
+    },
+    {
+      "ok": true,
+      "out": "assets/marketplace/covers/type-loud-01.jpg",
+      "plate": "assets/flux2/covers-marketplace-plates/11-type_loud-01.png",
+      "width": 832,
+      "height": 832,
+      "family": "type-loud",
+      "title": "TYPE : LOUD",
+      "titleLines": [
+        "TYPE : LOUD"
+      ],
+      "titleSize": 99,
+      "font": "/System/Library/Fonts/Supplemental/Arial Black.ttf"
+    },
+    {
+      "ok": true,
+      "out": "assets/marketplace/covers/type-loud-02.jpg",
+      "plate": "assets/flux2/covers-marketplace-plates/12-type_loud-02.png",
+      "width": 832,
+      "height": 832,
+      "family": "type-loud",
+      "title": "Overdrive",
+      "titleLines": [
+        "Overdrive"
+      ],
+      "titleSize": 249,
+      "font": "/System/Library/Fonts/Supplemental/Arial Black.ttf"
+    }
+  ]
+}

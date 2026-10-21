@@ -7,11 +7,6 @@
     "test": "node landing.spec.mjs"
   },
   "dependencies": {
-    "puppeteer": "^23.11.1"
-  },
-  "description": "",
-  "main": "index.js",
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+    "puppeteer": "^23.6.0"
+  }
 }

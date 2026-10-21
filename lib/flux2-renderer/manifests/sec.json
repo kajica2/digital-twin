@@ -1,0 +1,42 @@
+[
+  {
+    "slug": "sec-01",
+    "prompt": "A portrait dissolving into RGB channel splits and scanline tearing, magenta and cyan ghosting over black — cinematic film still, anamorphic widescreen, shallow focus, filmic grade, 35mm grain and halation"
+  },
+  {
+    "slug": "sec-02",
+    "prompt": "A city skyline mid-datamosh, buildings smearing into one another, corrupted macroblocks, saturated error colours — cinematic film still, anamorphic widescreen, deep shadows, filmic grade, 35mm grain"
+  },
+  {
+    "slug": "sec-03",
+    "prompt": "A CRT static and colour-bar test pattern on a curved screen in a dark room, scanlines, chromatic fringing — cinematic film still, anamorphic widescreen, shallow focus, filmic grade, 35mm grain"
+  },
+  {
+    "slug": "sec-04",
+    "prompt": "A pixel-sorted skyline, vertical smear trails of building lights, deep blue and magenta, digital corruption — cinematic film still, anamorphic widescreen, filmic grade, halation, 35mm grain"
+  },
+  {
+    "slug": "sec-05",
+    "prompt": "A corrupted-file texture, macroblocks and broken compression artefacts, neon noise over black — cinematic film still, anamorphic widescreen, shallow focus, filmic grade, 35mm grain"
+  },
+  {
+    "slug": "sec-06",
+    "prompt": "A broken LCD panel macro, leaking liquid-crystal rainbows, cracked cell grid, dark ground — cinematic film still, anamorphic widescreen, very shallow depth of field, filmic grade, 35mm grain"
+  },
+  {
+    "slug": "sec-07",
+    "prompt": "A chrome sculpture fractured by chromatic aberration, RGB edges pulling apart, hard studio light on black — cinematic film still, anamorphic widescreen, filmic grade, halation, 35mm grain"
+  },
+  {
+    "slug": "sec-08",
+    "prompt": "Saturated red, green and blue blocks sliding out of alignment over black, hard edges, chaotic — cinematic film still, anamorphic widescreen, filmic grade, halation, 35mm grain"
+  },
+  {
+    "slug": "sec-09",
+    "prompt": "A wireframe mesh tearing apart, vertices flying, magenta wireframe on black — cinematic film still, anamorphic widescreen, shallow focus, filmic grade, 35mm grain"
+  },
+  {
+    "slug": "sec-10",
+    "prompt": "A dither and halftone noise field collapsing into bands, monochrome with RGB accents — cinematic film still, anamorphic widescreen, chaotic texture, filmic grade, 35mm grain"
+  }
+]

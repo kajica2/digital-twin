@@ -61,6 +61,11 @@ logs/*.gz
 e2e/artifacts/
 e2e/node_modules/
 
+# Node dependencies (root) — committed by accident on 2026-10-21, untracked
+# again the same day. 2492 files, 32 MB of third-party code that has no
+# business in the repo and would bloat every Vercel upload.
+node_modules/
+
 # Environment
 .env
 .env.local

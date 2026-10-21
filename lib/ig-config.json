@@ -1,0 +1,26 @@
+{
+    "_note": "Instagram automation configuration. Uses a headed browser + cookie jar to post via instagram.com.",
+
+    "cookiesFile": "/Users/kaidejuricmasscmbook/Downloads/d1925cb8-c34b-4805-aaa9-56eda9fc7f10.txt",
+    "_note_cookiesFile": "Cookie jar exported from a browser logged into Instagram. Netscape format. The provided file has sessionid for ds_user_id 290900224.",
+
+    "userDataDir": "/tmp/ig-profile",
+    "_note_userDataDir": "Browser profile for Instagram. Separate from other automations.",
+
+    "browserBin": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "_note_browserBin": "Browser binary. MUST run headed — Instagram blocks headless.",
+
+    "chrome": {
+        "debugPort": 9445,
+        "_note_debugPort": "CDP port for Instagram poster. Must differ from MJ's 9444."
+    },
+
+    "post": {
+        "outputDir": "reel-inbox/posted",
+        "_note_outputDir": "Where to move successfully posted reels.",
+        "uploadTimeoutMs": 180000,
+        "_note_uploadTimeoutMs": "How long to wait for video upload to complete.",
+        "captionFromPostMd": true,
+        "_note_captionFromPostMd": "Extract caption from POST.md in the same directory as the reel."
+    }
+}
