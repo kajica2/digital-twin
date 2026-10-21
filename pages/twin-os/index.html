@@ -1367,6 +1367,9 @@
      =========================================================== */
   (function () {
     const CATALOG_URL = '../../data/flux/loops-catalog.json';
+    // Catalog stores repo-root-relative paths (data/flux/...); the page lives
+    // at <root>/pages/twin-os/, so prefix with the same ../../ used for fetch.
+    const MEDIA_BASE = CATALOG_URL.replace(/data\/flux\/[^\/]+\.json.*$/, '');
     const loading = document.querySelector('[data-loops-loading]');
     const empty = document.querySelector('[data-loops-empty]');
     const grid = document.querySelector('[data-loops-grid]');
@@ -1390,8 +1393,8 @@
       grid.innerHTML = loops.map(loop => `
         <div class="loop-card" style="background:#111;border-radius:8px;overflow:hidden">
           <video 
-            src="${escapeHtml(loop.src)}" 
-            poster="${loop.poster ? escapeHtml(loop.poster) : ''}"
+            src="${MEDIA_BASE}${escapeHtml(loop.src)}" 
+            poster="${loop.poster ? MEDIA_BASE + escapeHtml(loop.poster) : ''}"
             autoplay loop muted playsinline
             style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block"
           ></video>
