@@ -3,72 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Images → MOV — Tools</title>
+    <title>🖼️ Images → MOV — Digital Twin</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%8E%A5%3C/text%3E%3C/svg%3E">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/umd/ffmpeg.min.js"></script>
     <style>
-        :root{--fg:#1a1a1a;--fg-muted:#666;--bg:#fafafa;--surface:#fff;--border:#e0e0e0;--accent:#0066ff;--success:#007a33;--error:#d92b2b;--muted:#f5f5f5}
-        [data-theme="dark"]{--fg:#f0f0f0;--fg-muted:#999;--bg:#121212;--surface:#1e1e1e;--border:#333;--accent:#4d94ff;--success:#4ade80;--error:#ff6b6b;--muted:#2a2a2a}
-        *{box-sizing:border-box;margin:0;padding:0}body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--fg);line-height:1.6}
-        .nav{position:fixed;top:0;left:0;right:0;background:var(--surface);border-bottom:1px solid var(--border);z-index:100;padding:0.75rem 1.5rem}
-        main{max-width:800px;margin:0 auto;padding:5rem 1.5rem 4rem}
-        .hero{text-align:center;margin-bottom:2rem}.hero h1{font-size:2.5rem;font-weight:800}.hero p{color:var(--fg-muted)}
-        .section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
-        .section h2{font-size:1.1rem;font-weight:600;margin-bottom:1rem}
-        .upload-zone{border:2px dashed var(--border);border-radius:8px;padding:2rem;text-align:center;cursor:pointer}
-        .grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
-        .image-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:0.5rem;margin-top:1rem}
-        .image-thumb{position:relative;border-radius:6px;overflow:hidden}.image-thumb img{width:100%;aspect-ratio:1;object-fit:cover}
-        .image-thumb .x{position:absolute;top:2px;right:2px;background:var(--error);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer}
-        .control-group{margin-bottom:1rem}.control-group label{display:block;font-size:0.85rem;font-weight:500;margin-bottom:0.25rem}
-        .control-group select,.control-group input{width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg)}
-        .btn{display:inline-flex;padding:0.75rem 1.5rem;font-size:0.95rem;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:var(--accent);color:#fff}
-        .btn:disabled{opacity:0.5}
-        .status{padding:0.75rem;border-radius:8px;margin-top:1rem;display:none}.status.visible{display:block}
-        .output-section{display:none}.output-section.visible{display:block}
-        footer{text-align:center;padding:2rem;color:var(--fg-muted);border-top:1px solid var(--border)}
+        :root{--bg:#f7f5f0;--surface:#fff;--line:#e9e3d6;--ink:#14171e;--ink-muted:#3a4256;--primary:#c97b3f;--accent:#2f6f5e;--space-2:8px;--space-4:16px;--space-5:24px;--radius-md:10px;--radius-lg:14px;--font-body:'Outfit',sans-serif;--font-display:'DM Serif Display',serif}
+        [data-theme="dark"]{--bg:#1a1812;--surface:#25221a;--line:#3a342a;--ink:#f4efe2;--ink-muted:#c0b8a8;--primary:#d9925a;--accent:#6ab098}
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:var(--font-body);background:var(--bg);color:var(--ink);line-height:1.5}
+        .header{background:linear-gradient(135deg,var(--primary),#a85f28);padding:1.5rem 2rem;color:#fff}
+        .header-content{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center}
+        .logo{font-family:var(--font-display);font-size:1.5rem}
+        main{max-width:1000px;margin:0 auto;padding:var(--space-5)}
+        .card{background:var(--surface);border-radius:var(--radius-lg);padding:var(--space-5);margin-bottom:var(--space-5);border:1px solid var(--line)}
+        .card-title{font-weight:700;font-size:1.1rem;margin-bottom:var(--space-4);font-family:var(--font-display)}
+        .grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-5)}
+        .upload-zone{border:2px dashed var(--line);border-radius:var(--radius-lg);padding:2rem;text-align:center;cursor:pointer;transition:border-color 0.2s}
+        .upload-zone:hover{border-color:var(--primary)}
+        .image-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:0.5rem;margin-top:var(--space-4)}
+        .image-thumb{position:relative;border-radius:6px;overflow:hidden}
+        .image-thumb img{width:100%;aspect-ratio:1;object-fit:cover}
+        .image-thumb .x{position:absolute;top:2px;right:2px;background:#d92b2b;color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:14px;line-height:1}
+        .control-group{margin-bottom:1rem}
+        .control-group label{display:block;font-size:0.85rem;font-weight:500;margin-bottom:0.25rem}
+        .control-group select,.control-group input{width:100%;padding:0.5rem;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+        .btn{display:inline-flex;padding:0.75rem 1.5rem;font-size:0.9rem;font-weight:600;border:none;border-radius:var(--radius-md);cursor:pointer;background:var(--primary);color:#fff;transition:opacity 0.2s}
+        .btn:disabled{opacity:0.5;cursor:not-allowed}
+        .btn-secondary{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+        .status{padding:0.75rem;border-radius:var(--radius-md);margin-top:var(--space-4);display:none}
+        .status.visible{display:block}
+        .status.processing{background:rgba(201,123,63,0.1);color:var(--primary)}
+        .status.success{background:rgba(47,111,94,0.1);color:var(--accent)}
+        .status.error{background:rgba(239,68,68,0.1);color:#d92b2b}
+        .output{display:none;margin-top:var(--space-4)}
+        .output.visible{display:block}
+        .output video{width:100%;border-radius:var(--radius-md)}
         @media(max-width:768px){.grid{grid-template-columns:1fr}}
     </style>
 </head>
 <body>
-<nav style="position:fixed;top:0;left:0;right:0;background:var(--surface);border-bottom:1px solid var(--border);padding:0.75rem 1.5rem;z-index:100">
-    <a href="landing.html" style="font-weight:700;text-decoration:none;color:var(--fg)">← Digital Twin</a>
-</nav>
-<main>
-    <header class="hero"><h1>🖼️ Images → MOV</h1><p>Convert image sequences to looping video with Ken Burns effects</p></header>
-    <div class="grid">
-        <div>
-            <section class="section"><h2>1. Upload Images</h2>
-                <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
-                    <input type="file" id="fileInput" accept="image/*" multiple style="display:none" onchange="handleFiles(this.files)">
-                    <div style="font-size:2rem">📁</div><div><strong>Click to upload</strong><br>PNG, JPG, WebP</div>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">🖼️ Images → MOV</div>
+            <a href="landing.html" style="color:#fff;text-decoration:none">← Tools</a>
+        </div>
+    </header>
+    <main>
+        <div class="grid">
+            <div>
+                <div class="card">
+                    <div class="card-title">1. Upload Images</div>
+                    <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                        <input type="file" id="fileInput" accept="image/*" multiple style="display:none" onchange="handleFiles(this.files)">
+                        <div style="font-size:2rem">📁</div>
+                        <div>Click to upload • PNG, JPG, WebP</div>
+                    </div>
+                    <div class="image-grid" id="imageGrid"></div>
                 </div>
-                <div class="image-grid" id="imageGrid"></div>
-            </section>
-            <section class="section"><h2>2. Settings</h2>
-                <div class="control-group"><label>Length</label><select id="length"><option value="3">3 sec</option><option value="5" selected>5 sec</option><option value="10">10 sec</option></select></div>
-                <div class="control-group"><label>Frame Rate</label><select id="fps"><option value="24">24 fps</option><option value="30" selected>30 fps</option><option value="60">60 fps</option></select></div>
-                <div class="control-group"><label>Ken Burns</label><select id="kenBurns"><option value="none">None</option><option value="zoom-in" selected>Zoom In</option><option value="zoom-out">Zoom Out</option><option value="pan-left">Pan Left</option></select></div>
-                <div class="control-group"><label>Fade In (s)</label><input type="number" id="fadeIn" value="0.5" min="0" max="5" step="0.1"></div>
-            </section>
+                <div class="card">
+                    <div class="card-title">2. Settings</div>
+                    <div class="control-group">
+                        <label>Length per image</label>
+                        <select id="length">
+                            <option value="2">2 sec</option>
+                            <option value="3">3 sec</option>
+                            <option value="5" selected>5 sec</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Frame Rate</label>
+                        <select id="fps">
+                            <option value="24">24 fps</option>
+                            <option value="30" selected>30 fps</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Ken Burns Effect</label>
+                        <select id="kenBurns">
+                            <option value="none">None</option>
+                            <option value="zoom-in" selected>Zoom In</option>
+                            <option value="zoom-out">Zoom Out</option>
+                            <option value="pan-left">Pan Left</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="card">
+                    <div class="card-title">3. Generate</div>
+                    <button class="btn" id="generateBtn" disabled onclick="generate()">🎬 Generate Video</button>
+                    <div class="status" id="status"></div>
+                </div>
+                <div class="card output" id="result">
+                    <div class="card-title">Your Video</div>
+                    <video id="outputVideo" controls></video>
+                    <div style="margin-top:var(--space-4);display:flex;gap:0.5rem">
+                        <a class="btn" id="downloadLink" download="video.webm">⬇️ Download</a>
+                        <button class="btn btn-secondary" onclick="location.reload()">🔄 New</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">🔌 API Webhook</div>
+                    <input type="text" id="apiUrl" placeholder="https://api.example.com/webhook" style="width:100%;padding:0.75rem;border:1px solid var(--line);border-radius:var(--radius-md)">
+                    <button class="btn btn-secondary" style="margin-top:0.5rem" onclick="runApi()">📤 Send to API</button>
+                </div>
+            </div>
         </div>
-        <div>
-            <section class="section"><h2>3. Export</h2>
-                <button class="btn" id="generateBtn" disabled onclick="generate()">🎬 Generate MOV</button>
-                <div class="status" id="status"></div>
-            </section>
-            <section class="section output-section" id="result"><h2>Result</h2>
-                <video id="outputVideo" controls style="width:100%"></video>
-                <div style="margin-top:1rem"><a class="btn" id="downloadLink" download="video.mov">⬇️ Download</a></div>
-            </section>
-            <section class="section"><h2>CLI</h2><pre><code>python3 lib/images-to-mov.py "*.png" out.mov</code></pre></section>
-        </div>
-    </div>
-</main>
-<footer><p>Built with FFmpeg • Digital Twin</p></footer>
-<script>let images=[];
-function handleFiles(files){Array.from(files).forEach(f=>{images.push({file:f,url:URL.createObjectURL(f)})});render()}
-function render(){document.getElementById('imageGrid').innerHTML=images.map((img,i)=>`<div class="image-thumb"><img src="${img.url}"><button class="x" onclick="images.splice(${i},1);render()">×</button></div>`).join('');document.getElementById('generateBtn').disabled=images.length===0}
-async function generate(){const s=document.getElementById('status');s.className='status visible';s.textContent='⏳ Processing...';document.getElementById('generateBtn').disabled=true;const fd=new FormData();images.forEach((img,i)=>fd.append('image_'+i,img.file));fd.append('frameDuration',document.getElementById('length').value/images.length);fd.append('frameRate',document.getElementById('fps').value);fd.append('kenBurns',document.getElementById('kenBurns').value);fd.append('fadeIn',document.getElementById('fadeIn').value);try{const r=await fetch('/api/images-to-mov',{method:'POST',body:fd});if(!r.ok)throw new Error;const b=await r.blob();document.getElementById('outputVideo').src=URL.createObjectURL(b);document.getElementById('downloadLink').href=document.getElementById('outputVideo').src;document.getElementById('result').classList.add('visible');s.className='status visible';s.textContent='✅ Done!'}catch(e){s.className='status visible';s.textContent='❌ Error'}document.getElementById('generateBtn').disabled=false}</script>
+    </main>
+<script>
+let images = [];
+let ffmpeg = null;
+
+async function initFFmpeg() {
+    if (ffmpeg) return ffmpeg;
+    ffmpeg = new FFmpegFFmpeg();
+    await ffmpeg.load({ coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js' });
+    return ffmpeg;
+}
+
+function handleFiles(files) {
+    Array.from(files).forEach(f => {
+        images.push({ file: f, url: URL.createObjectURL(f) });
+    });
+    render();
+}
+
+function render() {
+    document.getElementById('imageGrid').innerHTML = images.map((img, i) => 
+        `<div class="image-thumb"><img src="${img.url}"><button class="x" onclick="images.splice(${i},1);render()">×</button></div>`
+    ).join('');
+    document.getElementById('generateBtn').disabled = images.length === 0;
+}
+
+async function generate() {
+    if (images.length === 0) return alert('Upload images first');
+    const status = document.getElementById('status');
+    const btn = document.getElementById('generateBtn');
+    status.className = 'status visible processing';
+    status.textContent = '⏳ Loading FFmpeg...';
+    btn.disabled = true;
+
+    try {
+        const ff = await initFFmpeg();
+        status.textContent = '⏳ Processing frames...';
+        
+        const fps = parseInt(document.getElementById('fps').value);
+        const duration = parseInt(document.getElementById('length').value);
+        const kenBurns = document.getElementById('kenBurns').value;
+
+        // Write images to FFmpeg
+        for (let i = 0; i < images.length; i++) {
+            const data = await fetch(images[i].url).then(r => r.arrayBuffer());
+            await ff.writeFile(`img_${String(i).padStart(4, '0')}.png`, new Uint8Array(data));
+        }
+
+        // Create filter for Ken Burns
+        let filter = `fps=${fps}`;
+        if (kenBurns === 'zoom-in') {
+            filter += ',scale=1.2*iw:1.2*ih,zoompan=z=\'min(zoom+0.001,1.2)\':d=25:s=640x480';
+        } else if (kenBurns === 'zoom-out') {
+            filter += ',scale=0.8*iw:0.8*ih,zoompan=z=\'max(1-0.001*on/25,0.8)\':d=25:s=640x480';
+        } else if (kenBurns === 'pan-left') {
+            filter += ',crop=iw*0.8:ih*0.8,x=0:y=0';
+        }
+
+        // Generate video from images
+        status.textContent = '⏳ Encoding video...';
+        await ff.exec([
+            '-framerate', '1/' + duration,
+            '-i', 'img_%04d.png',
+            '-vf', filter,
+            '-c:v', 'libx264',
+            '-pix_fmt', 'yuv420p',
+            '-shortest',
+            'output.webm'
+        ]);
+
+        const data = await ff.readFile('output.webm');
+        const blob = new Blob([data.buffer], { type: 'video/webm' });
+        
+        document.getElementById('outputVideo').src = URL.createObjectURL(blob);
+        document.getElementById('downloadLink').href = document.getElementById('outputVideo').src;
+        document.getElementById('result').classList.add('visible');
+        
+        status.className = 'status visible success';
+        status.textContent = '✅ Done!';
+        btn.disabled = false;
+    } catch (e) {
+        status.className = 'status visible error';
+        status.textContent = '❌ Error: ' + e.message;
+        btn.disabled = false;
+    }
+}
+
+function runApi() {
+    const apiUrl = document.getElementById('apiUrl').value.trim();
+    if (!apiUrl) return alert('Enter API URL');
+    if (images.length === 0) return alert('Upload images first');
+    
+    const status = document.getElementById('status');
+    status.className = 'status visible processing';
+    status.textContent = '⏳ Sending to API...';
+    
+    const fd = new FormData();
+    images.forEach((img, i) => fd.append('image_' + i, img.file));
+    fd.append('fps', document.getElementById('fps').value);
+    fd.append('duration', document.getElementById('length').value);
+    fd.append('kenBurns', document.getElementById('kenBurns').value);
+    
+    fetch(apiUrl, { method: 'POST', body: fd })
+        .then(r => {
+            status.className = 'status visible success';
+            status.textContent = '✅ Sent to API!';
+        })
+        .catch(e => {
+            status.className = 'status visible error';
+            status.textContent = '❌ Error: ' + e.message;
+        });
+}
+</script>
 </body>
 </html>
