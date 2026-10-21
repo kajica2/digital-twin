@@ -119,7 +119,7 @@ jobs:
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node skin.spec.mjs
           else
             echo "(PR run - Vercel doesn't deploy PRs, e2e runs locally)"
-            python3 -m http.server 5180 --directory . &
+            node "$GITHUB_WORKSPACE/lib/serve.js" --port 5180 --host 127.0.0.1 &
             SERVER_PID=$!
             sleep 2
             cd e2e && node landing.spec.mjs

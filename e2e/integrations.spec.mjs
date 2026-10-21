@@ -1,5 +1,6 @@
 import puppeteer from 'puppeteer';
 import { join, dirname } from 'path';
+import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -32,24 +33,17 @@ const wait = (ms) => new Promise(r => setTimeout(r, ms));
 async function run() {
   console.log('\n=== integrations.spec.mjs ===\n');
 
-  // Find Chrome
-  const chromePaths = [
-    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-    process.env.CHROME_PATH
-  ].filter(Boolean);
-
-  let browser;
-  for (const p of chromePaths) {
-    try {
-      browser = await puppeteer.launch({
-        executablePath: p,
-        headless: 'new',
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-      });
-      break;
-    } catch {}
-  }
-  if (!browser) browser = await puppeteer.launch({ headless: 'new' });
+  // Find Chrome. CHROME_PATH wins; otherwise the system Chrome when it
+  // exists; otherwise puppeteer's bundled Chromium. The `--no-sandbox`
+  // flag is not optional: GitHub's Ubuntu runners have unprivileged user
+  // namespaces disabled, so Chrome aborts with "No usable sandbox!" and
+  // the whole spec dies at launch.
+  const CHROME = process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+  const browser = await puppeteer.launch({
+    headless: 'new',
+    executablePath: existsSync(CHROME) ? CHROME : undefined,
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu', '--hide-scrollbars']
+  });
 
   // Theme test: light
   console.log('Testing light theme...');

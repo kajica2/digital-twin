@@ -4133,6 +4133,20 @@ system working, verified.
   - **Visually verified** the landing page in both themes from the
     spec's own screenshots: warm cream + copper in light, warm
     near-black + cream in dark, no missing CSS, no unstyled text.
+  - **CI caught a spec that could never run on the CI runner.**
+    `e2e/integrations.spec.mjs` resolved Chrome from a hard-coded
+    macOS path plus `CHROME_PATH`, and when neither existed it fell
+    through to `puppeteer.launch({ headless: 'new' })` — **with no
+    `--no-sandbox`**. GitHub's Ubuntu runners have unprivileged user
+    namespaces disabled, so Chrome aborts with *"No usable sandbox!"*
+    and the spec dies at launch, before a single check runs. The spec
+    was added to the CI list in this sprint, so the failure was new;
+    the bug in it was not. It now uses the repo's canonical launch
+    (one call, `--no-sandbox` always, system Chrome when it exists
+    and puppeteer's bundled Chromium otherwise), and the CI PR branch
+    serves the repo with `node lib/serve.js` instead of
+    `python3 -m http.server` — the repo's own server, the same one the
+    LaunchAgent runs.
   - **The deploy-test loop ran against the live Vercel URL** —
     `https://digitaltwin-ebon.vercel.app` — with the skin system
     deployed. **14/14 specs green**: skin, landing, twin-os,
