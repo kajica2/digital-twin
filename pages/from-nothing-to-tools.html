@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en" data-theme="system">
+<head>
+    <link rel="stylesheet" href="../assets/skins/house.css" data-skin-stylesheet>
+    <script src="../lib/skin.js"></script>
+    <script src="../lib/theme.js" data-theme-key="ft-theme"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="color-scheme" content="dark">
+    <title>From nothing — five scenes of building your own tools</title>
+    <meta name="description" content="A 5-scene hyperspace narrative: from nothing, to first tool, to your own tools, to a fleet, to shipped.">
+
+    <style>
+      /* Page owns only what the canvas cannot. Surfaces draw from
+         the skin (--bg / --ink / --ink-muted / --primary), so the
+         piece re-skins with the rest of the family: cream + copper
+         on house, dark + warm-accent on studio. */
+      html, body { margin: 0; padding: 0; height: 100%; }
+      body {
+        background: var(--bg);
+        color: var(--ink);
+        font-family: var(--font-display);
+        overflow: hidden;
+        cursor: default;
+      }
+      #fx {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+        background: radial-gradient(ellipse at center,
+                                    color-mix(in srgb, var(--bg) 80%, transparent) 0%,
+                                    var(--bg) 80%);
+      }
+      #overlay {
+        position: fixed; inset: 0;
+        display: grid; place-items: center;
+        pointer-events: none;
+      }
+      #scene-text {
+        font-family: var(--font-display);
+        font-size: clamp(1.4rem, 3.6vw, 2.6rem);
+        font-weight: 400;
+        letter-spacing: -0.01em;
+        color: var(--ink);
+        opacity: 0;
+        transform: translateY(6px);
+        transition: opacity 320ms ease-out, transform 600ms var(--ease-out-expo);
+        text-shadow: 0 1px 30px color-mix(in srgb, var(--bg) 80%, transparent);
+      }
+      #scene-text.visible { opacity: 0.92; transform: translateY(0); }
+
+      #caption {
+        position: fixed; left: 28px; bottom: 28px;
+        font-family: var(--font-mono);
+        font-size: var(--fs-xs);
+        color: var(--ink-muted);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      #caption .frame {
+        display: inline-block;
+        min-width: 6.5ch;
+        color: var(--primary);
+      }
+      #caption .heading {
+        display: block;
+        margin-top: 6px;
+        color: var(--ink-muted);
+      }
+
+      #replay {
+        position: fixed; right: 28px; bottom: 28px;
+        pointer-events: auto;
+        appearance: none;
+        background: transparent;
+        border: 1px solid var(--line);
+        color: var(--ink);
+        padding: 8px 14px;
+        border-radius: var(--radius-pill);
+        font-family: var(--font-mono);
+        font-size: var(--fs-xs);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: border-color var(--dur-fast) var(--ease-out-expo),
+                    color var(--dur-fast) var(--ease-out-expo);
+      }
+      #replay:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+      #replay .kbd {
+        margin-left: 8px;
+        color: var(--ink-muted);
+      }
+
+      /* When the skin is light (--bg nearly white) the canvas must
+         render on a dark film so the stars read. We deep-darken the
+         gradient in that case via a CSS-only inversion of --bg. */
+      @supports (color: color-mix(in srgb, white 10%, black)) {
+        body {
+          background:
+            radial-gradient(ellipse at center,
+                            color-mix(in srgb, var(--bg) 65%, #000) 0%,
+                            color-mix(in srgb, var(--bg) 30%, #000) 75%,
+                            color-mix(in srgb, var(--bg) 15%, #000) 100%);
+        }
+      }
+    </style>
+</head>
+<body>
+
+  <canvas id="fx" aria-label="Hyperspace animation, five scenes of building your own tools."></canvas>
+
+  <div id="overlay" aria-hidden="true">
+    <div id="scene-text"></div>
+  </div>
+
+  <div id="caption" aria-live="polite">
+    <span class="frame" id="frame">1 / 5</span>
+    <span class="heading" id="heading">From nothing — five scenes of building your own tools</span>
+  </div>
+
+  <button id="replay" type="button">
+    Replay <span class="kbd">space</span>
+  </button>
+
+  <script>
+    // Five-scene hyperspace narrative.
+    //
+    // The classic starfield technique: each star has a virtual 3D
+    // position (x, y, z). It is projected into screen space by
+    // dividing by z — the same trick as a perspective camera. z
+    // advances outward each frame; when z exceeds 1 we respawn at
+    // a fresh angle near the center. The trail length grows with
+    // (1 − z), so a star near the center is short and a star far
+    // out is long — that perspective motion is what makes the
+    // streak look like a warp line.
+    //
+    // Each scene tunes density (number of stars), max speed (how
+    // fast z advances), palette (which ink colour), and text overlay.
+    // The canvas crossfades at scene boundaries so the eye reads
+    // the progression as a story, not five cuts.
+
+    'use strict';
+
+    const SCENES = [
+      {
+        duration: 2400,
+        density: 18,
+        maxSpeed: 0.35,
+        hueShift: -0.04,
+        palette: 'ink',
+        text: 'the moment before anything.',
+      },
+      {
+        duration: 2400,
+        density: 90,
+        maxSpeed: 1.0,
+        hueShift: -0.02,
+        palette: 'ink',
+        text: 'a first tool emerges.',
+      },
+      {
+        duration: 2400,
+        density: 180,
+        maxSpeed: 2.5,
+        hueShift: 0.00,
+        palette: 'mix',
+        text: 'the ones only you would build.',
+      },
+      {
+        duration: 2400,
+        density: 320,
+        maxSpeed: 5.0,
+        hueShift: 0.04,
+        palette: 'mix',
+        text: 'they start working together.',
+      },
+      {
+        duration: 2600,
+        density: 480,
+        maxSpeed: 9.0,
+        hueShift: 0.10,
+        palette: 'primary',
+        text: 'now they ship.',
+      },
+    ];
+
+    const TAU = Math.PI * 2;
+    const FADE_MS = 320; // crossfade length between scenes
+
+    /** @type {HTMLCanvasElement} */
+    const canvas = document.getElementById('fx');
+    const ctx = canvas.getContext('2d');
+    const textEl = document.getElementById('scene-text');
+    const frameEl = document.getElementById('frame');
+    const replayBtn = document.getElementById('replay');
+
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let w = 0, h = 0;
+
+    // Pull the active skin tokens. The canvas paints the streaks in
+    // --ink (the foreground colour) so light themes draw dark streaks
+    // and dark themes draw light streaks — the warp reads either way.
+    function skinColor(varName, fallback) {
+      const v = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+      return v || fallback;
+    }
+    let INK = '#14171e';
+    let PRIMARY = '#c97b3f';
+
+    /** A single star: travels outward from the center, leaves a
+     *  trail whose length grows with the radius. When radius exceeds
+     *  the viewport bound, the star respawns at radius = 0 with a
+     *  fresh angle. speed * scene.maxSpeed governs how fast the
+     *  radius grows per frame. */
+    function makeStar(maxRadius) {
+      const angle = Math.random() * TAU;
+      const speed = 0.6 + Math.random() * 0.7; // 0.6..1.3
+      return {
+        angle,
+        speed,
+        // start at a random fraction of the radius so the field is
+        // populated on the very first frame (no empty center pop).
+        radius: Math.random() * maxRadius,
+        thickness: 0.6 + Math.random() * 1.0,
+      };
+    }
+
+    let stars = [];
+    let sceneIndex = 0;
+    let sceneStart = 0;
+    let nextSceneStart = 0; // when the next scene should start (allows fade)
+    let transitionFade = 0; // 0..1: amount of incoming scene visible
+    let prevSnapshot = null; // canvas snapshot of the outgoing scene
+    let running = false;
+    let done = false;
+
+    // Cash the active palette once it changes (re-read when ?skin=).
+    function refreshPalette() {
+      INK = skinColor('--ink', INK);
+      PRIMARY = skinColor('--primary', PRIMARY);
+    }
+
+    function size() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = window.innerWidth;
+      h = window.innerHeight;
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function resetScene(idx) {
+      sceneIndex = idx;
+      const s = SCENES[idx];
+      stars = [];
+      // The field's max radius is the half-width of the smaller
+      // screen dim: a star at angle 0 needs to travel at least
+      // half-width to reach the edge.
+      const maxRadius = Math.hypot(w, h) * 0.55;
+      for (let i = 0; i < s.density; i++) stars.push(makeStar(maxRadius));
+      sceneStart = performance.now();
+      nextSceneStart = sceneStart + s.duration - FADE_MS; // start fade FADE_MS before end
+      transitionFade = 0;
+      prevSnapshot = null;
+      frameEl.textContent = (idx + 1) + ' / ' + SCENES.length;
+      textEl.textContent = s.text;
+      requestAnimationFrame(() => textEl.classList.add('visible'));
+    }
+
+    function capturePrev() {
+      // Snapshot the current canvas so we can fade from it into the
+      // freshly-reset scene. A snapshot is a tiny cost — canvas is
+      // already drawn into.
+      prevSnapshot = document.createElement('canvas');
+      prevSnapshot.width = canvas.width;
+      prevSnapshot.height = canvas.height;
+      prevSnapshot.getContext('2d').drawImage(canvas, 0, 0);
+    }
+
+    function draw(now) {
+      const scene = SCENES[sceneIndex];
+      const t = now - sceneStart;
+
+      // Crossfade to the next scene when we hit the fade window.
+      if (now >= nextSceneStart && sceneIndex < SCENES.length - 1) {
+        if (transitionFade === 0) capturePrev();
+        transitionFade = Math.min(1, (now - nextSceneStart) / FADE_MS);
+        if (transitionFade >= 1) {
+          // promote
+          const nextIdx = sceneIndex + 1;
+          resetScene(nextIdx);
+        }
+      }
+
+      // The draw-and-advance loop.
+      ctx.clearRect(0, 0, w, h);
+
+      const cx = w / 2;
+      const cy = h / 2;
+      const fade = transitionFade;
+      const starColor = scene.palette === 'primary' ? PRIMARY : INK;
+      const maxRadius = Math.hypot(w, h) * 0.55;
+
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.lineCap = 'round';
+
+      // Text fades in at scene start, holds, fades out before the
+      // next scene takes over. The raw t value is the milliseconds
+      // since the current scene started.
+      const textUpMs = 280;
+      const textDownStart = scene.duration - 360;
+      const textVisibility = t < textUpMs
+        ? t / textUpMs
+        : (t > textDownStart ? Math.max(0, (scene.duration - t) / 360) : 1);
+      textEl.style.opacity = String(0.92 * textVisibility);
+
+      // Per-frame advance: speed * scene.maxSpeed * (a tunable)
+      // pixels per frame at 60fps. At 30fps this is 2x; at 120fps
+      // it's 0.5x; the visual length stays the same in screen time.
+      const advance = scene.maxSpeed * 0.022 * 60 / 60;
+
+      for (const star of stars) {
+        star.radius += star.speed * advance;
+        if (star.radius > maxRadius) {
+          // respawn near center with a fresh angle
+          star.angle = Math.random() * TAU;
+          star.radius = Math.random() * 12; // 0..12px from center
+          star.speed = 0.6 + Math.random() * 0.7;
+          star.thickness = 0.6 + Math.random() * 1.0;
+        }
+        const headX = cx + Math.cos(star.angle) * star.radius;
+        const headY = cy + Math.sin(star.angle) * star.radius;
+        // Trail length: a function of current radius — short near
+        // the center, long near the edge — exactly the perspective
+        // foreshortening hyperspace is famous for.
+        const len = star.radius * star.speed * 0.13;
+        const tailX = headX - Math.cos(star.angle) * len;
+        const tailY = headY - Math.sin(star.angle) * len;
+        // Alpha profile: rises as the star moves outward (more
+        // visible mid-flight) then fades out near the edge so the
+        // respawn is invisible.
+        const progress = star.radius / maxRadius;
+        const alpha = Math.sin(progress * Math.PI) * (0.4 + star.speed * 0.35);
+
+        ctx.strokeStyle = withAlpha(starColor, alpha);
+        ctx.lineWidth = star.thickness * (0.4 + progress * 1.4);
+        ctx.beginPath();
+        ctx.moveTo(headX, headY);
+        ctx.lineTo(tailX, tailY);
+        ctx.stroke();
+      }
+
+      // Compose the outgoing snapshot on top during the crossfade.
+      if (prevSnapshot && fade > 0 && fade < 1) {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = 1 - fade;
+        ctx.drawImage(prevSnapshot, 0, 0, w, h);
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'lighter';
+      }
+
+      // Last scene: hold the final frame; let the text fade out,
+      // then the loop ends and the replay button becomes a manual
+      // restart instead of an implicit timer.
+      if (sceneIndex === SCENES.length - 1) {
+        if (textVisibility <= 0.02 && done === false) {
+          done = true;
+          replayBtn.dataset.ready = 'true';
+        }
+      }
+
+      if (running) requestAnimationFrame(draw);
+    }
+
+    /** Convert "#rrggbb" + alpha (0..1) into rgba(). */
+    function withAlpha(hex, a) {
+      const m = /^#?([0-9a-f]{6})$/i.exec((hex || '').trim());
+      if (!m) return `rgba(255,255,255,${a})`;
+      const n = parseInt(m[1], 16);
+      const r = (n >> 16) & 255;
+      const g = (n >> 8) & 255;
+      const b = n & 255;
+      return `rgba(${r},${g},${b},${a})`;
+    }
+
+    function start() {
+      running = true;
+      done = false;
+      replayBtn.dataset.ready = '';
+      size();
+      refreshPalette();
+      resetScene(0);
+      // Tick the canvas at a stable ~60fps inside rAF; the engine's
+      // own pacing keeps the streak lengths reproducible across runs.
+      requestAnimationFrame(draw);
+    }
+
+    function replay() {
+      // Cancel the previous tick chain cleanly. A page reload is the
+      // blunt version; this preserves any skin state (e.g. ?skin=).
+      running = false;
+      prevSnapshot = null;
+      setTimeout(start, 16);
+    }
+
+    // Reseed on resize and on skin change.
+    window.addEventListener('resize', () => {
+      size();
+      // Re-pull palette too — a user-driven ?skin= mutation is rare
+      // but if it fires we want the streaks to take the new color.
+      refreshPalette();
+    });
+
+    // Re-pull palette when the skin swaps live.
+    document.addEventListener('skinchange', refreshPalette);
+
+    // Allow spacebar to restart the narrative.
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && !e.repeat) {
+        e.preventDefault();
+        replay();
+      }
+    });
+    replayBtn.addEventListener('click', replay);
+
+    // Kick off.
+    start();
+  </script>
+</body>
+</html>
