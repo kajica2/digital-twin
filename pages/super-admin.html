@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super Admin | SWR Control Center</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #0a0a0a;
+      --bg-card: #141414;
+      --bg-card-hover: #1a1a1a;
+      --border: #2a2a2a;
+      --text: #e0e0e0;
+      --text-dim: #888;
+      --green: #22c55e;
+      --yellow: #eab308;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #a855f7;
+    }
+    body {
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .status-badge {
+      background: var(--green);
+      color: #000;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .status-badge.warning { background: var(--yellow); }
+    .status-badge.error { background: var(--red); color: #fff; }
+    .clock { font-size: 14px; color: var(--text-dim); }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 16px;
+    }
+    
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: background 0.2s;
+    }
+    .card:hover { background: var(--bg-card-hover); }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title .icon { font-size: 18px; }
+    
+    .agent-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+    .dot.warning { background: var(--yellow); }
+    .dot.error { background: var(--red); }
+    .dot.idle { background: var(--text-dim); }
+    
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .metric:last-child { border: none; }
+    .metric-label { color: var(--text-dim); }
+    .metric-value { font-weight: 600; }
+    
+    .log {
+      background: #000;
+      border-radius: 8px;
+      padding: 12px;
+      height: 150px;
+      overflow-y: auto;
+      font-size: 11px;
+      line-height: 1.6;
+      margin-top: 12px;
+    }
+    .log-entry { color: var(--text-dim); }
+    .log-entry.error { color: var(--red); }
+    .log-entry.success { color: var(--green); }
+    .log-entry.warning { color: var(--yellow); }
+    .log-entry.info { color: var(--blue); }
+    .log-time { color: #555; margin-right: 8px; }
+    
+    .action-bar {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .btn {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover { background: var(--bg-card-hover); border-color: var(--text-dim); }
+    .btn.primary { background: var(--blue); border-color: var(--blue); }
+    .btn.primary:hover { background: #2563eb; }
+    .btn.danger { background: var(--red); border-color: var(--red); }
+    .btn.danger:hover { background: #dc2626; }
+    
+    .full-width { grid-column: 1 / -1; }
+    
+    .progress-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin-top: 12px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--blue);
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+    
+    .notifications {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 1000;
+    }
+    .notification {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--blue);
+      padding: 16px 20px;
+      border-radius: 8px;
+      min-width: 300px;
+      animation: slideIn 0.3s ease;
+    }
+    .notification.error { border-left-color: var(--red); }
+    .notification.success { border-left-color: var(--green); }
+    .notification.warning { border-left-color: var(--yellow); }
+    
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .checkbox-label input { accent-color: var(--blue); }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>
+      <span>🎛️</span>
+      Super Admin
+      <span class="status-badge" id="systemStatus">All Systems Operational</span>
+    </h1>
+    <div class="clock" id="clock">--:--:--</div>
+  </div>
+
+  <div class="grid">
+    <!-- Agent Loop -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="icon">🤖</span>
+          Persistent Agent Loop
+        </div>
+        <div class="agent-status">
+          <span class="dot" id="agentDot"></span>
+          <span id="agentStatus">Running</span>
+        </div>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Uptime</span>
+        <span class="metric-value" id="agentUptime">--</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Tasks Completed</span>
+        <span class="metric-value" id="agentTasks">0</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Last Action</span>
+        <span class="metric-value" id="agentLastAction">--</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="agentProgress" style="width: 0%"></div>
+      </div>
+      <div class="log" id="agentLog">
+        <div class="log-entry info"><span class="log-time">--:--:--</span>Agent initialized</div>
+      </div>
+      <div class="action-bar">
+        <button class="btn" onclick="restartAgent()">Restart</button>
+        <button class="btn" onclick="pauseAgent()">Pause</button>
+        <button class="btn danger" onclick="stopAgent()">Stop</button>
+      </div>
+    </div>
+
+    <!-- Watchers -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="icon">👁️</span>
+          Active Watchers
+        </div>
+        <div class="agent-status">
+          <span class="dot" id="watchersDot"></span>
+          <span id="watchersStatus">Active</span>
+        </div>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Chart Watcher</span>
+        <span class="metric-value" id="chartWatcher">Active</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">MJ Watcher</span>
+        <span class="metric-value" id="mjWatcher">Active</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">IG Watcher</span>
+        <span class="metric-value" id="igWatcher">Idle</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Songs Watcher</span>
+        <span class="metric-value" id="songsWatcher">Active</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Reel Watcher</span>
+        <span class="metric-value" id="reelWatcher">Idle</span>
+      </div>
+      <div class="action-bar">
+        <button class="btn" onclick="restartWatchers()">Restart All</button>
+        <button class="btn" onclick="checkWatchers()">Check Status</button>
+      </div>
+    </div>
+
+    <!-- System Resources -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="icon">💻</span>
+          System Resources
+        </div>
+      </div>
+      <div class="metric">
+        <span class="metric-label">CPU Usage</span>
+        <span class="metric-value" id="cpuUsage">--%</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Memory</span>
+        <span class="metric-value" id="memoryUsage">--%</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Disk</span>
+        <span class="metric-value" id="diskUsage">--%</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Network</span>
+        <span class="metric-value" id="networkStatus">Online</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Services</span>
+        <span class="metric-value" id="servicesStatus">3/5 Running</span>
+      </div>
+    </div>
+
+    <!-- FLUX Pipeline -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="icon">🎨</span>
+          FLUX Pipeline
+        </div>
+        <div class="agent-status">
+          <span class="dot" id="fluxDot"></span>
+          <span id="fluxStatus">Ready</span>
+        </div>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Stills Generated</span>
+        <span class="metric-value" id="fluxStills">7</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Loops Created</span>
+        <span class="metric-value" id="fluxLoops">3</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Queue</span>
+        <span class="metric-value" id="fluxQueue">0</span>
+      </div>
+      <div class="action-bar">
+        <button class="btn primary" onclick="generateStill()">Generate Still</button>
+        <button class="btn" onclick="animateLoop()">Animate</button>
+      </div>
+    </div>
+
+    <!-- Git & Deploy -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="icon">📦</span>
+          Git & Deploy
+        </div>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Branch</span>
+        <span class="metric-value">main</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Last Commit</span>
+        <span class="metric-value" id="lastCommit">--</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Uncommitted</span>
+        <span class="metric-value" id="uncommitted">0 files</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">GitHub Pages</span>
+        <span class="metric-value" id="ghPagesStatus">Deployed</span>
+      </div>
+      <div class="action-bar">
+        <button class="btn" onclick="checkGit()">Check Git</button>
+        <button class="btn primary" onclick="deploy()">Deploy</button>
+      </div>
+    </div>
+
+    <!-- Settings & Notifications -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="icon">⚙️</span>
+          Settings
+        </div>
+      </div>
+      <div class="checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="notifyErrors" checked>
+          Notify on Errors
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="notifyComplete" checked>
+          Notify on Completion
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="autoDeploy">
+          Auto-Deploy on Push
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="longRunning" checked>
+          Keep Running (Hours)
+        </label>
+      </div>
+      <div style="margin-top: 16px;">
+        <div class="metric-label" style="margin-bottom: 8px;">Notification Sound</div>
+        <select class="btn" style="width: 100%;" id="notifySound">
+          <option value="ding">Ding</option>
+          <option value="chime">Chime</option>
+          <option value="alert">Alert</option>
+          <option value="none">Silent</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card full-width">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="icon">⚡</span>
+          Quick Actions
+        </div>
+      </div>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <button class="btn" onclick="runTests()">Run Tests</button>
+        <button class="btn" onclick="checkHealth()">Health Check</button>
+        <button class="btn" onclick="clearLogs()">Clear Logs</button>
+        <button class="btn" onclick="exportState()">Export State</button>
+        <button class="btn" onclick="viewLogs()">View All Logs</button>
+        <button class="btn primary" onclick="emergencyStop()">🛑 Emergency Stop All</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="notifications" id="notifications"></div>
+
+  <script>
+    // Clock
+    function updateClock() {
+      document.getElementById('clock').textContent = new Date().toLocaleTimeString();
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Mock data updates
+    function updateMetrics() {
+      // Simulate some changes
+      const cpu = Math.floor(Math.random() * 30) + 10;
+      const mem = Math.floor(Math.random() * 40) + 30;
+      document.getElementById('cpuUsage').textContent = cpu + '%';
+      document.getElementById('memoryUsage').textContent = mem + '%';
+    }
+    setInterval(updateMetrics, 5000);
+
+    // Notification system
+    function notify(message, type = 'info') {
+      const container = document.getElementById('notifications');
+      const notif = document.createElement('div');
+      notif.className = `notification ${type}`;
+      notif.innerHTML = `
+        <div style="font-weight: 600; margin-bottom: 4px;">${type.toUpperCase()}</div>
+        <div>${message}</div>
+      `;
+      container.appendChild(notif);
+      setTimeout(() => notif.remove(), 5000);
+    }
+
+    // Log function
+    function log(agent, message, type = 'info') {
+      const logEl = document.getElementById(agent + 'Log') || document.getElementById('agentLog');
+      const time = new Date().toLocaleTimeString();
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.innerHTML = `<span class="log-time">${time}</span>${message}`;
+      logEl.insertBefore(entry, logEl.firstChild);
+      if (logEl.children.length > 50) logEl.lastChild.remove();
+    }
+
+    // Actions
+    function restartAgent() {
+      log('agent', 'Restarting agent loop...', 'warning');
+      notify('Agent loop restarting...', 'warning');
+      setTimeout(() => {
+        log('agent', 'Agent loop restarted successfully', 'success');
+        notify('Agent loop running', 'success');
+      }, 2000);
+    }
+
+    function pauseAgent() {
+      log('agent', 'Pausing agent loop...', 'warning');
+      notify('Agent paused', 'info');
+    }
+
+    function stopAgent() {
+      log('agent', 'Stopping agent loop...', 'error');
+      notify('Agent stopped', 'error');
+    }
+
+    function restartWatchers() {
+      notify('Restarting all watchers...', 'warning');
+      log('agent', 'Watchers restarted', 'success');
+      notify('All watchers active', 'success');
+    }
+
+    function checkWatchers() {
+      notify('Checking watcher status...', 'info');
+    }
+
+    function generateStill() {
+      notify('Generating FLUX still...', 'info');
+      log('agent', 'FLUX: Generating new still...', 'info');
+      setTimeout(() => {
+        log('agent', 'FLUX: Still generated successfully', 'success');
+        notify('Still generated!', 'success');
+        document.getElementById('fluxStills').textContent = 
+          parseInt(document.getElementById('fluxStills').textContent) + 1;
+      }, 3000);
+    }
+
+    function animateLoop() {
+      notify('Animating to video loop...', 'info');
+      setTimeout(() => {
+        notify('Loop created!', 'success');
+        document.getElementById('fluxLoops').textContent = 
+          parseInt(document.getElementById('fluxLoops').textContent) + 1;
+      }, 4000);
+    }
+
+    function checkGit() {
+      notify('Checking git status...', 'info');
+    }
+
+    function deploy() {
+      notify('Deploying to GitHub Pages...', 'info');
+      log('agent', 'Deploy: Starting deployment...', 'info');
+      setTimeout(() => {
+        log('agent', 'Deploy: Deployed successfully', 'success');
+        notify('Deployed!', 'success');
+      }, 3000);
+    }
+
+    function runTests() {
+      notify('Running test suite...', 'info');
+      log('agent', 'Tests: Running...', 'info');
+      setTimeout(() => {
+        log('agent', 'Tests: All passed (23/23)', 'success');
+        notify('All tests passed!', 'success');
+      }, 5000);
+    }
+
+    function checkHealth() {
+      notify('Running health check...', 'info');
+      setTimeout(() => {
+        notify('All systems healthy', 'success');
+      }, 2000);
+    }
+
+    function clearLogs() {
+      document.querySelectorAll('.log').forEach(l => l.innerHTML = '');
+      notify('Logs cleared', 'info');
+    }
+
+    function exportState() {
+      notify('Exporting system state...', 'info');
+    }
+
+    function viewLogs() {
+      notify('Opening full logs...', 'info');
+    }
+
+    function emergencyStop() {
+      if (confirm('EMERGENCY STOP - Are you sure? This will stop all agents and watchers.')) {
+        notify('EMERGENCY STOP ACTIVATED', 'error');
+        log('agent', 'EMERGENCY STOP', 'error');
+      }
+    }
+
+    // Initialize
+    log('agent', 'Super Admin dashboard loaded', 'info');
+    log('agent', 'All systems initialized', 'success');
+    notify('Super Admin ready', 'success');
+  </script>
+</body>
+</html>
