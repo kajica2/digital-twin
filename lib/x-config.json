@@ -1,0 +1,17 @@
+{
+    "_note": "X (Twitter) poster configuration. Uses a headed browser + a cookie jar to post through x.com/compose/post.",
+
+    "cookiesFile": "~/.x-cookies.txt",
+    "_note_cookiesFile": "Cookie jar for x.com, captured from the local Chrome profile by lib/x-cookie-capture.js. Netscape format. SECRET — it is a live session for a real account, and it lives outside the repo on purpose (see .gitignore).",
+
+    "userDataDir": "/tmp/x-poster-profile",
+    "_note_userDataDir": "Browser profile for the X poster. Separate from the MJ (9444), IG (9445) and YouTube (9446) profiles so no two automations fight over one Chromium instance.",
+
+    "browserBin": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "_note_browserBin": "Browser binary. MUST run headed — X refuses to compose in headless Chromium.",
+
+    "chrome": {
+        "debugPort": 9447,
+        "_note_debugPort": "CDP port for the X poster. Must differ from MJ's 9444, IG's 9445 and YouTube's 9446."
+    }
+}

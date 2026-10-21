@@ -27,7 +27,14 @@
         "autoPublish": false,
         "_note_autoPublish": "false = a package is staged unless the item opts in (publish: true in its item.json). true = every packaged item is posted. A public post is irreversible; the opt-in is the gate.",
         "dryRunPoster": false,
-        "_note_dryRunPoster": "true = the worker still runs the poster, but with --dry-run. This is how the handoff is smoke-tested without publishing."
+        "_note_dryRunPoster": "true = the worker still runs the poster, but with --dry-run. This is how the handoff is smoke-tested without publishing.",
+        "twitter": {
+            "enabled": false,
+            "_note_enabled": "false = X is never posted to, even when the item opts in. A tweet on a personal account is the least reversible thing this repo does, so it takes a deliberate edit to arm it — and it needs a valid session cookie (see docs/X-COOKIES.md).",
+            "poster": "lib/x-poster.js",
+            "dryRunPoster": false,
+            "_note_dryRunPoster": "true = the worker runs the X poster with --dry-run: it opens the composer, fills it, and stops before the click. The whole path is exercised; nothing is published."
+        }
     },
     "tags": {
         "primary": [

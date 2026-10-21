@@ -333,6 +333,39 @@ document: Gumroad has no API wired here, so a human applies it.
 
 Reference: [`docs/SOCIAL-ENGINE.md`](docs/SOCIAL-ENGINE.md).
 
+## Post to X (Twitter)
+
+The twin can post to X on your behalf. It needs your logged-in X
+session, captured out of Chrome into a cookie jar that lives **outside**
+the repo:
+
+```bash
+npm run x:capture    # read Chrome's cookie DB → ~/.x-cookies.txt (mode 0600)
+npm run x:check      # validate the jar: is there a live session?
+npm run x:post -- --text "hello world"
+npm run x:post -- data/social/neon-pulse-cover --dry-run
+```
+
+X's API rejects this session with a 401 even when the cookie is
+perfectly valid, so the poster drives the **web composer in a headed
+browser** — the same shape as the Instagram poster. The session check
+is therefore a page check (composer present, login wall down), not an
+API call.
+
+The 280-character limit is enforced by **weighted** counting, and the
+weights were measured against X's own composer counter, not taken from
+documentation: a URL counts as 23 however long it is, CJK and emoji
+count as 2. The body of the caption always wins; the hashtags fill
+what is left in tier order, and every tag that got cut is reported by
+name.
+
+**Nothing is published by default.** `posting.twitter.enabled` is
+`false`, so X is never posted to even when an item opts in — arming it
+is a deliberate edit, and it needs a valid cookie. The per-item opt-in
+(`publish: true`) still applies on top of that.
+
+Reference: [`docs/X-COOKIES.md`](docs/X-COOKIES.md).
+
 ## Run the Suno style variants
 
 Ten **style variants** of one song — the same source audio covered with

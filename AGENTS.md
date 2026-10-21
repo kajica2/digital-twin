@@ -5027,3 +5027,241 @@ it as a service.
   dropped into `social-inbox/`.
 - `lib/persona-social-pack.js` still carries its own copy of the shared
   rules; the migration is a one-line require once it lands on `main`.
+
+### 2026-10-22 — sprint 0.50 (posting to X)
+
+The user asked for a cookie for their own X account "so my twin can post
+on my behalf", and confirmed they were logged in. This is the X
+posting path: capture, validate, count, post.
+
+**Shipped:**
+
+- **`lib/x-cookie-capture.js`** — captures a live X session out of
+  Chrome. Reads the profile's cookie DB (copied with its `-wal` /
+  `-shm` alongside), decrypts the values with the **Chrome Safe
+  Storage** key from the macOS Keychain, and writes a Netscape jar to
+  `~/.x-cookies.txt` (mode 0600, outside the repo).
+  - **Hard-scoped to X.** The host allowlist (`.x.com`, `x.com`,
+    `.twitter.com`, `twitter.com`) is applied *before* any decryption,
+    so the tool cannot be repurposed into a general credential
+    extractor. Another platform gets its own module with its own
+    allowlist.
+  - **Picks the profile whose `auth_token` expires latest**, and
+    reports every profile that holds X cookies, including the ones
+    that are not a logged-in session.
+  - **Refuses to write inside the repository.** `.gitignore` carries a
+    `*-cookies.txt` rule as a second line of defence.
+  - Exit codes: 0 complete · 2 incomplete · 1 error. `--check`
+    validates without re-capturing.
+- **`lib/x-cookies.js`** — parses the jar (Netscape or JSON),
+  validates it, and encodes it for the browser.
+  - **`auth_token` + `ct0` are both required.** `ct0` is the CSRF
+    token, and the page reads it out of `document.cookie` — so it must
+    **not** be marked HTTP-only. Marking it HTTP-only breaks every
+    write while still authenticating the read. The `httpOnly` flag is
+    preserved on the round trip for exactly this reason.
+  - **The `__Host-` rule is encoded** even though today's jar has no
+    `__Host-` names: a `__Host-` cookie handed to a browser with a
+    `Domain` attribute is dropped *silently*, and the site renders
+    "Log in" with no error at all.
+  - `describe()` reports names and domains only — never a value.
+- **`lib/x-text.js`** — the 280-character rules, separated from the
+  poster because they are the part with real edge cases and must be
+  testable without a browser. A URL counts as 23 however long it is;
+  CJK and emoji count as 2.
+- **`lib/x-poster.js`** — posts through the **web composer in a headed
+  browser**, the same shape as `lib/ig-poster.js`.
+- **`lib/x-config.json`** — mirrors `ig-config.json` without the
+  absolute-path wart (`cookiesFile: "~/.x-cookies.txt"`).
+- **`docs/X-COOKIES.md`** — the full reference.
+- **Tests** — `lib/x-cookies.test.js` (65), `lib/x-text.test.js` (46),
+  `lib/x-poster.test.js` (36). All fixture values are synthetic.
+
+**The API is a dead end — and that is not a cookie problem.**
+
+`api.x.com/1.1/account/settings.json`,
+`x.com/i/api/1.1/account/settings.json` and
+`api.x.com/1.1/account/verify_credentials.json` all return **401
+`{"errors":[{"code":89,"message":"Invalid or expired token"}]}`** with
+the same cookies that render a fully logged-in compose page. The API
+and the website are separate authentication systems for third-party
+clients.
+
+Consequence: **the session check is a page check** (composer present,
+login wall down), and posting must go through the UI. An API-first
+poster would look broken while the cookie is perfectly fine — and the
+obvious "fix" would be to go hunting for a cookie problem that does
+not exist.
+
+**The composer is not a textarea.** It is a React-controlled
+contenteditable DIV with `data-testid="tweetTextarea_0"`. Assigning
+`innerText` does nothing the page can see — the Post button stays
+disabled. `Input.insertText` types the way a person does, the button
+comes alive, and embedded newlines work. Assert on
+`button[data-testid="tweetButton"]`, not `tweetButtonInline` (the
+inline one stays disabled in the modal — a false negative). Success is
+the toast text "Your post was sent." plus the new `a[href*="/status/"]`
+link: the composer clears whether or not the submission was accepted,
+so a cleared textbox is not a signal.
+
+**Five bugs found by running it, not by reading it:**
+
+1. **The poster hung on a stale tab.** The repo's `cdpConnect()` picks
+   the first page target it finds. A tab left over from an earlier run
+   — holding unsent text — raises a beforeunload dialog, and that
+   dialog blocks every CDP command on that renderer forever. The
+   symptom is a hang after "cookies set", with no error at all. The
+   poster now opens a **tab of its own** and closes it afterwards.
+2. **Escape closed the composer.** The image attach does *not* open a
+   separate alt-text dialog — the media preview mounts inline in the
+   composer modal. The `Escape` that was meant to dismiss an overlay
+   closed the whole composer, media and all, and the Post button
+   disappeared with it. `dismissDialogs()` now identifies the composer
+   dialog and only ever closes a *different* one, by clicking its own
+   close control.
+3. **An unterminated string literal.** `querySelectorAll('[role="dialog"])]`
+   — one quote short — made every media post fail with a
+   `SyntaxError` pointing at a line number that meant nothing. **No
+   other test noticed**: the file parsed, the module loaded, the pure
+   functions worked. The poster test now parses **every** expression the
+   poster sends to the browser, so this class of bug fails the suite.
+4. **`"JS error: Uncaught at 4"` said nothing.** The real message
+   lives in the exception's description. `CDPClient.js()` in
+   `lib/mj-submitter.js` now reports the description and the offending
+   expression — the difference between a five-second fix and a
+   ten-minute guess.
+
+5. **A missing media file was silently skipped.** `--media
+   /nope/nope.jpg` was filtered away and the poster published the
+   caption with no picture — a *different* post than the one that was
+   asked for, with nothing on the timeline to say so. It was found
+   because a real tweet went out by accident and had to be deleted
+   again. A media path that does not exist is now an error (exit 2),
+   and `resolveMedia()` reports the missing paths instead of dropping
+   them.
+
+**The 280-character rule, measured against X's own counter.**
+
+X's composer shows the remaining characters. Measured on the live
+account:
+
+| typed | my count | X's counter |
+|---|---|---|
+| 260 ASCII | 260 | "20" |
+| 270 ASCII | 270 | "10" |
+| 279 ASCII | 279 | "1" |
+| 280 ASCII | 280 | (gone — at the limit) |
+| 135 CJK | 270 | "10" |
+| 135 emoji | 270 | "10" |
+| 255 ASCII + a 95-char URL | 279 | "1" |
+| 256 ASCII + a 95-char URL | 280 | (gone) |
+
+So: **the limit is 280, CJK and emoji weigh 2, and a URL weighs 23
+whatever its length.** The weights in `lib/x-text.js` are measured, not
+assumed.
+
+The Post button stays enabled past 280 on this account — it has X
+Premium (long posts). The 280 rule is still what the counter enforces
+and what the code applies, so the **button-disable oracle is unusable
+here**; the caption is bounded by the counter's arithmetic, not by the
+button.
+
+**The trim, and where it happens.** The engine's caption is body + a
+full line of hashtags — **424 characters** for a typical package. The
+body wins; the hashtags fill what is left in tier order; the first tag
+that does not fit ends the list. The trim happens in
+`lib/social-engine.js` at **package build time**, not in
+`lib/social-shared.js` (the shared module is drift-guarded against
+`lib/persona-social-pack.js` by a parallel session's test, and it is
+the one implementation of "what a caption is" — it must not grow a
+per-platform rule). Trimming at build time is what makes the stored
+caption and the published caption the same string.
+
+A second bug: `fit()` broke at the first tag that did not fit and
+**discarded the rest silently**, while reporting one dropped tag. A
+caption that lost twelve tags said it lost one. Every dropped tag is
+now reported by name.
+
+**The gates.** `posting.enabled` (master) + `posting.autoPublish: false`
++ per-item `publish: true` + `posting.dryRunPoster`, PLUS
+`posting.twitter.enabled` defaulting to **false** — a tweet on a
+personal account is the least reversible thing this repo does, so
+arming it takes a deliberate edit. **Every item in the live catalogue
+has `publish: false`**, so nothing posts.
+
+**Verified end-to-end:**
+
+- `npm run test:all` — **all suites green**, including the three new
+  X suites (147 assertions).
+- `node lib/x-poster.js --dry-run data/social/neon-pulse-cover` —
+  424 characters trimmed to **280/280**, with all 12 dropped hashtags
+  named: `#title #rather #than #painted #weimarjazzdatabase #bebop
+  #dorianmode #quartalvoicings #generativeart #diffusionmodels
+  #midjourney #notanaiimage`.
+- **A real post, published and verified.** The package's caption went
+  out to @KaiDjuric with the four cover images; the confirmation was
+  "Your post was sent." and the status link
+  `/KaiDjuric/status/2113039490835210643`. Fetched back off the
+  timeline: the article is there, the caption and all 16 kept hashtags
+  match, **4 media images** are attached, timestamp 2026-10-21T22:47Z.
+- The capture was validated before any of it: 19 X cookies, session
+  complete, jar outside the repo, no value ever printed.
+- **A test tweet was published by accident and deleted again.**
+  Chasing the missing-media bug above meant running the poster with a
+  path that did not exist — and the old code published the caption
+  alone. The tweet (`/KaiDjuric/status/2113040910548185442`) was
+  deleted through the same web UI, and its status page now returns
+  "this page doesn't exist". The real post was re-checked afterwards
+  and is still there. The rule that came out of it: **a run that
+  cannot do exactly what was asked for must stop, not do a lesser
+  version of it.**
+- **`X_POSTER_DEBUG`** — an env-gated lever that writes the error and
+  the stack to a file. The browser is a black box, and the one-line
+  message rarely says whether the failure was a closed dialog, a moved
+  test id, or an expired session. The file never carries a cookie
+  value. Verified: a deliberately corrupt image produced the file
+  with the message and the stack.
+
+**Decisions:**
+
+- **Capture from the local Chrome profile rather than asking the user
+  to export a jar.** Both `Default` and `Profile 1` held live,
+  unexpired sessions; the capture picks the one that expires last.
+- **Post through the UI, never the API** — and say so in the docs, so
+  the next agent does not re-derive it the hard way.
+- **`Input.insertText`, not `innerText`.** The composer is React-
+  controlled; only a real input event makes the page aware.
+- **The `__Host-` rule is encoded even when no cookie uses it
+  today.** A future X cookie may, and the failure mode is silent.
+- **The 280 limit is applied even though this account could post
+  longer.** The counter enforces it, the code applies it, and a
+  standard tweet is what the twin's captions are written to be.
+- **Every dropped hashtag is named.** A caption that silently lost
+  twelve tags would say it lost one, and the record would be a lie.
+- **`lib/x-text.js` is separate from the poster.** The counting is the
+  part with edge cases, and it must be testable without a browser.
+- **The poster opens its own tab.** Reusing whatever tab is open is
+  how the poster hangs.
+
+**Open:**
+
+- **`posting.twitter.enabled` is still `false`** — by design. Arming it
+  is a deliberate edit, and it needs a valid cookie.
+- **The cookie expires.** When X serves the login page, re-capture.
+  `npm run x:check` is the cheap way to see it coming.
+- **X's API route is not implemented**, and on this evidence it cannot
+  be with a web session cookie. A developer-platform API key is a
+  different credential and a different decision.
+- **The composer is driven by test ids** (`tweetTextarea_0`,
+  `tweetButton`, `fileInput`). They are stable in practice and they
+  are what the page actually exposes, but a redesign would break them.
+- **Alt text is not written.** X supports it, the composer does not
+  require it, and the caption has no room for it.
+
+**Next:**
+
+- The rest of the standing backlog — (a) reel LaunchAgent bootstrap
+  (needs user approval, irreversible); (b) `data/clip/samples.json` for
+  the CLIP sample strip; (c) clip CLI `--out <file>`; (d) woody-shaw
+  chart variants; (e) a custom domain for the Vercel alias, which
+  currently requires a login.

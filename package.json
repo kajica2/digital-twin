@@ -66,7 +66,7 @@
     "test:skin": "node lib/skin-tokens.test.js",
     "test:floating-toolset": "node lib/floating-toolset.test.js",
     "test:daily-pipeline": "node lib/daily-pipeline.test.js",
-    "test:all": "npm run test:watcher && npm run test:songs-watcher && npm run test:reel-watcher && npm run test:mj && npm run test:mj-cookies && npm run test:mj-web && npm run test:suno-styles && npm run test:suno-run && npm run test:suno-web && npm run test:mj-feed && npm run test:mj-contact-sheet && npm run test:ingest && npm run test:deepseek && npm run test:mj-submitter && npm run test:mj-prompt-generator && npm run test:jazz-solos && npm run test:musicxml-pdf && npm run test:range && npm run test:skin && npm run test:social && npm run test:social-shared && npm run test:floating-toolset && npm run test:daily-pipeline && npm run skin:check && npm run test:agent-loop && npm run test:flux2 && npm run test:lettering",
+    "test:all": "npm run test:watcher && npm run test:songs-watcher && npm run test:reel-watcher && npm run test:mj && npm run test:mj-cookies && npm run test:mj-web && npm run test:suno-styles && npm run test:suno-run && npm run test:suno-web && npm run test:mj-feed && npm run test:mj-contact-sheet && npm run test:ingest && npm run test:deepseek && npm run test:mj-submitter && npm run test:mj-prompt-generator && npm run test:jazz-solos && npm run test:musicxml-pdf && npm run test:range && npm run test:skin && npm run test:social && npm run test:social-shared && npm run test:x-cookies && npm run test:x-text && npm run test:x-poster && npm run test:floating-toolset && npm run test:daily-pipeline && npm run skin:check && npm run test:agent-loop && npm run test:flux2 && npm run test:lettering",
     "clip:setup": "uv sync --project lib/clip-interrogator",
     "clip:ui": "uv run --project lib/clip-interrogator python -m clip_interrogator_app.ui",
     "clip:interrogate": "uv run --project lib/clip-interrogator clip-interrogate interrogate assets/clip-interrogator/example01.jpg --mode best",
@@ -98,7 +98,15 @@
     "yt:batch": "node lib/youtube-batch.js",
     "yt:batch:dry": "node lib/youtube-batch.js --dry-run",
     "yt:playlist": "node lib/youtube-batch.js --create-playlist",
-    "test-args": "/tmp/test-npm.sh \"$@\""
+    "test-args": "/tmp/test-npm.sh \"$@\"",
+    "test:x-cookies": "node lib/x-cookies.test.js",
+    "test:x-text": "node lib/x-text.test.js",
+    "test:x-poster": "node lib/x-poster.test.js",
+    "x:capture": "node lib/x-cookie-capture.js",
+    "x:check": "node lib/x-cookie-capture.js --check",
+    "x:post": "node lib/x-poster.js",
+    "test:social": "node lib/social-engine.test.js",
+    "test:social-shared": "node lib/social-shared.test.js"
   },
   "dependencies": {
     "puppeteer": "^25.15.0"
