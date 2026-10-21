@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "mode": "legacy",
+  "migratedFrom": "pre-ADR-324; capabilities=.swarm/memory.db",
+  "migratedAt": 1792565336236,
+  "rules": [],
+  "budgets": [],
+  "usage": [],
+  "approvals": [],
+  "receipts": []
+}

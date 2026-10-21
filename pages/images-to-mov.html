@@ -1,119 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Design tokens live in the skin, not in this page. See DESIGN.md. -->
+    <link rel="stylesheet" href="../assets/skins/house.css" data-skin-stylesheet>
+    <script src="../lib/skin.js"></script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🖼️ Images → MOV — Digital Twin</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%8E%A5%3C/text%3E%3C/svg%3E">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Images → MOV — Tools</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%96%BC%3C/text%3E%3C/svg%3E">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        :root{--bg:#f7f5f0;--surface:#fff;--line:#e9e3d6;--ink:#14171e;--ink-muted:#3a4256;--primary:#c97b3f;--accent:#2f6f5e;--space-2:8px;--space-4:16px;--space-5:24px;--radius-md:10px;--radius-lg:14px;--font-body:'Outfit',sans-serif;--font-display:'DM Serif Display',serif}
-        [data-theme="dark"]{--bg:#1a1812;--surface:#25221a;--line:#3a342a;--ink:#f4efe2;--ink-muted:#c0b8a8;--primary:#d9925a;--accent:#6ab098}
-        *{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:var(--font-body);background:var(--bg);color:var(--ink);line-height:1.5}
-        .header{background:linear-gradient(135deg,var(--primary),#a85f28);padding:1.5rem 2rem;color:#fff}
-        .header-content{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center}
-        .logo{font-family:var(--font-display);font-size:1.5rem}
-        main{max-width:1000px;margin:0 auto;padding:var(--space-5)}
-        .card{background:var(--surface);border-radius:var(--radius-lg);padding:var(--space-5);margin-bottom:var(--space-5);border:1px solid var(--line)}
-        .card-title{font-weight:700;font-size:1.1rem;margin-bottom:var(--space-4);font-family:var(--font-display)}
-        .grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-5)}
-        .upload-zone{border:2px dashed var(--line);border-radius:var(--radius-lg);padding:2rem;text-align:center;cursor:pointer;transition:border-color 0.2s}
-        .upload-zone:hover{border-color:var(--primary)}
-        .image-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:0.5rem;margin-top:var(--space-4)}
-        .image-thumb{position:relative;border-radius:6px;overflow:hidden}
-        .image-thumb img{width:100%;aspect-ratio:1;object-fit:cover}
-        .image-thumb .x{position:absolute;top:2px;right:2px;background:#d92b2b;color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:14px;line-height:1}
-        .control-group{margin-bottom:1rem}
-        .control-group label{display:block;font-size:0.85rem;font-weight:500;margin-bottom:0.25rem}
-        .control-group select,.control-group input{width:100%;padding:0.5rem;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
-        .btn{display:inline-flex;padding:0.75rem 1.5rem;font-size:0.9rem;font-weight:600;border:none;border-radius:var(--radius-md);cursor:pointer;background:var(--primary);color:#fff;transition:opacity 0.2s}
+        *{box-sizing:border-box;margin:0;padding:0}body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--fg);line-height:1.6}
+        .nav{position:fixed;top:0;left:0;right:0;background:var(--surface);border-bottom:1px solid var(--border);z-index:100;padding:0.75rem 1.5rem}
+        main{max-width:1000px;margin:0 auto;padding:5rem 1.5rem 4rem}
+        .hero{text-align:center;margin-bottom:2rem}.hero h1{font-size:2.5rem;font-weight:800}.hero p{color:var(--fg-muted)}
+        .section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
+        .section h2{font-size:1.1rem;font-weight:600;margin-bottom:1rem}
+        .upload-zone{border:2px dashed var(--border);border-radius:8px;padding:2rem;text-align:center;cursor:pointer;transition:all .2s}
+        .upload-zone:hover{border-color:var(--accent);background:rgba(0,102,255,0.05)}
+        .grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+        .image-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:0.5rem;margin-top:1rem}
+        .image-thumb{position:relative;border-radius:6px;overflow:hidden}.image-thumb img{width:100%;aspect-ratio:1;object-fit:cover}
+        .image-thumb .x{position:absolute;top:2px;right:2px;background:var(--error);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:14px;line-height:1}
+        .control-group{margin-bottom:1rem}.control-group label{display:block;font-size:0.85rem;font-weight:500;margin-bottom:0.25rem}
+        .control-group select,.control-group input{width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg)}
+        .btn{display:inline-flex;padding:0.75rem 1.5rem;font-size:0.95rem;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:var(--accent);color:#fff}
         .btn:disabled{opacity:0.5;cursor:not-allowed}
-        .btn-secondary{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
-        .status{padding:0.75rem;border-radius:var(--radius-md);margin-top:var(--space-4);display:none}
-        .status.visible{display:block}
-        .status.processing{background:rgba(201,123,63,0.1);color:var(--primary)}
-        .status.success{background:rgba(47,111,94,0.1);color:var(--accent)}
-        .status.error{background:rgba(239,68,68,0.1);color:#d92b2b}
-        .output{display:none;margin-top:var(--space-4)}
-        .output.visible{display:block}
-        .output video{width:100%;border-radius:var(--radius-md)}
+        .btn-secondary{background:var(--muted);color:var(--fg)}
+        .status{padding:0.75rem;border-radius:8px;margin-top:1rem;display:none}.status.visible{display:block}
+        .status.processing{background:rgba(0,102,255,0.1);color:var(--accent)}
+        .status.success{background:rgba(0,122,51,0.1);color:var(--success)}
+        .status.error{background:rgba(217,43,43,0.1);color:var(--error)}
+        .output-section{display:none}.output-section.visible{display:block}
+        footer{text-align:center;padding:2rem;color:var(--fg-muted);border-top:1px solid var(--border)}
         @media(max-width:768px){.grid{grid-template-columns:1fr}}
     </style>
 </head>
 <body>
-    <header class="header">
-        <div class="header-content">
-            <div class="logo">🖼️ Images → MOV</div>
-            <a href="landing.html" style="color:#fff;text-decoration:none">← Tools</a>
+<nav class="nav"><a href="landing.html" style="font-weight:700;text-decoration:none;color:var(--fg)">← Digital Twin</a></nav>
+<main>
+    <header class="hero"><h1>🖼️ Images → MOV</h1><p>Convert image sequences to looping video with Ken Burns effects</p></header>
+    <div class="grid">
+        <div>
+            <section class="section"><h2>1. Upload Images</h2>
+                <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                    <input type="file" id="fileInput" accept="image/*" multiple style="display:none" onchange="handleFiles(this.files)">
+                    <div style="font-size:2rem">📁</div><div><strong>Click to upload</strong><br>PNG, JPG, WebP</div>
+                </div>
+                <div class="image-grid" id="imageGrid"></div>
+            </section>
+            <section class="section"><h2>2. Settings</h2>
+                <div class="control-group"><label>Length per image</label><select id="length"><option value="2">2 sec</option><option value="3">3 sec</option><option value="5" selected>5 sec</option></select></div>
+                <div class="control-group"><label>Frame Rate</label><select id="fps"><option value="24">24 fps</option><option value="30" selected>30 fps</option><option value="60">60 fps</option></select></div>
+                <div class="control-group"><label>Ken Burns</label><select id="kenBurns"><option value="none">None</option><option value="zoom-in" selected>Zoom In</option><option value="zoom-out">Zoom Out</option><option value="pan-left">Pan Left</option></select></div>
+            </section>
         </div>
-    </header>
-    <main>
-        <div class="grid">
-            <div>
-                <div class="card">
-                    <div class="card-title">1. Upload Images</div>
-                    <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
-                        <input type="file" id="fileInput" accept="image/*" multiple style="display:none" onchange="handleFiles(this.files)">
-                        <div style="font-size:2rem">📁</div>
-                        <div>Click to upload • PNG, JPG, WebP</div>
-                    </div>
-                    <div class="image-grid" id="imageGrid"></div>
-                </div>
-                <div class="card">
-                    <div class="card-title">2. Settings</div>
-                    <div class="control-group">
-                        <label>Length per image</label>
-                        <select id="length">
-                            <option value="2">2 sec</option>
-                            <option value="3">3 sec</option>
-                            <option value="5" selected>5 sec</option>
-                        </select>
-                    </div>
-                    <div class="control-group">
-                        <label>Frame Rate</label>
-                        <select id="fps">
-                            <option value="24">24 fps</option>
-                            <option value="30" selected>30 fps</option>
-                        </select>
-                    </div>
-                    <div class="control-group">
-                        <label>Ken Burns Effect</label>
-                        <select id="kenBurns">
-                            <option value="none">None</option>
-                            <option value="zoom-in" selected>Zoom In</option>
-                            <option value="zoom-out">Zoom Out</option>
-                            <option value="pan-left">Pan Left</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div>
-                <div class="card">
-                    <div class="card-title">3. Generate</div>
-                    <button class="btn" id="generateBtn" disabled onclick="generate()">🎬 Generate Video</button>
-                    <div class="status" id="status"></div>
-                </div>
-                <div class="card output" id="result">
-                    <div class="card-title">Your Video</div>
-                    <video id="outputVideo" controls></video>
-                    <div style="margin-top:var(--space-4);display:flex;gap:0.5rem">
-                        <a class="btn" id="downloadLink" download="video.mov">⬇️ Download</a>
-                        <button class="btn btn-secondary" onclick="location.reload()">🔄 New</button>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-title">🔌 API Webhook</div>
-                    <input type="text" id="apiUrl" placeholder="https://api.example.com/webhook" style="width:100%;padding:0.75rem;border:1px solid var(--line);border-radius:var(--radius-md)">
-                    <button class="btn btn-secondary" style="margin-top:0.5rem" onclick="runApi()">📤 Send to API</button>
-                </div>
-            </div>
+        <div>
+            <section class="section"><h2>3. Export</h2>
+                <button class="btn" id="generateBtn" disabled onclick="generate()">🎬 Generate MOV</button>
+                <div class="status" id="status"></div>
+            </section>
+            <section class="section output-section" id="result"><h2>Result</h2>
+                <video id="outputVideo" controls style="width:100%"></video>
+                <div style="margin-top:1rem"><a class="btn" id="downloadLink" download="video.mov">⬇️ Download</a></div>
+            </section>
+            <section class="section"><h2>🔌 API Webhook</h2>
+                <div class="control-group"><input type="text" id="apiUrl" placeholder="https://api.example.com/webhook"></div>
+                <button class="btn btn-secondary" onclick="runApi()">📤 Send to API</button>
+            </section>
         </div>
-    </main>
+    </div>
+</main>
+<footer><p>Built with FFmpeg • Digital Twin</p></footer>
 <script>
 let images = [];
-let ffmpeg = null;
-let ffmpegLoading = null;
 
 // The ffmpeg.wasm loader lives in ONE place for the whole repo:
 //   pages/assets/ffmpeg-client.mjs
@@ -123,7 +84,8 @@ let ffmpegLoading = null;
 //
 // The old code in this page loaded the UMD bundle from unpkg and called
 // `new FFmpegFFmpeg()` — a name that never existed in any build — so every
-// render died with "FFmpegFFmpeg is not defined".
+// render died with "FFmpegFFmpeg is not defined". It also posted to
+// /api/images-to-mov, an endpoint that does not exist.
 //
 // The ffmpeg argument list is built by /lib/render/plan.mjs, the module the
 // server set uses, so a browser render and a server render of the same images
@@ -145,7 +107,7 @@ function handleFiles(files) {
 }
 
 function render() {
-    document.getElementById('imageGrid').innerHTML = images.map((img, i) => 
+    document.getElementById('imageGrid').innerHTML = images.map((img, i) =>
         `<div class="image-thumb"><img src="${img.url}"><button class="x" onclick="images.splice(${i},1);render()">×</button></div>`
     ).join('');
     document.getElementById('generateBtn').disabled = images.length === 0;
@@ -172,7 +134,7 @@ async function generate() {
         const W = geo.width;
         const H = geo.height;
 
-        status.textContent = '⏳ Uploading frames...';
+        status.textContent = '⏳ Encoding video...';
 
         // The ffmpeg argument list (one looping input per image, Ken Burns per
         // still, concat at the end) comes from /lib/render/plan.mjs — the same
@@ -181,7 +143,6 @@ async function generate() {
         // The tool is "Images → MOV", so we mux a real QuickTime container
         // (ftyp brand "qt  "). MOV carries the same H.264 stream as MP4 and plays
         // everywhere.
-        status.textContent = '⏳ Encoding video...';
         const bytes = await renderImagesToMp4({
             files: images.map(img => img.file),
             fps,
@@ -220,17 +181,17 @@ function runApi() {
     const apiUrl = document.getElementById('apiUrl').value.trim();
     if (!apiUrl) return alert('Enter API URL');
     if (images.length === 0) return alert('Upload images first');
-    
+
     const status = document.getElementById('status');
     status.className = 'status visible processing';
     status.textContent = '⏳ Sending to API...';
-    
+
     const fd = new FormData();
     images.forEach((img, i) => fd.append('image_' + i, img.file));
     fd.append('fps', document.getElementById('fps').value);
     fd.append('duration', document.getElementById('length').value);
     fd.append('kenBurns', document.getElementById('kenBurns').value);
-    
+
     fetch(apiUrl, { method: 'POST', body: fd })
         .then(r => {
             status.className = 'status visible success';

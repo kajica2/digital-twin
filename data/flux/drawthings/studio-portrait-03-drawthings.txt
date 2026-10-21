@@ -1,0 +1,21 @@
+# DrawThings 2-Second Loop
+# Input: studio-portrait-03.png
+# Config: studio_portrait_03
+
+## Main Prompt
+professional male model, athletic stance, full length standing, pose2, concrete floor cyclorama, large soft key light from left, subtle weight shift, slight shoulder movement, 2 second seamless loop, fashion photography
+
+## Motion
+weight shift, shoulder movement
+
+## Settings
+- Duration: 2 seconds
+- Loop: Seamless/Infinite
+- Seed: Auto
+
+## How to Use
+1. Open DrawThings → Animate mode
+2. Load studio-portrait-03.png as reference
+3. Paste prompt above
+4. Set: 2 seconds, seamless loop
+5. Generate & export

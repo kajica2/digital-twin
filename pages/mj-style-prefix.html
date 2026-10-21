@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Design tokens live in the skin, not in this page. See DESIGN.md. -->
+    <link rel="stylesheet" href="../assets/skins/house.css" data-skin-stylesheet>
+    <script src="../lib/skin.js"></script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎨 MJ Prompt Studio — Digital Twin</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%A4%8D%3C/text%3E%3C/svg%3E">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        :root{--fg:#1a1a1a;--fg-muted:#666;--bg:#f0f2f5;--surface:#fff;--border:#e1e4e8;--accent:#6366f1;--accent-hover:#4f46e5;--success:#10b981;--error:#ef4444;--warning:#f59e0b;--muted:#f8fafc;--c1:#6366f1;--c2:#8b5cf6;--c3:#ec4899;--c4:#06b6d4;--c5:#10b981;--c6:#f59e0b}
-        [data-theme="dark"]{--fg:#f1f5f9;--fg-muted:#94a3b8;--bg:#0f172a;--surface:#1e293b;--border:#334155;--accent:#818cf8;--accent-hover:#6366f1;--success:#34d399;--error:#f87171;--warning:#fbbf24;--muted:#1e293b}
         *{box-sizing:border-box;margin:0;padding:0}
         body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--fg);line-height:1.5;min-height:100vh}
         a{color:inherit;text-decoration:none}

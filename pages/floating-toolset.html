@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Design tokens live in the skin, not this page. See DESIGN.md. -->
+    <link rel="stylesheet" href="../assets/skins/house.css" data-skin-stylesheet>
+    <script src="../lib/skin.js"></script>
+    <script src="../lib/theme.js" data-theme-key="ft-theme"></script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Floating Toolset — Tools</title>
+    <meta name="description" content="A draggable floating panel for the twin: today, now playing, code and patterns in one always-there corner. One script tag, no build step.">
+    <meta property="og:title" content="Floating Toolset — Tools">
+    <meta property="og:description" content="One draggable panel for the twin's four surfaces. Drop it on any page with a single script tag.">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%E2%9A%99%3C/text%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg); color: var(--text-primary);
+            font-family: var(--font-body); line-height: 1.65;
+            -webkit-font-smoothing: antialiased;
+        }
+        .wrap { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+        header { padding: 30px 0 8px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        .back { font-family: var(--mono); font-size: 12px; color: var(--text-secondary); text-decoration: none; }
+        .back:hover { color: var(--accent-text); }
+        #themeToggle {
+            font-family: var(--mono); font-size: 12px; padding: 6px 12px; cursor: pointer;
+            background: var(--bg-card); color: var(--text-secondary);
+            border: 1px solid var(--line); border-radius: var(--radius-md);
+        }
+        .hero { padding: 26px 0 30px; border-bottom: 1px solid var(--line); }
+        .kicker { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent-text); }
+        h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.12; letter-spacing: -0.02em; margin: 10px 0 12px; font-weight: 700; }
+        .lede { font-size: 17px; color: var(--text-secondary); max-width: 64ch; }
+        h2 { font-size: 21px; letter-spacing: -0.01em; margin: 42px 0 12px; font-weight: 650; }
+        p { color: var(--text-secondary); max-width: 70ch; }
+        section { padding-bottom: 14px; }
+        .card {
+            background: var(--bg-card); border: 1px solid var(--line);
+            border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-md);
+        }
+        .callout {
+            border-left: 3px solid var(--primary); background: var(--bg-soft);
+            padding: 14px 16px; border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            font-size: 14px; color: var(--text-secondary); margin-top: 16px;
+        }
+        .callout strong { color: var(--text-primary); }
+        .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 16px; }
+        button.act {
+            font-family: var(--mono); font-size: 12px; padding: 8px 14px; cursor: pointer;
+            background: var(--bg-card); color: var(--text-primary);
+            border: 1px solid var(--line); border-radius: var(--radius-md);
+        }
+        button.act:hover { color: var(--accent-text); border-color: var(--accent); }
+        button.act.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        button.act.primary:hover { filter: brightness(1.07); color: #fff; }
+        .pill { font-family: var(--mono); font-size: 11px; padding: 3px 9px; border-radius: 999px;
+                border: 1px solid var(--line); color: var(--text-secondary); }
+        .status { font-family: var(--mono); font-size: 12px; color: var(--text-tertiary); }
+
+        pre {
+            background: var(--code-bg); color: var(--code-text); border: 1px solid var(--line);
+            border-radius: var(--radius-md); padding: 16px; overflow-x: auto;
+            font-family: var(--mono); font-size: 12.5px; line-height: 1.7;
+        }
+        .code-wrap { position: relative; }
+        .copy-btn {
+            position: absolute; top: 10px; right: 10px; font-family: var(--mono); font-size: 11px;
+            padding: 5px 11px; cursor: pointer; background: var(--bg-card); color: var(--text-secondary);
+            border: 1px solid var(--line); border-radius: 7px;
+        }
+        .copy-btn:hover { color: var(--accent-text); border-color: var(--accent); }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+        th { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-tertiary); font-weight: 500; }
+        td code, .inline-code { font-family: var(--mono); font-size: 12px; background: var(--code-bg);
+                                padding: 2px 6px; border-radius: 5px; color: var(--code-text); }
+        footer { border-top: 1px solid var(--line); margin-top: 48px; padding: 26px 0 56px;
+                 color: var(--text-tertiary); font-size: 13px; }
+        footer a { color: var(--accent-text); text-decoration: none; }
+        @media (max-width: 700px) { h1 { font-size: 30px; } }
+    </style>
+</head>
+<body>
+<header>
+    <div class="wrap" style="width:100%">
+        <a class="back" href="how-to.html">← how-to</a>
+        <button id="themeToggle" type="button">theme: auto</button>
+    </div>
+</header>
+
+<div class="wrap">
+    <div class="hero">
+        <div class="kicker">tool · floating toolset</div>
+        <h1>One panel, floating over everything.</h1>
+        <p class="lede">
+            Today, now playing, code and patterns — four surfaces the twin keeps
+            an eye on, packed into a draggable corner panel. Drop it on any page
+            with one script tag. No build step, no framework.
+        </p>
+    </div>
+
+    <section>
+        <h2>What it is</h2>
+        <p>
+            The toolset is a single Web Component, <code class="inline-code">&lt;floating-toolset&gt;</code>,
+            that renders itself in the corner of the viewport and floats above the
+            page. Drag it anywhere. Collapse it to its chrome bar. Close it and a
+            small <em>twin</em> tab stays so you can bring it back.
+        </p>
+        <p>
+            It reads a JSON payload — the twin's demo state lives at
+            <code class="inline-code">data/twin/toolset.json</code> — and merges
+            it over sensible defaults, so a partial payload never blanks a panel.
+            The position is remembered per browser, in
+            <code class="inline-code">localStorage</code>.
+        </p>
+        <div class="callout">
+            <strong>The panel is calm by default.</strong> The only motion is the
+            equalizer in <em>Now Playing</em>, and it stops under
+            <code class="inline-code">prefers-reduced-motion</code>. Nothing pops up
+            and nothing pushes a notification at you.
+        </div>
+    </section>
+
+    <section>
+        <h2>Drop it on a page</h2>
+        <p>Two lines. The component ships its own styles in a shadow root, so it cannot collide with the host page's CSS — but CSS custom properties inherit through the shadow boundary, so the skin still reaches it.</p>
+        <div class="code-wrap">
+            <button class="copy-btn" data-copy type="button">Copy</button>
+            <pre><code>&lt;script src="/lib/floating-toolset.js"&gt;&lt;/script&gt;
+&lt;floating-toolset src="/data/twin/toolset.json"&gt;&lt;/floating-toolset&gt;</code></pre>
+        </div>
+        <div class="row">
+            <button class="act primary" type="button" data-act="toggle">Toggle the panel</button>
+            <button class="act" type="button" data-act="collapse">Collapse / expand</button>
+            <button class="act" type="button" data-act="zoom">Widen / narrow</button>
+            <span class="status" data-status>panel: closed</span>
+        </div>
+    </section>
+
+    <section>
+        <h2>The payload</h2>
+        <p>One JSON object, four panels and a footer. Every key is optional — anything you leave out falls back to the built-in demo state.</p>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Key</th><th>Shape</th><th>What it does</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>title</code></td><td>string</td><td>Centre of the chrome bar.</td></tr>
+                    <tr><td><code>live</code></td><td>boolean</td><td>Shows the red <em>live</em> badge in the corner.</td></tr>
+                    <tr><td><code>panels.today.items[]</code></td><td><code>{ time, label }</code></td><td>One agenda line each.</td></tr>
+                    <tr><td><code>panels.nowPlaying</code></td><td><code>{ title, meta, peaks[] }</code></td><td>The track and its equalizer; <code>peaks</code> are 0..1 heights.</td></tr>
+                    <tr><td><code>panels.code.items[]</code></td><td><code>{ repo, task, done }</code></td><td>One open piece of work each; <code>done</code> fills the tick.</td></tr>
+                    <tr><td><code>panels.patterns.items[]</code></td><td><code>{ when, label, detail }</code></td><td>One observed rhythm each, with the <em>▸</em> arrow.</td></tr>
+                    <tr><td><code>footer</code></td><td><code>{ left, right }</code></td><td>The bar under the panels.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section>
+        <h2>The API</h2>
+        <p>Set the payload from JavaScript instead of a file — useful when the twin already has the state in memory.</p>
+        <div class="code-wrap">
+            <button class="copy-btn" data-copy type="button">Copy</button>
+            <pre><code>const panel = document.querySelector('floating-toolset');
+
+panel.setData({
+  panels: {
+    nowPlaying: { title: 'Shaw — Fair Weather', meta: 'C minor · 92 BPM' },
+    code: { items: [{ repo: 'kai-systems', task: 'ship the twin', done: false }] }
+  }
+});
+
+panel.open();
+panel.toggleCollapse();
+panel.toggleZoom();
+
+panel.addEventListener('toolset:move', (e) =&gt; console.log(e.detail.x, e.detail.y));</code></pre>
+        </div>
+    </section>
+</div>
+
+<footer>
+    <div class="wrap">
+        Part of the <a href="cognitive-twin.html">digital twin</a> ·
+        component: <code class="inline-code">lib/floating-toolset.js</code> ·
+        reference: <a href="../docs/FLOATING-TOOLSET.md">docs/FLOATING-TOOLSET.md</a>
+    </div>
+</footer>
+
+<script src="../lib/floating-toolset.js"></script>
+<floating-toolset src="../data/twin/toolset.json"></floating-toolset>
+<script>
+    (function () {
+        var panel = document.querySelector('floating-toolset');
+        if (!panel) return;
+
+        var status = document.querySelector('[data-status]');
+        function say(text) { if (status) status.textContent = 'panel: ' + text; }
+
+        var created = false;
+        function ensure() {
+            if (created) return;
+            created = true;
+            panel.open();
+            say('open');
+        }
+
+        document.querySelector('[data-act="toggle"]').addEventListener('click', function () {
+            if (!created) { ensure(); return; }
+            if (panel.closed) { panel.open(); say('open'); }
+            else { panel.close(); say('closed'); }
+        });
+        document.querySelector('[data-act="collapse"]').addEventListener('click', function () {
+            ensure();
+            panel.toggleCollapse();
+            say(panel.hasAttribute('collapsed') ? 'collapsed' : 'expanded');
+        });
+        document.querySelector('[data-act="zoom"]').addEventListener('click', function () {
+            ensure();
+            panel.toggleZoom();
+            say(panel.zoomed ? 'wide' : 'narrow');
+        });
+
+        // The panel starts closed on this page so the copy reads first; the
+        // "Toggle the panel" button brings it up.
+        panel.close();
+        say('closed');
+
+        // ---- copy buttons (execCommand fallback so a click never throws) ----
+        document.querySelectorAll('.copy-btn[data-copy]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var wrap = btn.closest('.code-wrap');
+                var pre = wrap && wrap.querySelector('pre');
+                if (!pre) return;
+                var text = pre.innerText;
+                var done = function () {
+                    btn.textContent = 'Copied';
+                    setTimeout(function () { btn.textContent = 'Copy'; }, 1600);
+                };
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(done, function () {
+                        try {
+                            var ta = document.createElement('textarea');
+                            ta.value = text;
+                            ta.style.position = 'fixed';
+                            ta.style.opacity = '0';
+                            document.body.appendChild(ta);
+                            ta.select();
+                            document.execCommand('copy');
+                            ta.remove();
+                            done();
+                        } catch (e) { /* clipboard unavailable — the code is still on screen */ }
+                    });
+                } else {
+                    try {
+                        var ta2 = document.createElement('textarea');
+                        ta2.value = text;
+                        ta2.style.position = 'fixed';
+                        ta2.style.opacity = '0';
+                        document.body.appendChild(ta2);
+                        ta2.select();
+                        document.execCommand('copy');
+                        ta2.remove();
+                        done();
+                    } catch (e) {}
+                }
+            });
+        });
+
+        // ---- theme toggle (3-state: light / auto / dark) ----
+        var toggle = document.getElementById('themeToggle');
+        var order = ['light', 'system', 'dark'];
+        var pref = (window.DTTheme && DTTheme.pref) || 'system';
+        function label() { toggle.textContent = 'theme: ' + pref; }
+        label();
+        toggle.addEventListener('click', function () {
+            pref = order[(order.indexOf(pref) + 1) % order.length];
+            if (window.DTTheme) DTTheme.set(pref);
+            else document.documentElement.setAttribute('data-theme', pref === 'dark' ? 'dark' : 'light');
+            label();
+        });
+    })();
+</script>
+</body>
+</html>

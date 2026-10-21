@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sacred Geometry / Cymatic Journey</title>
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --fg: #f0f0f0;
+      --accent: #e8d4b8;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+    }
+
+    .stage {
+      position: relative;
+      width: min(90vmin, 600px);
+      height: min(90vmin, 600px);
+    }
+
+    canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .label {
+      position: absolute;
+      bottom: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      color: var(--fg);
+    }
+
+    .label .step {
+      font-size: 14px;
+      letter-spacing: 4px;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .label .name {
+      font-size: 24px;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+    }
+
+    .label .arc {
+      font-size: 11px;
+      letter-spacing: 2px;
+      opacity: 0.5;
+      margin-top: 8px;
+    }
+
+    .controls {
+      position: fixed;
+      bottom: 20px;
+      display: flex;
+      gap: 10px;
+      z-index: 10;
+    }
+
+    button {
+      background: transparent;
+      border: 1px solid var(--fg);
+      color: var(--fg);
+      padding: 8px 16px;
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      letter-spacing: 2px;
+    }
+
+    button:hover {
+      background: var(--fg);
+      color: var(--bg);
+    }
+
+    .progress {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 3px;
+    }
+
+    .dot {
+      width: 4px;
+      height: 4px;
+      background: var(--fg);
+      opacity: 0.2;
+    }
+
+    .dot.active {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress"></div>
+
+  <div class="stage">
+    <canvas id="canvas"></canvas>
+    <div class="label">
+      <div class="step" id="stepNum">01</div>
+      <div class="name" id="stepName">SINGULARITY</div>
+      <div class="arc" id="stepArc">GROW</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button id="prev">←</button>
+    <button id="play">▶</button>
+    <button id="next">→</button>
+  </div>
+
+  <script>
+    const STEPS = [
+      { n: '01', name: 'SINGULARITY', arc: 'GROW', shape: 'point' },
+      { n: '02', name: 'CIRCLE', arc: 'GROW', shape: 'circle' },
+      { n: '03', name: 'VESICA PISCIS', arc: 'GROW', shape: 'vesica' },
+      { n: '04', name: 'SEED OF LIFE', arc: 'GROW', shape: 'seed' },
+      { n: '05', name: 'HEXAGON', arc: 'GROW', shape: 'hexagon' },
+      { n: '06', name: 'TRIANGLE', arc: 'GROW', shape: 'triangle' },
+      { n: '07', name: 'HEXAGRAM', arc: 'GROW', shape: 'hexagram' },
+      { n: '08', name: 'FLOWER OF LIFE', arc: 'GROW', shape: 'flower' },
+      { n: '09', name: 'HEXAGONAL LATTICE', arc: 'GROW', shape: 'hexLattice' },
+      { n: '10', name: 'METATRON\'S CUBE', arc: 'GROW', shape: 'metatron' },
+      { n: '11', name: 'VECTOR EQUILIBRIUM', arc: 'GROW', shape: 'vector' },
+      { n: '12', name: 'TORUS', arc: 'GROW', shape: 'torus' },
+      { n: '13', name: 'WAVE FIELD', arc: 'GROW', shape: 'wave' },
+      { n: '14', name: 'CYMATIC BLOOM', arc: 'ROTATE', shape: 'cymatic' },
+      { n: '15', name: 'HEXAGONAL CYMATICS', arc: 'ROTATE', shape: 'hexCymatic' },
+      { n: '16', name: 'RADIAL SYMMETRY', arc: 'ROTATE', shape: 'radial' },
+      { n: '17', name: 'CONCENTRIC RINGS', arc: 'ROTATE', shape: 'rings' },
+      { n: '18', name: 'HARMONIC GRID', arc: 'ROTATE', shape: 'harmonic' },
+      { n: '19', name: 'STAR LATTICE', arc: 'ROTATE', shape: 'starLattice' },
+      { n: '20', name: 'PENTAGONAL FIELD', arc: 'ROTATE', shape: 'pentagon' },
+      { n: '21', name: 'PENTAGRAM FIELD', arc: 'ROTATE', shape: 'pentagram' },
+      { n: '22', name: 'RECURSIVE TILING', arc: 'ROTATE', shape: 'recursive' },
+      { n: '23', name: 'FRACTAL GRID', arc: 'ROTATE', shape: 'fractal' },
+      { n: '24', name: 'CRYSTALLINE BLOOM', arc: 'ROTATE', shape: 'crystal' },
+      { n: '25', name: 'CORE RESONANCE', arc: 'ROTATE', shape: 'core' },
+      { n: '26', name: 'SPIRAL VORTEX', arc: 'ROTATE', shape: 'spiral' },
+      { n: '27', name: 'FLOWER VORTEX', arc: 'COLLAPSE', shape: 'flowerVortex' },
+      { n: '28', name: 'INTERFERENCE LATTICE', arc: 'COLLAPSE', shape: 'interference' },
+      { n: '29', name: 'MANDALA BLOOM', arc: 'COLLAPSE', shape: 'mandala' },
+      { n: '30', name: 'HEXAGONAL COLLAPSE', arc: 'COLLAPSE', shape: 'hexCollapse' },
+      { n: '31', name: 'DIAMOND FIELD', arc: 'COLLAPSE', shape: 'diamond' },
+      { n: '32', name: 'LATTICE COMPRESSION', arc: 'COLLAPSE', shape: 'compression' },
+      { n: '33', name: 'NODAL FIELD', arc: 'COLLAPSE', shape: 'nodal' },
+      { n: '34', name: 'STAR CONVERGENCE', arc: 'COLLAPSE', shape: 'starConverge' },
+      { n: '35', name: 'TOROIDAL RETURN', arc: 'COLLAPSE', shape: 'toroidReturn' },
+      { n: '36', name: 'METATRON RETURN', arc: 'COLLAPSE', shape: 'metatronReturn' },
+      { n: '37', name: 'FLOWER RETURN', arc: 'COLLAPSE', shape: 'flowerReturn' },
+      { n: '38', name: 'CIRCLE RETURN', arc: 'COLLAPSE', shape: 'circleReturn' },
+      { n: '39', name: 'SINGULARITY RETURN', arc: 'COLLAPSE', shape: 'singularity' }
+    ];
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let current = 0;
+    let playing = false;
+    let animFrame;
+
+    function resize() {
+      const size = Math.min(window.innerWidth, window.innerHeight) * 0.7;
+      canvas.width = size;
+      canvas.height = size;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    // Progress dots
+    const progress = document.getElementById('progress');
+    STEPS.forEach((_, i) => {
+      const dot = document.createElement('div');
+      dot.className = 'dot';
+      progress.appendChild(dot);
+    });
+
+    function updateUI() {
+      document.getElementById('stepNum').textContent = STEPS[current].n;
+      document.getElementById('stepName').textContent = STEPS[current].name;
+      document.getElementById('stepArc').textContent = STEPS[current].arc;
+      document.querySelectorAll('.dot').forEach((d, i) => {
+        d.classList.toggle('active', i === current);
+      });
+    }
+
+    function draw() {
+      const w = canvas.width;
+      const h = canvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      const maxR = w * 0.4;
+      const time = performance.now() / 1000;
+
+      ctx.fillStyle = '#0a0a0a';
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = '#f0f0f0';
+      ctx.lineWidth = 1.5;
+
+      const shape = STEPS[current].shape;
+      const phase = (current + 1) / STEPS.length;
+      const pulse = Math.sin(time * 2) * 0.05 + 1;
+      const rotation = time * 0.3;
+
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      // DRAWING FUNCTIONS
+      const drawCircle = (r) => {
+        ctx.beginPath();
+        ctx.arc(0, 0, r, 0, Math.PI * 2);
+        ctx.stroke();
+      };
+
+      const drawPoint = (r) => {
+        ctx.beginPath();
+        ctx.arc(0, 0, r * 0.08, 0, Math.PI * 2);
+        ctx.fill();
+      };
+
+      const drawVesica = (r) => {
+        ctx.beginPath();
+        ctx.arc(0, -r * 0.4, r * 0.6, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(0, r * 0.4, r * 0.6, 0, Math.PI * 2);
+        ctx.stroke();
+      };
+
+      const drawHexagon = (r) => {
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+          const a = (i * Math.PI * 2) / 6 - Math.PI / 2;
+          const x = Math.cos(a) * r;
+          const y = Math.sin(a) * r;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.stroke();
+      };
+
+      const drawTriangle = (r) => {
+        ctx.beginPath();
+        for (let i = 0; i < 3; i++) {
+          const a = (i * Math.PI * 2) / 3 - Math.PI / 2;
+          const x = Math.cos(a) * r;
+          const y = Math.sin(a) * r;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.stroke();
+      };
+
+      // SHAPES
+      if (shape === 'point' || shape === 'singularity') {
+        drawPoint(maxR * pulse);
+      }
+      else if (shape === 'circle' || shape === 'circleReturn') {
+        drawCircle(maxR * 0.3 * phase * 1.5);
+      }
+      else if (shape === 'vesica') {
+        drawVesica(maxR * 0.4 * phase * 1.5);
+      }
+      else if (shape === 'seed') {
+        for (let i = 0; i < 7; i++) {
+          const a = (i * Math.PI * 2) / 7;
+          const x = Math.cos(a) * maxR * 0.25 * phase;
+          const y = Math.sin(a) * maxR * 0.25 * phase;
+          ctx.beginPath();
+          ctx.arc(x, y, maxR * 0.2, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+      else if (shape === 'hexagon') {
+        ctx.rotate(rotation * 0.1);
+        drawHexagon(maxR * 0.4 * phase);
+      }
+      else if (shape === 'triangle') {
+        drawTriangle(maxR * 0.4 * phase);
+      }
+      else if (shape === 'hexagram') {
+        drawHexagon(maxR * 0.4 * phase);
+        ctx.rotate(Math.PI / 6);
+        drawHexagon(maxR * 0.4 * phase);
+      }
+      else if (shape === 'flower' || shape === 'flowerReturn') {
+        for (let i = 0; i < 19; i++) {
+          const a = (i * Math.PI * 2) / 19;
+          const x = Math.cos(a) * maxR * 0.3 * phase;
+          const y = Math.sin(a) * maxR * 0.3 * phase;
+          ctx.beginPath();
+          ctx.arc(x, y, maxR * 0.18, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+      else if (shape === 'hexLattice') {
+        ctx.rotate(rotation * 0.05);
+        for (let row = -4; row <= 4; row++) {
+          for (let col = -4; col <= 4; col++) {
+            const x = col * maxR * 0.2 * phase;
+            const y = row * maxR * 0.173 * phase;
+            ctx.beginPath();
+            ctx.arc(x, y, maxR * 0.06, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        }
+      }
+      else if (shape === 'metatron' || shape === 'metatronReturn') {
+        // Flower of life base
+        for (let i = 0; i < 19; i++) {
+          const a = (i * Math.PI * 2) / 19;
+          const x = Math.cos(a) * maxR * 0.35;
+          const y = Math.sin(a) * maxR * 0.35;
+          ctx.beginPath();
+          ctx.arc(x, y, maxR * 0.3, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        // Connecting lines
+        for (let i = 0; i < 13; i++) {
+          const a = (i * Math.PI * 2) / 13;
+          const x = Math.cos(a) * maxR * 0.35;
+          const y = Math.sin(a) * maxR * 0.35;
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(x, y);
+          ctx.stroke();
+        }
+      }
+      else if (shape === 'vector') {
+        // Cuboctahedron vertices (2D projection)
+        for (let ring = 0; ring < 3; ring++) {
+          const r = maxR * (ring + 1) * 0.3 * phase;
+          const n = ring === 1 ? 4 : 6;
+          for (let i = 0; i < n; i++) {
+            const a = (i * Math.PI * 2) / n + ring * 0.2;
+            const x = Math.cos(a) * r;
+            const y = Math.sin(a) * r;
+            ctx.beginPath();
+            ctx.arc(x, y, 3, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+      else if (shape === 'torus' || shape === 'toroidReturn') {
+        for (let i = 0; i < 8; i++) {
+          const r = maxR * 0.15 + i * maxR * 0.05;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, r, r * 0.4, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+      else if (shape === 'wave' || shape === 'cymatic') {
+        const lines = 12;
+        for (let i = 0; i < lines; i++) {
+          ctx.beginPath();
+          for (let x = -maxR; x < maxR; x += 5) {
+            const y = Math.sin(x * 0.05 + time * 2 + i * 0.5) * maxR * 0.1 * phase;
+            if (x === -maxR) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        }
+      }
+      else if (shape === 'hexCymatic' || shape === 'hexCollapse') {
+        ctx.rotate(rotation * 0.2);
+        for (let ring = 1; ring <= 4; ring++) {
+          const r = maxR * ring * 0.2 * phase;
+          ctx.beginPath();
+          for (let i = 0; i < 6; i++) {
+            const a = (i * Math.PI * 2) / 6;
+            const x = Math.cos(a) * r;
+            const y = Math.sin(a) * r;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.closePath();
+          ctx.stroke();
+          // Nodes
+          for (let i = 0; i < 6; i++) {
+            const a = (i * Math.PI * 2) / 6;
+            const x = Math.cos(a) * r;
+            const y = Math.sin(a) * r;
+            ctx.beginPath();
+            ctx.arc(x, y, 3, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+      else if (shape === 'radial') {
+        for (let i = 0; i < 24; i++) {
+          const a = (i * Math.PI * 2) / 24;
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(Math.cos(a) * maxR * phase, Math.sin(a) * maxR * phase);
+          ctx.stroke();
+        }
+        for (let r = 1; r <= 4; r++) {
+          ctx.beginPath();
+          ctx.arc(0, 0, maxR * r * 0.2 * phase, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+      else if (shape === 'rings' || shape === 'rings') {
+        for (let i = 0; i < 12; i++) {
+          ctx.beginPath();
+          ctx.arc(0, 0, maxR * 0.1 + i * maxR * 0.07 * phase, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+      else if (shape === 'harmonic') {
+        for (let i = 0; i < 16; i++) {
+          const a = (i * Math.PI * 2) / 16;
+          for (let r = 0; r < 5; r++) {
+            const rad = maxR * (r + 1) * 0.15 * phase;
+            const x = Math.cos(a) * rad;
+            const y = Math.sin(a) * rad;
+            ctx.beginPath();
+            ctx.arc(x, y, 2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+      else if (shape === 'starLattice' || shape === 'starConverge') {
+        ctx.rotate(rotation * 0.1);
+        for (let i = 0; i < 12; i++) {
+          const a = (i * Math.PI * 2) / 12;
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(Math.cos(a) * maxR * phase, Math.sin(a) * maxR * phase);
+          ctx.stroke();
+        }
+        // Cross connections
+        for (let i = 0; i < 12; i++) {
+          const a1 = (i * Math.PI * 2) / 12;
+          const a2 = ((i + 4) * Math.PI * 2) / 12;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(a1) * maxR * 0.4 * phase, Math.sin(a1) * maxR * 0.4 * phase);
+          ctx.lineTo(Math.cos(a2) * maxR * 0.4 * phase, Math.sin(a2) * maxR * 0.4 * phase);
+          ctx.stroke();
+        }
+      }
+      else if (shape === 'pentagon' || shape === 'pentagram') {
+        ctx.rotate(rotation * 0.15);
+        // Pentagon
+        ctx.beginPath();
+        for (let i = 0; i < 5; i++) {
+          const a = (i * Math.PI * 2) / 5 - Math.PI / 2;
+          const x = Math.cos(a) * maxR * 0.4 * phase;
+          const y = Math.sin(a) * maxR * 0.4 * phase;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.stroke();
+        // Star
+        if (shape === 'pentagram') {
+          for (let i = 0; i < 5; i++) {
+            const a1 = (i * Math.PI * 2) / 5 - Math.PI / 2;
+            const a2 = ((i + 2) * Math.PI * 2) / 5 - Math.PI / 2;
+            ctx.beginPath();
+            ctx.moveTo(Math.cos(a1) * maxR * 0.4 * phase, Math.sin(a1) * maxR * 0.4 * phase);
+            ctx.lineTo(Math.cos(a2) * maxR * 0.4 * phase, Math.sin(a2) * maxR * 0.4 * phase);
+            ctx.stroke();
+          }
+        }
+      }
+      else if (shape === 'recursive' || shape === 'fractal') {
+        const drawRecursive = (x, y, r, depth) => {
+          if (depth <= 0 || r < 5) return;
+          ctx.beginPath();
+          ctx.rect(x - r/2, y - r/2, r, r);
+          ctx.stroke();
+          drawRecursive(x - r/2, y - r/2, r/2, depth - 1);
+          drawRecursive(x + r/2, y - r/2, r/2, depth - 1);
+          drawRecursive(x - r/2, y + r/2, r/2, depth - 1);
+          drawRecursive(x + r/2, y + r/2, r/2, depth - 1);
+        };
+        drawRecursive(0, 0, maxR * phase, 4);
+      }
+      else if (shape === 'crystal' || shape === 'mandala') {
+        ctx.rotate(rotation * 0.3);
+        for (let ring = 0; ring < 6; ring++) {
+          const r = maxR * (ring + 1) * 0.15 * phase;
+          const points = (ring + 3) * 2;
+          for (let i = 0; i < points; i++) {
+            const a = (i * Math.PI * 2) / points;
+            const x = Math.cos(a) * r;
+            const y = Math.sin(a) * r;
+            ctx.beginPath();
+            ctx.arc(x, y, 2, 0, Math.PI * 2);
+            ctx.fill();
+            // Lines to center
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+          }
+        }
+      }
+      else if (shape === 'core') {
+        for (let i = 0; i < 6; i++) {
+          const a = (i * Math.PI * 2) / 6;
+          const r = maxR * 0.3 * phase;
+          ctx.beginPath();
+          ctx.arc(Math.cos(a) * r, Math.sin(a) * r, maxR * 0.1, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.beginPath();
+        ctx.arc(0, 0, maxR * 0.1 * phase, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      else if (shape === 'spiral' || shape === 'flowerVortex') {
+        for (let i = 0; i < 200; i++) {
+          const a = i * 0.2 + time * 0.5;
+          const r = i * maxR * 0.004 * phase;
+          const x = Math.cos(a) * r;
+          const y = Math.sin(a) * r;
+          ctx.beginPath();
+          ctx.arc(x, y, 1, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      else if (shape === 'interference') {
+        for (let x = -10; x <= 10; x++) {
+          for (let y = -10; y <= 10; y++) {
+            const d1 = Math.sqrt((x - 3) ** 2 + y ** 2);
+            const d2 = Math.sqrt((x + 3) ** 2 + y ** 2);
+            const interference = Math.sin((d1 + d2) * 0.8 + time * 2);
+            if (interference > 0) {
+              const px = x * maxR * 0.08 * phase;
+              const py = y * maxR * 0.08 * phase;
+              ctx.beginPath();
+              ctx.arc(px, py, 2, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+        }
+      }
+      else if (shape === 'diamond') {
+        ctx.rotate(rotation * 0.1);
+        for (let i = 0; i < 4; i++) {
+          const r = maxR * (i + 1) * 0.2 * phase;
+          ctx.beginPath();
+          ctx.moveTo(0, -r);
+          ctx.lineTo(r * 0.6, 0);
+          ctx.lineTo(0, r);
+          ctx.lineTo(-r * 0.6, 0);
+          ctx.closePath();
+          ctx.stroke();
+        }
+      }
+      else if (shape === 'compression') {
+        const factor = 1 - phase * 0.5;
+        for (let i = 0; i < 5; i++) {
+          const r = maxR * (i + 1) * 0.15 * factor + maxR * i * 0.03;
+          drawHexagon(r);
+        }
+      }
+      else if (shape === 'nodal') {
+        for (let x = -4; x <= 4; x++) {
+          for (let y = -4; y <= 4; y++) {
+            const d = Math.sqrt(x * x + y * y);
+            if (d > 0) {
+              const intensity = Math.sin(d * 1.5 + time) > 0 ? 1 : 0;
+              if (intensity) {
+                ctx.beginPath();
+                ctx.arc(x * maxR * 0.15 * phase, y * maxR * 0.15 * phase, 3, 0, Math.PI * 2);
+                ctx.fill();
+              }
+            }
+          }
+        }
+      }
+
+      ctx.restore();
+      animFrame = requestAnimationFrame(draw);
+    }
+
+    function show(n) {
+      current = (n + STEPS.length) % STEPS.length;
+      updateUI();
+    }
+
+    document.getElementById('prev').onclick = () => show(current - 1);
+    document.getElementById('next').onclick = () => show(current + 1);
+
+    document.getElementById('play').onclick = function() {
+      playing = !playing;
+      this.textContent = playing ? '❚❚' : '▶';
+      if (playing) {
+        const loop = () => {
+          if (!playing) return;
+          show(current + 1);
+          setTimeout(loop, 800);
+        };
+        loop();
+      }
+    };
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') show(current - 1);
+      if (e.key === 'ArrowRight') show(current + 1);
+      if (e.key === ' ') {
+        e.preventDefault();
+        document.getElementById('play').click();
+      }
+    });
+
+    draw();
+    updateUI();
+  </script>
+</body>
+</html>

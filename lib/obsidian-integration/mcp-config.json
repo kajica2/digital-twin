@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "obsidian": {
+      "command": "node",
+      "args": [
+        "/Users/kaidejuricmasscmbook/Digital-Twin/lib/obsidian-integration/obsidian-mcp-server.js"
+      ],
+      "env": {
+        "OBSIDIAN_VAULT": "~/Documents/obsidian/TwinOS"
+      }
+    }
+  }
+}

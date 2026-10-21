@@ -6,7 +6,7 @@
 
     "web": {
         "imagineUrl": "https://www.midjourney.com/imagine",
-        "cookiesFile": "data/mj-cookies.txt",
+        "cookiesFile": "~/.midjourney-cookies.txt",
         "_note_cookiesFile": "Cookie jar exported from a browser logged into midjourney.com. Netscape or JSON format. SECRET — keep it out of git (see .gitignore). Export with a 'Get cookies.txt' extension, or from DevTools.",
         "userDataDir": "/tmp/mj-web-profile",
         "_note_userDataDir": "Browser profile for the web backend. Separate from the Discord profile so the two never fight over one Chromium instance.",

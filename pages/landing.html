@@ -1,6 +1,11 @@
 <!doctype html>
 <html lang="en" data-theme="system" data-variant="1">
 <head>
+    <!-- Design tokens live in the skin, not in this page. See DESIGN.md. -->
+    <link rel="stylesheet" href="../assets/skins/house.css" data-skin-stylesheet>
+    <script src="../lib/skin.js"></script>
+    <script src="../lib/theme.js" data-theme-key="dt-theme-pref"></script>
+
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="light dark" />
@@ -20,19 +25,12 @@
        convention every other page in this repo follows. -->
 
   <script>
-    // Theme + variant bootstrap, applied before first paint to prevent flash.
+    // Variant + .js class, applied before first paint. The theme half of
+    // this bootstrap now lives in lib/theme.js.
     (function () {
       try {
-        var saved = localStorage.getItem('dt-theme-pref');
-        var pref = saved || 'system';
-        var resolved = pref === 'system'
-          ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-          : pref;
-        document.documentElement.setAttribute('data-theme', resolved);
-        document.documentElement.setAttribute('data-theme-pref', pref);
-
         var v = new URLSearchParams(location.search).get('v');
-        if (v && ['1','2','3'].includes(v)) {
+        if (v && ['1', '2', '3'].includes(v)) {
           document.documentElement.setAttribute('data-variant', v);
         }
         document.documentElement.classList.add('js');
@@ -41,106 +39,9 @@
   </script>
 
   <style>
-    /* ============================================================
-       1. DESIGN TOKENS — kai-systems house style
-       Light: warm cream + copper + forest. Dark: warm near-black.
-       ============================================================ */
-    :root {
-      --bg:           #f7f5f0;
-      --bg-warm:      #f4f0e7;
-      --surface:      #ffffff;
-      --line:         #e9e3d6;
-      --line-soft:    #f0eadf;
-      --ink:          #14171e;
-      --ink-muted:    #3a4256;
-      --ink-faint:    #7c7a72;
-      --primary:      #c97b3f;
-      --primary-2:    #a85f28;
-      --primary-soft: rgba(201, 123, 63, 0.08);
-      --primary-mid:  rgba(201, 123, 63, 0.18);
-      --accent:       #2f6f5e;
-      --accent-2:     #1f4f43;
-      --accent-soft:  rgba(47, 111, 94, 0.08);
+    
 
-      /* Spacing (8px base) */
-      --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
-      --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
-      --space-9: 96px; --space-10: 128px;
-
-      /* Radii */
-      --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px;
-      --radius-xl: 20px; --radius-pill: 999px;
-
-      /* Shadows — soft, warm, never harsh */
-      --shadow-sm: 0 1px 2px rgba(20, 23, 30, .04), 0 2px 6px rgba(20, 23, 30, .05);
-      --shadow-md: 0 1px 2px rgba(20, 23, 30, .05), 0 8px 24px rgba(20, 23, 30, .08);
-      --shadow-lg: 0 1px 2px rgba(20, 23, 30, .06), 0 16px 48px rgba(20, 23, 30, .12);
-      --shadow-glow: 0 0 0 1px rgba(201, 123, 63, .12), 0 12px 40px -8px rgba(201, 123, 63, .25);
-
-      /* Type */
-      --font-display: 'DM Serif Display', ui-serif, Georgia, serif;
-      --font-body:    'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
-      --font-mono:    'JetBrains Mono', ui-monospace, Menlo, monospace;
-      --fs-xs: 12px;  --fs-sm: 14px;  --fs-base: 16px; --fs-md: 20px;
-      --fs-lg: 24px;  --fs-xl: 32px;  --fs-2xl: 40px; --fs-3xl: 56px;
-      --fs-4xl: 72px; --fs-5xl: 84px;
-      --lh-tight: 1.04; --lh-snug: 1.18; --lh-base: 1.5; --lh-loose: 1.7;
-
-      /* Motion */
-      --dur-fast: 120ms; --dur-base: 220ms; --dur-slow: 400ms; --dur-page: 600ms;
-      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-      --ease-in-out:   cubic-bezier(0.65, 0, 0.35, 1);
-
-      /* Layout */
-      --container: 1080px;
-      --container-narrow: 760px;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :root:not([data-theme="light"]) {
-        --bg:           #1a1812;
-        --bg-warm:      #211e16;
-        --surface:      #25221a;
-        --line:         #3a342a;
-        --line-soft:    #2d2a22;
-        --ink:          #f4efe2;
-        --ink-muted:    #c0b8a8;
-        --ink-faint:    #807868;
-        --primary:      #d9925a;
-        --primary-2:    #e6a674;
-        --primary-soft: rgba(217, 146, 90, 0.12);
-        --primary-mid:  rgba(217, 146, 90, 0.22);
-        --accent:       #6ab098;
-        --accent-2:     #8cc8b0;
-        --accent-soft:  rgba(106, 176, 152, 0.10);
-        --shadow-sm: 0 1px 2px rgba(0, 0, 0, .3), 0 2px 6px rgba(0, 0, 0, .25);
-        --shadow-md: 0 1px 2px rgba(0, 0, 0, .35), 0 8px 24px rgba(0, 0, 0, .35);
-        --shadow-lg: 0 1px 2px rgba(0, 0, 0, .4), 0 16px 48px rgba(0, 0, 0, .5);
-        --shadow-glow: 0 0 0 1px rgba(217, 146, 90, .25), 0 12px 50px -8px rgba(217, 146, 90, .35);
-      }
-    }
-
-    [data-theme="dark"] {
-      --bg:           #1a1812;
-      --bg-warm:      #211e16;
-      --surface:      #25221a;
-      --line:         #3a342a;
-      --line-soft:    #2d2a22;
-      --ink:          #f4efe2;
-      --ink-muted:    #c0b8a8;
-      --ink-faint:    #807868;
-      --primary:      #d9925a;
-      --primary-2:    #e6a674;
-      --primary-soft: rgba(217, 146, 90, 0.12);
-      --primary-mid:  rgba(217, 146, 90, 0.22);
-      --accent:       #6ab098;
-      --accent-2:     #8cc8b0;
-      --accent-soft:  rgba(106, 176, 152, 0.10);
-      --shadow-sm: 0 1px 2px rgba(0, 0, 0, .3), 0 2px 6px rgba(0, 0, 0, .25);
-      --shadow-md: 0 1px 2px rgba(0, 0, 0, .35), 0 8px 24px rgba(0, 0, 0, .35);
-      --shadow-lg: 0 1px 2px rgba(0, 0, 0, .4), 0 16px 48px rgba(0, 0, 0, .5);
-      --shadow-glow: 0 0 0 1px rgba(217, 146, 90, .25), 0 12px 50px -8px rgba(217, 146, 90, .35);
-    }
+    
 
     /* ============================================================
        2. RESET + BASE — body picks up the kai-systems radial wash
@@ -298,6 +199,92 @@
     }
     .hub-links a:hover { color: var(--primary); }
     .hub-links a.here { color: var(--primary); font-weight: 500; }
+
+    /* Tools band — prominent rail right under the hub-nav, always
+       visible above the fold. The Tools are the part of the project
+       that anyone can pick up and use; they belong in the first
+       viewport the page paints. */
+    .tools-bar {
+      padding: 14px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: var(--bg-warm);
+    }
+    .tools-bar-inner {
+      max-width: var(--container-wide);
+      margin: 0 auto;
+      padding: 0 32px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 24px;
+    }
+    .tools-bar-kicker {
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      white-space: nowrap;
+    }
+    .tools-pills {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    a.tool-pill {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      color: var(--ink);
+      text-decoration: none;
+      transition: border-color var(--dur-fast) var(--ease-out-expo),
+                  transform var(--dur-fast) var(--ease-out-expo);
+    }
+    a.tool-pill:hover {
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+    .tool-pill-glyph {
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-warm);
+      color: var(--primary);
+      font-family: var(--font-mono);
+      font-size: var(--fs-md);
+      font-weight: 600;
+    }
+    .tool-pill-text { display: grid; gap: 2px; min-width: 0; }
+    .tool-pill-name {
+      font-family: var(--font-display);
+      font-size: var(--fs-md);
+      font-weight: 500;
+      line-height: 1.1;
+      color: var(--ink);
+    }
+    .tool-pill-sub {
+      font-size: var(--fs-xs);
+      color: var(--ink-muted);
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    @media (max-width: 720px) {
+      .tools-bar-inner { grid-template-columns: 1fr; padding: 0 20px; }
+      .tools-pills { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 420px) {
+      .tools-pills { grid-template-columns: 1fr; }
+    }
 
     /* Theme + variant toggles — inline with the hub-nav */
     theme-toggle, variant-switcher {
@@ -795,14 +782,14 @@
           <a href="https://kajica2.github.io/kai-systems/trumpet/">Trumpet</a>
           <a href="./" class="here">Twin</a>
           <div class="dropdown" style="position:relative">
-            <a href="#" class="dropdown-toggle" style="color:var(--ink-muted);cursor:pointer">Tools ▾</a>
-            <div class="dropdown-menu" style="position:absolute;top:100%;right:0;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:0.5rem;min-width:160px;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:100">
-              <a href="pages/mj-style-prefix.html" style="display:block;padding:0.5rem 0.75rem;color:var(--ink);border-radius:6px;text-decoration:none">🎨 MJ Prompt</a>
-              <a href="pages/suno-prompts.html" style="display:block;padding:0.5rem 0.75rem;color:var(--ink);border-radius:6px;text-decoration:none">🎵 Suno Prompts</a>
-              <a href="pages/email-watermark.html" style="display:block;padding:0.5rem 0.75rem;color:var(--ink);border-radius:6px;text-decoration:none">💧 Watermark</a>
-              <a href="pages/vhs-gif-maker.html" style="display:block;padding:0.5rem 0.75rem;color:var(--ink);border-radius:6px;text-decoration:none">📼 VHS GIF</a>
-              <a href="pages/images-to-mov.html" style="display:block;padding:0.5rem 0.75rem;color:var(--ink);border-radius:6px;text-decoration:none">🎬 Images→MOV</a>
-              <a href="pages/gallery.html" style="display:block;padding:0.5rem 0.75rem;color:var(--ink);border-radius:6px;text-decoration:none">🖼️ Gallery</a>
+            <a href="#" class="dropdown-toggle" style="color:var(--fg-muted);cursor:pointer">Tools ▾</a>
+            <div class="dropdown-menu" style="position:absolute;top:100%;right:0;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.5rem;min-width:160px;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:100">
+              <a href="mj-style-prefix.html" style="display:block;padding:0.5rem 0.75rem;color:var(--fg);border-radius:6px;text-decoration:none">🎨 MJ Prompt</a>
+              <a href="suno-prompts.html" style="display:block;padding:0.5rem 0.75rem;color:var(--fg);border-radius:6px;text-decoration:none">🎵 Suno Prompts</a>
+              <a href="email-watermark.html" style="display:block;padding:0.5rem 0.75rem;color:var(--fg);border-radius:6px;text-decoration:none">💧 Watermark</a>
+              <a href="vhs-gif-maker.html" style="display:block;padding:0.5rem 0.75rem;color:var(--fg);border-radius:6px;text-decoration:none">📼 VHS GIF</a>
+              <a href="images-to-mov.html" style="display:block;padding:0.5rem 0.75rem;color:var(--fg);border-radius:6px;text-decoration:none">🎬 Images→MOV</a>
+              <a href="gallery.html" style="display:block;padding:0.5rem 0.75rem;color:var(--fg);border-radius:6px;text-decoration:none">🖼️ Gallery</a>
             </div>
             <style>.dropdown:hover .dropdown-menu{display:block}.dropdown-menu a:hover{background:var(--muted)}</style>
           </div>
@@ -811,6 +798,42 @@
         <theme-toggle aria-label="Theme"></theme-toggle>
       </div>
     </nav>
+
+    <aside class="tools-bar" aria-label="Tools">
+      <div class="tools-bar-inner">
+        <span class="tools-bar-kicker">Tools</span>
+        <nav class="tools-pills" aria-label="Tool pages">
+          <a class="tool-pill" href="clip-interrogator.html">
+            <span class="tool-pill-glyph" aria-hidden="true">C</span>
+            <span class="tool-pill-text">
+              <span class="tool-pill-name">CLIP Interrogator</span>
+              <span class="tool-pill-sub">image → prompt</span>
+            </span>
+          </a>
+          <a class="tool-pill" href="refael-mp4-maker.html">
+            <span class="tool-pill-glyph" aria-hidden="true">R</span>
+            <span class="tool-pill-text">
+              <span class="tool-pill-name">Refael MP4 Maker</span>
+              <span class="tool-pill-sub">MP3 → MP4, moods</span>
+            </span>
+          </a>
+          <a class="tool-pill" href="loopable-video-segmenter.html">
+            <span class="tool-pill-glyph" aria-hidden="true">L</span>
+            <span class="tool-pill-text">
+              <span class="tool-pill-name">Loopable Video</span>
+              <span class="tool-pill-sub">MP4 → N clips</span>
+            </span>
+          </a>
+          <a class="tool-pill" href="marketplace.html">
+            <span class="tool-pill-glyph" aria-hidden="true">M</span>
+            <span class="tool-pill-text">
+              <span class="tool-pill-name">Marketplace</span>
+              <span class="tool-pill-sub">covers + plates + stills</span>
+            </span>
+          </a>
+        </nav>
+      </div>
+    </aside>
 
     <main id="main">
       <!-- ====================================================
@@ -1205,7 +1228,7 @@
         this.apply(btn.dataset.value);
       };
       apply(pref) {
-        try { localStorage.setItem('dt-theme-pref', pref); } catch {}
+        DTTheme.set(pref);
         document.documentElement.setAttribute('data-theme-pref', pref);
         const resolved = pref === 'system'
           ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')

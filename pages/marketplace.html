@@ -1,6 +1,11 @@
 <!doctype html>
 <html lang="en" data-theme="light">
 <head>
+    <!-- Design tokens live in the skin, not in this page. See DESIGN.md. -->
+    <link rel="stylesheet" href="../assets/skins/house.css" data-skin-stylesheet>
+    <script src="../lib/skin.js"></script>
+    <script src="../lib/theme.js" data-theme-key="mp-theme"></script>
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Kai Djuric — mood frames from the twin: eight music-video stills, twelve cover studies, ten System Error plates, and an animated network-pattern sequence, each with its marketplace blurb.">
@@ -16,17 +21,6 @@
   })();
 </script>
 <style>
-  :root {
-    --bg: #f7f4ec; --surface: #fffdf6; --ink: #23201a; --ink-2: #57503f;
-    --accent: #b06a2a; --accent-2: #3a5a3f; --line: #e4decf;
-    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-    --serif: Georgia, "Times New Roman", serif;
-    --sans: Inter, system-ui, -apple-system, Segoe UI, sans-serif;
-  }
-  [data-theme="dark"] {
-    --bg: #14120e; --surface: #1c1913; --ink: #ece7db; --ink-2: #a69b85;
-    --accent: #d9913f; --accent-2: #7fa587; --line: #332e24;
-  }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink);
          font-family: var(--sans); line-height: 1.55; }
@@ -61,6 +55,16 @@
   .tt { border: 1px solid var(--line); background: var(--surface); color: var(--ink);
         border-radius: 8px; padding: 10px 14px; cursor: pointer; font-family: var(--mono); font-size: 13px; }
   .tt.on { border-color: var(--accent); color: var(--accent); }
+  .store-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 18px; }
+  .store-cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 12px; letter-spacing: .1em;
+    text-transform: uppercase; text-decoration: none;
+    color: var(--bg); background: var(--accent);
+    border-radius: 8px; padding: 11px 18px;
+  }
+  .store-cta:hover { background: var(--accent-hover); }
+  .store-note { font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
   @media (max-width: 700px) { .story { grid-template-columns: 1fr; } h1 { font-size: 32px; } }
 </style>
 </head>
@@ -80,6 +84,10 @@
       <button class="tt" data-theme-btn="light">light</button>
       <button class="tt" data-theme-btn="dark">dark</button>
       <button class="tt" data-theme-btn="auto">auto</button>
+    </div>
+    <div class="store-row">
+      <a class="store-cta" href="https://kaidjuric.gumroad.com/" target="_blank" rel="noopener" data-store-gumroad>shop the store&nbsp;↗</a>
+      <span class="store-note">the shelf is the catalogue above &middot; the checkout is Gumroad</span>
     </div>
   </header>
 
@@ -250,26 +258,24 @@
     System Error plates: 16:9, 832&times;464, seeds 9600&ndash;9609, rendered locally on
     FLUX.2 klein-4B &mdash; text-free by design.<br>
     Tones after <a href="how-to.html" data-rel>the twin's how-to</a> · copy from the
-    <a href="cognitive-twin.html" data-rel>cognitive twin</a>.
+    <a href="cognitive-twin.html" data-rel>cognitive twin</a>.<br>
+    Checkout: <a href="https://kaidjuric.gumroad.com/" target="_blank" rel="noopener" data-store-gumroad>kaidjuric.gumroad.com</a> — one store for everything the twin finishes.
   </footer>
 </div>
 
 <script>
-  // theme toggle — persisted to localStorage['mp-theme']
+  // theme toggle — the preference lives in lib/theme.js; this only
+  // reflects the current choice onto the buttons.
   (function () {
-    var key = "mp-theme";
     var btns = Array.from(document.querySelectorAll("[data-theme-btn]"));
     function apply(mode) {
-      var doc = document.documentElement;
-      if (mode === "dark") doc.setAttribute("data-theme", "dark");
-      else if (mode === "light") doc.setAttribute("data-theme", "light");
-      else doc.removeAttribute("data-theme");
       btns.forEach(b => b.classList.toggle("on", b.getAttribute("data-theme-btn") === mode));
     }
-    apply(localStorage.getItem(key) || "auto");
+    var stored = (document.documentElement.getAttribute("data-theme-pref") || "system");
+    apply(stored === "system" ? "auto" : stored);
     btns.forEach(b => b.addEventListener("click", function () {
       var m = b.getAttribute("data-theme-btn");
-      localStorage.setItem(key, m);
+      DTTheme.set(m);
       apply(m);
     }));
     // internal cross-links point at the served repo-root pages (resolve ../docs too)

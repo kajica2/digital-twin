@@ -1,0 +1,47 @@
+# The repo is a local-first twin workspace, not a source-only package.
+# Exclude large generated/vendored material from upload.
+
+# version control
+.git
+.github
+
+# dependencies (not needed for static site)
+node_modules
+**/node_modules
+**/.venv
+**/__pycache__
+**/*.pyc
+
+# model weights and caches
+assets/flux2/FLUX.2-klein-4B
+**/.cache
+**/*.safetensors
+**/*.ckpt
+**/*.pth
+
+# local media inboxes and working material
+youtube-inbox
+free-output
+artifacts
+e2e/artifacts
+mj-output
+chart-inbox
+reel-inbox
+audio-inbox
+prompts-inbox
+logs
+**/logs.txt
+**/*.log
+
+# agent runtime state
+lib/agent-hub/pids
+lib/agent-hub/*/logs.txt
+.agent
+
+# editor / os
+.DS_Store
+*.swp
+
+# build config - site is static
+package.json
+package-lock.json

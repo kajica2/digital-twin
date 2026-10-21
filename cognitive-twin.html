@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Design tokens live in the skin, not in this page. See DESIGN.md. -->
+    <link rel="stylesheet" href="assets/skins/house.css" data-skin-stylesheet>
+    <script src="lib/skin.js"></script>
+    <script src="lib/theme.js" data-theme-key="theme"></script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Cognitive Twin — Systems Architecture</title>
@@ -22,70 +27,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-primary: #fafaf9;
-            --bg-secondary: #f5f5f4;
-            --bg-tertiary: #e7e5e4;
-            --bg-card: #ffffff;
-            --text-primary: #1c1917;
-            --text-secondary: #57534e;
-            --text-tertiary: #78716c;
-            --border-light: #e7e5e4;
-            --border-medium: #d6d3d1;
-            --accent-scanner: #0ea5e9;
-            --accent-model: #10b981;
-            --accent-reasoner: #f59e0b;
-            --accent-orchestrator: #ef4444;
-            --accent-music: #8b5cf6;
-            --accent-audio: #06b6d4;
-            --accent-agents: #ec4899;
-            --accent-visual: #f97316;
-            --accent-knowledge: #84cc16;
-            --accent-github: #6b7280;
-            --accent-scanner-text: #0369a1;
-            --accent-model-text: #047857;
-            --accent-reasoner-text: #b45309;
-            --accent-orchestrator-text: #b91c1c;
-            --accent-music-text: #6d28d9;
-            --accent-audio-text: #0e7490;
-            --accent-agents-text: #be185d;
-            --accent-visual-text: #c2410c;
-            --accent-knowledge-text: #4d7c0f;
-            --code-bg: #f5f5f4;
-            --code-text: #44403c;
-            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-            --radius-sm: 6px;
-            --radius-md: 10px;
-            --radius-lg: 16px;
-        }
-
-        [data-theme="dark"] {
-            --bg-primary: #0c0a09;
-            --bg-secondary: #1c1917;
-            --bg-tertiary: #292524;
-            --bg-card: #1c1917;
-            --text-primary: #fafaf9;
-            --text-secondary: #a8a29e;
-            --text-tertiary: #78716c;
-            --border-light: #292524;
-            --border-medium: #44403c;
-            --accent-scanner-text: #7dd3fc;
-            --accent-model-text: #6ee7b7;
-            --accent-reasoner-text: #fcd34d;
-            --accent-orchestrator-text: #fca5a5;
-            --accent-music-text: #c4b5fd;
-            --accent-audio-text: #67e8f9;
-            --accent-agents-text: #f9a8d4;
-            --accent-visual-text: #fdba74;
-            --accent-knowledge-text: #bef264;
-            --code-bg: #292524;
-            --code-text: #e7e5e4;
-            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
-        }
 
         * {
             margin: 0;
@@ -1550,7 +1491,7 @@
         html.setAttribute('data-theme', next);
         themeToggle.textContent = next === 'dark' ? '☀' : '◐';
         themeToggle.setAttribute('aria-pressed', next === 'dark' ? 'true' : 'false');
-        try { localStorage.setItem('theme', next); } catch (_) {}
+        DTTheme.set(next);
     });
 
     /* ---------- Progress bar + active nav (rAF-throttled, cached offsets) ---------- */

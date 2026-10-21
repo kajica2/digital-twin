@@ -1,0 +1,21 @@
+# DrawThings 2-Second Loop
+# Input: portrait-reference.jpg
+# Config: portrait_reference
+
+## Main Prompt
+professional male model, short dark hair, sharp features, confident stance, studio backdrop, professional studio lighting, subtle breathing, gentle movement, 2 second seamless loop, high-end fashion photography, 8k
+
+## Motion
+subtle motion, gentle movement
+
+## Settings
+- Duration: 2 seconds
+- Loop: Seamless/Infinite
+- Seed: Auto
+
+## How to Use
+1. Open DrawThings → Animate mode
+2. Load portrait-reference.jpg as reference
+3. Paste prompt above
+4. Set: 2 seconds, seamless loop
+5. Generate & export

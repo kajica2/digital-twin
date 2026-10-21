@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Design tokens live in the skin, not in this page. See DESIGN.md. -->
+    <link rel="stylesheet" href="assets/skins/house.css" data-skin-stylesheet>
+    <script src="lib/skin.js"></script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gallery — Digital Twin</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%8C%BC%3C/text%3E%3C/svg%3E">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root{--fg:#1a1a1a;--fg-muted:#666;--bg:#f5f5f5;--surface:#fff;--border:#e0e0e0;--accent:#0066ff;--success:#007a33;--error:#d92b2b}
-        [data-theme="dark"]{--fg:#f0f0f0;--fg-muted:#999;--bg:#0a0a0a;--surface:#161616;--border:#2a2a2a;--accent:#4d94ff;--success:#4ade80;--error:#f87171}
         *{box-sizing:border-box;margin:0;padding:0}
         body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--fg);line-height:1.5}
         .header{background:var(--surface);border-bottom:1px solid var(--border);padding:1rem 2rem;position:sticky;top:0;z-index:100}

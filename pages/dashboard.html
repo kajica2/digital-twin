@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Design tokens live in the skin, not in this page. See DESIGN.md. -->
+    <link rel="stylesheet" href="../assets/skins/house.css" data-skin-stylesheet>
+    <script src="../lib/skin.js"></script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard — Digital Twin</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%92%BB%3C/text%3E%3C/svg%3E">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        :root{--fg:#1a1a1a;--fg-muted:#666;--bg:#f5f5f5;--surface:#fff;--border:#e0e0e0;--accent:#0066ff;--success:#007a33;--error:#d92b2b;--warning:#f5a623;--c1:#0066ff;--c2:#7c3aed;--c3:#059669;--c4:#dc2626;--c5:#ea580c;--c6:#9333ea}
-        [data-theme="dark"]{--fg:#f0f0f0;--fg-muted:#999;--bg:#0a0a0a;--surface:#161616;--border:#2a2a2a;--accent:#4d94ff;--success:#4ade80;--error:#f87171;--warning:#fbbf24}
         *{box-sizing:border-box;margin:0;padding:0}
         body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--fg);line-height:1.5;min-height:100vh}
         a{color:var(--accent);text-decoration:none}
@@ -50,7 +52,7 @@
         .quick-actions{display:flex;gap:0.75rem;flex-wrap:wrap}
         .btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1rem;font-size:0.9rem;font-weight:500;border:none;border-radius:8px;cursor:pointer;transition:all .2s;white-space:nowrap}
         .btn-primary{background:var(--accent);color:#fff}
-        .btn-primary:hover{background:#0052cc}
+        .btn-primary:hover{background:var(--accent-hover)}
         .btn-secondary{background:var(--surface);color:var(--fg);border:1px solid var(--border)}
         .btn-secondary:hover{background:var(--bg)}
         .stat-grid{grid-template-columns:repeat(4,1fr);gap:1rem}
@@ -77,13 +79,13 @@
             <div class="dropdown">
                 <a href="#" class="dropdown-toggle">Tools ▾</a>
                 <div class="dropdown-menu">
+                    <a href="landing.html">📚 All tools</a>
                     <a href="mj-style-prefix.html">🎨 MJ Prompt</a>
                     <a href="suno-prompts.html">🎵 Suno Prompts</a>
                     <a href="email-watermark.html">💧 Watermark</a>
                     <a href="vhs-gif-maker.html">📼 VHS GIF</a>
                     <a href="images-to-mov.html">🎬 Images→MOV</a>
                     <a href="garageband-mixer.html">🎛️ Mixer</a>
-                    <a href="stills-to-loop.html">🔁 Loopable</a>
                     <a href="loopable-video-segmenter.html">✂️ Segment</a>
                 </div>
             </div>

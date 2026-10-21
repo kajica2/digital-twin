@@ -6,20 +6,19 @@ name: pages-test
 #
 # Flow:
 #   1. push lands on main
-#   2. GitHub Pages builds + deploys (existing pages-build-and-deploy
-#      workflow, fires automatically because Pages is enabled on main)
-#   3. this workflow polls pages until the deploy is live, then
+#   2. Vercel deploys (vercel CLI, triggered via CI or manually)
+#   3. this workflow polls Vercel until the deploy is live, then
 #      verifies a served file's bytes match HEAD — the poll alone can
 #      be satisfied by a STALE build (site answers 200 while the new
 #      build is still in flight), which is how a deploy once went
 #      green before its own content was live
 #   4. installs puppeteer in e2e/
-#   5. runs e2e specs with E2E_URL=https://kajica2.github.io/digital-twin
+#   5. runs e2e specs with E2E_URL=https://digitaltwin-ebon.vercel.app
 #   6. any failure fails the build → no green check, the deploy is
 #      treated as not-done
 #
-# On PRs (no E2E_URL — Pages isn't built yet for a branch), the
-# e2e runs against the local server on :5173.
+# On PRs (no E2E_URL — Vercel doesn't deploy PRs), the
+# e2e runs against the local server on :5180.
 
 on:
   push:
@@ -36,7 +35,13 @@ jobs:
   e2e:
     name: Puppeteer deploy-test loop
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # The wait step (up to 5 min) + the content-freshness check (up to
+    # 20 min) + the e2e run (a few min) do not fit in 10 minutes. The
+    # observed Vercel deploy latency for this repo was ~6 minutes and
+    # ~13 minutes on the same day, so the freshness budget is generous
+    # on purpose: a deploy that lands late must not be reported as a
+    # test failure.
+    timeout-minutes: 45
 
     steps:
       - name: Checkout
@@ -50,75 +55,137 @@ jobs:
       - name: Install e2e dependencies
         run: cd e2e && npm install
 
-      - name: Wait for Pages deploy (push only)
+      - name: Wait for the deploy, then verify it serves HEAD
         if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          echo "Waiting for GitHub Pages to deploy..."
-          for i in $(seq 1 60); do
-            status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 \
-              "https://kajica2.github.io/digital-twin/pages/landing.html" || echo "000")
-            if [ "$status" = "200" ]; then
-              echo "Pages is live (attempt $i)"
-              break
+          # One loop with one deadline, for one reason: the deploy and
+          # the content check are the SAME question asked twice. A
+          # build that has not landed cannot serve HEAD's bytes, and a
+          # build that has landed does. Splitting them into two steps
+          # with separate budgets let the first one expire and blame
+          # the code for a build that was merely still in flight.
+          #
+          # The bytes are the TEST. The Vercel commit status is only
+          # used to fail FAST when the deployment definitively failed —
+          # it is NOT a gate, because Vercel does not always post a
+          # status for every commit (observed 2026-10-21: two
+          # consecutive commits got no status and no Production
+          # deployment while an older one deployed fine). Gating on
+          # the status would hang on a commit whose deploy simply
+          # never registered.
+          #
+          # The sentinels are the PAGES THE E2E WILL LOAD, derived
+          # from the spec files themselves. That is the real contract:
+          # if the page under test is stale, the e2e result is
+          # meaningless, whatever the rest of the site looks like. A
+          # spec that adds a page automatically adds a sentinel.
+          #
+          # A FIXED sentinel list was not enough. On 2026-10-21 the
+          # sentinels (mj-config.json, house.css) both matched HEAD
+          # while pages/mj-sheets.html was still the PREVIOUS build —
+          # those two files had not changed in that commit, so they
+          # proved nothing about the page the e2e was about to test.
+          # The e2e then failed for a reason that had nothing to do
+          # with the code under test.
+          #
+          # Plus the shared assets every page loads (the skin, the
+          # theme script) and the config that drives the MJ tooling.
+          SENTINELS=$(grep -hoE '/pages/[A-Za-z0-9._/-]*\.html' \
+            e2e/*.spec.mjs e2e/ct-*.mjs 2>/dev/null \
+            | sed 's|^/||' | sort -u)
+          SENTINELS="$SENTINELS assets/skins/house.css lib/theme.js lib/skin.js lib/mj-config.json"
+
+          # Dedupe, drop anything Vercel does not serve (a sentinel
+          # that can never match would fail the run forever), and
+          # require the file to exist at HEAD.
+          VERIFY=""
+          for FILE in $(echo "$SENTINELS" | tr ' ' '\n' | awk 'NF' | sort -u); do
+            git cat-file -e "HEAD:$FILE" 2>/dev/null || continue
+            if git -c core.excludesFile=.vercelignore check-ignore --no-index -q "$FILE" 2>/dev/null; then
+              continue
             fi
-            echo "  attempt $i: HTTP $status — retrying in 5s"
-            sleep 5
+            VERIFY="$VERIFY $FILE"
           done
-          if [ "$status" != "200" ]; then
-            echo "::error::Pages never came up after 5 minutes"
+          if [ -z "$(echo "$VERIFY" | tr -d ' ')" ]; then
+            echo "::error::no sentinels to verify — refusing to pass silently"
             exit 1
           fi
+          echo "verifying $(echo "$VERIFY" | wc -w | tr -d ' ') sentinel(s) against the deploy"
 
-      - name: Verify deployed content matches HEAD (push only)
-        if: github.event_name == 'push'
-        run: |
-          # The wait step above only proves the site answers 200 — a
-          # STALE build satisfies that while the new build is still in
-          # flight (observed 2026-09-30: green CI before the new
-          # mj-config.json was live). This step proves the NEW build is
-          # serving by diffing a file on the site against the same file
-          # at HEAD. lib/mj-config.json is the sentinel because Jekyll
-          # copies it verbatim and it changes with realistic frequency.
-          FILE="lib/mj-config.json"
-          git show "HEAD:$FILE" > /tmp/expected.json
-          for i in $(seq 1 60); do
-            curl -s --max-time 10 -H "Cache-Control: no-cache" \
-              "https://kajica2.github.io/digital-twin/$FILE?x=${GITHUB_SHA}" \
-              > /tmp/served.json || true
-            if cmp -s /tmp/expected.json /tmp/served.json; then
-              echo "deployed content matches HEAD (attempt $i)"
+          # ONE global deadline for the whole set, not a budget per
+          # file. The deploy either lands or it does not, so the whole
+          # set is re-checked against a single clock.
+          #
+          # 25 minutes: the observed Vercel deploy latency for this
+          # repo on 2026-10-21 was 0.3, 6.3, 8.8, 10.9 and 12.5
+          # minutes — growing, not steady. The budget must clear the
+          # WORST observed latency, and then some, or the run fails
+          # for a build that was simply still in flight. (A 10-minute
+          # budget did exactly that: it gave up ~2 minutes before the
+          # deploy landed and reported a false RED on a good commit.)
+          DEADLINE=$(( $(date +%s) + 1500 ))
+          STALE=""
+          while [ "$(date +%s)" -lt "$DEADLINE" ]; do
+            STALE=""
+            for FILE in $VERIFY; do
+              git show "HEAD:$FILE" > /tmp/expected
+              curl -s --max-time 10 -H "Cache-Control: no-cache" \
+                "https://digitaltwin-ebon.vercel.app/$FILE?x=${GITHUB_SHA}" \
+                > /tmp/served || true
+              if ! cmp -s /tmp/expected /tmp/served; then
+                STALE="$STALE $FILE"
+              fi
+            done
+            if [ -z "$STALE" ]; then
+              echo "deployed content matches HEAD (all sentinels)"
               exit 0
             fi
-            echo "  attempt $i: served content != HEAD — retrying in 5s"
-            sleep 5
+            # Fail fast ONLY on a definitive deploy failure. A missing
+            # status means "not reported yet", not "failed".
+            STATE=$(gh api \
+              "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/status" \
+              --jq '[.statuses[]? | select(.context=="Vercel")][0].state // ""' \
+              2>/dev/null || echo "")
+            if [ "$STATE" = "failure" ] || [ "$STATE" = "error" ]; then
+              echo "::error::Vercel reported a FAILED deployment for $GITHUB_SHA — not a stale-build problem, a failed build"
+              exit 1
+            fi
+            echo "  attempt: stale ->$STALE (vercel status='${STATE:-none yet}') — retrying in 15s"
+            sleep 15
           done
-          echo "::error::deployed content still != HEAD after 5 minutes"
+          echo "::error::deployed content still != HEAD after 25 minutes ->$STALE"
           exit 1
 
       - name: Run e2e (deployed URL on push, local on PR)
         run: |
           if [ "${{ github.event_name }}" = "push" ]; then
-            cd e2e && E2E_URL=https://kajica2.github.io/digital-twin node landing.spec.mjs
-            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node twin-os.spec.mjs
-            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node twin-os-songs.spec.mjs
-            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-default.mjs
-            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-icon.mjs
-            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-nav.mjs
-            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-progress.mjs
-            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-theme.mjs
-            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-verify.mjs
-            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-a11y.mjs
-            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-phase3.mjs
-            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node clip-interrogator.spec.mjs
-            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node refael.spec.mjs
-            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node how-to.spec.mjs
-            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node loopable-video-segmenter.spec.mjs
-            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node marketplace.spec.mjs
-            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node temple-of-control.spec.mjs
-            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node integrations.spec.mjs
+            cd e2e && E2E_URL=https://digitaltwin-ebon.vercel.app node landing.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node twin-os.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node twin-os-songs.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node ct-default.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node ct-icon.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node ct-nav.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node ct-progress.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node ct-theme.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node ct-verify.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node ct-a11y.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node ct-phase3.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node clip-interrogator.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node refael.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node how-to.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node loopable-video-segmenter.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node marketplace.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node temple-of-control.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node floating-toolset.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node integrations.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node mj-dashboard.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node mj-sheets.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node skin.spec.mjs
           else
-            echo "(PR run - Pages is not built for branches, e2e runs locally)"
-            python3 -m http.server 5180 --directory . &
+            echo "(PR run - Vercel doesn't deploy PRs, e2e runs locally)"
+            node "$GITHUB_WORKSPACE/lib/serve.js" --port 5180 --host 127.0.0.1 &
             SERVER_PID=$!
             sleep 2
             cd e2e && node landing.spec.mjs
@@ -138,7 +205,11 @@ jobs:
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node loopable-video-segmenter.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node marketplace.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node temple-of-control.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node floating-toolset.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node integrations.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node mj-dashboard.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node mj-sheets.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node skin.spec.mjs
             kill $SERVER_PID 2>/dev/null || true
           fi
           echo "(watcher specs are filesystem-only and require a live chart-watcher LaunchAgent + mscore, neither of which exists on Linux CI runners. Run locally via npm run test:watcher && npm run test:songs-watcher. The watcher.spec.mjs + songs-watcher.spec.mjs files exist in e2e/ for that purpose.)"

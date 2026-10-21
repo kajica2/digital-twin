@@ -1,0 +1,21 @@
+# DrawThings 2-Second Loop
+# Input: studio-portrait-01.png
+# Config: studio_portrait_01
+
+## Main Prompt
+professional male model in studio, sharp cheekbones, short dark hair, standing pose, white cyc background, soft boxes lighting, subtle breathing motion, slight hair movement, 2 second seamless loop, cinematic, Hasselblad medium format
+
+## Motion
+subtle breathing, gentle hair sway
+
+## Settings
+- Duration: 2 seconds
+- Loop: Seamless/Infinite
+- Seed: Auto
+
+## How to Use
+1. Open DrawThings → Animate mode
+2. Load studio-portrait-01.png as reference
+3. Paste prompt above
+4. Set: 2 seconds, seamless loop
+5. Generate & export

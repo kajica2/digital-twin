@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+    <!-- Design tokens live in the skin, not in this page. See DESIGN.md. -->
+    <link rel="stylesheet" href="../assets/skins/house.css" data-skin-stylesheet>
+    <script src="../lib/skin.js"></script>
+    <script src="../lib/theme.js" data-theme-key="mjs-theme"></script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A 12-up Midjourney comparison sheet: one brief — a lone figure in a red coat in a concrete underpass at night — rendered at twelve different camera angles, each tile labelled with the clause that produced it.">
+<title>Red Coat Underpass — a 12-up camera-angle comparison</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2314120e'/%3E%3Ctext x='16' y='22' font-family='Georgia' font-size='17' fill='%23d9913f' text-anchor='middle'%3EC%3C/text%3E%3C/svg%3E">
+<script>
+  // no-flash theme bootstrap
+  (function () {
+    var t = localStorage.getItem("mjs-theme");
+    if (t === "dark" || (!t && matchMedia("(prefers-color-scheme: dark)").matches)) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  })();
+</script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font-family: var(--sans); line-height: 1.55; }
+  a { color: var(--accent); }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+  header { padding: 34px 0 10px; }
+  .kicker { font-family: var(--mono); font-size: 12px; letter-spacing: .12em;
+            text-transform: uppercase; color: var(--ink-2); }
+  h1 { font-family: var(--serif); font-size: 42px; margin: 8px 0 4px;
+       letter-spacing: -0.01em; }
+  .lede { color: var(--ink-2); max-width: 68ch; margin-top: 10px; }
+  .facts { font-family: var(--mono); font-size: 13px; color: var(--ink-2); margin-top: 14px; }
+  section { margin: 44px 0; }
+  h2 { font-family: var(--serif); font-size: 26px; border-bottom: 1px solid var(--line);
+       padding-bottom: 10px; }
+  .theme-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+  .tt { border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+        border-radius: 8px; padding: 10px 14px; cursor: pointer;
+        font-family: var(--mono); font-size: 13px; }
+  .tt.on { border-color: var(--accent); color: var(--accent); }
+
+  /* The sheet itself: the deliverable, shown as one image. */
+  .sheet { border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+           background: var(--surface); }
+  .sheet img { width: 100%; height: auto; display: block; }
+
+  /* The tiles, one per variant, each with the clause that produced it. */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+           gap: 18px; }
+  .tiles figure { margin: 0; }
+  .tiles img { width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--line);
+               display: block; cursor: zoom-in; background: var(--surface); }
+  .tiles figcaption { font-family: var(--mono); font-size: 11px; color: var(--ink-2);
+                      margin-top: 6px; }
+  .tiles .n { color: var(--accent); font-weight: 700; margin-right: 6px; }
+
+  .note { background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+          padding: 16px 18px; color: var(--ink-2); font-size: 14px; }
+  .note strong { color: var(--ink); }
+
+  .lightbox { position: fixed; inset: 0; background: rgba(10,10,10,.88);
+              display: none; align-items: center; justify-content: center; z-index: 50;
+              padding: 24px; }
+  .lightbox[hidden] { display: none; }
+  .lightbox img { max-width: 100%; max-height: 84vh; border-radius: 8px; }
+  .lb-meta { color: #e8e4dc; font-family: var(--mono); font-size: 12px; margin-top: 10px;
+             text-align: center; }
+  .lb-close { position: absolute; top: 18px; right: 20px; background: #222; color: #eee;
+              border: 1px solid #444; border-radius: 8px; padding: 8px 14px; cursor: pointer;
+              font-family: var(--mono); font-size: 12px; }
+
+  footer { border-top: 1px solid var(--line); margin-top: 50px; padding: 22px 0 40px;
+           color: var(--ink-2); font-size: 13px; }
+  @media (max-width: 700px) { h1 { font-size: 32px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">kai djuric · the twin · midjourney comparison</div>
+    <h1>Red Coat Underpass</h1>
+    <p class="lede">One brief, twelve camera angles. A lone figure in a saturated red coat
+      in an empty concrete underpass at night — hip-height 35mm film still, one overhead
+      sodium streetlight as the only key, wet floor catching thin reflections, deep unlit
+      tunnel falling away behind. Every tile holds the subject, the light, the floor and
+      the tunnel fixed, and moves exactly one thing: the camera.</p>
+    <div class="facts">12 variants · 16:9 · Midjourney v8.2 raw · stylize 100 · 4-up grids</div>
+    <div class="theme-row">
+      <span style="font-family:var(--mono);font-size:12px;color:var(--ink-2)">theme</span>
+      <button class="tt" data-theme-btn="light">light</button>
+      <button class="tt" data-theme-btn="dark">dark</button>
+      <button class="tt" data-theme-btn="auto">auto</button>
+    </div>
+  </header>
+
+  <section id="sheet">
+    <h2>The 12-up</h2>
+    <p class="lede" style="margin:0 0 14px">Every tile is the first cell of one prompt's
+      4-up grid. The caption under each is the exact clause from the prompt that produced
+      it — the caption IS the instruction, not a description of the result.</p>
+    <div class="sheet">
+      <img src="../assets/mj-sheets/red-coat-underpass-12/contact-sheet.png"
+           alt="A twelve-tile contact sheet. Each tile shows a figure in a red coat in a concrete underpass at night, shot from a different camera angle: a worm's-eye view from the wet floor, an overhead crane shot, a dutch tilt, an over-the-shoulder from behind, an 85mm long lens across the tunnel, a hard side profile, a centred one-point perspective, a low angle reflected in standing water, an overhead mirror reflection, a distant wide shot, a chest-height close-up, and a rear view into the tunnel."
+           width="1990" height="996">
+    </div>
+  </section>
+
+  <section id="tiles">
+    <h2>One by one</h2>
+    <p class="lede" style="margin:0 0 14px">Click any tile to open it. The task id under each
+      one is the Midjourney job that produced it — the sheet's provenance, not decoration.</p>
+    <div class="tiles" id="tile-grid"></div>
+  </section>
+
+  <section id="method">
+    <h2>How the sheet was made</h2>
+    <div class="note">
+      <p style="margin:0 0 10px"><strong>One variable per bullet.</strong> The shared head and
+        tail of the brief are byte-identical across all twelve prompts; only the clause between
+        them changes. That is what makes the sheet a comparison rather than twelve unrelated
+        pictures — any difference you see is the camera.</p>
+      <p style="margin:0 0 10px"><strong>Attribution comes from the feed, not the page.</strong>
+        Midjourney's imagine feed is a shared timeline: the account owner's own concurrent
+        jobs sit in it with their own prompts. Matching a rendered card to a prompt by reading
+        the card's text attributed six of the first twelve tiles to the wrong job. Every task
+        id on this sheet was re-derived from the feed's own command string, and only plain
+        <code>16:9</code> <code>v8.2</code> jobs were accepted.</p>
+      <p style="margin:0"><strong>Two angles were re-shot.</strong> The overhead crane and the
+        dutch tilt first came back as eye-level and level respectively — Midjourney did not
+        follow the instruction. Both prompts were reworded and re-rendered, and both were
+        re-checked against the image before they were accepted.</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>Twelve Midjourney v8.2 renders of one brief, compared. Sheet and tiles are local files;
+      the task ids are recorded in the sheet manifest. Built by
+      <code>lib/mj-contact-sheet.js</code> from the twin's Midjourney pipeline.</p>
+  </footer>
+</div>
+
+<div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="Full-size tile">
+  <button class="lb-close" id="lbClose" type="button">Close</button>
+  <div>
+    <img id="lbImg" src="" alt="">
+    <div class="lb-meta" id="lbMeta"></div>
+  </div>
+</div>
+
+<script>
+  // theme toggle — the preference lives in lib/theme.js; this only
+  // reflects the current choice onto the buttons.
+  (function () {
+    var btns = Array.from(document.querySelectorAll("[data-theme-btn]"));
+    function apply(mode) {
+      btns.forEach(b => b.classList.toggle("on", b.getAttribute("data-theme-btn") === mode));
+    }
+    var stored = (document.documentElement.getAttribute("data-theme-pref") || "system");
+    apply(stored === "system" ? "auto" : stored);
+    btns.forEach(b => b.addEventListener("click", function () {
+      var m = b.getAttribute("data-theme-btn");
+      DTTheme.set(m);
+      apply(m);
+    }));
+  })();
+
+  // The sheet's tiles and captions.
+  (function () {
+  var DIR = '../assets/mj-sheets/red-coat-underpass-12/';
+  var MANIFEST = DIR + 'sheet-manifest.json';
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  var lb = document.getElementById('lightbox');
+  var lbImg = document.getElementById('lbImg');
+  var lbMeta = document.getElementById('lbMeta');
+  var lbClose = document.getElementById('lbClose');
+
+  function open(src, meta) {
+    lbImg.src = src;
+    lbImg.alt = meta;
+    lbMeta.textContent = meta;
+    lb.hidden = false;
+  }
+  function close() { lb.hidden = true; lbImg.src = ''; }
+  lbClose.addEventListener('click', close);
+  lb.addEventListener('click', function (e) { if (e.target === lb) close(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+
+  fetch(MANIFEST, { cache: 'no-store' })
+    .then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function (m) {
+      var host = document.getElementById('tile-grid');
+      host.innerHTML = m.variants.map(function (v) {
+        var src = DIR + 'tiles/prompt-' + v.index + '.webp';
+        var meta = v.index + ' — ' + v.label;
+        return '<figure>' +
+          '<img src="' + esc(src) + '" alt="' + esc(meta) + '" width="1143" height="640" ' +
+                 'data-src="' + esc(src) + '" data-meta="' + esc(meta) + '">' +
+          '<figcaption><span class="n">' + esc(v.index) + '</span>' + esc(v.label) +
+            '<br>' + esc(v.taskId.slice(0, 8)) + '</figcaption>' +
+        '</figure>';
+      }).join('');
+      host.addEventListener('click', function (e) {
+        var img = e.target.closest('img[data-src]');
+        if (img) open(img.getAttribute('data-src'), img.getAttribute('data-meta'));
+      });
+    })
+    .catch(function (err) {
+      document.getElementById('tile-grid').innerHTML =
+        '<p class="lede">Could not load the sheet manifest (' + esc(err.message) +
+        '). The contact sheet above is a static file and is unaffected.</p>';
+    });
+  })();
+</script>
+</body>
+</html>

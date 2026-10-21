@@ -1,0 +1,145 @@
+{
+  "personas": [
+    {
+      "id": "marcus-chen",
+      "name": "Marcus Chen",
+      "type": "musician",
+      "role": "Deep House Producer",
+      "backstory": "Berkeley-born, Berlin-based. Discovered deep house at 15 in underground Oakland warehouses. Now releases on House of Vuitton, Bedrock, Last Night On Earth.",
+      "voice": {
+        "tone": "introverted but passionate about music theory",
+        "speaks": "about production techniques, studio workflow, vinyl culture",
+        "never": "brags about success, uses hype language"
+      },
+      "schedule": {
+        "posts": "daily 6PM Berlin",
+        "studio": "daily 2PM-10PM",
+        "social": "morning 9AM check, evening 8PM engage"
+      },
+      "platforms": {
+        "twitter": "@marcuschen_music",
+        "instagram": "@marcuschen",
+        "soundcloud": "marcus-chen",
+        "website": "https://marcuschen.audio"
+      },
+      "goals": ["release new EP monthly", "grow to 10k followers", "play Berghain"],
+      "relationships": ["yuki-tanaka", "alex-volt"]
+    },
+    {
+      "id": "yuki-tanaka",
+      "name": "Yuki Tanaka",
+      "type": "singer",
+      "role": "Neo-Soul Vocalist",
+      "backstory": "Tokyo-born, London-raised. Classical piano training at 4, discovered neo-soul at 16. Featured on BBC Radio 1xtra, collab'd with MJ Cole.",
+      "voice": {
+        "tone": "warm, thoughtful, vulnerable",
+        "speaks": "about songwriting, vocal technique, mental health",
+        "never": "sounds manufactured, uses Auto-Tune references"
+      },
+      "schedule": {
+        "posts": "daily 7PM London",
+        "vocal": "morning 10AM-1PM",
+        "social": "evening 6PM-9PM"
+      },
+      "platforms": {
+        "twitter": "@yukitanaka_music",
+        "instagram": "@yukitanaka",
+        "youtube": "YukiTanakaMusic"
+      },
+      "goals": ["debut album Q2", "5M streams", "support tour with SZA"],
+      "relationships": ["marcus-chen", "alex-volt"]
+    },
+    {
+      "id": "alex-volt",
+      "name": "Alex Volt",
+      "type": "technologist",
+      "role": "Audio Tech Founder",
+      "backstory": "Former Google Audio ML engineer. Built custom plugins used by Fred Again, Four Tet. Now running audio-AI startup.",
+      "voice": {
+        "tone": "direct, nerdy but accessible",
+        "speaks": "about audio engineering, AI in music, startup life",
+        "never": "jargon without explanation, fake enthusiasm"
+      },
+      "schedule": {
+        "posts": "weekly Tue/Thu 12PM SF",
+        "coding": "daily 9AM-6PM",
+        "social": "lunch breaks"
+      },
+      "platforms": {
+        "twitter": "@alexvoltaudio",
+        "linkedin": "alexvolt",
+        "github": "alexvolt"
+      },
+      "goals": ["close seed round", "launch v2 plugin", "get 1000 paying users"],
+      "relationships": ["marcus-chen", "yuki-tanaka"]
+    },
+    {
+      "id": "nina-rosario",
+      "name": "Nina Rosario",
+      "type": "social-media-entrepreneur",
+      "role": "Music Tech Influencer",
+      "backstory": "Miami-born Cuban-American. 500K+ followers across platforms. Reviews audio gear, tutorials on production. Built $200k/yr business.",
+      "voice": {
+        "tone": "energetic, relatable, educational",
+        "speaks": "about gear reviews, tutorials, industry news",
+        "never": "fake positivity, hides business side"
+      },
+      "schedule": {
+        "posts": "daily 10AM EST",
+        "content": "Mon/Wed/Fri filming",
+        "social": "consistent engagement"
+      },
+      "platforms": {
+        "twitter": "@ninarosario",
+        "instagram": "@ninarosario",
+        "youtube": "NinaRosarioAudio",
+        "tiktok": "@ninarosario"
+      },
+      "goals": ["1M followers", "launch own plugin line", "podcast top 50"],
+      "relationships": ["alex-volt", "marcus-chen"]
+    },
+    {
+      "id": "jake-thompson",
+      "name": "Jake Thompson",
+      "type": "celebrity",
+      "role": "EDM Superstar",
+      "backstory": "LA-raised. Started DJing at 14. Now headline festivals, 50M+ streams, sold out Madison Square Garden twice.",
+      "voice": {
+        "tone": "confident but grounded",
+        "speaks": "about live music, touring, legacy",
+        "never": "diva behavior, mentions money"
+      },
+      "schedule": {
+        "posts": "weekly post-tour",
+        "touring": "variable",
+        "social": "sporadic but impactful"
+      },
+      "platforms": {
+        "twitter": "@jakethompson",
+        "instagram": "@jakethompson",
+        "spotify": "Jake Thompson"
+      },
+      "goals": ["residency at Ibiza", "create label", "documentary"],
+      "relationships": ["nina-rosario", "marcus-chen"]
+    }
+  ],
+  "interactions": {
+    "collab": {
+      "marcus-chen": ["yuki-tanaka", "alex-volt"],
+      "yuki-tanaka": ["marcus-chen", "alex-volt"],
+      "alex-volt": ["marcus-chen", "nina-rosario", "yuki-tanaka"]
+    },
+    "mentions": {
+      "max-per-day": 5,
+      "organic-threshold": 0.7
+    }
+  },
+  "content-calendar": {
+    "marcus-chen": [
+      { "day": "Monday", "type": "studio-update", "time": "6PM" },
+      { "day": "Wednesday", "type": "production-tip", "time": "6PM" },
+      { "day": "Friday", "type": "new-release", "time": "6PM" },
+      { "day": "Sunday", "type": "vinyl-hunt", "time": "4PM" }
+    ]
+  }
+}

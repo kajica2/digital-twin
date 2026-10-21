@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaf Skeleton → City Evolution</title>
+  <style>
+    :root {
+      --ink-black: #0a0a0a;
+      --paper-white: #fafafa;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: #0a0a0a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Courier New', monospace;
+      padding: 20px;
+    }
+
+    .container {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: var(--paper-white);
+      overflow: hidden;
+      border: 4px solid var(--ink-black);
+    }
+
+    .canvas {
+      position: absolute;
+      inset: 0;
+    }
+
+    svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Animation frames */
+    .frame-1, .frame-2, .frame-3, .frame-4, .frame-5, .frame-6,
+    .frame-7, .frame-8, .frame-9, .frame-10, .frame-11, .frame-12 {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.4s ease-in-out;
+    }
+
+    .frame-1 { opacity: 1; }
+
+    .active {
+      opacity: 1;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    button {
+      background: var(--paper-white);
+      border: 2px solid var(--ink-black);
+      color: var(--ink-black);
+      padding: 10px 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      transition: all 0.2s;
+    }
+
+    button:hover {
+      background: var(--ink-black);
+      color: var(--paper-white);
+    }
+
+    .progress {
+      display: flex;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border: 2px solid var(--paper-white);
+      border-radius: 0;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .dot.active {
+      background: var(--paper-white);
+    }
+
+    .label {
+      color: var(--paper-white);
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    .frame-label {
+      color: #888;
+      font-size: 10px;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="frame">
+      <!-- Frame 1: Pure Leaf Skeleton -->
+      <div class="canvas frame-1 active" data-frame="1">
+        <svg viewBox="0 0 900 675" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="s1" width="4" height="4" patternUnits="userSpaceOnUse">
+              <circle cx="1" cy="1" r="0.4" fill="#0a0a0a" opacity="0.2"/>
+            </pattern>
+          </defs>
+          <rect width="900" height="675" fill="#fafafa"/>
+          <rect width="900" height="675" fill="url(#s1)" opacity="0.5"/>
+          
+          <!-- Main central vein -->
+          <path d="M450 650 Q420 500 400 350 Q380 200 450 50" stroke="#0a0a0a" stroke-width="6" fill="none" stroke-linecap="round"/>
+          
+          <!-- Primary branches -->
+          <path d="M400 350 Q300 320 200 280" stroke="#0a0a0a" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <path d="M400 350 Q300 380 180 420" stroke="#0a0a0a" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <path d="M450 450 Q350 440 250 400" stroke="#0a0a0a" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <path d="M450 450 Q350 480 220 540" stroke="#0a0a0a" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <path d="M420 250 Q320 200 200 150" stroke="#0a0a0a" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <path d="M420 250 Q340 180 280 100" stroke="#0a0a0a" stroke-width="4" fill="none" stroke-linecap="round"/>
+          
+          <!-- Secondary veins -->
+          <path d="M200 280 Q150 250 100 200" stroke="#0a0a0a" stroke-width="2.5" fill="none"/>
+          <path d="M200 280 Q160 300 100 340" stroke="#0a0a0a" stroke-width="2.5" fill="none"/>
+          <path d="M180 420 Q140 400 80 380" stroke="#0a0a0a" stroke-width="2.5" fill="none"/>
+          <path d="M180 420 Q150 460 90 520" stroke="#0a0a0a" stroke-width="2.5" fill="none"/>
+          <path d="M250 400 Q200 360 140 340" stroke="#0a0a0a" stroke-width="2.5" fill="none"/>
+          <path d="M250 400 Q200 440 120 480" stroke="#0a0a0a" stroke-width="2.5" fill="none"/>
+          <path d="M220 540 Q180 520 120 540" stroke="#0a0a0a" stroke-width="2.5" fill="none"/>
+          <path d="M200 150 Q160 120 100 80" stroke="#0a0a0a" stroke-width="2.5" fill="none"/>
+          <path d="M280 100 Q260 60 200 30" stroke="#0a0a0a" stroke-width="2.5" fill="none"/>
+          
+          <!-- Tertiary network -->
+          <g stroke="#0a0a0a" stroke-width="1" fill="none" opacity="0.8">
+            <path d="M100 200 Q80 180 60 150"/>
+            <path d="M100 200 Q70 220 40 240"/>
+            <path d="M100 340 Q60 320 30 300"/>
+            <path d="M100 340 Q70 360 40 400"/>
+            <path d="M140 340 Q100 300 60 280"/>
+            <path d="M140 340 Q100 380 50 420"/>
+            <path d="M120 480 Q80 460 40 440"/>
+            <path d="M120 520 Q90 540 50 580"/>
+            <path d="M100 80 Q60 50 30 30"/>
+            <path d="M200 30 Q180 10 140 5"/>
+          </g>
+          
+          <!-- Capillary mesh -->
+          <g stroke="#0a0a0a" stroke-width="0.4" fill="none" opacity="0.6">
+            <path d="M60 150 Q50 130 40 110"/>
+            <path d="M60 150 Q40 160 20 180"/>
+            <path d="M40 240 Q30 260 20 290"/>
+            <path d="M30 300 Q20 280 15 250"/>
+            <path d="M50 420 Q30 400 20 370"/>
+            <path d="M50 420 Q30 450 20 490"/>
+            <path d="M40 440 Q25 420 15 390"/>
+            <path d="M50 580 Q40 600 30 630"/>
+            <path d="M30 30 Q20 20 15 10"/>
+            <path d="M140 5 Q120 0 100 0"/>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Frame 2: Leaf skeleton → Architecture beginning -->
+      <div class="canvas frame-2" data-frame="2">
+        <svg viewBox="0 0 900 675" xmlns="http://www.w3.org/2000/svg">
+          <rect width="900" height="675" fill="#f5f5f5"/>
+          <path d="M450 650 Q420 500 400 350 Q380 200 450 50" stroke="#0a0a0a" stroke-width="7" fill="none" stroke-linecap="round"/>
+          <path d="M400 350 Q280 300 160 260" stroke="#0a0a0a" stroke-width="5" fill="none" stroke-linecap="round"/>
+          <path d="M400 350 Q280 400 140 440" stroke="#0a0a0a" stroke-width="5" fill="none" stroke-linecap="round"/>
+          <path d="M450 480 Q320 460 200 420" stroke="#0a0a0a" stroke-width="5" fill="none" stroke-linecap="round"/>
+          <path d="M450 480 Q320 520 180 580" stroke="#0a0a0a" stroke-width="5" fill="none" stroke-linecap="round"/>
+          <path d="M420 220 Q300 160 180 100" stroke="#0a0a0a" stroke-width="5" fill="none" stroke-linecap="round"/>
+          <path d="M420 220 Q340 140 260 60" stroke="#0a0a0a" stroke-width="5" fill="none" stroke-linecap="round"/>
+          <g stroke="#0a0a0a" stroke-width="2" fill="none">
+            <path d="M160 260 Q100 220 50 160"/>
+            <path d="M160 260 Q100 300 50 360"/>
+            <path d="M140 440 Q80 420 30 380"/>
+            <path d="M140 440 Q100 480 40 540"/>
+            <path d="M200 420 Q140 380 80 360"/>
+            <path d="M200 420 Q140 460 60 500"/>
+            <path d="M180 580 Q120 560 60 580"/>
+            <path d="M180 100 Q120 60 60 30"/>
+            <path d="M260 60 Q220 20 160 5"/>
+          </g>
+          <g stroke="#0a0a0a" stroke-width="0.8" fill="none" opacity="0.7">
+            <path d="M50 160 Q30 130 20 90"/>
+            <path d="M50 360 Q30 390 20 440"/>
+            <path d="M30 380 Q20 350 15 310"/>
+            <path d="M40 540 Q30 570 25 610"/>
+            <path d="M60 30 Q40 10 25 5"/>
+            <path d="M160 5 Q130 0 100 0"/>
+          </g>
+          <!-- Building hints -->
+          <rect x="380" y="340" width="30" height="40" fill="none" stroke="#333" stroke-width="1.5"/>
+          <rect x="370" y="350" width="20" height="25" fill="none" stroke="#333" stroke-width="1"/>
+        </svg>
+      </div>
+
+      <!-- Frame 3: Structure forming -->
+      <div class="canvas frame-3" data-frame="3">
+        <svg viewBox="0 0 900 675" xmlns="http://www.w3.org/2000/svg">
+          <rect width="900" height="675" fill="#f0f0f0"/>
+          <!-- Main avenue becoming road -->
+          <path d="M450 650 L450 50" stroke="#1a1a1a" stroke-width="12" fill="none"/>
+          <path d="M445 650 L445 50" stroke="#fff" stroke-width="2" fill="none"/>
+          <path d="M455 650 L455 50" stroke="#fff" stroke-width="2" fill="none"/>
+          
+          <!-- Branches becoming streets -->
+          <path d="M400 350 Q250 280 100 200" stroke="#1a1a1a" stroke-width="8" fill="none"/>
+          <path d="M400 350 Q250 420 80 480" stroke="#1a1a1a" stroke-width="8" fill="none"/>
+          <path d="M450 500 Q300 470 150 400" stroke="#1a1a1a" stroke-width="8" fill="none"/>
+          <path d="M450 500 Q300 550 100 620" stroke="#1a1a1a" stroke-width="8" fill="none"/>
+          <path d="M400 200 Q280 120 120 60" stroke="#1a1a1a" stroke-width="8" fill="none"/>
+          <path d="M400 200 Q320 80 220 20" stroke="#1a1a1a" stroke-width="8" fill="none"/>
+          
+          <!-- Buildings appearing -->
+          <rect x="360" y="320" width="50" height="80" fill="#1a1a1a"/>
+          <rect x="355" y="310" width="60" height="15" fill="#333"/>
+          <rect x="365" y="325" width="10" height="15" fill="#f0f0f0"/>
+          <rect x="385" y="325" width="10" height="15" fill="#f0f0f0"/>
+          <rect x="405" y="325" width="10" height="15" fill="#f0f0f0"/>
+          
+          <rect x="300" y="280" width="40" height="60" fill="#1a1a1a"/>
+          <rect x="295" y="270" width="50" height="12" fill="#333"/>
+          
+          <rect x="200" y="180" width="35" height="55" fill="#1a1a1a"/>
+          <rect x="195" y="170" width="45" height="12" fill="#333"/>
+          
+          <rect x="130" y="450" width="45" height="70" fill="#1a1a1a"/>
+          <rect x="125" y="440" width="55" height="12" fill="#333"/>
+          
+          <rect x="180" y="550" width="40" height="55" fill="#1a1a1a"/>
+          
+          <rect x="80" y="300" width="35" height="50" fill="#1a1a1a"/>
+          <rect x="75" y="290" width="45" height="12" fill="#333"/>
+        </svg>
+      </div>
+
+      <!-- Frame 4: City emerging -->
+      <div class="canvas frame-4" data-frame="4">
+        <svg viewBox="0 0 900 675" xmlns="http://www.w3.org/2000/svg">
+          <rect width="900" height="675" fill="#ebebeb"/>
+          <!-- Main road -->
+          <path d="M450 660 L450 40" stroke="#222" stroke-width="14" fill="none"/>
+          <line x1="443" y1="660" x2="443" y2="40" stroke="#fff" stroke-width="3"/>
+          <line x1="457" y1="660" x2="457" y2="40" stroke="#fff" stroke-width="3"/>
+          
+          <!-- Streets -->
+          <path d="M380 350 Q200 250 60 150" stroke="#222" stroke-width="10" fill="none"/>
+          <path d="M380 350 Q200 450 40 550" stroke="#222" stroke-width="10" fill="none"/>
+          <path d="M430 520 Q250 480 100 380" stroke="#222" stroke-width="10" fill="none"/>
+          <path d="M430 520 Q250 600 60 660" stroke="#222" stroke-width="10" fill="none"/>
+          <path d="M380 180 Q250 80 80 30" stroke="#222" stroke-width="10" fill="none"/>
+          <path d="M380 180 Q300 50 200 10" stroke="#222" stroke-width="10" fill="none"/>
+          
+          <!-- Buildings -->
+          <rect x="340" y="300" width="70" height="120" fill="#1a1a1a"/>
+          <rect x="335" y="290" width="80" height="15" fill="#333"/>
+          <rect x="345" y="305" width="15" height="25" fill="#fff"/>
+          <rect x="370" y="305" width="15" height="25" fill="#fff"/>
+          <rect x="395" y="305" width="15" height="25" fill="#fff"/>
+          
+          <rect x="260" y="240" width="55" height="90" fill="#1a1a1a"/>
+          <rect x="255" y="230" width="65" height="15" fill="#333"/>
+          
+          <rect x="150" y="140" width="50" height="80" fill="#1a1a1a"/>
+          <rect x="145" y="130" width="60" height="15" fill="#333"/>
+          
+          <rect x="90" y="420" width="60" height="100" fill="#1a1a1a"/>
+          <rect x="85" y="410" width="70" height="15" fill="#333"/>
+          
+          <rect x="140" y="530" width="55" height="85" fill="#1a1a1a"/>
+          
+          <rect x="50" y="280" width="45" height="70" fill="#1a1a1a"/>
+          <rect x="45" y="270" width="55" height="15" fill="#333"/>
+          
+          <!-- More buildings -->
+          <rect x="320" y="150" width="45" height="70" fill="#1a1a1a"/>
+          <rect x="200" y="60" width="40" height="55" fill="#1a1a1a"/>
+          <rect x="70" y="180" width="35" height="50" fill="#1a1a1a"/>
+          <rect x="30" y="480" width="50" height="75" fill="#1a1a1a"/>
+        </svg>
+      </div>
+
+      <!-- Frame 5: Growing city -->
+      <div class="canvas frame-5" data-frame="5">
+        <svg viewBox="0 0 900 675" xmlns="http://www.w3.org/2000/svg">
+          <rect width="900" height="675" fill="#e5e5e5"/>
+          <!-- Roads -->
+          <path d="M450 670 L450 30" stroke="#1a1a1a" stroke-width="16" fill="none"/>
+          <line x1="440" y1="670" x2="440" y2="30" stroke="#fff" stroke-width="4"/>
+          <line x1="460" y1="670" x2="460" y2="30" stroke="#fff" stroke-width="4"/>
+          
+          <path d="M360 350 Q150 220 40 100" stroke="#1a1a1a" stroke-width="12" fill="none"/>
+          <path d="M360 350 Q150 480 20 600" stroke="#1a1a1a" stroke-width="12" fill="none"/>
+          <path d="M420 540 Q200 490 60 350" stroke="#1a1a1a" stroke-width="12" fill="none"/>
+          <path d="M420 540 Q200 640 40 670" stroke="#1a1a1a" stroke-width="12" fill="none"/>
+          <path d="M360 160 Q200 50 50 20" stroke="#1a1a1a" stroke-width="12" fill="none"/>
+          <path d="M360 160 Q280 20 180 5" stroke="#1a1a1a" stroke-width="12" fill="none"/>
+          
+          <!-- Dense buildings -->
+          <rect x="310" y="280" width="90" height="160" fill="#151515"/>
+          <rect x="305" y="270" width="100" height="18" fill="#2a2a2a"/>
+          <rect x="315" y="285" width="20" height="35" fill="#e5e5e5"/>
+          <rect x="345" y="285" width="20" height="35" fill="#e5e5e5"/>
+          <rect x="375" y="285" width="20" height="35" fill="#e5e5e5"/>
+          
+          <rect x="220" y="200" width="70" height="130" fill="#151515"/>
+          <rect x="215" y="190" width="80" height="18" fill="#2a2a2a"/>
+          
+          <rect x="120" y="100" width="65" height="110" fill="#151515"/>
+          <rect x="115" y="90" width="75" height="18" fill="#2a2a2a"/>
+          
+          <rect x="70" y="380" width="75" height="140" fill="#151515"/>
+          <rect x="65" y="370" width="85" height="18" fill="#2a2a2a"/>
+          
+          <rect x="110" y="520" width="70" height="115" fill="#151515"/>
+          
+          <rect x="35" y="250" width="55" height="95" fill="#151515"/>
+          
+          <rect x="280" y="100" width="55" height="85" fill="#151515"/>
+          <rect x="160" y="40" width="50" height="70" fill="#151515"/>
+          <rect x="50" y="150" width="45" height="65" fill="#151515"/>
+          <rect x="25" y="440" width="60" height="90" fill="#151515"/>
+          
+          <!-- Windows -->
+          <g fill="#e5e5e5">
+            <rect x="320" y="295" width="8" height="12"/>
+            <rect x="350" y="295" width="8" height="12"/>
+            <rect x="380" y="295" width="8" height="12"/>
+            <rect x="320" y="320" width="8" height="12"/>
+            <rect x="350" y="320" width="8" height="12"/>
+            <rect x="380" y="320" width="8" height="12"/>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Frame 6: Industrial city -->
+      <div class="canvas frame-6" data-frame="6">
+        <svg viewBox="0 0 900 675" xmlns="http://www.w3.org/2000/svg">
+          <rect width="900" height="675" fill="#dedede"/>
+          <!-- Roads with markings -->
+          <path d="M450 680 L450 20" stroke="#111" stroke-width="18" fill="none"/>
+          <line x1="436" y1="680" x2="436" y2="20" stroke="#fff" stroke-width="4"/>
+          <line x1="464" y1="680" x2="464" y2="20" stroke="#fff" stroke-width="4"/>
+          <line x1="450" y1="680" x2="450" y2="20" stroke="#fff" stroke-width="2" stroke-dasharray="20,15"/>
+          
+          <path d="M340 350 Q100 200 20 60" stroke="#111" stroke-width="14" fill="none"/>
+          <path d="M340 350 Q100 500 10 650" stroke="#111" stroke-width="14" fill="none"/>
+          <path d="M400 560 Q150 500 40 320" stroke="#111" stroke-width="14" fill="none"/>
+          <path d="M400 560 Q150 660 20 680" stroke="#111" stroke-width="14" fill="none"/>
+          <path d="M340 140 Q180 30 30 10" stroke="#111" stroke-width="14" fill="none"/>
+          <path d="M340 140 Q260 10 160 0" stroke="#111" stroke-width="14" fill="none"/>
+          
+          <!-- Taller buildings -->
+          <rect x="280" y="240" width="110" height="220" fill="#0d0d0d"/>
+          <rect x="272" y="230" width="126" height="20" fill="#222"/>
+          <rect x="285" y="250" width="25" height="45" fill="#dedede"/>
+          <rect x="320" y="250" width="25" height="45" fill="#dedede"/>
+          <rect x="355" y="250" width="25" height="45" fill="#dedede"/>
+          
+          <rect x="170" y="160" width="85" height="180" fill="#0d0d0d"/>
+          <rect x="162" y="150" width="100" height="20" fill="#222"/>
+          
+          <rect x="70" y="320" width="95" height="200" fill="#0d0d0d"/>
+          <rect x="62" y="310" width="110" height="20" fill="#222"/>
+          
+          <rect x="90" y="480" width="85" height="165" fill="#0d0d0d"/>
+          
+          <rect x="20" y="200" width="70" height="140" fill="#0d0d0d"/>
+          
+          <rect x="230" y="60" width="65" height="110" fill="#0d0d0d"/>
+          <rect x="120" y="20" width="60" height="90" fill="#0d0d0d"/>
+          <rect x="40" y="400" width="75" height="130" fill="#0d0d0d"/>
+        </svg>
+      </div>
+
+      <!-- Frame 7: Dense urban -->
+      <div class="canvas frame-7" data-frame="7">
+        <svg viewBox="0 0 900 675" xmlns="http://www.w3.org/2000/svg">
+          <rect width="900" height="675" fill="#d6d6d6"/>
+          <!-- Main boulevards -->
+          <path d="M450 690 L450 10" stroke="#0a0a0a" stroke-width="20" fill="none"/>
+          <line x1="430" y1="690" x2="430" y2="10" stroke="#fff" stroke-width="5"/>
+          <line x1="470" y1="690" x2="470" y2="10" stroke="#fff" stroke-width="5"/>
+          <line x1="450" y1="690" x2="450" y2="10" stroke="#fff" stroke-width="3" stroke-dasharray="25,20"/>
+          
+          <path d="M320 350 Q80 180 10 40" stroke="#0a0a0a" stroke-width="16" fill="none"/>
+          <path d="M320 350 Q80 520 5 680" stroke="#0a0a0a" stroke-width="16" fill="none"/>
+          <path d="M380 580 Q120 510 30 290" stroke="#0a0a0a" stroke-width="16" fill="none"/>
+          <path d="M380 580 Q120 680 10 690" stroke="#0a0a0a" stroke-width="16" fill="none"/>
+          <path d="M320 120 Q150 20 20 5" stroke="#0a0a0a" stroke-width="16" fill="none"/>
+          <path d="M320 120 Q240 5 140 0" stroke="#0a0a0a" stroke-width="16" fill="none"/>
+          
+          <!-- Skyscrapers -->
+          <rect x="250" y="200" width="130" height="280" fill="#080808"/>
+          <rect x="240" y="190" width="150" height="22" fill="#1a1a1a"/>
+          <rect x="255" y="210" width="30" height="55" fill="#d6d6d6"/>
+          <rect x="300" y="210" width="30" height="55" fill="#d6d6d6"/>
+          <rect x="345" y="210" width="30" height="55" fill="#d6d6d6"/>
+          
+          <rect x="130" y="120" width="100" height="230" fill="#080808"/>
+          <rect x="120" y="110" width="120" height="22" fill="#1a1a1a"/>
+          
+          <rect x="50" y="280" width="110" height="260" fill="#080808"/>
+          <rect x="40" y="270" width="130" height="22" fill="#1a1a1a"/>
+          
+          <rect x="70" y="460" width="100" height="200" fill="#080808"/>
+          
+          <rect x="10" y="160" width="85" height="180" fill="#080808"/>
+          
+          <rect x="180" y="40" width="80" height="140" fill="#080808"/>
+          <rect x="80" y="10" width="70" height="100" fill="#080808"/>
+          <rect x="20" y="380" width="90" height="160" fill="#080808"/>
+        </svg>
+      </div>
+
+      <!-- Frame 8: Modern city -->
+      <div class="canvas frame-8" data-frame="8">
+        <svg viewBox="0 0 900 675" xmlns="http://www.w3.org/2000/svg">
+          <rect width="900" height="675" fill="#cfcfcf"/>
+          <!-- Wide avenues -->
+          <path d="M450 700 L450 0" stroke="#050505" stroke-width="22" fill="none"/>
+          <line x1="425" y1="700" x2="425" y2="0" stroke="#fff" stroke-width="6"/>
+          <line x1="475" y1="700" x2="475" y2="0" stroke="#fff" stroke-width="6"/>
+          <line x1="450" y1="700" x2="450" y2="0" stroke="#fff" stroke-width="3" stroke-dasharray="30,25"/>
+          
+          <path d="M300 350 Q60 160 5 30" stroke="#050505" stroke-width="18" fill="none"/>
+          <path d="M300 350 Q60 540 0 700" stroke="#050505" stroke-width="18" fill="none"/>
+          <path d="M360 600 Q100 520 25 260" stroke="#050505" stroke-width="18" fill="none"/>
+          <path d="M360 600 Q100 700 5 705" stroke="#050505" stroke-width="18" fill="none"/>
+          <path d="M300 100 Q130 15 15 5" stroke="#050505" stroke-width="18" fill="none"/>
+          <path d="M300 100 Q220 0 120 -5" stroke="#050505" stroke-width="18" fill="none"/>
+          
+          <!-- Glass towers -->
+          <rect x="220" y="160" width="150" height="340" fill="#050505"/>
+          <rect x="208" y="150" width="174" height="20" fill="#1a1a1a"/>
+          <rect x="225" y="175" width="35" height="65" fill="#cfcfcf"/>
+          <rect x="275" y="175" width="35" height="65" fill="#cfcfcf"/>
+          <rect x="325" y="175" width="35" height="65" fill="#cfcfcf"/>
+          
+          <rect x="100" y="80" width="115" height="290" fill="#050505"/>
+          <rect x="88" y="70" width="140" height="20" fill="#1a1a1a"/>
+          
+          <rect x="30" y="240" width="125" height="320" fill="#050505"/>
+          <rect x="18" y="230" width="150" height="20" fill="#1a1a1a"/>
+          
+          <rect x="50" y="440" width="115" height="240" fill="#050505"/>
+          
+          <rect x="5" y="130" width="95" height="220" fill="#050505"/>
+          
+          <rect x="150" y="20" width="90" height="170" fill="#050505"/>
+          <rect x="60" y="0" width="80" height="120" fill="#050505"/>
+          <rect x="10" y="360" width="100" height="200" fill="#050505"/>
+        </svg>
+      </div>
+
+      <!-- Frame 9: Contemporary city -->
+      <div class="canvas frame-9" data-frame="9">
+        <svg viewBox="0 0 900 675" xmlns="http://www.w3.org/2000/svg">
+          <rect width="900" height="675" fill="#c5c5c5"/>
+          <!-- Modern grid -->
+          <path d="M450 705 L450 -5" stroke="#000" stroke-width="24" fill="none"/>
+          <line x1="420" y1="705" x2="420" y2="-5" stroke="#fff" stroke-width="6"/>
+          <line x1="480" y1="705" x2="480" y2="-5" stroke="#fff" stroke-width="6"/>
+          <line x1="450" y1="705" x2="450" y2="-5" stroke="#fff" stroke-width="4" stroke-dasharray="35,30"/>
+          
+          <path d="M280 350 Q40 140 0 20" stroke="#000" stroke-width="20" fill="none"/>
+          <path d="M280 350 Q40 560 0 710" stroke="#000" stroke-width="20" fill="none"/>
+          <path d="M340 620 Q80 530 20 230" stroke="#000" stroke-width="20" fill="none"/>
+          <path d="M340 620 Q80 710 0 720" stroke="#000" stroke-width="20" fill="none"/>
+          <path d="M280 80 Q110 10 10 0" stroke="#000" stroke-width="20" fill="none"/>
+          <path d="M280 80 Q200 -5 100 -10" stroke="#000" stroke-width="20" fill="none"/>
+          
+          <!-- Contemporary architecture -->
+          <rect x="190" y="130" width="170" height="380" fill="#000"/>
+          <rect x="175" y="120" width="200" height="18" fill="#111"/>
+          <rect x="195" y="145" width="40" height="75" fill="#c5c5c5"/>
+          <rect x="255" y="145" width="40" height="75" fill="#c5c5c5"/>
+          <rect x="315" y="145" width="40" height="75" fill="#c5c5c5"/>
+          
+          <rect x="70" y="50" width="130" height="330" fill="#000"/>
+          <rect x="55" y="40" width="160" height="18" fill="#111"/>
+          
+          <rect x="10" y="200" width="145" height="380" fill="#000"/>
+          <rect x="-5" y="190" width="175" height="18" fill="#111"/>
+          
+          <rect x="30" y="420" width="130" height="280" fill="#000"/>
+          
+          <rect x="-5" y="100" width="105" height="260" fill="#000"/>
+          
+          <rect x="120" y="0" width="100" height="200" fill="#000"/>
+          <rect x="40" y="-15" width="90" height="140" fill="#000"/>
+          <rect x="0" y="340" width="115" height="240" fill="#000"/>
+        </svg>
+      </div>
+
+      <!-- Frame 10: Futuristic city -->
+      <div class="canvas frame-10" data-frame="10">
+        <svg viewBox="0 0 900 675" xmlns="http://www.w3.org/2000/svg">
+          <rect width="900" height="675" fill="#b8b8b8"/>
+          <!-- Wide transit corridors -->
+          <path d="M450 710 L450 -10" stroke="#0a0a0a" stroke-width="26" fill="none"/>
+          <line x1="415" y1="710" x2="415" y2="-10" stroke="#fff" stroke-width="7"/>
+          <line x1="485" y1="710" x2="485" y2="-10" stroke="#fff" stroke-width="7"/>
+          <line x1="450" y1="710" x2="450" y2="-10" stroke="#fff" stroke-width="4" stroke-dasharray="40,35"/>
+          
+          <path d="M260 350 Q25 120 -5 15" stroke="#0a0a0a" stroke-width="22" fill="none"/>
+          <path d="M260 350 Q25 580 -5 720" stroke="#0a0a0a" stroke-width="22" fill="none"/>
+          <path d="M320 640 Q60 540 15 200" stroke="#0a0a0a" stroke-width="22" fill="none"/>
+          <path d="M320 640 Q60 720 -5 730" stroke="#0a0a0a" stroke-width="22" fill="none"/>
+          <path d="M260 60 Q90 5 5 -5" stroke="#0a0a0a" stroke-width="22" fill="none"/>
+          <path d="M260 60 Q180 -10 80 -15" stroke="#0a0a0a" stroke-width="22" fill="none"/>
+          
+          <!-- Towering structures -->
+          <rect x="160" y="100" width="190" height="430" fill="#050505"/>
+          <rect x="145" y="90" width="220" height="16" fill="#0f0f0f"/>
+          <rect x="165" y="115" width="45" height="90" fill="#b8b8b8"/>
+          <rect x="230" y="115" width="45" height="90" fill="#b8b8b8"/>
+          <rect x="295" y="115" width="45" height="90" fill="#b8b8b8"/>
+          
+          <rect x="45" y="30" width="145" height="380" fill="#050505"/>
+          <rect x="30" y="20" width="175" height="16" fill="#0f0f0f"/>
+          
+          <rect x="-5" y="170" width="165" height="440" fill="#050505"/>
+          <rect x="-20" y="160" width="195" height="16" fill="#0f0f0f"/>
+          
+          <rect x="15" y="400" width="145" height="320" fill="#050505"/>
+          
+          <rect x="-15" y="80" width="115" height="300" fill="#050505"/>
+          
+          <rect x="90" y="-10" width="110" height="230" fill="#050505"/>
+          <rect x="20" y="-25" width="100" height="160" fill="#050505"/>
+          <rect x="-10" y="320" width="125" height="280" fill="#050505"/>
+        </svg>
+      </div>
+
+      <!-- Frame 11: Neo-city -->
+      <div class="canvas frame-11" data-frame="11">
+        <svg viewBox="0 0 900 675" xmlns="http://www.w3.org/2000/svg">
+          <rect width="900" height="675" fill="#aaa"/>
+          <!-- Transit hub -->
+          <path d="M450 720 L450 -20" stroke="#000" stroke-width="28" fill="none"/>
+          <line x1="410" y1="720" x2="410" y2="-20" stroke="#fff" stroke-width="8"/>
+          <line x1="490" y1="720" x2="490" y2="-20" stroke="#fff" stroke-width="8"/>
+          <line x1="450" y1="720" x2="450" y2="-20" stroke="#fff" stroke-width="5" stroke-dasharray="45,40"/>
+          
+          <path d="M240 350 Q10 100 -10 10" stroke="#000" stroke-width="24" fill="none"/>
+          <path d="M240 350 Q10 600 -10 740" stroke="#000" stroke-width="24" fill="none"/>
+          <path d="M300 660 Q40 550 10 170" stroke="#000" stroke-width="24" fill="none"/>
+          <path d="M300 660 Q40 740 -10 750" stroke="#000" stroke-width="24" fill="none"/>
+          <path d="M240 40 Q70 0 0 -10" stroke="#000" stroke-width="24" fill="none"/>
+          <path d="M240 40 Q160 -20 60 -25" stroke="#000" stroke-width="24" fill="none"/>
+          
+          <!-- Monumental structures -->
+          <rect x="130" y="70" width="210" height="480" fill="#000"/>
+          <rect x="115" y="60" width="240" height="14" fill="#0a0a0a"/>
+          <rect x="135" y="85" width="50" height="100" fill="#aaa"/>
+          <rect x="205" y="85" width="50" height="100" fill="#aaa"/>
+          <rect x="275" y="85" width="50" height="100" fill="#aaa"/>
+          
+          <rect x="20" y="10" width="160" height="430" fill="#000"/>
+          <rect x="5" y="0" width="190" height="14" fill="#0a0a0a"/>
+          
+          <rect x="-15" y="140" width="185" height="500" fill="#000"/>
+          <rect x="-30" y="130" width="215" height="14" fill="#0a0a0a"/>
+          
+          <rect x="0" y="380" width="160" height="360" fill="#000"/>
+          
+          <rect x="-25" y="60" width="130" height="340" fill="#000"/>
+          
+          <rect x="60" y="-20" width="120" height="260" fill="#000"/>
+          <rect name="city-frame-11"> 
+          <rect x="-5" y="-35" width="110" height="180" fill="#000"/>
+          <rect x="-20" y="300" width="140" height="320" fill="#000"/>
+        </svg>
+      </div>
+
+      <!-- Frame 12: Final modern metropolis -->
+      <div class="canvas frame-12" data-frame="12">
+        <svg viewBox="0 0 900 675" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#1a1a2e"/>
+              <stop offset="100%" stop-color="#16213e"/>
+            </linearGradient>
+          </defs>
+          <rect width="900" height="675" fill="url(#skyGrad)"/>
+          
+          <!-- Night roads -->
+          <path d="M450 730 L450 -30" stroke="#0a0a15" stroke-width="30" fill="none"/>
+          <line x1="405" y1="730" x2="405" y2="-30" stroke="#ffeaa7" stroke-width="8"/>
+          <line x1="495" y1="730" x2="495" y2="-30" stroke="#ffeaa7" stroke-width="8"/>
+          <line x1="450" y1="730" x2="450" y2="-30" stroke="#ffeaa7" stroke-width="5" stroke-dasharray="50,45"/>
+          
+          <path d="M220 350 Q-5 80 -20 5" stroke="#0a0a15" stroke-width="26" fill="none"/>
+          <path d="M220 350 Q-5 620 -20 760" stroke="#0a0a15" stroke-width="26" fill="none"/>
+          <path d="M280 680 Q20 560 5 140" stroke="#0a0a15" stroke-width="26" fill="none"/>
+          <path d="M280 680 Q20 760 -20 770" stroke="#0a0a15" stroke-width="26" fill="none"/>
+          <path d="M220 20 Q50 -10 -10 -20" stroke="#0a0a15" stroke-width="26" fill="none"/>
+          <path d="M220 20 Q140 -30 40 -35" stroke="#0a0a15" stroke-width="26" fill="none"/>
+          
+          <!-- Night lit buildings -->
+          <rect x="100" y="40" width="230" height="540" fill="#0a0a15"/>
+          <rect x="85" y="30" width="260" height="12" fill="#1a1a2e"/>
+          <rect x="105" y="55" width="55" height="110" fill="#ffeaa7" opacity="0.9"/>
+          <rect x="180" y="55" width="55" height="110" fill="#ffeaa7" opacity="0.8"/>
+          <rect x="255" y="55" width="55" height="110" fill="#ffeaa7" opacity="0.85"/>
+          
+          <rect x="-5" y="-10" width="175" height="490" fill="#0a0a15"/>
+          <rect x="-20" y="-20" width="205" height="12" fill="#1a1a2e"/>
+          
+          <rect x="-30" y="110" width="200" height="560" fill="#0a0a15"/>
+          <rect x="-45" y="100" width="230" height="12" fill="#1a1a2e"/>
+          
+          <rect x="-15" y="350" width="175" height="400" fill="#0a0a15"/>
+          
+          <rect x="-40" y="40" width="140" height="380" fill="#0a0a15"/>
+          
+          <rect x="30" y="-40" width="130" height="290" fill="#0a0a15"/>
+          <rect x="-15" y="-55" width="120" height="200" fill="#0a0a15"/>
+          <rect x="-35" y="280" width="155" height="360" fill="#0a0a15"/>
+          
+          <!-- Additional lights -->
+          <rect x="120" y="200" width="30" height="40" fill="#74b9ff" opacity="0.7"/>
+          <rect x="200" y="180" width="30" height="40" fill="#fd79a8" opacity="0.6"/>
+          <rect x="270" y="220" width="30" height="40" fill="#55efc4" opacity="0.7"/>
+          <rect x="50" y="280" width="25" height="35" fill="#ffeaa7" opacity="0.8"/>
+          <rect x="90" y="350" width="25" height="35" fill="#74b9ff" opacity="0.7"/>
+          
+          <!-- Stars -->
+          <g fill="#fff" opacity="0.6">
+            <circle cx="600" cy="50" r="1"/><circle cx="650" cy="80" r="0.8"/>
+            <circle cx="700" cy="40" r="1.2"/><circle cx="750" cy="70" r="0.7"/>
+            <circle cx="620" cy="100" r="0.9"/><circle cx="680" cy="30" r="1"/>
+            <circle cx="720" cy="110" r="0.6"/><circle cx="770" cy="55" r="0.8"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="prevBtn">←</button>
+      <div class="progress">
+        <div class="dot active" data-frame="1"></div>
+        <div class="dot" data-frame="2"></div>
+        <div class="dot" data-frame="3"></div>
+        <div class="dot" data-frame="4"></div>
+        <div class="dot" data-frame="5"></div>
+        <div class="dot" data-frame="6"></div>
+        <div class="dot" data-frame="7"></div>
+        <div class="dot" data-frame="8"></div>
+        <div class="dot" data-frame="9"></div>
+        <div class="dot" data-frame="10"></div>
+        <div class="dot" data-frame="11"></div>
+        <div class="dot" data-frame="12"></div>
+      </div>
+      <button id="nextBtn">→</button>
+    </div>
+    <div class="label">
+      <span id="titleText">Leaf Skeleton</span>
+      <div class="frame-label" id="frameLabel">Frame 1 of 12</div>
+    </div>
+  </div>
+
+  <script>
+    const frameLabels = [
+      { title: "Leaf Skeleton", sub: "Natural origin" },
+      { title: "Veins → Streets", sub: "Structure emerging" },
+      { title: "First Foundations", sub: "Architecture forming" },
+      { title: "City Emerges", sub: "Urban growth begins" },
+      { title: "Growing City", sub: "Buildings multiply" },
+      { title: "Industrial Age", sub: "Dense development" },
+      { title: "Urban Density", sub: "Metropolitan form" },
+      { title: "Modern City", sub: "Glass towers rise" },
+      { title: "Contemporary", sub: "Contemporary architecture" },
+      { title: "Futuristic", sub: "Tomorrow's skyline" },
+      { title: "Neo-City", sub: "Monumental scale" },
+      { title: "Night Metropolis", sub: "The modern city" }
+    ];
+
+    let currentFrame = 1;
+    const totalFrames = 12;
+
+    function showFrame(n) {
+      if (n < 1) n = totalFrames;
+      if (n > totalFrames) n = 1;
+      
+      document.querySelectorAll('.canvas').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.dot').forEach(el => el.classList.remove('active'));
+      
+      document.querySelector(`.frame-${n}`).classList.add('active');
+      document.querySelector(`.dot[data-frame="${n}"]`).classList.add('active');
+      
+      document.getElementById('titleText').textContent = frameLabels[n-1].title;
+      document.getElementById('frameLabel').textContent = `Frame ${n} of 12 — ${frameLabels[n-1].sub}`;
+      
+      currentFrame = n;
+    }
+
+    document.getElementById('prevBtn').addEventListener('click', () => showFrame(currentFrame - 1));
+    document.getElementById('nextBtn').addEventListener('click', () => showFrame(currentFrame + 1));
+
+    document.querySelectorAll('.dot').forEach(dot => {
+      dot.addEventListener('click', () => showFrame(parseInt(dot.dataset.frame)));
+    });
+
+    // Auto-advance
+    let autoPlay = false;
+    let autoInterval;
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') showFrame(currentFrame + 1);
+      if (e.key === 'ArrowLeft') showFrame(currentFrame - 1);
+      if (e.key === ' ') {
+        e.preventDefault();
+        autoPlay = !autoPlay;
+        if (autoPlay) {
+          autoInterval = setInterval(() => showFrame(currentFrame + 1), 2500);
+        } else {
+          clearInterval(autoInterval);
+        }
+      }
+    });
+  </script>
+</body>
+</html>

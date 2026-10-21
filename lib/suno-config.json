@@ -1,0 +1,18 @@
+{
+  "apiBase": "https://studio-api-prod.suno.com",
+  "_note_apiBase": "The API the suno.com SPA actually calls. api.suno.ai 503s from this network and auth.suno.com/api/v1/auth/refresh 404s — both were probed. studio-api-prod.suno.com answers, but only with the Bearer token the SPA attaches itself.",
+  "cookiesFile": "~/.suno-cookies.txt",
+  "_note_cookiesFile": "Cookie jar exported from a browser logged into suno.com. Netscape or JSON format. SECRET — keep it out of git (see .gitignore). The jar's __session access token is usually stale on export; the SPA refreshes it server-side from the __client refresh cookie, which is why the browser route works even when the pasted access token is expired.",
+  "userDataDir": "/tmp/suno-web-profile",
+  "_note_userDataDir": "Browser profile for the Suno backend. Separate from the Midjourney profile so the two never fight over one Chromium instance.",
+  "port": 9455,
+  "_note_port": "CDP debugging port. Pick anything not already used by the MJ backend (9444).",
+  "paths": {
+    "webBrowserBin": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "_note_webBrowserBin": "Browser binary. MUST run headed — suno.com loads Cloudflare Turnstile and hCaptcha, which challenge headless Chromium."
+  },
+  "createPage": "https://suno.com/create",
+  "captchaSiteKey": "0x4AAAAAADI7xDNyj-3LcIbi",
+  "headless": false,
+  "_note_headless": "Run Chrome headed. MEASURED 2026-10-21: the generation captcha (Cloudflare Turnstile) does NOT solve in headless Chrome — the widget renders but no token arrives, and the request dies at 'captcha token timed out' after 45s. Headed, the same widget returns a ~730-char token in ~2s. The headless flag is still implemented in lib/mj-submitter.js (launchChrome gains a headless argument) and is re-verified on every run, so it fails loudly instead of silently degrading."
+}

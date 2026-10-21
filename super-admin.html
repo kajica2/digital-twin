@@ -1,24 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Design tokens live in the skin, not in this page. See DESIGN.md. -->
+    <link rel="stylesheet" href="assets/skins/house.css" data-skin-stylesheet>
+    <script src="lib/skin.js"></script>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Super Admin | SWR Control Center</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    :root {
-      --bg: #0a0a0a;
-      --bg-card: #141414;
-      --bg-card-hover: #1a1a1a;
-      --border: #2a2a2a;
-      --text: #e0e0e0;
-      --text-dim: #888;
-      --green: #22c55e;
-      --yellow: #eab308;
-      --red: #ef4444;
-      --blue: #3b82f6;
-      --purple: #a855f7;
-    }
     body {
       font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
       background: var(--bg);
@@ -148,9 +139,9 @@
     }
     .btn:hover { background: var(--bg-card-hover); border-color: var(--text-dim); }
     .btn.primary { background: var(--blue); border-color: var(--blue); }
-    .btn.primary:hover { background: #2563eb; }
+    .btn.primary:hover { background: color-mix(in srgb, var(--blue) 85%, var(--ink)); }
     .btn.danger { background: var(--red); border-color: var(--red); }
-    .btn.danger:hover { background: #dc2626; }
+    .btn.danger:hover { background: color-mix(in srgb, var(--red) 85%, var(--ink)); }
     
     .full-width { grid-column: 1 / -1; }
     
