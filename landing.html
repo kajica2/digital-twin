@@ -200,6 +200,92 @@
     .hub-links a:hover { color: var(--primary); }
     .hub-links a.here { color: var(--primary); font-weight: 500; }
 
+    /* Tools band — prominent rail right under the hub-nav, always
+       visible above the fold. The Tools are the part of the project
+       that anyone can pick up and use; they belong in the first
+       viewport the page paints. */
+    .tools-bar {
+      padding: 14px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: var(--bg-warm);
+    }
+    .tools-bar-inner {
+      max-width: var(--container-wide);
+      margin: 0 auto;
+      padding: 0 32px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 24px;
+    }
+    .tools-bar-kicker {
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      white-space: nowrap;
+    }
+    .tools-pills {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    a.tool-pill {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      color: var(--ink);
+      text-decoration: none;
+      transition: border-color var(--dur-fast) var(--ease-out-expo),
+                  transform var(--dur-fast) var(--ease-out-expo);
+    }
+    a.tool-pill:hover {
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+    .tool-pill-glyph {
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-warm);
+      color: var(--primary);
+      font-family: var(--font-mono);
+      font-size: var(--fs-md);
+      font-weight: 600;
+    }
+    .tool-pill-text { display: grid; gap: 2px; min-width: 0; }
+    .tool-pill-name {
+      font-family: var(--font-display);
+      font-size: var(--fs-md);
+      font-weight: 500;
+      line-height: 1.1;
+      color: var(--ink);
+    }
+    .tool-pill-sub {
+      font-size: var(--fs-xs);
+      color: var(--ink-muted);
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    @media (max-width: 720px) {
+      .tools-bar-inner { grid-template-columns: 1fr; padding: 0 20px; }
+      .tools-pills { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 420px) {
+      .tools-pills { grid-template-columns: 1fr; }
+    }
+
     /* Theme + variant toggles — inline with the hub-nav */
     theme-toggle, variant-switcher {
       display: inline-flex;
@@ -700,6 +786,42 @@
         <theme-toggle aria-label="Theme"></theme-toggle>
       </div>
     </nav>
+
+    <aside class="tools-bar" aria-label="Tools">
+      <div class="tools-bar-inner">
+        <span class="tools-bar-kicker">Tools</span>
+        <nav class="tools-pills" aria-label="Tool pages">
+          <a class="tool-pill" href="pages/clip-interrogator.html">
+            <span class="tool-pill-glyph" aria-hidden="true">C</span>
+            <span class="tool-pill-text">
+              <span class="tool-pill-name">CLIP Interrogator</span>
+              <span class="tool-pill-sub">image → prompt</span>
+            </span>
+          </a>
+          <a class="tool-pill" href="pages/refael-mp4-maker.html">
+            <span class="tool-pill-glyph" aria-hidden="true">R</span>
+            <span class="tool-pill-text">
+              <span class="tool-pill-name">Refael MP4 Maker</span>
+              <span class="tool-pill-sub">MP3 → MP4, moods</span>
+            </span>
+          </a>
+          <a class="tool-pill" href="pages/loopable-video-segmenter.html">
+            <span class="tool-pill-glyph" aria-hidden="true">L</span>
+            <span class="tool-pill-text">
+              <span class="tool-pill-name">Loopable Video</span>
+              <span class="tool-pill-sub">MP4 → N clips</span>
+            </span>
+          </a>
+          <a class="tool-pill" href="pages/marketplace.html">
+            <span class="tool-pill-glyph" aria-hidden="true">M</span>
+            <span class="tool-pill-text">
+              <span class="tool-pill-name">Marketplace</span>
+              <span class="tool-pill-sub">covers + plates + stills</span>
+            </span>
+          </a>
+        </nav>
+      </div>
+    </aside>
 
     <main id="main">
       <!-- ====================================================
