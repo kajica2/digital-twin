@@ -96,7 +96,7 @@
 
 <div class="wrap">
     <div class="hero">
-        <div class="kicker">tool 09 · floating toolset</div>
+        <div class="kicker">tool · floating toolset</div>
         <h1>One panel, floating over everything.</h1>
         <p class="lede">
             Today, now playing, code and patterns — four surfaces the twin keeps
@@ -216,7 +216,7 @@ panel.addEventListener('toolset:move', (e) =&gt; console.log(e.detail.x, e.detai
 
         document.querySelector('[data-act="toggle"]').addEventListener('click', function () {
             if (!created) { ensure(); return; }
-            if (panel.style.display === 'none') { panel.open(); say('open'); }
+            if (panel.closed) { panel.open(); say('open'); }
             else { panel.close(); say('closed'); }
         });
         document.querySelector('[data-act="collapse"]').addEventListener('click', function () {

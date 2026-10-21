@@ -4215,7 +4215,7 @@ the right.
     footer link to the reference doc. The panel starts **closed** so the
     copy reads first; three buttons drive it.
   - **`lib/floating-toolset.test.js`** — 28 pure-function checks.
-  - **`e2e/floating-toolset.spec.mjs`** — 25 browser checks.
+  - **`e2e/floating-toolset.spec.mjs`** — 26 browser checks.
   - **`docs/FLOATING-TOOLSET.md`** — the reference (embed snippet,
     payload table, API, the three lights, limits).
   - npm: `e2e:floating-toolset`, `test:floating-toolset`; the unit
@@ -4255,32 +4255,72 @@ the right.
     `chaos_magick — Vercel redeploy` truncated with an ellipsis. The
     width was raised until no card text truncates (confirmed on the
     screenshot, not by eye).
+  - **The three window lights keep the macOS system colors** — the
+    component's only pixels that do not come from the skin. The panel
+    is claiming to *be* a macOS window, and the affordance only reads
+    if the middle dot is yellow. Mapping the lights to the skin's
+    semantic tokens was tried and measured: the house `--warning` is a
+    burnt amber (`#b45309`) and the studio one is olive (`#725f03`),
+    and in both the middle dot read as a smudge, not a traffic light.
+    Same call as the Refael page keeping its own dark palette — a
+    foreign design language is preserved rather than re-skinned.
   - **Fixed a pre-existing skin-lint fragility.** `lib/skin-lint.js`
     walked the repo for HTML, so a *generated* page left in the
     gitignored `mj-output/` directory failed the lint
     ("uses 5 contract tokens but loads no skin") and broke
     `npm run test:all` for reasons unrelated to any source page. The
     walk now skips gitignored directories. The new page was confirmed to
-    still be linted (41 skinned, 0 errors).
+    still be linted (42 skinned, 0 errors).
+  - **Fixed a listener-stacking defect found by reading the code.**
+    `render()` re-attached the delegated click handler to `.win` — an
+    element that *survives* a re-render (only its innerHTML is
+    replaced) — so every `setData()` stacked another handler and one
+    click on a window light would fire the action N times. The handler
+    now lives in `connectedCallback`. The regression check
+    ("a re-render does not stack the click listeners") was verified to
+    **fail against the old code** and pass against the fix.
+  - **Fixed a dead-end restore path.** `close()` set `display: none`
+    on the *host*, and the restore tab is a child of the shadow root —
+    so hiding the host hid the only way back in. The panel could be
+    closed and never reopened. `close()` now sets a `closed` attribute
+    and the CSS hides `.win` instead; the restore tab stays on screen.
+    The old e2e check passed **vacuously** (it asserted the `hidden`
+    *property*, which the old code cleared, while the element was
+    still invisible at 0×0). The rewritten check asserts a real
+    non-zero box, and was verified to **fail against the old code**.
+    A `panel.closed` getter was added so a host page can branch on
+    the state without poking at `style.display`.
 
 - **Verified end-to-end:**
   - `npm run test:floating-toolset` — **28/28**.
-  - `npm run e2e:floating-toolset` — **25/25** against the repo-root
+  - `npm run e2e:floating-toolset` — **26/26** against the repo-root
     `:5180` server: the four cards and their rows (3 / 24 equalizer bars
     / 3 / 3), the chrome title, the live badge, the three lights, the
-    footer text, open / collapse / zoom / close / restore, a real
-    pointer drag (−100px / −60px exactly), the remembered position, the
-    viewport clamp, the embed snippet, a copy click that throws
-    nothing, the theme flip and its persistence across a reload, and
-    **0 console errors**.
+    footer text, open / collapse / zoom / close / restore, the
+    no-listener-stacking check, a real pointer drag (−100px / −60px
+    exactly), the remembered position, the viewport clamp, the embed
+    snippet, a copy click that throws nothing, the theme flip and its
+    persistence across a reload, and **0 console errors**.
+  - **Deploy-test loop green** for the first commit of the page: the
+    spec was run against the live Vercel URL
+    (`E2E_URL=https://digitaltwin-ebon.vercel.app`) — 26/26 — and the
+    CI run for that push passed every step, including the
+    "deployed content matches HEAD" guard. The amendment in this entry
+    (the two fixes above) re-runs the same loop on its own commit.
   - Screenshot reviewed: the 2×2 grid reads TODAY / NOW PLAYING / CODE /
     PATTERNS as in the reference, and **no card text is truncated**.
+  - The traffic lights were measured in both themes and both skins: the
+    house skin's `--warning` (#b45309) and the studio skin's (#725f03)
+    both make the middle dot read as a smudge, so the macOS system
+    colors are kept. Verified at 3× — clearly red / yellow / green in
+    house and studio, light and dark.
   - `npm run test:all` — **19 suites, 0 failures** (the unit chain
     grew from 18 to 19 with the toolset suite).
   - `npm run verify` — landing / twin-os / twin-os-songs green.
   - `npm run e2e:howto` — green after the page-map row; the new
     `../docs/FLOATING-TOOLSET.md` link resolves 200.
-  - `npm run skin:check` — 41 skinned, 8 opted out, 1 plain, **0
+  - `npm run e2e:skin` — green.
+  - `npm run skin:check` — 42 skinned, 8 opted out, 1 plain, **0
     errors**.
 
 - **Open:**
@@ -4291,10 +4331,12 @@ the right.
     list.
   - One panel per page: two instances would share the
     `dt-floating-toolset-pos` storage key.
-  - The deploy-test loop for this page still has to run against the
-    deployed URL once the commit lands on Vercel.
+  - The panel has no root-level HTML copy, unlike the 20 older pages
+    that were hand-synced. It follows the newer convention (the MJ
+    dashboard and the from-nothing page have none either) and the
+    root-duplication problem is a known open item in its own right.
 
-- **Next:** (a) run the deploy-test loop for the new page; (b) point
-  the payload at a live state file so the panel reflects real work;
-  (c) the standing backlog — reel LaunchAgent bootstrap, the
-  `.kai/` durability call, the chart variants.
+- **Next:** (a) point the payload at a live state file so the panel
+  reflects real work; (b) the standing backlog — reel LaunchAgent
+  bootstrap, the `.kai/` durability call, the chart variants, the
+  root-level page duplicates.

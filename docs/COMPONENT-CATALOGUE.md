@@ -128,7 +128,7 @@ entry below.
   and it stops under `prefers-reduced-motion`.
 - **Companion files:** `data/twin/toolset.json` (the payload),
   `lib/floating-toolset.test.js` (28 pure checks),
-  `e2e/floating-toolset.spec.mjs` (25 browser checks),
+  `e2e/floating-toolset.spec.mjs` (26 browser checks),
   `pages/floating-toolset.html` (the host page),
   `docs/FLOATING-TOOLSET.md` (the reference).
 

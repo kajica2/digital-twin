@@ -113,6 +113,7 @@ panel.close();
 panel.toggleCollapse();
 panel.toggleZoom();
 panel.zoomed;           // boolean
+panel.closed;           // boolean — true while the panel is closed
 ```
 
 Events:
@@ -132,14 +133,27 @@ Three lights, macOS-style, all functional:
 
 | Light | Action |
 |---|---|
-| red | close — the panel hides, a small **twin** tab stays so it can be restored |
+| red | close — the window hides, a small **twin** tab stays in the corner so it can be restored |
 | yellow | collapse — the body folds away, the chrome bar stays |
 | green | widen — the panel switches to its single-column layout |
+
+Closing hides the *window*, not the host element — the restore tab is a
+child of the shadow root, so hiding the host would take the way back in
+down with it. Read `panel.closed` to know which state you are in.
 
 The chrome bar is the drag handle: press and move to reposition. It is
 also focusable — with the bar focused, the arrow keys nudge the panel
 (shift for bigger steps). The panel is clamped to the viewport, so it can
 never be dragged off screen.
+
+The three lights keep the **macOS system colors** (`#ff5f57` /
+`#febc2e` / `#28c840`) — the only pixels in the component that do not
+come from the skin. The panel is claiming to *be* a macOS window, and
+the affordance only reads if the middle dot is yellow; the house skin's
+`--warning` is a burnt amber (`#b45309`) and the studio skin's is olive
+(`#725f03`), either of which makes the dot read as a smudge. Same call
+as the Refael page keeping its own dark palette: a foreign design
+language is preserved rather than re-skinned.
 
 Position, collapsed state and zoom state are remembered per browser in
 `localStorage` under **`dt-floating-toolset-pos`**.
@@ -161,13 +175,14 @@ e2e/floating-toolset.spec.mjs  25 browser checks
 ## Verified
 
 - `npm run test:floating-toolset` — 28/28.
-- `npm run e2e:floating-toolset` — 25/25 against the repo-root server on
+- `npm run e2e:floating-toolset` — 26/26 against the repo-root server on
   `:5180`: the four cards and their rows, the chrome bar and its three
   lights, the equalizer bars, the footer numbers, open / collapse / zoom /
   close / restore, a real pointer drag (moved exactly −100px / −60px),
   the remembered position, the viewport clamp, the embed snippet, a copy
   click that throws nothing, the theme flip and its persistence across a
-  reload, and **0 console errors**.
+  reload, and **0 console errors**. The same spec passes 26/26 against
+  the live Vercel URL.
 - `npm run skin:check` — the page loads a skin and defines none of the
   contract's tokens itself.
 

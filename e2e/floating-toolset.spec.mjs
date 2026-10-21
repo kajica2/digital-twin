@@ -128,7 +128,7 @@ function check(name, ok, detail = '') {
     document.querySelector('[data-act="toggle"]').click();
     const el = document.querySelector('floating-toolset');
     const win = el.shadowRoot.querySelector('.win');
-    return getComputedStyle(el).display !== 'none' && win.getBoundingClientRect().height > 100;
+    return getComputedStyle(win).display !== 'none' && win.getBoundingClientRect().height > 100;
   }));
 
   check('panel: collapse hides the body but keeps the chrome bar', await page.evaluate(() => {
@@ -150,14 +150,34 @@ function check(name, ok, detail = '') {
     return after > before;
   }));
 
-  check('panel: close hides it and leaves a restore tab', await page.evaluate(() => {
+  check('panel: close hides the window and leaves a VISIBLE restore tab', await page.evaluate(() => {
     const el = document.querySelector('floating-toolset');
     document.querySelector('[data-act="toggle"]').click(); // close
     const restore = el.shadowRoot.querySelector('.restore');
-    const closed = getComputedStyle(el).display === 'none' && !restore.hidden;
+    const win = el.shadowRoot.querySelector('.win');
+    // The window must be gone AND the restore tab must be genuinely
+    // on screen (a non-zero box), not merely un-hidden.
+    const closed = getComputedStyle(win).display === 'none';
+    const restoreVisible = !restore.hidden && restore.getBoundingClientRect().width > 0;
     restore.click();
-    const reopened = getComputedStyle(el).display !== 'none';
-    return closed && reopened;
+    const reopened = getComputedStyle(win).display !== 'none' && restore.hidden;
+    return closed && restoreVisible && reopened;
+  }));
+
+  check('panel: a re-render does not stack the click listeners', await page.evaluate(() => {
+    const el = document.querySelector('floating-toolset');
+    // setData() re-renders. If the delegated click handler were attached
+    // per render, the .win element (which survives a re-render) would
+    // hold N listeners and one click would fire the action N times.
+    el.setData({ title: '~/twin — online · local' });
+    el.setData({ title: '~/twin — online · local' });
+    el.setData({ title: '~/twin — online · local' });
+    let closes = 0;
+    el.addEventListener('toolset:close', () => { closes++; });
+    el.shadowRoot.querySelector('.light.red').click();
+    const restore = el.shadowRoot.querySelector('.restore');
+    restore.click(); // put it back
+    return closes === 1;
   }));
 
   const drag = await page.evaluate(() => {
