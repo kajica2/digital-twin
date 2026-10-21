@@ -4807,15 +4807,26 @@ anywhere, and the mood-frame catalogue was a dead end with no way to buy.
   href, in the Twin panel, catalogue resolves 200). Its only failures
   on that host were the root-absolute manifest 404s above — fixed, and
   the spec is green locally with the fix.
-- **Vercel is the CI target but is not picking up pushes.** The alias
-  `digitaltwin-ebon.vercel.app` still served the previous build ~10
-  minutes after the push, and `npx vercel ls` fails with "the token
-  provided via VERCEL_TOKEN environment variable is not valid" — the
-  local CLI cannot trigger or list a deploy. The GitHub Pages build
-  landed in ~60 s and served the new commit, which is what the
-  verification above ran against. The Vercel deploy (and the CI
-  freshness gate that depends on it) needs a working token or a
-  re-linked project.
+- **The Vercel deploy is slow, not broken — and CI's budget was
+  shorter than the deploy.** The alias served the previous build for
+  **~13 minutes** after the push (the earlier "~6 minutes" observation
+  was the same queue on a lighter day), so the freshness gate's
+  **10-minute** budget expired three minutes early and failed the run
+  with "deployed content still != HEAD after 10 minutes". The gate was
+  measuring the build queue, not the code. Its budget is now **20
+  minutes** and the job timeout 45 — the budget has to clear the
+  *worst* observed latency, not the typical one. The deploy then went
+  live on its own and served the store.
+- The local Vercel CLI cannot be used to drive a deploy: both the
+  `VERCEL_TOKEN` in the environment and the CLI's stored token are
+  invalid ("the token provided via VERCEL_TOKEN environment variable is
+  not valid"). The GitHub integration deploys on its own; the CLI is
+  only for manual redeploys, which is now a manual step for whoever
+  has a valid token.
+- **GitHub Pages is alive too** (the project site deploys in ~60 s and
+  served the store) — but it is a *different* deployment, under
+  `/digital-twin/`, and a subpath host has its own path bugs (the
+  manifest href above was one). The CI target stays Vercel.
 
 **Open:**
 
