@@ -32,7 +32,9 @@ const PORT = 5175;
 
 const DEPLOYED_URL = process.env.E2E_URL || null;
 const BASE = DEPLOYED_URL || `http://127.0.0.1:${PORT}`;
-const PAGE_PATH = DEPLOYED_URL ? '/pages/twin-os/index.html' : '/index.html';
+// The URL path is /pages/twin-os/index.html in EVERY mode — the local
+// server roots at the repo root, as Pages does.
+const PAGE_PATH = '/pages/twin-os/index.html';
 const pageUrl = `${BASE}${PAGE_PATH}`;
 
 async function findChrome() {
@@ -49,25 +51,23 @@ async function findChrome() {
   return null;
 }
 
-// Minimal static server that ALSO serves /data/songs/catalog.json
-// (which lives outside the twin-os dir in the repo). This is needed
-// when running locally because the shell expects the catalog at
-// ../../data/songs/catalog.json from the twin-os root.
-function startServer(twinOsDir, repoRoot) {
+// Static server rooted at the REPO ROOT, exactly as GitHub Pages
+// serves it. The shell lives at /pages/twin-os/ and fetches the
+// catalogs from ../../data/…, which resolves to /data/… — the same
+// shape the deploy serves. Rooting at pages/twin-os/ instead made
+// ../assets/ and ../lib/ 404 locally while they worked on the deploy.
+function startServer(repoRoot) {
   const server = http.createServer(async (req, res) => {
     try {
       const u = new URL(req.url, BASE);
-      let p = u.pathname === '/' ? '/index.html' : u.pathname;
-      // Map the catalogs to their real location in the repo. The shell
-      // fetches both catalog.json (audio) and catalog-jazz-solos.json
-      // (MIDI corpus) from the Pages root, so map the whole /data/ subtree.
+      let p = u.pathname === '/' ? '/pages/twin-os/index.html' : u.pathname;
+      // The catalogs are gitignored generated artifacts; the /data/
+      // branch keeps them resolvable from the repo root.
       let file;
       if (p.startsWith('/data/')) {
         file = join(repoRoot, decodeURIComponent(p.slice(1)));
-      } else if (p.startsWith('../../data/')) {
-        file = join(repoRoot, decodeURIComponent(p.replace(/^\.\.\/\.\.\//, '')));
       } else {
-        file = join(twinOsDir, decodeURIComponent(p));
+        file = join(repoRoot, decodeURIComponent(p));
       }
       if (!existsSync(file)) {
         res.statusCode = 404;
@@ -110,8 +110,8 @@ async function main() {
 
   let server = null;
   if (!DEPLOYED_URL) {
-    log(`starting static server on :${PORT} (serving ${join(ROOT, 'pages', 'twin-os')} + /data from repo root)`);
-    server = await startServer(join(ROOT, 'pages', 'twin-os'), ROOT);
+    log(`starting static server on :${PORT} (serving repo root ${ROOT})`);
+    server = await startServer(ROOT);
   } else {
     log(`running against deployed URL: ${pageUrl}`);
   }

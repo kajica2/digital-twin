@@ -32,11 +32,17 @@ const PORT = 5173;
 const DEPLOYED_URL = process.env.E2E_URL || null;
 const BASE = DEPLOYED_URL || `http://127.0.0.1:${PORT}`;
 
-// When running against the deployed site, the URL path is
-// /pages/landing.html (because Pages serves from repo root).
-// When running locally, the e2e's static server mounts pages/
-// as the server root, so the path is just /landing.html.
-const PAGE_PATH = DEPLOYED_URL ? '/pages/landing.html' : '/landing.html';
+// The URL path is /pages/landing.html in EVERY mode.
+//
+// GitHub Pages serves the repo root under /digital-twin/, so the page
+// lives at /digital-twin/pages/landing.html and its `../assets/…`
+// references resolve to /digital-twin/assets/…. The local server roots
+// at the repo root for the same reason — a page in pages/ needs
+// ../assets/ and ../lib/ to resolve. The earlier pages/-rooted server
+// made those 404 locally while they worked on the deploy, which is
+// exactly the local-harness-lies failure the repo's prevention rules
+// warn about.
+const PAGE_PATH = '/pages/landing.html';
 const pageUrl = (v) => `${BASE}${PAGE_PATH}?v=${v}`;
 
 // Locate Chrome — prefer system Chrome, fall back to puppeteer's bundled
@@ -61,17 +67,17 @@ async function findChrome() {
 
 // ---------- tiny static file server ----------
 //
-// Serves pages/ as the server root. Deliberately does NOT special-case
-// root-absolute assets: the deployed site is a GitHub Pages *project*
-// site under /digital-twin/, so a request for "/favicon.ico" resolves to
-// the DOMAIN root and 404s there too. Special-casing it here made the
-// local run pass while the deploy failed, which is how a broken
-// favicon link survived a green suite.
+// Serves the REPO ROOT, exactly as GitHub Pages does. Deliberately does
+// NOT special-case root-absolute assets: the deployed site is a GitHub
+// Pages *project* site under /digital-twin/, so a request for
+// "/favicon.ico" resolves to the DOMAIN root and 404s there too.
+// Special-casing it here made the local run pass while the deploy
+// failed, which is how a broken favicon link survived a green suite.
 function startServer(rootDir) {
   const server = http.createServer(async (req, res) => {
     try {
       const u = new URL(req.url, BASE);
-      let p = u.pathname === '/' ? '/landing.html' : u.pathname;
+      let p = u.pathname === '/' ? '/pages/landing.html' : u.pathname;
       const file = join(rootDir, decodeURIComponent(p));
       if (!existsSync(file)) {
         res.statusCode = 404;
@@ -117,8 +123,8 @@ async function main() {
   // E2E_URL is set, we hit the deployed site instead.
   let server = null;
   if (!DEPLOYED_URL) {
-    log(`starting static server on :${PORT} (serving ${join(ROOT, 'pages')})`);
-    server = await startServer(join(ROOT, 'pages'));
+    log(`starting static server on :${PORT} (serving repo root ${ROOT})`);
+    server = await startServer(ROOT);
   } else {
     log(`running against deployed URL: ${BASE}${PAGE_PATH}`);
   }

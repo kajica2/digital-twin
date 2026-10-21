@@ -47,11 +47,14 @@ const PORT = 5174; // different from landing.spec.mjs so they don't collide
 const DEPLOYED_URL = process.env.E2E_URL || null;
 const BASE = DEPLOYED_URL || `http://127.0.0.1:${PORT}`;
 
-// When running against the deployed site, the URL path is
-// /pages/twin-os/index.html (because Pages serves from repo root).
-// When running locally, the e2e's static server mounts pages/twin-os/
-// as the server root, so the path is just /index.html.
-const PAGE_PATH = DEPLOYED_URL ? '/pages/twin-os/index.html' : '/index.html';
+// The URL path is /pages/twin-os/index.html in EVERY mode.
+//
+// GitHub Pages serves the repo root under /digital-twin/; the local
+// server roots at the repo root for the same reason. A page in
+// pages/twin-os/ needs ../assets/ and ../lib/ to resolve, so a
+// pages/twin-os/-rooted server would 404 those locally while they
+// worked on the deploy.
+const PAGE_PATH = '/pages/twin-os/index.html';
 const pageUrl = `${BASE}${PAGE_PATH}`;
 
 // Locate Chrome — prefer system Chrome, fall back to puppeteer's bundled
@@ -76,18 +79,14 @@ function startServer(rootDir) {
   const server = http.createServer(async (req, res) => {
     try {
       const u = new URL(req.url, BASE);
-      let p = u.pathname === '/' ? '/index.html' : u.pathname;
-      // Map the catalog paths to their real location in the repo.
-      // The shell expects ../../data/<x> relative to /pages/twin-os/,
-      // which resolves to /data/<x> — the same shape Pages serves.
-      // Map the whole /data/ subtree, not just the one audio catalog:
-      // the Songs panel fetches both catalog.json and
-      // catalog-jazz-solos.json.
+      let p = u.pathname === '/' ? '/pages/twin-os/index.html' : u.pathname;
+      // The server roots at the repo root (as Pages does), so /data/
+      // resolves naturally. The explicit branch is kept because the
+      // shell fetches ../../data/<x> relative to /pages/twin-os/ and
+      // the catalogs are gitignored generated artifacts.
       let file;
       if (p.startsWith('/data/')) {
         file = join(ROOT, decodeURIComponent(p.slice(1)));
-      } else if (p.startsWith('../../data/')) {
-        file = join(ROOT, decodeURIComponent(p.replace(/^\.\.\/\.\.\//, '')));
       } else {
         file = join(rootDir, decodeURIComponent(p));
       }
@@ -126,8 +125,8 @@ async function main() {
 
   let server = null;
   if (!DEPLOYED_URL) {
-    log(`starting static server on :${PORT} (serving ${join(ROOT, 'pages', 'twin-os')})`);
-    server = await startServer(join(ROOT, 'pages', 'twin-os'));
+    log(`starting static server on :${PORT} (serving repo root ${ROOT})`);
+    server = await startServer(ROOT);
   } else {
     log(`running against deployed URL: ${pageUrl}`);
   }

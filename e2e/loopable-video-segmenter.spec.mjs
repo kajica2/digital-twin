@@ -142,7 +142,18 @@ try {
       twinErrors.push('console.error: ' + text + ' (' + url + ')');
     }
   });
-  twin.on('requestfailed', r => twinErrors.push('reqfail: ' + r.url() + ' ' + (r.failure()?.errorText || '')));
+  // A browser-initiated media abort is NOT a page error. The twin-os
+  // page renders autoplay <video> loops; Chrome Range-fetches each
+  // (206), then cancels the continuation request once it has buffered
+  // enough (net::ERR_ABORTED). Scoped by URL AND error text so every
+  // other requestfailed still fails the contract. Same shape as the
+  // mj-dashboard spec's Cloudflare filter.
+  twin.on('requestfailed', r => {
+    const err = r.failure()?.errorText || '';
+    const isMedia = /\.(mp4|webm|mov|m4v)(\?|$)/i.test(r.url());
+    if (isMedia && err === 'net::ERR_ABORTED') return;
+    twinErrors.push('reqfail: ' + r.url() + ' ' + err);
+  });
   await twin.goto(TWINOS_URL, { waitUntil: 'networkidle0', timeout: 20000 });
 
   const tool = await twin.evaluate(() => {
