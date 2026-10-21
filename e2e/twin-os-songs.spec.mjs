@@ -136,6 +136,8 @@ async function main() {
             // page legitimately 404s on them and the panel renders its
             // "not indexed yet" state. Ignore those.
             if (/catalog[^/]*\.json/.test(url) && text.includes('404')) return;
+            // data/flux/* are gitignored generated assets, not deployed.
+            if (/data\/flux\//.test(url) && text.includes('404')) return;
             consoleErrors.push(`console.error: ${text} (${url})`);
         }
     });
