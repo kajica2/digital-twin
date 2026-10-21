@@ -4344,3 +4344,142 @@ the right.
   reflects real work; (b) the standing backlog — reel LaunchAgent
   bootstrap, the `.kai/` durability call, the chart variants, the
   root-level page duplicates.
+
+### 2026-10-21 — sprint 0.45 (MJ 4 variants + Suno style variants + cookie untrack)
+
+Two briefs in one session: **four variants of one Midjourney image**,
+and **ten style variants of the user's Suno song**. One security
+cleanup fell out of the second.
+
+**MJ — four variants of job `2113f859-8aea-4565-b9e0-222b9cfd4355`, index 2:**
+
+- The target is a 1792×2688 (2:3) `v8-2_edit_diffusion` job — itself
+  already a variation of parent `926d1294` grid 3, prompt
+  `couple dancing --ar 2:3 --raw --profile 5sm983n brvazka --edit
+  <4 urls> --stylize 0 --hd --v 8.2`.
+- The write endpoint was **learned by observation**, not guessed: a
+  hover-revealed "Vary subtle" button on the image was clicked with
+  `Network.requestWillBeSent` armed, and the body captured verbatim:
+
+  ```json
+  {"f":{"mode":"relaxed","private":false},
+   "channelId":"singleplayer_<user_id>",
+   "metadata":{"isMobile":null,"imagePrompts":null,"imageReferences":null,
+               "characterReferences":null,"depthReferences":null,"lightboxOpen":null},
+   "t":"vary","strong":false,"v8_1_hd":null,"v8_2_hd":null,
+   "id":"<job id>","index":2}
+  ```
+
+  `t: "vary"` + `strong: false` is the **"Vary subtle"** button;
+  `strong: true` is **"Vary strong"**. `index` is the grid slot.
+- **The action bar only renders on hover**, and the target's card only
+  mounts when the virtualized feed is scrolled to it. The feed does not
+  scroll on `window` — it scrolls in an inner
+  `div.absolute.box-border.overflow-y-scroll` with a 3.1 M-pixel
+  scrollHeight. The target mounts ~20 steps × 900 px in.
+- Result: job **`2a835f14-f3e8-4aaa-82f9-169fb1392edc`**, `event_type:
+  variation`, `parent_id` = the target, `parent_grid` = 2, `batch_size`
+  = 4 — i.e. **one Vary = one 2×2 grid = 4 variants**. All four CDN
+  images answer 200 with real bytes (130–137 KB each).
+- **Two stray jobs** came from one mis-aimed click while the DOM was
+  mid-re-render: `dc984c26` (a variation of `7db8e6d0` grid 1) and
+  `a5515162` (an `edit_ref_diffusion`). They are the user's own images
+  and were **left in place** — deleting from someone's account is not
+  the ask. `d8008811` (a third child of the target) was not created by
+  this session; the account owner was varying alongside.
+
+**Suno — ten style variants, all submitted:**
+
+- The composition rule is the user's own saved-style rule, reconstructed
+  from the style titled "Kai record":
+  `tags = <protocol's "Copy Prompt" directive> + <the song's style
+  descriptor>`, capped at 1000 chars, **descriptor always preserved**.
+  Protocols are read from `const PRESETS` in `pages/suno-prompts.html`
+  — one copy, bracket-matched (a `]` inside a protocol's prose would
+  truncate a naive parse).
+- Influence is a range; the value is its **midpoint floored to two
+  decimals** ("90% - 95%" → 0.92), sent as
+  `metadata.control_sliders.audio_weight`.
+- The generation body is **flat** and `duration` is an **integer** —
+  both learned from the endpoint's own 422 schema
+  (`POST /api/generate/v2-web/`), where `params` is the pydantic
+  model's name, not a field.
+- The **captcha** is Cloudflare Turnstile: `POST /api/c/check
+  {ctype:"generation"}` → `{required, captcha_version}`, then the body
+  carries `token` + `token_provider`. Tokens are single-use; a fresh
+  one per submission.
+- **Headless cannot solve it.** Measured: in `--headless=new` the
+  widget renders but no token ever arrives (`captcha token timed out`
+  after 45 s); headed, the same widget returns a ~730-char token in
+  ~2 s. `lib/suno-config.json` now ships `headless: false` and the
+  note records the measurement. The headless flag stays implemented
+  and re-verified every run, so it fails loudly.
+- **10/10 submitted.** 4 earlier, 6 in this run
+  (Instrumental Performance Preservation `8fcba7a2`, Structure and
+  Arrangement Lock `aa0dbaa7`, Mix and Sonic Texture Preservation
+  `ada58b6d`, Minimal Technical Change Only `81bcacd2`, Strict
+  Reproduction Not Remix `e0d11386`, Ultimate Reference Lock
+  `1ff323d3`). Every run recorded in `data/suno/style-variants.json`
+  with its clip id.
+- **Credits read 7 → 7 across the whole run.** Credits are *reserved*
+  at submission and deducted on completion, so the balance right after
+  is unchanged. The real per-generation cost is still unmeasured — it
+  can only be read after the generations finish.
+
+**Security — the cookie jar was in the history:**
+
+- `data/suno-cookies.txt` was **tracked** (added in `cd434e4`), so the
+  live `__session` / `__client` token is in the repository's history.
+  It is now `git rm --cached` (`.gitignore`'s `*-cookies.txt` rule
+  covers it — tracked files ignore gitignore, which is why it slipped
+  through). **The token must be rotated**; the history still holds the
+  old one.
+
+**Shipped:**
+
+- `lib/suno-styles.js` (pure), `lib/suno-web.js` (the client),
+  `lib/suno-style-batch.js` (build + save the styles),
+  `lib/suno-run.js` (submit the generations),
+  `lib/suno-config.json`.
+- **Three test suites, 102 assertions, no network, no browser, no
+  credentials**: `lib/suno-styles.test.js` (49 — tag composition,
+  influence, the preset parser), `lib/suno-run.test.js` (25 — the
+  generation body: flat, integer duration, the influence on the
+  slider), `lib/suno-web.test.js` (28 — the request the client
+  builds, against a fake CDP transport).
+- `docs/SUNO-STYLES.md` — the reference.
+- npm scripts `suno:web` / `suno:styles` / `suno:run` and
+  `test:suno-styles` / `test:suno-run` / `test:suno-web` (all three in
+  `test:all`).
+- README: a "Run the Suno style variants" section + a what-is-here
+  bullet.
+
+**Decisions:**
+
+- **One Vary click = 4 variants.** The child's `batch_size` is 4, so
+  a single "Vary subtle" produces a 2×2 grid — the user's "4 variants"
+  is that grid, not four separate jobs. "Vary strong" (a second,
+  bolder set of 4) is one more click and was **not** taken unasked.
+- **A mis-aimed click is reported, not cleaned up.** Two stray jobs
+  exist in the account. They are the user's images; deleting from
+  someone's account is a different decision from the one asked for.
+- **The request body is pinned by a unit test, not by a live run.** A
+  live submit costs credits; a 422 costs nothing but still needs a
+  browser and a captcha. The body is pure data — it belongs in a test.
+- **One bug found by the tests:** `composeTags('', descriptor)` returned
+  `" descriptor"` with a leading space. Fixed in the source, not
+  papered over in the assertion.
+
+**Open:**
+
+- The Suno token needs rotating; the old one is in `cd434e4`.
+- The per-generation credit cost is still unmeasured (credits deduct on
+  completion, not on submission).
+- The two stray MJ jobs are still in the account.
+- The 10 variants are submitted; **none has been listened to**. Whether
+  the influence values and directives actually produce ten musically
+  distinct covers is a judgement only the user can make.
+- The standing backlog is unchanged: (a) reel LaunchAgent bootstrap
+  (needs user approval, irreversible); (b) `data/clip/samples.json`;
+  (c) clip CLI `--out <file>`; (d) woody-shaw chart variants; (e) the
+  `.kai/` durability call.

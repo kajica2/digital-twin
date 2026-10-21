@@ -60,6 +60,11 @@ For now, what's here:
   panel with TODAY / NOW PLAYING / CODE / PATTERNS that can be parked in
   the corner of any page. The component (`lib/floating-toolset.js`) is
   drop-in.
+- **`lib/suno-*.js`** — the Suno style-variant pipeline: ten covers of
+  one song, each with a different reference-lock protocol and Audio
+  Influence value. Browser-driven (the studio API needs the SPA's own
+  Bearer token and a Turnstile token). `npm run suno:styles` /
+  `npm run suno:run`.
 - **`lib/songs-indexer.js`** — walks audio dirs, builds
   `data/songs/catalog.json`.
 - **`assets/mural-prompts/STYLE-PRESETS.md`** — the 23-entry MJ style
@@ -288,6 +293,34 @@ functional (close / collapse / widen), and the position is remembered.
 It renders in a shadow root, so it cannot fight the host page's CSS, and
 it picks up the skin tokens for free. Reference:
 [`docs/FLOATING-TOOLSET.md`](docs/FLOATING-TOOLSET.md).
+
+## Run the Suno style variants
+
+Ten **style variants** of one song — the same source audio covered with
+a different style directive and a different Audio Influence value. The
+protocols live in `pages/suno-prompts.html`; the scripts read them from
+there rather than keeping a second copy.
+
+```bash
+# inspect a song's settings (the reference clip's task, model, duration, tags)
+npm run suno:web -- clip --id <clip_id>
+
+# build the 10 variants and save them as Suno styles
+npm run suno:styles -- --song <clip_id> --apply
+
+# generate one song per variant
+npm run suno:run -- --song <clip_id> --apply --pace 9000
+```
+
+Driven through a real browser (the studio API demands the Bearer token
+the Suno SPA attaches, and generation is gated behind a Cloudflare
+Turnstile that does not solve in headless Chrome). The cookie jar lives
+**outside the repo** at `~/.suno-cookies.txt`.
+
+Every run is recorded in `data/suno/style-variants.json` — titles,
+protocols, influence values, clip ids. A re-run skips what is already
+`ok`, so it only submits what is missing. Reference:
+[`docs/SUNO-STYLES.md`](docs/SUNO-STYLES.md).
 
 ## Re-skin the family
 

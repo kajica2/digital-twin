@@ -47,6 +47,7 @@ chart-inbox/processed/
 
 # Songs catalogs (auto-generated)
 data/songs/catalog.json
+data/suno/
 data/songs/catalog-jazz-solos.json
 
 # Logs
