@@ -1,0 +1,98 @@
+{
+  "pack": "red_coat_underpass_12",
+  "generatedAt": "2026-10-21T14:10:28.629Z",
+  "sheet": "contact-sheet.png",
+  "count": 12,
+  "grid": {
+    "cols": 4,
+    "rows": 3,
+    "thumbPx": 480,
+    "slot": 0
+  },
+  "variants": [
+    {
+      "index": "01",
+      "label": "low worm's-eye angle from the wet floor, 35mm documentary realism",
+      "taskId": "e17ecddc-2eb2-4c69-b4b4-47606c0c4523",
+      "slot": 0,
+      "imageUrl": "https://cdn.midjourney.com/e17ecddc-2eb2-4c69-b4b4-47606c0c4523/0_0_640_N.webp?method=shortest"
+    },
+    {
+      "index": "02",
+      "label": "overhead crane shot straight down, bird's eye view, 35mm documentary",
+      "taskId": "10e199ff-9deb-4083-8f53-3fa5c9231deb",
+      "slot": 0,
+      "imageUrl": "https://cdn.midjourney.com/10e199ff-9deb-4083-8f53-3fa5c9231deb/0_0_640_N.webp?method=shortest"
+    },
+    {
+      "index": "03",
+      "label": "dutch tilt, camera rolled 30 degrees, tilted horizon, gritty neo-noir",
+      "taskId": "22326362-83af-4b02-851d-7e6576ac0400",
+      "slot": 0,
+      "imageUrl": "https://cdn.midjourney.com/22326362-83af-4b02-851d-7e6576ac0400/0_0_640_N.webp?method=shortest"
+    },
+    {
+      "index": "04",
+      "label": "over-the-shoulder from behind the figure, quiet observational 35mm",
+      "taskId": "e55a2cff-226a-445c-ad8e-e0bd9da69831",
+      "slot": 0,
+      "imageUrl": "https://cdn.midjourney.com/e55a2cff-226a-445c-ad8e-e0bd9da69831/0_0_640_N.webp?method=shortest"
+    },
+    {
+      "index": "05",
+      "label": "long 85mm compression from across the tunnel, formal fine-art 35mm",
+      "taskId": "69861263-c4eb-4f97-b708-58d820cfbf8e",
+      "slot": 0,
+      "imageUrl": "https://cdn.midjourney.com/69861263-c4eb-4f97-b708-58d820cfbf8e/0_0_640_N.webp?method=shortest"
+    },
+    {
+      "index": "06",
+      "label": "hard side profile at eye height, documentary realism 35mm",
+      "taskId": "923bcad4-9a8c-4e41-bd46-800c597abee6",
+      "slot": 0,
+      "imageUrl": "https://cdn.midjourney.com/923bcad4-9a8c-4e41-bd46-800c597abee6/0_0_640_N.webp?method=shortest"
+    },
+    {
+      "index": "07",
+      "label": "extreme symmetry, centered one-point perspective, architectural 35mm",
+      "taskId": "b128decb-067c-4cad-a6d3-2408b5dd8371",
+      "slot": 0,
+      "imageUrl": "https://cdn.midjourney.com/b128decb-067c-4cad-a6d3-2408b5dd8371/0_0_640_N.webp?method=shortest"
+    },
+    {
+      "index": "08",
+      "label": "low angle mirrored in the standing water, poetic 35mm",
+      "taskId": "95417351-8437-4ab3-8513-85981dd0009f",
+      "slot": 0,
+      "imageUrl": "https://cdn.midjourney.com/95417351-8437-4ab3-8513-85981dd0009f/0_0_640_N.webp?method=shortest"
+    },
+    {
+      "index": "09",
+      "label": "overhead mirror reflection, red coat doubled in glass, muted 35mm…",
+      "taskId": "8fd1fb8d-4a1c-479e-bc85-4e242e2c6496",
+      "slot": 0,
+      "imageUrl": "https://cdn.midjourney.com/8fd1fb8d-4a1c-479e-bc85-4e242e2c6496/0_0_640_N.webp?method=shortest"
+    },
+    {
+      "index": "10",
+      "label": "distant wide shot, figure small in the underpass, cold industrial 35mm",
+      "taskId": "23f35b08-3632-4de7-9fb0-d6f9747e1c0e",
+      "slot": 0,
+      "imageUrl": "https://cdn.midjourney.com/23f35b08-3632-4de7-9fb0-d6f9747e1c0e/0_0_640_N.webp?method=shortest"
+    },
+    {
+      "index": "11",
+      "label": "medium close-up at chest height, 50mm, intimate 35mm realism",
+      "taskId": "00d31dde-2238-4cff-b1cd-6b29dc971e89",
+      "slot": 0,
+      "imageUrl": "https://cdn.midjourney.com/00d31dde-2238-4cff-b1cd-6b29dc971e89/0_0_640_N.webp?method=shortest"
+    },
+    {
+      "index": "12",
+      "label": "behind the shoulder of the figure, tunnel vanishing point, quiet…",
+      "taskId": "71b31f09-039f-4589-9cc3-4830e99251d0",
+      "slot": 0,
+      "imageUrl": "https://cdn.midjourney.com/71b31f09-039f-4589-9cc3-4830e99251d0/0_0_640_N.webp?method=shortest"
+    }
+  ]
+}

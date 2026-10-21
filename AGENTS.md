@@ -4345,6 +4345,171 @@ the right.
   bootstrap, the `.kai/` durability call, the chart variants, the
   root-level page duplicates.
 
+### 2026-10-21 — sprint 0.45 (MJ comparison sheet — feed-gated attribution)
+
+Asked for "create comparison 12 up contact sheet" and "with thumbnails": one
+brief — a lone figure in a saturated red coat in an empty concrete underpass
+at night — rendered at twelve different camera angles, presented as a single
+12-up contact sheet with one tile per variant and the clause that produced it.
+
+**Shipped:**
+
+- **`lib/mj-feed.js`** (+ `lib/mj-feed.test.js`, 54 assertions) — the
+  **feed gate**. Midjourney's `/api/imagine` feed is the only ground truth
+  for attribution: there is no per-job route (`/api/jobs/<id>` and variants
+  all 404). Split into a PURE half (parsers + matchers, unit-testable) and a
+  thin BROWSER half (in-page expressions).
+- **`lib/mj-feed-reconcile.js`** — re-derives every slot's true task id from
+  the live feed and rewrites the pack's `meta.json` files. `--dry-run` prints
+  the mapping; `--json` emits the full result.
+- **`lib/mj-web.js`** rewired from the unsound DOM matcher to the feed gate
+  (`matchedBy: 'feed-command'`). `lib/mj-web.test.js` rewritten (26
+  assertions).
+- **`lib/mj-contact-sheet.js`** (+ `lib/mj-contact-sheet.test.js`, 27
+  assertions) — the sheet builder. Headed Chrome, generic over any pack:
+  `--pack --out --title --manifest --tiles --cols --rows --thumb --slot
+  --slots --browser`.
+- **`assets/mural-prompts/red-coat-underpass-12.md`** — the 12-prompt pack
+  (one variable per bullet).
+- **`assets/mj-sheets/red-coat-underpass-12/`** — `contact-sheet.png`
+  (1990×996, 3.0 MB), `tiles/prompt-01..12.webp` (12 × 1143×640), and
+  `sheet-manifest.json` (label + task id + slot + CDN url per variant).
+- **`pages/mj-sheets.html`** — the house-style page: hero, the sheet as one
+  static image, the twelve tiles fetched from the manifest with a lightbox,
+  and a method section that discloses the attribution and the re-shot
+  angles.
+- **`e2e/mj-sheets.spec.mjs`** — 15 checks, repo-root `:5180` server, URL
+  `/pages/mj-sheets.html` in every mode.
+- **`docs/MJ-CONTACT-SHEET.md`** — the reference.
+- **npm + CI** — `e2e:mjs-sheets`, `test:mj-contact-sheet` (wired into
+  `test:all`), push + PR lines in `pages-test.yml` matching the
+  clip/refael/how-to convention.
+- **README + how-to** — a "MJ contact sheet" section, the page-map row, the
+  file-tree entries. The how-to spec's contract (9 nav links, 9 section ids,
+  13 code blocks) is unchanged — the pattern is row + count, never a new
+  section.
+
+**Four bugs found and fixed:**
+
+1. **Wrong-job attribution (the serious one).** The imagine feed is a
+   *shared timeline* — the account owner's own concurrent jobs sit in it with
+   their own prompts. The DOM matcher read a rendered card's text and looked
+   for the prompt inside it, and matched the owner's portrait for **6 of 12
+   tiles**. The matcher was **deleted, not demoted** — keeping an unsound
+   matcher as a "fallback" is how it came back and misattributed a second
+   time. `lib/mj-web.test.js` asserts it is not exported.
+2. **Flag drift.** A job enqueued as `--ar 4:3 --stylize 0` instead of
+   `--ar 16:9 --s 100` is a *successful* job with the wrong parameters. The
+   drift came from the account's ambient UI state
+   (`localStorage.settings_v30`), not from the prompt. The gate now checks
+   the enqueued command: the requested `--ar` must be present with the
+   requested value, and `--edit` / `--cref` / `--oref` must be absent.
+   `--stylize` is deliberately **not** strict — MJ omits it when it equals
+   its default, so demanding it would reject good jobs.
+3. **`--edit` leakage.** The prose extraction used a greedy "remove every
+   `--flag`" scan, which pulled the `--no` list values into the prose and
+   broke equality. Fixed by cutting at the **first** `--word` parameter
+   token (`feed.proseOf`).
+4. **`variantLabel` truncated at the wrong separator.** The caption cap used
+   `.replace(/[\s,].*$/, '')` — the *first* separator — so "overhead mirror
+   reflection, red coat doubled in glass, muted 35mm documentary" collapsed
+   to "overhead…" and "behind the shoulder of the figure, …" to "behind…".
+   Replaced with a last-word-boundary cut + a 24-char floor. All 12
+   captions now carry their full clause.
+
+**Also fixed:** `--s` and `--stylize` are the same flag (folded via
+`FLAG_ALIASES`); `expectedAspect` now delegates to `feed.commandAspect`
+(one definition of "which `--ar` won" — MJ honours the LAST one, so a
+first-match regex demanded the wrong ratio); the earliest matching job wins
+(a retry is a duplicate generation); the `READ_TASK_IDS` pre-submit snapshot
+was dead code once prompt-text matching landed and was removed.
+
+**Two angles Midjourney ignored.** "high overhead crane angle looking
+straight down" produced no top-down cell in any of 4 slots; "dutch tilt
+three-quarter view" produced a level frame. Both jobs reported success.
+Rewording fixed both — "overhead crane shot straight down, bird's eye view"
+and "dutch tilt, camera rolled 30 degrees, tilted horizon" — and both were
+re-verified against the full-resolution image before acceptance. **A
+successful job is not evidence that the angle landed.**
+
+**The true job id table** (all `v8-2_hd_diffusion`, 16:9):
+
+| # | clause | task id |
+|---|---|---|
+| 01 | low worm's-eye angle from the wet floor | `e17ecddc-2eb2-4c69-b4b4-47606c0c4523` |
+| 02 | overhead crane shot straight down, bird's eye | `10e199ff-9deb-4083-8f53-3fa5c9231deb` |
+| 03 | dutch tilt, camera rolled 30 degrees | `22326362-83af-4b02-851d-7e6576ac0400` |
+| 04 | over-the-shoulder from behind the figure | `e55a2cff-226a-445c-ad8e-e0bd9da69831` |
+| 05 | long 85mm compression from across the tunnel | `69861263-c4eb-4f97-b708-58d820cfbf8e` |
+| 06 | hard side profile at eye height | `923bcad4-9a8c-4e41-bd46-800c597abee6` |
+| 07 | extreme symmetry, one-point perspective | `b128decb-067c-4cad-a6d3-2408b5dd8371` |
+| 08 | low angle mirrored in the standing water | `95417351-8437-4ab3-8513-85981dd0009f` |
+| 09 | overhead mirror reflection | `8fd1fb8d-4a1c-479e-bc85-4e242e2c6496` |
+| 10 | distant wide shot, figure small | `23f35b08-3632-4de7-9fb0-d6f9747e1c0e` |
+| 11 | medium close-up at chest height, 50mm | `00d31dde-2238-4cff-b1cd-6b29dc971e89` |
+| 12 | behind the shoulder, tunnel vanishing point | `71b31f09-039f-4589-9cc3-4830e99251d0` |
+
+**Decisions:**
+
+- **Re-render only what failed, never the whole pack.** 10 clean 16:9
+  plain jobs already existed with the exact prompt text; only prompts 5, 9,
+  then 2, 3 were re-submitted — 4 generations, not 12.
+- **Per-variant slot selection is necessary.** MJ's 4-up cells are four
+  *different takes* on the brief, not four copies of one framing, so a sheet
+  that always shows cell 0 can silently show the wrong angle. `--slots N=K`
+  was added for this and the chosen slot is recorded in the manifest.
+- **Ship the tiles locally, not as CDN URLs.** The CDN 403s curl/headless,
+  may expire the job, and a shipped page must not depend on it. `--tiles`
+  exports real 1143×640 `.webp` files.
+- **`.png`/`.jpg` in `.gitignore` are literal-filename patterns, not globs**
+  — so `assets/**.png` and `assets/**.jpg` ARE trackable. Verified with
+  `git check-ignore` (exit 1). The `assets/mj-sheets/` path ships without a
+  force-add.
+- **12 prompts despite the "5–10 per file" convention** — documented
+  exception in the pack header.
+- **The account's `--profile <codes>` injection is MJ's own
+  personalization** — do not strip it.
+- **`page_size=200` is the working feed window**; `page_size=25` cannot
+  reach a 10:34 job. The reconciler uses 400 for the snapshot, 200 for the
+  poll.
+
+**Verified end-to-end:**
+
+- `npm run test:all` — **998 assertions across 23 suites, 0 failures**
+  (up from 971/22: +27 mj-contact-sheet).
+- `e2e/mj-sheets.spec.mjs` — **15/15 PASS** on the repo-root `:5180`
+  server: 12 tiles each caption-tied to its manifest entry, no truncated
+  caption stubs, the lightbox opens on click and closes on Escape, the
+  theme toggle flips and persists on reload, 0 console errors, 13 images
+  all `naturalWidth > 0`.
+- `npm run e2e:howto` — ALL PASS after the page-map row (the new
+  `../docs/MJ-CONTACT-SHEET.md` link resolves 200).
+- `npm run verify` (landing / twin-os / twin-os-songs) — all green.
+- The shipped sheet was audited at full resolution: all 12 tiles are a
+  figure in a red coat in a concrete underpass at night. (Tile 07 contains a
+  printed eye poster on the wall — a print, not a person.)
+- Hygiene grep clean — no absolute filesystem paths in any new or edited
+  file; the manifest carries CDN urls only.
+
+**Open:**
+
+- The pack's `mj-output/red_coat_underpass_12/` metas still reference the
+  reconciled task ids, but the **source pack file in `prompts-inbox/`** was
+  consumed by the watcher and is not restored. Re-running the pack through
+  the watcher would re-submit rather than reuse.
+- `lib/mj-feed-reconcile.js`'s own file-I/O path has no test; its matching
+  is covered by `mj-feed.test.js`. Optional.
+- The sheet's captions are derived from the prompt text, so a variant whose
+  *rendering* diverges from its clause (MJ ignoring an angle) reads as
+  correct. The angle re-verification was manual.
+- The 12 tiles are 12 distinct angle clauses but share one style, so the
+  sheet compares camera only — not style. A style comparison would need a
+  second axis.
+- The standing backlog is unchanged: (a) reel LaunchAgent bootstrap (needs
+  user approval, irreversible); (b) `data/clip/samples.json` for the CLIP
+  sample strip; (c) clip CLI `--out <file>`; (d) woody-shaw chart variants;
+  (e) the `.kai/` durability call.
+
 ### 2026-10-21 — sprint 0.45 (MJ 4 variants + Suno style variants + cookie untrack)
 
 Two briefs in one session: **four variants of one Midjourney image**,
