@@ -4133,11 +4133,21 @@ system working, verified.
   - **Visually verified** the landing page in both themes from the
     spec's own screenshots: warm cream + copper in light, warm
     near-black + cream in dark, no missing CSS, no unstyled text.
+  - **The deploy-test loop ran against the live Vercel URL** —
+    `https://digitaltwin-ebon.vercel.app` — with the skin system
+    deployed. **14/14 specs green**: skin, landing, twin-os,
+    twin-os-songs, clip-interrogator, refael, how-to, marketplace,
+    temple-of-control, integrations, loopable-video-segmenter,
+    ct-verify, ct-a11y, mj-dashboard. `assets/skins/house.css` and
+    `lib/skin.js` both serve 200 from the deploy, and `e2e/skin.spec.mjs`
+    — which asserts that `?skin=studio` actually swaps the sheet and
+    that an unknown skin falls back with no console error — passes
+    against production, not only locally. The `e2e:live` script was
+    repointed from the dead GitHub Pages URL to the Vercel deploy and
+    now includes the skin spec, so the local "run against the live
+    site" path covers the new system.
 
 - **Open / next:**
-  - The deploy-test loop still has to run against the live Vercel URL
-    with the skin system live — the skin files, `lib/theme.js` and the
-    page migration have never been verified on a deploy, only locally.
   - The **root-level HTML duplicates** (20 files) are hand-synced copies
     of `pages/`, byte-identical modulo path depth, with nothing
     generating them. Every page edit in this sprint had to be applied
