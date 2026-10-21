@@ -6,12 +6,20 @@
     <title>📸 Instagram Autopilot — Digital Twin</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='4' y='4' width='24' height='24' rx='5' fill='none' stroke='%23E1306C' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23E1306C'/%3E%3Ccircle cx='24' cy='8' r='1.5' fill='%23E1306C'/%3E%3C/svg%3E">
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/skins/house.css" data-skin-stylesheet>
+    <script src="../lib/skin.js"></script>
     <style>
-        :root{--bg:#f7f5f0;--surface:#fff;--line:#e9e3d6;--ink:#14171e;--ink-muted:#3a4256;--primary:#E1306C;--accent:#405DE6;--c2:#833AB4;--c3:#FD1D1D;--space-2:8px;--space-4:16px;--space-5:24px;--radius-md:10px;--radius-lg:14px;--font-body:'Outfit',sans-serif;--font-display:'DM Serif Display',serif}
-        [data-theme="dark"]{--bg:#1a1812;--surface:#25221a;--line:#3a342a;--ink:#f4efe2;--ink-muted:#c0b8a8}
+        /* The palette lives in assets/skins/house.css. This page used to
+           carry its own copy of it; adopting the skin changes no pixels.
+
+           What stays here is the page's OWN colour: Instagram's brand
+           pink and blue, plus the two gradient stops. A page may derive
+           from a skin token — it may not own one — so these are
+           page-local names, not contract overrides. */
+        :root{--ig-primary:#E1306C;--ig-accent:#405DE6;--ig-c2:#833AB4;--ig-c3:#FD1D1D}
         *{box-sizing:border-box;margin:0;padding:0}
         body{font-family:var(--font-body);background:var(--bg);color:var(--ink);line-height:1.5}
-        .header{background:linear-gradient(135deg,var(--primary),var(--c2),var(--accent));padding:1.5rem 2rem;color:#fff}
+        .header{background:linear-gradient(135deg,var(--ig-primary),var(--ig-c2),var(--ig-accent));padding:1.5rem 2rem;color:#fff}
         .header-content{max-width:1000px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
         .logo{font-family:var(--font-display);font-size:1.5rem}
         main{max-width:1000px;margin:0 auto;padding:var(--space-5)}
@@ -22,25 +30,25 @@
         .form-group label{display:block;font-size:0.85rem;font-weight:500;margin-bottom:0.5rem}
         .form-group input,.form-group textarea,.form-group select{width:100%;padding:0.75rem;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--bg);color:var(--ink);font-family:inherit}
         .form-group textarea{min-height:100px;resize:vertical}
-        .btn{display:inline-flex;padding:0.75rem 1.5rem;font-size:0.9rem;font-weight:600;border:none;border-radius:var(--radius-md);cursor:pointer;background:var(--primary);color:#fff;transition:opacity 0.2s}
+        .btn{display:inline-flex;padding:0.75rem 1.5rem;font-size:0.9rem;font-weight:600;border:none;border-radius:var(--radius-md);cursor:pointer;background:var(--ig-primary);color:#fff;transition:opacity 0.2s}
         .btn:disabled{opacity:0.5;cursor:not-allowed}
         .btn-secondary{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
-        .btn-accent{background:var(--accent)}
-        .btn-c2{background:var(--c2)}
-        .btn-outline{background:transparent;border:2px solid var(--primary);color:var(--primary)}
+        .btn-accent{background:var(--ig-accent)}
+        .btn-c2{background:var(--ig-c2)}
+        .btn-outline{background:transparent;border:2px solid var(--ig-primary);color:var(--ig-primary)}
         .pill-grid{display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.5rem}
         .pill{padding:0.4rem 0.8rem;border-radius:20px;font-size:0.8rem;font-weight:500;cursor:pointer;background:var(--line);color:var(--ink)}
-        .pill.active{background:var(--primary);color:#fff}
+        .pill.active{background:var(--ig-primary);color:#fff}
         .output{background:var(--line);padding:1rem;border-radius:var(--radius-md);margin-top:1rem;white-space:pre-wrap;font-size:0.9rem}
-        .hashtags{color:var(--accent);word-break:break-all}
+        .hashtags{color:var(--ig-accent);word-break:break-all}
         .caption{line-height:1.6}
         .status{padding:0.75rem;border-radius:var(--radius-md);margin-top:var(--space-4);display:none}
         .status.visible{display:block}
-        .status.processing{background:rgba(225,48,108,0.1);color:var(--primary)}
-        .status.success{background:rgba(47,111,94,0.1);color:var(--accent)}
+        .status.processing{background:rgba(225,48,108,0.1);color:var(--ig-primary)}
+        .status.success{background:rgba(47,111,94,0.1);color:var(--ig-accent)}
         .preview-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:var(--space-4);margin-top:1rem}
         .preview-header{display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem}
-        .preview-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--c2))}
+        .preview-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--ig-primary),var(--ig-c2))}
         .preview-username{font-weight:600;font-size:0.9rem}
         .preview-image{width:100%;aspect-ratio:1;background:var(--line);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:3rem}
         .preview-actions{display:flex;gap:1rem;margin-top:0.75rem;font-size:1.2rem}
@@ -48,13 +56,13 @@
         .preview-caption{font-size:0.9rem;margin-top:0.5rem}
         .preview-caption strong{font-weight:600}
         .schedule-item{display:flex;justify-content:space-between;align-items:center;padding:0.75rem;border:1px solid var(--line);border-radius:var(--radius-md);margin-bottom:0.5rem}
-        .schedule-time{font-weight:600;color:var(--primary)}
+        .schedule-time{font-weight:600;color:var(--ig-primary)}
         .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;text-align:center;margin-bottom:1rem}
-        .stat-num{font-size:1.5rem;font-weight:700;color:var(--primary)}
+        .stat-num{font-size:1.5rem;font-weight:700;color:var(--ig-primary)}
         .stat-label{font-size:0.8rem;color:var(--ink-muted)}
         .tab-buttons{display:flex;gap:0.5rem;margin-bottom:1.5rem;background:var(--surface);padding:0.5rem;border-radius:var(--radius-lg);border:1px solid var(--line)}
         .tab-btn{flex:1;padding:0.75rem;border:none;background:transparent;color:var(--ink-muted);border-radius:var(--radius-md);font-weight:600;cursor:pointer}
-        .tab-btn.active{background:var(--primary);color:#fff}
+        .tab-btn.active{background:var(--ig-primary);color:#fff}
     </style>
 </head>
 <body>
@@ -265,7 +273,7 @@ let contentType = 'viral';
 
 const CAPTION_TEMPLATES = {
     viral: {
-        exciting: "🚨 STOP SCROLLING! {topic}\n\nIf you've been struggling with this, you NEED to read this.\n\nHere's what most people get wrong:\n\n👇 Drop a "🔥" if you want more tips!",
+        exciting: "🚨 STOP SCROLLING! {topic}\n\nIf you've been struggling with this, you NEED to read this.\n\nHere's what most people get wrong:\n\n👇 Drop a \"🔥\" if you want more tips!",
         professional: "Here's {topic}\n\nAs a professional in this space, I've seen the difference between those who succeed and those who don't.\n\nSave this for later! 📌",
         casual: "real talk: {topic}\n\ni've been there too 😅\n\nlet's figure this out together 💪",
         funny: "POV: You just discovered {topic}\n\nme before: 😴\nme after: 🤯\n\ntag someone who needs to see this!",

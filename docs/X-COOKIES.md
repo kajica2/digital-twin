@@ -126,6 +126,12 @@ The poster:
 8. clicks it, and waits for the toast **"Your post was sent."**;
 9. reports the new `a[href*="/status/"]` link.
 
+`--dry-run` stops before step 2 — it fits the caption, prints what it
+would post, and exits. **No browser is opened at all**, the same shape
+as the Instagram poster's dry run. The composer itself is not
+exercised by a dry run; a real run is the only way to know the
+composer is still where the poster expects it.
+
 ### The composer is not a textarea
 
 The composer is a **React-controlled contenteditable DIV** with

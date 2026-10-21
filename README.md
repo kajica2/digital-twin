@@ -343,7 +343,7 @@ the repo:
 npm run x:capture    # read Chrome's cookie DB → ~/.x-cookies.txt (mode 0600)
 npm run x:check      # validate the jar: is there a live session?
 npm run x:post -- --text "hello world"
-npm run x:post -- data/social/neon-pulse-cover --dry-run
+npm run x:post -- data/social/neon-pulse-cover --dry-run   # stops before the browser
 ```
 
 X's API rejects this session with a 401 even when the cookie is

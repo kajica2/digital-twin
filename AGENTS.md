@@ -5265,3 +5265,145 @@ has `publish: false`**, so nothing posts.
   the CLIP sample strip; (c) clip CLI `--out <file>`; (d) woody-shaw
   chart variants; (e) a custom domain for the Vercel alias, which
   currently requires a login.
+
+### 2026-10-22 — sprint 0.50.b (X coverage, and the two pages that were failing on main)
+
+Sprint 0.50 shipped the X path. This sprint closed the gaps it left
+behind — and the red `npm run test:all` that was **already on
+`origin/main`** before any of the X work.
+
+**The X channel had no test coverage at all.**
+
+`lib/social-engine.test.js` covered the Instagram channel, the price
+plan, the tag rules and the dry-run gate. The X path — `posting.twitter.enabled`
+→ `postToTwitter` → `channels[]` — was wired and shipped with **zero
+assertions**. The engine's most irreversible output was the one channel
+nobody was watching.
+
+**25 new assertions** (83 → 108), in a new section "15b. the X
+channel". They pin:
+
+- the built tweet fits the **weighted** limit (`xtext.countLength` ≤
+  280) *and* the raw limit, keeps the body, and carries hashtags;
+- a **disarmed** channel runs no poster and posts nothing;
+- an **armed** channel runs the poster **exactly once**, with the right
+  poster path (`path.join(engine.REPO, 'lib', 'x-poster.js')`) and the
+  right package directory, passes **no** `--dry-run` on a real run,
+  reports `channels.map(c => c.channel) === ['twitter']`, and sets
+  `posted: true`;
+- a **dry run** still runs the poster, passes `--dry-run`, does **not**
+  set `posted`, and is marked `dryRun: true`;
+- a **failed** poster (exit 2) does not post, records `poster exit 2`,
+  and carries its stderr in `output`;
+- a package with an **empty X caption** runs no poster and posts
+  nothing.
+
+**A `reason` string that was no longer true.**
+
+`postPackage` returned `'no video — staged, not posted'` when nothing
+could take the package. With two channels that is no longer the whole
+story: the reel has no video for Instagram, and X either is not armed
+or has no caption. The reason now says both.
+
+**The dry run was documented as something it does not do.**
+
+`lib/social-config.json` said the X dry run "opens the composer,
+fills it, and stops before the click". It does not: `--dry-run`
+short-circuits **before the browser is opened at all** — it reads the
+package, reports the caption it would post, and exits, exactly like
+`lib/ig-poster.js`. Corrected in the config, in `docs/X-COOKIES.md`,
+and on the `x:post` line in `README.md`. A dry run that opened a
+browser would have been a surprise in the least convenient place.
+
+**`npm run test:all` was red on `origin/main`, and it was not the X
+work's fault.**
+
+`npm run skin:check` failed on two pages that arrived from the
+upstream media-toolchain commits — `pages/tools.html` and
+`pages/instagram-autopilot.html`. Both consumed contract tokens
+(`var(--primary)`, `var(--accent)`, …) while loading **no skin**, so
+every one of those tokens resolved to nothing at runtime.
+
+The fix follows the system's own rule — *a page may derive from a skin
+token; it may not own one*:
+
+- **`pages/tools.html`** — its `:root` and `[data-theme="dark"]`
+  blocks were a **byte-for-byte copy** of the house palette (verified
+  value by value, light and dark). It now loads
+  `assets/skins/house.css` + `lib/skin.js` and the copy is gone.
+  **Zero pixels change** — which is exactly what the house skin was
+  recovered for.
+- **`pages/instagram-autopilot.html`** — the same copy, except
+  `--primary` and `--accent` were Instagram's pink and blue, and
+  `--c2` / `--c3` were the gradient stops. Those are **not** contract
+  tokens the page may own, so they became **page-local** names
+  (`--ig-primary`, `--ig-accent`, `--ig-c2`, `--ig-c3`) and the 14
+  usages were renamed. The brand colours survive untouched; the
+  palette now comes from the skin.
+
+`npm run skin:check` → **46 skinned, 8 opted out, 1 plain, 0 errors**.
+Verified in a real browser, not by eye: both pages load `house.css`,
+`data-skin="house"`, the body computes to the house cream
+`rgb(247, 245, 240)` on `#14171e` ink in Outfit, `tools.html`'s header
+gradient is still `rgb(201, 123, 63) → rgb(168, 95, 40)`, and
+`instagram-autopilot.html`'s is still `rgb(225, 48, 108) → rgb(131,
+58, 180) → rgb(64, 93, 230)`. **0 console errors on both.**
+
+**And the second bug on that page: its JavaScript was dead.**
+
+`pages/instagram-autopilot.html` carried an unescaped `"` inside a
+double-quoted caption template (`Drop a "🔥" if you want more tips!`).
+The whole inline script failed to parse, so **every** feature on the
+page — the caption generator, the hashtags, the schedule, the
+analytics, the tabs — did nothing, and the browser logged a single
+`Invalid or unexpected token`. The page looked fine because the bug is
+invisible until you click something. One character, and the page
+works: the caption now generates, the tabs switch, and the console is
+clean.
+
+**Verified end-to-end:**
+
+- `npm run test:all` — **exit 0**, every suite green, including
+  `social-engine 108`, `x-cookies 65`, `x-text 46`, `x-poster 41`.
+- `npm run skin:check` — 0 errors.
+- Both pages rendered in headless Chrome (light theme) with 0 console
+  errors, the house skin applied and the brand colours intact.
+- The caption generator driven through the browser: the template
+  renders with its quotes, the CTA is appended, the tab strip switches.
+
+**Decisions:**
+
+- **Test the X channel the way the IG channel is tested.** The engine
+  has two channels now; a half-covered engine is a channel that will
+  post something nobody expected.
+- **Fix the page, not the test — and here the page WAS the bug.**
+  The unescaped quote and the missing skin were both in the page.
+- **Adopt the skin rather than opt out.** `lib/skin-lint.js` has an
+  `UNSKINNABLE` escape hatch for pages whose palette is deliberately
+  local. Both of these pages' palettes were *not* deliberately local —
+  they were hand-rolled copies of the house palette, which is the
+  thing the skin system exists to stop. The Instagram brand colours
+  survived as page-local tokens, which is the system's own way of
+  letting a page bring its own colour.
+- **Verify the surface, not the source.** Both fixes were checked in a
+  real browser: the computed colours, the console, and a click
+  through the caption generator. A page whose JavaScript is dead
+  renders perfectly in a screenshot.
+
+**Open:**
+
+- The parallel session's Persona Social Pack work is **not** in this
+  commit — `AGENTS.md`, `README.md`, `package.json`,
+  `pages/how-to.html` and `.github/workflows/pages-test.yml` are shared
+  files, and only this sprint's own hunks were staged.
+- `pages/instagram-autopilot.html` and `pages/tools.html` have **no
+  e2e spec of their own**. The skin lint guards the contract; nothing
+  yet guards the brand colours surviving an edit.
+
+**Next:**
+
+- The rest of the standing backlog — (a) reel LaunchAgent bootstrap
+  (needs user approval, irreversible); (b) `data/clip/samples.json` for
+  the CLIP sample strip; (c) clip CLI `--out <file>`; (d) woody-shaw
+  chart variants; (e) a custom domain for the Vercel alias, which
+  currently requires a login.
