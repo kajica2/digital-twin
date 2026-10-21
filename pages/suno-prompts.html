@@ -68,6 +68,13 @@
     </header>
 
     <main>
+        <div style="display:flex;gap:0.5rem;margin-bottom:1.5rem;background:var(--surface);padding:0.5rem;border-radius:var(--radius-lg);box-shadow:var(--shadow-sm)">
+            <button class="tab-btn" onclick="switchTab('presets')" id="tab-presets" style="flex:1;padding:0.75rem;border:none;background:var(--primary);color:#fff;border-radius:var(--radius-md);font-weight:600">📋 Presets</button>
+            <button class="tab-btn" onclick="switchTab('batch')" id="tab-batch" style="flex:1;padding:0.75rem;border:2px solid var(--line);background:transparent;color:var(--ink);border-radius:var(--radius-md);font-weight:600">📚 Batch Create</button>
+        </div>
+        
+        <!-- PRESETS TAB -->
+        <div id="panel-presets">
         <div class="grid">
             <button class="preset-btn" onclick="selectPreset(0)">
                 <div class="preset-btn-name">1️⃣ Absolute Fidelity Lock</div>
@@ -138,6 +145,54 @@
                 <div class="preset-btn-desc">Absolute authority for every musical, vocal, structural, and sonic decision</div>
                 <div class="preset-btn-meta">Master Replica • 887 chars</div>
             </button>
+        </div>
+        </div>
+        
+        <!-- BATCH TAB -->
+        <div id="panel-batch" style="display:none">
+            <div class="card">
+                <div class="card-title">🎵 Batch Audio Upload</div>
+                <p style="color:var(--ink-faint);margin-bottom:1rem">Upload multiple audio files to generate variants with the same prompt.</p>
+                
+                <div class="upload-zone" onclick="document.getElementById('batchInput').click()" style="margin-bottom:1rem">
+                    <input type="file" id="batchInput" accept="audio/*" multiple style="display:none" onchange="handleBatchUpload(this.files)">
+                    <div style="font-size:2rem">🎵</div>
+                    <div>Click to select multiple audio files</div>
+                    <div style="font-size:0.8rem;color:var(--ink-faint)">MP3, WAV, M4A</div>
+                </div>
+                
+                <div id="batchPreviewGrid" class="preview-grid"></div>
+                
+                <div style="margin-top:1.5rem">
+                    <label style="font-weight:600;display:block;margin-bottom:0.5rem">Select Prompt</label>
+                    <select class="input" id="batchPresetSelect" onchange="document.getElementById('batchPromptPreview').textContent=PRESETS[this.value]?.prompt||''">
+                        <option value="">-- Choose a reference prompt --</option>
+                    </select>
+                </div>
+                
+                <div style="margin-top:1rem">
+                    <label style="font-weight:600;display:block;margin-bottom:0.5rem">Variants per file</label>
+                    <input type="number" class="input" id="batchVariants" value="3" min="1" max="10" style="width:100px">
+                </div>
+                
+                <div style="margin-top:1rem">
+                    <label style="font-weight:600;display:block;margin-bottom:0.5rem">Prompt Preview</label>
+                    <div class="output" id="batchPromptPreview" style="min-height:80px">Select a prompt above...</div>
+                </div>
+                
+                <div style="margin-top:1.5rem">
+                    <label style="font-weight:600;display:block;margin-bottom:0.5rem">API Webhook (optional)</label>
+                    <input type="text" class="input" id="batchApiUrl" placeholder="https://api.example.com/generate" style="width:100%">
+                </div>
+                
+                <div style="margin-top:1.5rem;display:flex;gap:0.75rem;flex-wrap:wrap">
+                    <button class="btn btn-primary" onclick="runBatchApi()">▶️ Generate All</button>
+                    <button class="btn btn-secondary" onclick="copyBatchList()">📋 Copy All Prompts</button>
+                    <button class="btn btn-secondary" onclick="clearBatch()">🗑️ Clear</button>
+                </div>
+                
+                <div id="batchStatus" style="margin-top:1rem"></div>
+            </div>
         </div>
         
         <div class="card" style="margin-top:var(--space-5)">
@@ -380,6 +435,137 @@ function showToast(msg) {
     toast.textContent = msg;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 2000);
+}
+
+// Batch functions
+let batchFiles = [];
+
+function switchTab(tab) {
+    document.getElementById('panel-presets').style.display = tab === 'presets' ? 'block' : 'none';
+    document.getElementById('panel-batch').style.display = tab === 'batch' ? 'block' : 'none';
+    document.getElementById('tab-presets').style.background = tab === 'presets' ? 'var(--primary)' : 'transparent';
+    document.getElementById('tab-presets').style.color = tab === 'presets' ? '#fff' : 'var(--ink)';
+    document.getElementById('tab-batch').style.background = tab === 'batch' ? 'var(--primary)' : 'transparent';
+    document.getElementById('tab-batch').style.color = tab === 'batch' ? '#fff' : 'var(--ink)';
+    
+    if (tab === 'batch') {
+        // Populate preset dropdown
+        const select = document.getElementById('batchPresetSelect');
+        if (select.options.length <= 1) {
+            PRESETS.forEach((p, i) => {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = p.name + ' (' + p.target + ')';
+                select.appendChild(opt);
+            });
+        }
+    }
+}
+
+function handleBatchUpload(files) {
+    batchFiles = Array.from(files);
+    const grid = document.getElementById('batchPreviewGrid');
+    grid.innerHTML = batchFiles.map((f, i) => `
+        <div class="preview-item">
+            <div style="width:100%;height:100%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:2rem">🎵</div>
+            <span class="preview-item-num">${i + 1}</span>
+            <button class="preview-item-remove" onclick="removeBatchFile(${i})">×</button>
+        </div>
+    `).join('');
+}
+
+function removeBatchFile(i) {
+    batchFiles.splice(i, 1);
+    handleBatchUpload(batchFiles);
+}
+
+function runBatchApi() {
+    if (batchFiles.length === 0) return alert('Upload audio files first');
+    const presetIdx = document.getElementById('batchPresetSelect').value;
+    if (presetIdx === '') return alert('Select a prompt');
+    
+    const apiUrl = document.getElementById('batchApiUrl').value.trim();
+    const variants = parseInt(document.getElementById('batchVariants').value) || 3;
+    const preset = PRESETS[presetIdx];
+    
+    if (!apiUrl) {
+        // Just generate list without API
+        const list = batchFiles.flatMap((f, i) => 
+            Array(variants).fill(null).map((_, v) => ({
+                file: f.name,
+                variant: v + 1,
+                prompt: preset.prompt,
+                target: preset.target,
+                influence: preset.influence
+            }))
+        );
+        
+        let text = `Batch Generate: ${batchFiles.length} files × ${variants} variants = ${list.length} total\n\n`;
+        text += `Prompt: ${preset.name}\nTarget: ${preset.target}\nAudio Influence: ${preset.influence}\n\n`;
+        text += list.map((item, i) => `${i + 1}. ${item.file} - Variant ${item.variant}`).join('\n');
+        
+        navigator.clipboard.writeText(text);
+        showToast(`Generated list for ${list.length} items!`);
+        return;
+    }
+    
+    // Send to API
+    const status = document.getElementById('batchStatus');
+    status.innerHTML = `<p>⏳ Processing ${batchFiles.length} files...</p>`;
+    
+    batchFiles.forEach((file, i) => {
+        Array(variants).fill(null).forEach((_, v) => {
+            const formData = new FormData();
+            formData.append('audio', file);
+            formData.append('prompt', preset.prompt);
+            formData.append('target', preset.target);
+            formData.append('influence', preset.influence);
+            formData.append('variant', v + 1);
+            formData.append('fileIndex', i);
+            
+            fetch(apiUrl, { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => {
+                    status.innerHTML += `<p style="color:var(--accent)">✅ ${file.name} variant ${v + 1} started</p>`;
+                })
+                .catch(e => {
+                    status.innerHTML += `<p style="color:var(--error)">❌ ${file.name}: ${e.message}</p>`;
+                });
+        });
+    });
+    
+    status.innerHTML += `<p style="margin-top:1rem">🎵 Submitted ${batchFiles.length × variants} generation requests</p>`;
+}
+
+function copyBatchList() {
+    if (batchFiles.length === 0) return alert('Upload files first');
+    const presetIdx = document.getElementById('batchPresetSelect').value;
+    if (presetIdx === '') return alert('Select a prompt first');
+    
+    const preset = PRESETS[presetIdx];
+    const variants = parseInt(document.getElementById('batchVariants').value) || 3;
+    
+    let text = `# ${preset.name}\n`;
+    text += `# Target: ${preset.target} | Influence: ${preset.influence}\n\n`;
+    text += `## Prompt:\n${preset.prompt}\n\n`;
+    text += `## Files (${batchFiles.length} × ${variants} variants):\n`;
+    batchFiles.forEach((f, i) => {
+        text += `\n### File ${i + 1}: ${f.name}\n`;
+        for (let v = 1; v <= variants; v++) {
+            text += `- Variant ${v}\n`;
+        }
+    });
+    
+    navigator.clipboard.writeText(text);
+    showToast('Copied batch list!');
+}
+
+function clearBatch() {
+    batchFiles = [];
+    document.getElementById('batchPreviewGrid').innerHTML = '';
+    document.getElementById('batchPresetSelect').value = '';
+    document.getElementById('batchPromptPreview').textContent = 'Select a prompt above...';
+    document.getElementById('batchStatus').innerHTML = '';
 }
 </script>
 </body>
