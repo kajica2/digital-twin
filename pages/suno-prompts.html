@@ -146,6 +146,10 @@
             <div style="margin-top:1rem;display:flex;gap:0.75rem">
                 <button class="btn btn-primary" onclick="copyPrompt()">📋 Copy</button>
                 <button class="btn btn-secondary" onclick="emailPrompt()">📧 Email Me</button>
+                <button class="btn btn-secondary" onclick="runApi()">🔌 API</button>
+            </div>
+            <div style="margin-top:1rem">
+                <input type="text" class="input" id="apiUrl" placeholder="https://api.example.com/webhook" style="width:100%">
             </div>
         </div>
     </main>
@@ -348,6 +352,26 @@ function emailPrompt() {
     const subject = encodeURIComponent('My Suno Reference Prompt: ' + PRESETS[selectedIdx].name);
     const body = encodeURIComponent(PRESETS[selectedIdx].prompt);
     window.location.href = 'mailto:' + email + '?subject=' + subject + '&body=' + body;
+}
+
+function runApi() {
+    if (selectedIdx === null) return alert('Select a preset first');
+    const apiUrl = document.getElementById('apiUrl').value.trim();
+    if (!apiUrl) return alert('Enter API URL');
+    const btn = event.target;
+    btn.textContent = '⏳ Sending...';
+    fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            prompt: PRESETS[selectedIdx].prompt,
+            name: PRESETS[selectedIdx].name,
+            target: PRESETS[selectedIdx].target,
+            influence: PRESETS[selectedIdx].influence,
+            type: 'suno'
+        })
+    }).then(r => { btn.textContent = '✅ Sent!'; setTimeout(() => btn.textContent = '🔌 API', 2000); })
+    .catch(e => { btn.textContent = '❌ Error'; alert('API Error: ' + e.message); });
 }
 
 function showToast(msg) {

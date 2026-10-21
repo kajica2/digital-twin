@@ -203,6 +203,13 @@
                             <input type="email" class="input" id="emailInput" placeholder="your@email.com" value="kai.djuric@gmail.com" style="width:auto;flex:1;min-width:150px">
                             <button class="btn" style="background:#635bff;color:#fff" onclick="emailPrompt()">📧 Email Me</button>
                         </div>
+                        <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--line)">
+                            <div style="font-weight:600;font-size:0.85rem;margin-bottom:0.5rem">🔌 API Control</div>
+                            <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+                                <input type="text" class="input" id="apiUrl" placeholder="https://api.example.com/webhook" style="width:auto;flex:1;min-width:150px">
+                                <button class="btn btn-secondary" onclick="runApi()">▶️ Run API</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -461,6 +468,22 @@ function emailPrompt(){
     const subject=encodeURIComponent('My MJ Prompt');
     const body=encodeURIComponent('Here is my Midjourney prompt:\n\n'+output);
     window.location.href='mailto:'+email+'?subject='+subject+'&body='+body;
+}
+
+function runApi(){
+    const apiUrl=document.getElementById('apiUrl').value.trim();
+    if(!apiUrl)return alert('Enter API URL');
+    const output=document.getElementById('output').textContent.replace('📋 Copy','').trim();
+    if(output==='Enter a prompt above...')return alert('Generate a prompt first');
+    const btn=event.target;
+    btn.textContent='⏳ Sending...';
+    btn.disabled=true;
+    fetch(apiUrl,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({prompt:output,type:'midjourney'})
+    }).then(r=>{btn.textContent='✅ Sent!';setTimeout(()=>{btn.textContent='▶️ Run API';btn.disabled=false},2000)})
+    .catch(e=>{btn.textContent='❌ Error';btn.disabled=false;alert('API Error: '+e.message)});
 }
 
 function clearAll(){
