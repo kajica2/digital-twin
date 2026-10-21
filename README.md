@@ -15,6 +15,10 @@ themselves.
 > Refael MP4 Maker port live, Loopable Video Segmenter port live.
 > The landing's CTA opens the Twin OS; the Twin OS's Songs panel
 > surfaces the audio catalog plus pairing tools.
+>
+> **The whole family now shares one skin contract** — 39 pages themed
+> from a single stylesheet, re-themed with `?skin=`. See
+> [`DESIGN.md`](DESIGN.md).
 
 ## What this is
 
@@ -60,8 +64,19 @@ For now, what's here:
   the MJ watcher).
 - **`docs/DESIGN-RATIONALE.md`** — why the page looks the way it does.
 - **`docs/COMPONENT-CATALOGUE.md`** — what each Web Component does.
+- **`DESIGN.md`** — the skin contract, in prose. What a token is, how a
+  skin is written, how to adopt the contract in a sibling repo.
+- **`lib/skin-contract.js`** — the contract as code: 81 themed tokens,
+  46 static, 17 page-local. The source of truth; the validator and the
+  lint both read it, so the prose cannot drift from the skins.
+- **`assets/skins/`** — the skins. `house.css` is the kai-systems
+  house style (cream + copper + forest); `studio.css` is Suno Studio
+  2.0, with the palette taken from Suno's own production CSS.
+- **`lib/skin.js`** — the runtime. `?skin=studio` re-themes a page;
+  the choice is remembered per browser. **`lib/theme.js`** is the
+  theme half (the no-flash bootstrap 23 pages used to each carry).
 - **`e2e/*.mjs`** — Puppeteer smoke tests (landing, twin-os, songs,
-  cognitive-twin, clip-interrogator, refael).
+  cognitive-twin, clip-interrogator, refael, skin).
 
 ## Install from GitHub
 
@@ -246,6 +261,50 @@ Hardware (Maschine Mikro profiled, generic fallback) on top of it via
 `lib/midi-automap.js` — three automap modes cycle from the controller's
 mode button. Reference: [`docs/COMPONENT-CATALOGUE.md`](docs/COMPONENT-CATALOGUE.md).
 
+## Re-skin the family
+
+Every page in the family is themed from one stylesheet. To see it
+work, open any page with `?skin=studio`:
+
+```bash
+node lib/serve.js --port 5173
+# → http://localhost:5173/pages/landing.html?skin=studio
+```
+
+The choice sticks (`localStorage['dt-skin']`); `?skin=` beats it. An
+unknown skin falls back to the default **without** requesting it, so a
+typo never turns into a 404 in the console.
+
+To add a skin, write a stylesheet that defines the contract's tokens in
+both scopes and drop it in `assets/skins/`:
+
+```bash
+# 1. what a skin must define
+node lib/skin-tokens.js assets/skins/house.css assets/skins/studio.css
+
+# 2. every page against every skin (the permanent guard)
+node lib/skin-lint.js
+
+# 3. the browser contract
+npm run e2e:skin
+```
+
+`lib/skin-lint.js` fails the build when a page defines a contract
+token of its own (which would fight the skin), when a page consumes a
+token without loading a skin, or when the runtime's skin list and the
+`assets/skins/` directory disagree. The eight pages that keep their own
+palettes are named in the lint, with a reason each — growing that list
+means re-arguing the claim.
+
+The rules in short: **themed** tokens (colour) are declared in *both*
+the light and the dark scope; **static** tokens (type, space, radius,
+shadow, motion) are declared once in the base scope and are never
+repeated in the dark scope — a static token may *reference* a themed
+one and then resolves per theme, which is how one shadow rule serves a
+cream ground and a near-black one; **local** tokens belong to a page
+and a skin must never define them. Full rationale:
+[`DESIGN.md`](DESIGN.md).
+
 ## Run the e2e test
 
 ```bash
@@ -263,25 +322,29 @@ The landing test:
 5. Asserts 0 console errors on each variant.
 6. Saves screenshots to `e2e/artifacts/`.
 
-The CLIP test runs against a repo-root server (no Python deps):
+The tool-page tests (clip, refael, how-to, marketplace, LVS, temple,
+skin) run against a repo-root server on port 5180 — the same root the
+deploy serves, so a `../assets/` or `../lib/` reference that works on
+the deploy also works locally:
 
 ```bash
-python3 -m http.server 5180 --directory . &
+node lib/serve.js --port 5180 &
 npm run e2e:clip
-```
-
-The Refael test uses the same convention:
-
-```bash
-python3 -m http.server 5180 --directory . &
 npm run e2e:refael
+npm run e2e:howto
+npm run e2e:lvs
+npm run e2e:temple
+npm run e2e:skin
 ```
 
-The how-to page test uses the same convention (`npm run e2e:howto`),
-as does the Loopable Video Segmenter test (`npm run e2e:lvs`) and the
-Temple of Control test (`npm run e2e:temple`), and `npm run test:all`
-covers the watcher unit tests (chart / songs / MJ) plus
-`test:midi-automap`.
+> **Why the same root locally and on the deploy?** A local harness
+> that serves a *different* tree than production is a harness that
+> cannot catch a broken path. The repo-root convention is the rule
+> every spec now follows.
+
+`npm run test:all` covers the watcher unit tests (chart / songs / reel
+/ MJ), the skin contract + lint, the agent loop, and the python
+suites.
 
 ## Architecture (sprint 0 + planned)
 
@@ -298,6 +361,11 @@ digital_twin/
 │   └── twin-os/              # the Twin OS PWA shell (Today / Songs / Twin)
 ├── lib/                      # pure-Node tooling + browser components
 │   ├── serve.js              # zero-dep static server (also the LaunchAgent program)
+│   ├── skin-contract.js      # the token contract (source of truth)
+│   ├── skin-tokens.js        # skin validator
+│   ├── skin-lint.js          # the permanent per-page guard
+│   ├── skin.js               # the browser runtime (?skin=)
+│   ├── theme.js              # the shared no-flash theme bootstrap
 │   ├── songs-indexer.js      # walks audio roots → data/songs/catalog.json
 │   ├── jazz-solos-indexer.js # reads the WJazzD manifest → catalog-jazz-solos.json
 │   ├── chart-export.js       # MusicXML → per-part PDFs / muted parts / MP3
@@ -320,7 +388,9 @@ digital_twin/
 │   ├── LOOPABLE-VIDEO-SEGMENTER.md
 │   └── REFAEL-MP4-MAKER.md
 ├── assets/                   # brand assets, mural prompts, clip example images
+│   └── skins/                # the skins: house.css (kai-systems) + studio.css (Suno)
 ├── bin/                      # shell wrappers for the LaunchAgents
+├── DESIGN.md                 # the skin contract, in prose
 └── README.md                 # this file
 ```
 
