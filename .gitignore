@@ -44,6 +44,11 @@ chart-inbox/*_PDF/
 chart-inbox/*_No_Sax/
 chart-inbox/*_No_Trumpet/
 chart-inbox/processed/
+# The drop zone's inputs are transient by design — the chart-watcher
+# moves every .musicxml it finds into processed/. Tracking one there
+# guarantees a dirty tree the moment the watcher runs. The e2e
+# fixtures live in e2e/fixtures/ instead.
+chart-inbox/*.musicxml
 
 # Songs catalogs (auto-generated)
 data/songs/catalog.json
