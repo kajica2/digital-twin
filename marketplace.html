@@ -1,6 +1,11 @@
 <!doctype html>
 <html lang="en" data-theme="light">
 <head>
+    <!-- Design tokens live in the skin, not in this page. See DESIGN.md. -->
+    <link rel="stylesheet" href="assets/skins/house.css" data-skin-stylesheet>
+    <script src="lib/skin.js"></script>
+    <script src="lib/theme.js" data-theme-key="mp-theme"></script>
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Kai Djuric — mood frames from the twin: eight music-video stills, twelve cover studies, ten System Error plates, and an animated network-pattern sequence, each with its marketplace blurb.">
@@ -16,17 +21,6 @@
   })();
 </script>
 <style>
-  :root {
-    --bg: #f7f4ec; --surface: #fffdf6; --ink: #23201a; --ink-2: #57503f;
-    --accent: #b06a2a; --accent-2: #3a5a3f; --line: #e4decf;
-    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-    --serif: Georgia, "Times New Roman", serif;
-    --sans: Inter, system-ui, -apple-system, Segoe UI, sans-serif;
-  }
-  [data-theme="dark"] {
-    --bg: #14120e; --surface: #1c1913; --ink: #ece7db; --ink-2: #a69b85;
-    --accent: #d9913f; --accent-2: #7fa587; --line: #332e24;
-  }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink);
          font-family: var(--sans); line-height: 1.55; }
@@ -255,21 +249,18 @@
 </div>
 
 <script>
-  // theme toggle — persisted to localStorage['mp-theme']
+  // theme toggle — the preference lives in lib/theme.js; this only
+  // reflects the current choice onto the buttons.
   (function () {
-    var key = "mp-theme";
     var btns = Array.from(document.querySelectorAll("[data-theme-btn]"));
     function apply(mode) {
-      var doc = document.documentElement;
-      if (mode === "dark") doc.setAttribute("data-theme", "dark");
-      else if (mode === "light") doc.setAttribute("data-theme", "light");
-      else doc.removeAttribute("data-theme");
       btns.forEach(b => b.classList.toggle("on", b.getAttribute("data-theme-btn") === mode));
     }
-    apply(localStorage.getItem(key) || "auto");
+    var stored = (document.documentElement.getAttribute("data-theme-pref") || "system");
+    apply(stored === "system" ? "auto" : stored);
     btns.forEach(b => b.addEventListener("click", function () {
       var m = b.getAttribute("data-theme-btn");
-      localStorage.setItem(key, m);
+      DTTheme.set(m);
       apply(m);
     }));
     // internal cross-links point at the served repo-root pages (resolve ../docs too)

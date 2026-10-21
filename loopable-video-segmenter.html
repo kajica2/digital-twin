@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Design tokens live in the skin, not in this page. See DESIGN.md. -->
+    <link rel="stylesheet" href="assets/skins/house.css" data-skin-stylesheet>
+    <script src="lib/skin.js"></script>
+    <script src="lib/theme.js" data-theme-key="lvs-theme"></script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Loopable Video Segmenter — Tools</title>
@@ -14,49 +19,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-primary: #fafaf9;
-            --bg-secondary: #f5f5f4;
-            --bg-tertiary: #e7e5e4;
-            --bg-card: #ffffff;
-            --text-primary: #1c1917;
-            --text-secondary: #57534e;
-            --text-tertiary: #78716c;
-            --border-light: #e7e5e4;
-            --border-medium: #d6d3d1;
-            --accent: #0f766e;
-            --accent-text: #0f766e;
-            --accent-2: #7c3aed;
-            --accent-2-text: #6d28d9;
-            --code-bg: #f5f5f4;
-            --code-text: #44403c;
-            --ok: #047857;
-            --warn: #b45309;
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-            --radius-sm: 6px;
-            --radius-md: 10px;
-            --radius-lg: 16px;
-        }
-        [data-theme="dark"] {
-            --bg-primary: #0c0a09;
-            --bg-secondary: #1c1917;
-            --bg-tertiary: #292524;
-            --bg-card: #1c1917;
-            --text-primary: #fafaf9;
-            --text-secondary: #a8a29e;
-            --text-tertiary: #78716c;
-            --border-light: #292524;
-            --border-medium: #44403c;
-            --accent: #2dd4bf;
-            --accent-text: #2dd4bf;
-            --accent-2: #a78bfa;
-            --accent-2-text: #c4b5fd;
-            --code-bg: #292524;
-            --code-text: #e7e5e4;
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
-        }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
         body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.7; -webkit-font-smoothing: antialiased; }
@@ -284,7 +246,7 @@ npm run lvs:segment -- video.mp4 --segments 2 --out /path/to/out.zip</code></pre
             const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
             html.setAttribute('data-theme', next);
             toggle.setAttribute('aria-pressed', next === 'dark' ? 'true' : 'false');
-            try { localStorage.setItem('lvs-theme', next); } catch (_) {}
+            DTTheme.set(next);
         });
     })();
 

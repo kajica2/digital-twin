@@ -1,6 +1,11 @@
 <!doctype html>
 <html lang="en" data-theme="system">
 <head>
+    <!-- Design tokens live in the skin, not in this page. See DESIGN.md. -->
+    <link rel="stylesheet" href="assets/skins/house.css" data-skin-stylesheet>
+    <script src="lib/skin.js"></script>
+    <script src="lib/theme.js" data-theme-key="int-theme"></script>
+
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="light dark" />
@@ -30,80 +35,9 @@
   </script>
 
   <style>
-    /* ============================================================
-       1. DESIGN TOKENS — kai-systems house style
-       ============================================================ */
-    :root {
-      --bg:           #f7f5f0;
-      --bg-warm:      #f4f0e7;
-      --surface:      #ffffff;
-      --line:         #e9e3d6;
-      --line-soft:    #f0eadf;
-      --ink:          #14171e;
-      --ink-muted:    #3a4256;
-      --ink-faint:    #7c7a72;
-      --primary:      #c97b3f;
-      --primary-2:    #a85f28;
-      --primary-soft: rgba(201, 123, 63, 0.08);
-      --primary-mid:  rgba(201, 123, 63, 0.18);
-      --accent:       #2f6f5e;
-      --accent-2:     #1f4f43;
-      --accent-soft:  rgba(47, 111, 94, 0.08);
-      --success:      #2d8a4e;
-      --success-bg:   rgba(45, 138, 78, 0.1);
+    
 
-      --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
-      --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
-      --space-9: 96px;
-
-      --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px;
-      --radius-xl: 20px; --radius-pill: 999px;
-
-      --shadow-sm: 0 1px 2px rgba(20, 23, 30, .04), 0 2px 6px rgba(20, 23, 30, .05);
-      --shadow-md: 0 1px 2px rgba(20, 23, 30, .05), 0 8px 24px rgba(20, 23, 30, .08);
-      --shadow-lg: 0 1px 2px rgba(20, 23, 30, .06), 0 16px 48px rgba(20, 23, 30, .12);
-
-      --font-display: 'DM Serif Display', ui-serif, Georgia, serif;
-      --font-body:    'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
-      --font-mono:    'JetBrains Mono', ui-monospace, Menlo, monospace;
-      --fs-xs: 12px;  --fs-sm: 14px;  --fs-base: 16px; --fs-md: 20px;
-      --fs-lg: 24px;  --fs-xl: 32px;  --fs-2xl: 40px;  --fs-3xl: 56px;
-
-      --container: 640px;
-      --container-wide: 900px;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :root:not([data-theme="light"]) {
-        --bg:        #0f1117;
-        --bg-warm:   #161921;
-        --surface:   #1c1f29;
-        --line:       #2a2f3c;
-        --line-soft:  #232830;
-        --ink:        #e8e4dc;
-        --ink-muted:  #9ca3b0;
-        --ink-faint:  #5c6170;
-        --primary-soft: rgba(201, 123, 63, 0.12);
-        --primary-mid: rgba(201, 123, 63, 0.22);
-        --accent-soft: rgba(47, 111, 94, 0.12);
-        --success-bg: rgba(45, 138, 78, 0.15);
-      }
-    }
-
-    [data-theme="dark"] {
-      --bg:        #0f1117;
-      --bg-warm:   #161921;
-      --surface:   #1c1f29;
-      --line:       #2a2f3c;
-      --line-soft:  #232830;
-      --ink:        #e8e4dc;
-      --ink-muted:  #9ca3b0;
-      --ink-faint:  #5c6170;
-      --primary-soft: rgba(201, 123, 63, 0.12);
-      --primary-mid: rgba(201, 123, 63, 0.22);
-      --accent-soft: rgba(47, 111, 94, 0.12);
-      --success-bg: rgba(45, 138, 78, 0.15);
-    }
+    
 
     /* ============================================================
        2. BASE
@@ -610,7 +544,7 @@
           ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
           : theme;
         root.setAttribute('data-theme', resolved);
-        localStorage.setItem('int-theme', theme);
+        DTTheme.set(theme);
         btns.forEach(b => b.setAttribute('aria-pressed', b.dataset.theme === theme));
       }
 

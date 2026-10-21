@@ -1,6 +1,11 @@
 <!doctype html>
 <html lang="en" data-theme="light">
 <head>
+    <!-- Design tokens live in the skin, not in this page. See DESIGN.md. -->
+    <link rel="stylesheet" href="../assets/skins/house.css" data-skin-stylesheet>
+    <script src="../lib/skin.js"></script>
+    <script src="../lib/theme.js" data-theme-key="mjd-theme"></script>
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Midjourney run dashboard for the twin — every generation, prompt, task id and timestamp, with the 4-up grid thumbnails and the prompt library the runs were submitted from.">
@@ -16,18 +21,6 @@
   })();
 </script>
 <style>
-  :root {
-    --bg: #f7f4ec; --surface: #fffdf6; --ink: #23201a; --ink-2: #57503f;
-    --accent: #b06a2a; --accent-2: #3a5a3f; --line: #e4decf;
-    --warn: #9a5b12; --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-    --serif: Georgia, "Times New Roman", serif;
-    --sans: Inter, system-ui, -apple-system, Segoe UI, sans-serif;
-  }
-  [data-theme="dark"] {
-    --bg: #14120e; --surface: #1c1913; --ink: #ece7db; --ink-2: #a69b85;
-    --accent: #d9913f; --accent-2: #7fa587; --line: #332e24;
-    --warn: #e0a75a;
-  }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink);
          font-family: var(--sans); line-height: 1.55; }
@@ -408,7 +401,7 @@ $('#lib').innerHTML = idx.promptFiles.map((p) => `
 document.getElementById('themeBtn')?.addEventListener('click', () => {
   const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', next);
-  try { localStorage.setItem('mjd-theme', next); } catch (e) {}
+  DTTheme.set(next);
 });
 </script>
 </body>

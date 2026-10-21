@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Design tokens live in the skin, not in this page. See DESIGN.md. -->
+    <link rel="stylesheet" href="assets/skins/house.css" data-skin-stylesheet>
+    <script src="lib/skin.js"></script>
+    <script src="lib/theme.js" data-theme-key="tc-theme"></script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Temple of Control — Tools</title>
@@ -14,24 +19,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-primary: #fafaf9; --bg-secondary: #f5f5f4; --bg-card: #ffffff;
-            --text-primary: #1c1917; --text-secondary: #57534e; --text-tertiary: #78716c;
-            --border-light: #e7e5e4; --border-medium: #d6d3d1;
-            --accent: #0f766e; --accent-text: #0f766e; --accent-2: #b45309; --accent-2-text: #92400e;
-            --code-bg: #f5f5f4; --code-text: #44403c;
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-            --radius-md: 10px; --radius-lg: 16px;
-            --mono: 'JetBrains Mono', ui-monospace, monospace;
-        }
-        [data-theme="dark"] {
-            --bg-primary: #0c0a09; --bg-secondary: #1c1917; --bg-card: #1c1917;
-            --text-primary: #fafaf9; --text-secondary: #a8a29e; --text-tertiary: #78716c;
-            --border-light: #292524; --border-medium: #44403c;
-            --accent: #2dd4bf; --accent-text: #2dd4bf; --accent-2: #fbbf24; --accent-2-text: #fbbf24;
-            --code-bg: #292524; --code-text: #e7e5e4;
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
-        }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             background: var(--bg-primary); color: var(--text-primary);
@@ -330,10 +317,10 @@ ctrl.connect();</pre>
         var dark = document.documentElement.getAttribute('data-theme') === 'dark';
         if (dark) {
             document.documentElement.removeAttribute('data-theme');
-            try { localStorage.setItem('tc-theme', 'light'); } catch (e) {}
+            DTTheme.set('light');
         } else {
             document.documentElement.setAttribute('data-theme', 'dark');
-            try { localStorage.setItem('tc-theme', 'dark'); } catch (e) {}
+            DTTheme.set('dark');
         }
         applyTheme();
     });
