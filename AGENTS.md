@@ -3821,6 +3821,14 @@ render dirs should collapse to one canonical set.
 
 ### 2026-10-21 — sprint 0.45 (the skin contract — one stylesheet to re-theme the family)
 
+> **Amended after sprint 0.46.** This entry describes the *system*; 0.46
+> is the sprint that **landed** it, and it found the system half-wired —
+> 39 pages pointed at a stylesheet that did not exist yet, and four
+> pages had their `<style>` opening tag rewritten to `<script>`. The
+> "Verified" claims below were **re-run after 0.46** and hold against
+> the landed tree: 39/39 pages re-skin, all specs green. The static-token
+> rule was also amended in 0.46 — see the note there.
+
 Asked for a `DESIGN.md` that makes re-skinning easy across the whole
 kai-systems family, with the **Suno Studio 2.0** page as the reference
 skin. Shipped as a machine-readable contract, not as prose.
@@ -3995,9 +4003,13 @@ system working, verified.
     skin from defining, and which was only defined in the *dark* scope.
     So in the light theme `var(--ink-black)` resolved to nothing, every
     `color-mix()` was invalid at computed-value time, and **every shadow
-    collapsed to `none`**. Shadows are STATIC in the contract (same in
-    both themes, and forbidden to be redefined in the dark scope), so
-    they are now literal `rgba()` values.
+    collapsed to `none`**. Shadows are STATIC in the contract — declared
+    once, in the base scope, never repeated in the dark scope. The
+    final form derives their ink from `var(--bg)`:
+    `--shadow-sm: 0 1px 2px color-mix(in srgb, color-mix(in srgb, var(--bg) 12%, #000000) 4%, transparent)`.
+    One rule, two results: a warm grey shadow on the cream ground, a
+    deeper, quieter one on the near-black ground. (See the contract
+    amendment below: "static" is a *placement* rule, not a value rule.)
 
 - **Shipped — `lib/theme.js` (the theme half of the skin):**
   - Every page needed the same three things — read the saved preference
@@ -4079,6 +4091,16 @@ system working, verified.
   - **Create `house.css` rather than repoint 39 pages at `studio.css`.**
     The house palette is what the pages already ship; the skin swap
     should change no pixels.
+  - **"Static" is a placement rule, not a value rule.** The contract
+    originally read "static tokens have the same value in both themes".
+    That clause was unenforceable in CSS — custom properties are
+    late-bound, so a static token that *references* a themed token
+    resolves differently per theme by construction — and nothing
+    enforced it (the validator checks presence, never equality). The
+    contract, `DESIGN.md` §4.1 and the code now agree: a static token
+    is declared once in the base scope and is **never repeated in the
+    dark scope**; it may reference a themed token and then resolves per
+    theme. The house shadows are the case in point.
   - **Fix the pages, not the skin direction.** The `<style>`→`<script>`
     slip was a mechanical error, not a sign the migration was wrong.
   - **Build `lib/theme.js` rather than restoring 4+ copies of the
@@ -4101,8 +4123,13 @@ system working, verified.
     how-to, marketplace, temple-of-control, loopable-video-segmenter,
     integrations, mj-dashboard, skin — 0 console errors on every page.
   - Every inline `<script>` in every page parses (scanned with
-    `new Function`): the suno-prompts page the handoff flagged as
-    syntactically broken is **not** broken — the claim was stale.
+    `new Function`). The suno-prompts page **was** broken and **is**
+    fixed: `${batchFiles.length × variants}` used U+00D7 (×) as a
+    multiplication operator inside a template expression — not a JS
+    operator — so the whole block failed to parse and the page's JS was
+    dead. It now reads `${batchFiles.length * variants}`. (The `×`
+    characters still in that file are *display* text inside strings —
+    "N files × M variants" — and are fine.)
   - **Visually verified** the landing page in both themes from the
     spec's own screenshots: warm cream + copper in light, warm
     near-black + cream in dark, no missing CSS, no unstyled text.
