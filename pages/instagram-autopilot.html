@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="system">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📸 Instagram Autopilot — Digital Twin</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='4' y='4' width='24' height='24' rx='5' fill='none' stroke='%23E1306C' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23E1306C'/%3E%3Ccircle cx='24' cy='8' r='1.5' fill='%23E1306C'/%3E%3C/svg%3E">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root{--bg:#f7f5f0;--surface:#fff;--line:#e9e3d6;--ink:#14171e;--ink-muted:#3a4256;--primary:#E1306C;--accent:#405DE6;--c2:#833AB4;--c3:#FD1D1D;--space-2:8px;--space-4:16px;--space-5:24px;--radius-md:10px;--radius-lg:14px;--font-body:'Outfit',sans-serif;--font-display:'DM Serif Display',serif}
+        [data-theme="dark"]{--bg:#1a1812;--surface:#25221a;--line:#3a342a;--ink:#f4efe2;--ink-muted:#c0b8a8}
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:var(--font-body);background:var(--bg);color:var(--ink);line-height:1.5}
+        .header{background:linear-gradient(135deg,var(--primary),var(--c2),var(--accent));padding:1.5rem 2rem;color:#fff}
+        .header-content{max-width:1000px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+        .logo{font-family:var(--font-display);font-size:1.5rem}
+        main{max-width:1000px;margin:0 auto;padding:var(--space-5)}
+        .card{background:var(--surface);border-radius:var(--radius-lg);padding:var(--space-5);margin-bottom:var(--space-5);border:1px solid var(--line)}
+        .card-title{font-weight:700;font-size:1.1rem;margin-bottom:var(--space-4);font-family:var(--font-display)}
+        .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--space-5)}
+        .form-group{margin-bottom:1rem}
+        .form-group label{display:block;font-size:0.85rem;font-weight:500;margin-bottom:0.5rem}
+        .form-group input,.form-group textarea,.form-group select{width:100%;padding:0.75rem;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--bg);color:var(--ink);font-family:inherit}
+        .form-group textarea{min-height:100px;resize:vertical}
+        .btn{display:inline-flex;padding:0.75rem 1.5rem;font-size:0.9rem;font-weight:600;border:none;border-radius:var(--radius-md);cursor:pointer;background:var(--primary);color:#fff;transition:opacity 0.2s}
+        .btn:disabled{opacity:0.5;cursor:not-allowed}
+        .btn-secondary{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+        .btn-accent{background:var(--accent)}
+        .btn-c2{background:var(--c2)}
+        .btn-outline{background:transparent;border:2px solid var(--primary);color:var(--primary)}
+        .pill-grid{display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.5rem}
+        .pill{padding:0.4rem 0.8rem;border-radius:20px;font-size:0.8rem;font-weight:500;cursor:pointer;background:var(--line);color:var(--ink)}
+        .pill.active{background:var(--primary);color:#fff}
+        .output{background:var(--line);padding:1rem;border-radius:var(--radius-md);margin-top:1rem;white-space:pre-wrap;font-size:0.9rem}
+        .hashtags{color:var(--accent);word-break:break-all}
+        .caption{line-height:1.6}
+        .status{padding:0.75rem;border-radius:var(--radius-md);margin-top:var(--space-4);display:none}
+        .status.visible{display:block}
+        .status.processing{background:rgba(225,48,108,0.1);color:var(--primary)}
+        .status.success{background:rgba(47,111,94,0.1);color:var(--accent)}
+        .preview-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:var(--space-4);margin-top:1rem}
+        .preview-header{display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem}
+        .preview-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--c2))}
+        .preview-username{font-weight:600;font-size:0.9rem}
+        .preview-image{width:100%;aspect-ratio:1;background:var(--line);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:3rem}
+        .preview-actions{display:flex;gap:1rem;margin-top:0.75rem;font-size:1.2rem}
+        .preview-likes{font-weight:600;margin-top:0.5rem;font-size:0.9rem}
+        .preview-caption{font-size:0.9rem;margin-top:0.5rem}
+        .preview-caption strong{font-weight:600}
+        .schedule-item{display:flex;justify-content:space-between;align-items:center;padding:0.75rem;border:1px solid var(--line);border-radius:var(--radius-md);margin-bottom:0.5rem}
+        .schedule-time{font-weight:600;color:var(--primary)}
+        .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;text-align:center;margin-bottom:1rem}
+        .stat-num{font-size:1.5rem;font-weight:700;color:var(--primary)}
+        .stat-label{font-size:0.8rem;color:var(--ink-muted)}
+        .tab-buttons{display:flex;gap:0.5rem;margin-bottom:1.5rem;background:var(--surface);padding:0.5rem;border-radius:var(--radius-lg);border:1px solid var(--line)}
+        .tab-btn{flex:1;padding:0.75rem;border:none;background:transparent;color:var(--ink-muted);border-radius:var(--radius-md);font-weight:600;cursor:pointer}
+        .tab-btn.active{background:var(--primary);color:#fff}
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">📸 Instagram Autopilot</div>
+            <a href="landing.html" style="color:#fff;text-decoration:none">← Tools</a>
+        </div>
+    </header>
+    <main>
+        <div class="tab-buttons">
+            <button class="tab-btn active" onclick="switchTab('caption')" id="tab-caption">✍️ Caption</button>
+            <button class="tab-btn" onclick="switchTab('hashtags')" id="tab-hashtags">#️⃣ Hashtags</button>
+            <button class="tab-btn" onclick="switchTab('schedule')" id="tab-schedule">📅 Schedule</button>
+            <button class="tab-btn" onclick="switchTab('analytics')" id="tab-analytics">📊 Analytics</button>
+        </div>
+
+        <!-- CAPTION TAB -->
+        <div id="panel-caption">
+            <div class="grid">
+                <div>
+                    <div class="card">
+                        <div class="card-title">🎯 Content Type</div>
+                        <div class="pill-grid">
+                            <span class="pill active" onclick="setContentType(this,'viral')">🔥 Viral</span>
+                            <span class="pill" onclick="setContentType(this,'educational')">📚 Educational</span>
+                            <span class="pill" onclick="setContentType(this,'behind-scenes')">🎬 Behind Scenes</span>
+                            <span class="pill" onclick="setContentType(this,'product')">🛍️ Product</span>
+                            <span class="pill" onclick="setContentType(this,'meme')">😂 Meme</span>
+                            <span class="pill" onclick="setContentType(this,'transformation')">✨ Transformation</span>
+                        </div>
+                        <div class="form-group" style="margin-top:1rem">
+                            <label>Topic / Hook</label>
+                            <input type="text" id="topic" placeholder="e.g., 5 secrets to growing your following">
+                        </div>
+                        <div class="form-group">
+                            <label>Tone</label>
+                            <select id="tone">
+                                <option value="exciting">🔥 Exciting</option>
+                                <option value="professional">💼 Professional</option>
+                                <option value="casual">😎 Casual</option>
+                                <option value="funny">😂 Funny</option>
+                                <option value="inspirational">✨ Inspirational</option>
+                            </select>
+                        </div>
+                        <button class="btn" onclick="generateCaption()">✨ Generate Caption</button>
+                    </div>
+                </div>
+                <div>
+                    <div class="card">
+                        <div class="card-title">📝 Generated Caption</div>
+                        <div class="output caption" id="captionOutput">Your viral caption will appear here...</div>
+                        <div style="margin-top:1rem;display:flex;gap:0.5rem;flex-wrap:wrap">
+                            <button class="btn btn-secondary" onclick="copyCaption()">📋 Copy</button>
+                            <button class="btn btn-secondary" onclick="emailCaption()">📧 Email</button>
+                            <button class="btn btn-secondary" onclick="runCaptionApi()">🔌 API</button>
+                        </div>
+                        <div style="margin-top:1rem">
+                            <input type="text" id="captionApiUrl" placeholder="https://api.example.com/webhook" style="width:100%;padding:0.5rem;border:1px solid var(--line);border-radius:var(--radius-md)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">👁️ Preview</div>
+                <div class="preview-card">
+                    <div class="preview-header">
+                        <div class="preview-avatar"></div>
+                        <span class="preview-username">your_username</span>
+                    </div>
+                    <div class="preview-image">🖼️</div>
+                    <div class="preview-actions">❤️ 💬 ➤</div>
+                    <div class="preview-likes">1,234 likes</div>
+                    <div class="preview-caption" id="previewCaption">
+                        <strong>your_username</strong> Your caption will appear here...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HASHTAGS TAB -->
+        <div id="panel-hashtags" style="display:none">
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">#️⃣ Hashtag Generator</div>
+                    <div class="form-group">
+                        <label>Niche</label>
+                        <select id="hashtagNiche">
+                            <option value="lifestyle">🌿 Lifestyle</option>
+                            <option value="business">💼 Business</option>
+                            <option value="fitness">💪 Fitness</option>
+                            <option value="food">🍳 Food</option>
+                            <option value="travel">✈️ Travel</option>
+                            <option value="fashion">👗 Fashion</option>
+                            <option value="tech">💻 Tech</option>
+                            <option value="art">🎨 Art</option>
+                            <option value="music">🎵 Music</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Post Type</label>
+                        <select id="hashtagType">
+                            <option value="reel">Reel</option>
+                            <option value="carousel">Carousel</option>
+                            <option value="single">Single Image</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-accent" onclick="generateHashtags()">✨ Generate Hashtags</button>
+                </div>
+                <div class="card">
+                    <div class="card-title">🏷️ Hashtags</div>
+                    <div class="output hashtags" id="hashtagOutput">#hashtags will appear here...</div>
+                    <div style="margin-top:1rem;display:flex;gap:0.5rem">
+                        <button class="btn btn-secondary" onclick="copyHashtags()">📋 Copy</button>
+                        <span id="hashtagCount" style="align-self:center;color:var(--ink-muted);font-size:0.85rem">0/30</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCHEDULE TAB -->
+        <div id="panel-schedule" style="display:none">
+            <div class="card">
+                <div class="card-title">📅 Best Times to Post</div>
+                <div class="stats-grid">
+                    <div>
+                        <div class="stat-num">6AM</div>
+                        <div class="stat-label">Morning 🌅</div>
+                    </div>
+                    <div>
+                        <div class="stat-num">12PM</div>
+                        <div class="stat-label">Lunch ☀️</div>
+                    </div>
+                    <div>
+                        <div class="stat-num">7PM</div>
+                        <div class="stat-label">Evening 🌆</div>
+                    </div>
+                </div>
+                <div id="scheduleList">
+                    <div class="schedule-item">
+                        <span>Monday</span>
+                        <span class="schedule-time">7:00 AM</span>
+                    </div>
+                    <div class="schedule-item">
+                        <span>Wednesday</span>
+                        <span class="schedule-time">12:00 PM</span>
+                    </div>
+                    <div class="schedule-item">
+                        <span>Friday</span>
+                        <span class="schedule-time">6:00 PM</span>
+                    </div>
+                    <div class="schedule-item">
+                        <span>Saturday</span>
+                        <span class="schedule-time">10:00 AM</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📆 Weekly Planner</div>
+                <div class="form-group">
+                    <label>Content Calendar</label>
+                    <textarea id="calendar" placeholder="Mon: Reel - Behind the scenes&#10;Tue: Carousel - Tips&#10;Wed: Reel - Transformation&#10;Thu: Single - Quote&#10;Fri: Reel - Meme&#10;Sat: Carousel - Tutorial&#10;Sun: Rest"></textarea>
+                </div>
+                <button class="btn btn-c2" onclick="saveCalendar()">💾 Save Calendar</button>
+            </div>
+        </div>
+
+        <!-- ANALYTICS TAB -->
+        <div id="panel-analytics" style="display:none">
+            <div class="card">
+                <div class="card-title">📊 Quick Stats</div>
+                <div class="stats-grid">
+                    <div>
+                        <div class="stat-num" id="statReach">2.4K</div>
+                        <div class="stat-label">Avg Reach</div>
+                    </div>
+                    <div>
+                        <div class="stat-num" id="statEngage">4.2%</div>
+                        <div class="stat-label">Engagement</div>
+                    </div>
+                    <div>
+                        <div class="stat-num" id="statFollowers">+128</div>
+                        <div class="stat-label">This Week</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Track Post</label>
+                    <input type="text" id="postUrl" placeholder="Paste Instagram post URL">
+                </div>
+                <button class="btn btn-accent" onclick="trackPost()">🔍 Analyze</button>
+            </div>
+            <div class="card">
+                <div class="card-title">🎯 Growth Tips</div>
+                <div class="output" id="growthTips">
+• Post Reels 3-4x per week for algorithm boost
+• Use all 30 hashtags (mix of large and niche)
+• Reply to comments within first hour
+• Collaborate with creators in your niche
+• Use trending audio in Reels
+                </div>
+                <button class="btn btn-secondary" style="margin-top:1rem" onclick="refreshTips()">🔄 Refresh Tips</button>
+            </div>
+        </div>
+    </main>
+
+<script>
+let contentType = 'viral';
+
+const CAPTION_TEMPLATES = {
+    viral: {
+        exciting: "🚨 STOP SCROLLING! {topic}\n\nIf you've been struggling with this, you NEED to read this.\n\nHere's what most people get wrong:\n\n👇 Drop a "🔥" if you want more tips!",
+        professional: "Here's {topic}\n\nAs a professional in this space, I've seen the difference between those who succeed and those who don't.\n\nSave this for later! 📌",
+        casual: "real talk: {topic}\n\ni've been there too 😅\n\nlet's figure this out together 💪",
+        funny: "POV: You just discovered {topic}\n\nme before: 😴\nme after: 🤯\n\ntag someone who needs to see this!",
+        inspirational: "{topic}\n\nYour journey is just beginning.\n\n✨ Save this. Share with someone who needs to hear this."
+    },
+    educational: {
+        exciting: "📚 Learn {topic}\n\nMost people don't know this! Here's the breakdown:\n\n1. First key point\n2. Second key point\n3. Third key point\n\nSave this before it disappears!",
+        professional: "📖 Deep dive: {topic}\n\nHere's everything you need to know:\n\n[Educational content here]\n\nWhat questions do you have? 👇",
+        casual: "okay here's the tea on {topic} ☕\n\nlearned this the hard way so you don't have to:\n\n[Tips here]\n\nhope this helps!",
+        funny: "sorry for the essay but {topic} is IMPORTANT\n\nTL;DR: [Summary]\n\nyou're welcome 😂",
+        inspirational: "✏️ Lesson: {topic}\n\nSometimes the simplest lessons are the most powerful.\n\nWrite this down 📝"
+    },
+    'behind-scenes': {
+        exciting: "🎬 BTS of {topic}\n\nYou asked, I delivered! Here's how it all came together:\n\n[Behind the scenes content]\n\nThis took forever to edit 😅",
+        professional: "Behind the scenes: {topic}\n\nHere's a look at our process:\n\n[Process breakdown]\n\nQuestions? Drop them below!",
+        casual: "bts of making this content 📸\n\ni promise it looked messier before filters 😂\n\nhope you enjoyed this peek behind the curtain!",
+        funny: "me trying to look professional while {topic} 💀\n\nbehind every post is 47 takes and a crying editor\n\nit's not much but it's honest work",
+        inspirational: "🎬 The process behind {topic}\n\nEvery piece of content starts somewhere.\n\nHere's our journey from idea to finished product."
+    },
+    product: {
+        exciting: "🛍️ NEW: {topic}\n\nThis is literally everything you've been waiting for.\n\n✅ Feature 1\n✅ Feature 2\n✅ Feature 3\n\nLink in bio! 👆",
+        professional: "Introducing: {topic}\n\nWe've been working on this for months.\n\nHere's what makes it special:\n\n[Product details]\n\nShop now via link in bio!",
+        casual: "okay guys this is the one you've been asking about 🎉\n\n{topic}\n\ni've been using it for weeks and i'm obsessed\n\nlink in bio for the curious!",
+        funny: "me: i don't need another product\n\nalso me after seeing {topic}: 💸\n\nhonestly worth it tho\n\nlink in bio before i change my mind",
+        inspirational: "✨ Introducing {topic}\n\nSometimes the best things come from solving our own problems.\n\nHere's our solution to [problem]."
+    },
+    meme: {
+        exciting: "this is your sign to {topic} ✨\n\ntag someone who needs to see this!",
+        professional: "when you finally understand {topic} 📈\n\ncredit: @meme_account",
+        casual: "me explaining {topic} to my brain at 3am: 🧠\n\nit: i understand nothing\n\nsame energy? 😂",
+        funny: "brain: let's think about {topic}\n\nme: okay\n\nbrain: forever\n\nme: 😴\n\nthis is our life now",
+        inspirational: "{topic}\n\nsometimes you just have to laugh 😂\n\nsave this for your group chat!"
+    },
+    transformation: {
+        exciting: "FROM {topic} TO ✨\n\n1 year of progress in 30 seconds:\n\n[Transformation content]\n\nIf I can do it, YOU can do it.\n\nSave this! 📌",
+        professional: "Transformation: {topic}\n\nThe data doesn't lie. Here's the before and after:\n\n[Data/Results]\n\nReady to start your journey?",
+        casual: "one year of {topic}:\n\nbefore: 😰\nafter: 😎\n\nit wasn't easy but it was SO worth it\n\nask me anything!",
+        funny: "when people ask about {topic} transformation 😂\n\nbefore: who is that\n\nafter: that's me baby! ✨\n\nworth every late night",
+        inspirational: "✨ {topic}\n\nThe only difference between where you are and where you want to be is consistent action.\n\nSave this. Start today."
+    }
+};
+
+const HASHTAG_SETS = {
+    lifestyle: ['#lifestyle', '#lifestyleblogger', '#lifestylephotography', '#lifestylegoals', '#lifestyle', '#everydaylife', '#lifestyleinspo', '#lifestylemoments', '#livingmybestlife', '#lifestylechange', '#goodvibes', '#vibes', '#aesthetic', '#aestheticposts', '#instagood', '#photooftheday', '#picoftheday', '#instadaily', '#instalike', '#love', '#happy', '#beautiful', '#followme', '#explore', '#explorepage', '#viral', '#reels', '#fyp'],
+    business: ['#business', '#entrepreneur', '#businessowner', '#smallbusiness', '#startup', '#success', '#motivation', '#hustle', '#grind', '#money', '#wealth', '#finance', '#investing', '#leadership', '#marketing', '#branding', '#businessmindset', '#successmindset', '#hustlehard', '#boss', '#ceo', '#founder', '#businessgrowth', '#entrepreneurlife', '#businesswomen', '#businessmotivation'],
+    fitness: ['#fitness', '#fitnessmotivation', '#gym', '#workout', '#fit', '#fitnessjourney', '#bodybuilding', '#health', '#training', '#fitfam', '#personaltrainer', '#gymlife', '#fitnessgirl', '#fitnessboy', '#workoutmotivation', '#gains', '#muscle', '#strong', '#gymmotivation', '#fitspo', '#weightloss', '#healthylifestyle', '#fitnessgoals', '#gymaddict', '#gymrat', '#gymtime'],
+    food: ['#food', '#foodie', '#foodporn', '#foodstagram', '#foodphotography', '#yummy', '#delicious', '#foodblogger', '#foodlover', '#homemade', '#cooking', '#recipe', '#foodpics', '#tasty', '#instafood', '#foodart', '#foodgasm', '#foodoftheday', '#foodstyling', '#foodielife', '#foodaddict', '#foodism', '#eat', '#eating', '#hungry', '#lunch', '#dinner'],
+    travel: ['#travel', '#travelphotography', '#travelgram', '#wanderlust', '#adventure', '#traveling', '#instatravel', '#travelblogger', '#explore', '#nature', '#vacation', '#holiday', '#traveller', '#traveler', '#tourism', '#trip', '#traveladdict', '#travelawesome', '#travelmore', '#travelholic', '#exploring', '#discover', '#go', '#traveldiaries', '#traveltheworld', '#instatraveling'],
+    fashion: ['#fashion', '#fashionblogger', '#fashionstyle', '#ootd', '#fashionista', '#style', '#instafashion', '#fashiongram', '#fashionblog', '#fashionista', '#outfit', '#outfitoftheday', '#streetstyle', '#fashiondesigner', '#fashionphotography', '#fashionweek', '#fashionable', '#trendy', '#stylish', '#lookoftheday', '#whatiwore', '#fashionaddict', '#styleinspo', '#fashionlook', '#fashionpost'],
+    tech: ['#tech', '#technology', '#programming', '#coding', '#developer', '#software', '#technews', '#innovation', '#gadgets', '#techie', '#startup', '#人工智能', '#科技', '#instatech', '#techlover', '#digital', '#techlife', '#programmer', '#webdeveloper', '#app', '#code', '#javascript', '#python', '#techcommunity', '#techtrends', '#futuretech'],
+    art: ['#art', '#artist', '#artwork', '#digitalart', '#painting', '#drawing', '#artoftheday', '#creative', '#artistsoninstagram', '#illustration', '#design', '#sketch', '#instaart', '#artgallery', '#artistic', '#artistlife', '#artoninstagram', '#artdaily', '#artlover', '#artcollection', '#artstudio', '#artworld', '#artgram', '#newartwork', '#artista', '#arte'],
+    music: ['#music', '#musician', '#musicproducer', '#hiphop', '#rap', '#singer', '#dj', '#songwriter', '#producer', '#musica', '#newmusic', '#artist', '#beat', '#studio', '#recording', '#musiclife', '#rappers', '#instrumental', '#lyrics', '#musicvideo', '#musicismylife', '#musicproduction', '#soundcloud', '#applemusic', '#spotify', '#unsignedartist']
+};
+
+function switchTab(tab) {
+    ['caption', 'hashtags', 'schedule', 'analytics'].forEach(t => {
+        document.getElementById('panel-' + t).style.display = t === tab ? 'block' : 'none';
+        document.getElementById('tab-' + t).className = 'tab-btn' + (t === tab ? ' active' : '');
+    });
+}
+
+function setContentType(el, type) {
+    document.querySelectorAll('.pill-grid .pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    contentType = type;
+}
+
+function generateCaption() {
+    const topic = document.getElementById('topic').value.trim() || 'this';
+    const tone = document.getElementById('tone').value;
+    let caption = CAPTION_TEMPLATES[contentType][tone].replace('{topic}', topic);
+    
+    // Add CTA
+    const ctas = ["Save this! 📌", "Follow for more! ✨", "Link in bio! 👆", "Tag a friend!", "Comment below! 👇"];
+    caption += '\n\n' + ctas[Math.floor(Math.random() * ctas.length)];
+    
+    document.getElementById('captionOutput').textContent = caption;
+    document.getElementById('previewCaption').innerHTML = '<strong>your_username</strong> ' + caption.replace(/\n/g, '<br>');
+}
+
+function copyCaption() {
+    const text = document.getElementById('captionOutput').textContent;
+    navigator.clipboard.writeText(text);
+    alert('Copied!');
+}
+
+function emailCaption() {
+    const text = encodeURIComponent(document.getElementById('captionOutput').textContent);
+    window.location.href = 'mailto:?subject=My Instagram Caption&body=' + text;
+}
+
+function runCaptionApi() {
+    const apiUrl = document.getElementById('captionApiUrl').value.trim();
+    if (!apiUrl) return alert('Enter API URL');
+    fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            caption: document.getElementById('captionOutput').textContent,
+            type: contentType,
+            topic: document.getElementById('topic').value
+        })
+    }).then(() => alert('Sent!')).catch(e => alert('Error: ' + e.message));
+}
+
+function generateHashtags() {
+    const niche = document.getElementById('hashtagNiche').value;
+    const type = document.getElementById('hashtagType').value;
+    let tags = [...(HASHTAG_SETS[niche] || HASHTAG_SETS.lifestyle)];
+    
+    // Add type-specific tags
+    if (type === 'reel') tags = ['#reels', '#reelsinstagram', '#reel', '#reelsofinstagram', '#reelsvideo', ...tags.slice(0, 25)];
+    else if (type === 'carousel') tags = ['#carousel', '#carouselpost', '#carousels', ...tags.slice(0, 27)];
+    else tags = ['#singlepost', '#photography', ...tags.slice(0, 28)];
+    
+    // Mix with viral tags
+    tags = [...tags, '#viral', '#explorepage', '#fyp', '#foryou', '#foryoupage'];
+    tags = [...new Set(tags)].slice(0, 30);
+    
+    document.getElementById('hashtagOutput').textContent = tags.join(' ');
+    document.getElementById('hashtagCount').textContent = tags.length + '/30';
+}
+
+function copyHashtags() {
+    const text = document.getElementById('hashtagOutput').textContent;
+    navigator.clipboard.writeText(text);
+    alert('Copied!');
+}
+
+function saveCalendar() {
+    const calendar = document.getElementById('calendar').value;
+    localStorage.setItem('ig_calendar', calendar);
+    alert('Calendar saved!');
+}
+
+function trackPost() {
+    const url = document.getElementById('postUrl').value;
+    if (!url) return alert('Enter post URL');
+    alert('Post analysis coming soon! This would connect to Instagram API.');
+}
+
+function refreshTips() {
+    const tips = [
+        "• Post Reels 3-4x per week for algorithm boost",
+        "• Use all 30 hashtags (mix of large and niche)",
+        "• Reply to comments within first hour",
+        "• Collaborate with creators in your niche",
+        "• Use trending audio in Reels",
+        "• Add location to posts for local reach",
+        "• Post consistently (same times each day)",
+        "• Engage with your community daily"
+    ];
+    document.getElementById('growthTips').textContent = tips.slice(0, 5).join('\n');
+}
+
+// Load saved calendar
+window.onload = function() {
+    const saved = localStorage.getItem('ig_calendar');
+    if (saved) document.getElementById('calendar').value = saved;
+};
+</script>
+</body>
+</html>
