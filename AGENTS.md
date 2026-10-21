@@ -4798,15 +4798,18 @@ anywhere, and the mood-frame catalogue was a dead end with no way to buy.
 
 **Deployed (the deploy-test loop):**
 
-- `E2E_URL=https://kajica2.github.io/digital-twin` — the **marketplace
-  spec passes end to end on the live site** (all checks, including the
-  3 new store checks, 33 images, 0 console errors, the motion video
-  plays).
-- `E2E_URL=…` — the **twin-os spec passes all 5 storefront assertions
-  on the live site** (exact store URL, external + noopener, catalogue
-  href, in the Twin panel, catalogue resolves 200). Its only failures
-  on that host were the root-absolute manifest 404s above — fixed, and
-  the spec is green locally with the fix.
+- **`E2E_URL=https://digitaltwin-ebon.vercel.app` — the CI target —
+  both specs pass against the live site.** The twin-os spec: all 5
+  storefront assertions (exact store URL, external + noopener,
+  catalogue href, in the Twin panel, catalogue resolves 200) and **0
+  console errors**. The marketplace spec: all checks, including the 3
+  store checks, 33 images loading, 0 console errors, the motion video
+  playable. This is the deploy the store is actually live on.
+- `E2E_URL=https://kajica2.github.io/digital-twin` — the GitHub Pages
+  project site (a different deployment) also passes the marketplace
+  spec end to end, and the twin-os spec's storefront assertions. Its
+  only failures there were the root-absolute manifest 404s above —
+  fixed, and the spec is green with the fix.
 - **The Vercel deploy is slow, not broken — and CI's budget was
   shorter than the deploy.** The alias served the previous build for
   **~13 minutes** after the push (the earlier "~6 minutes" observation
