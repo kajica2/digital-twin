@@ -36,6 +36,7 @@ logged into midjourney.com.
 |------|---------|
 | `lib/mj-watcher.js` | Poll-loop watcher. Pure-Node, no deps. |
 | `lib/mj-web.js` | **Web backend** — drives midjourney.com/imagine. |
+| `lib/mj-revise.js` | **Re-evolve an edit job** — new prompt, the SAME attachments, style reference, profile and flags. |
 | `lib/mj-submitter.js` | Legacy Discord backend + shared CDP primitives. |
 | `lib/mj-cookies.js` | Cookie-jar loading (Netscape + JSON), `__Host-` rules. |
 | `lib/mj-config.json` | Configuration (engine, cookies, ports, MJ defaults). |
@@ -304,3 +305,75 @@ node lib/mj-watcher.js --once --dry-run
   submissions.
 - **CDP dependency requires `ws` package** for WebSocket. `npm install ws`
   in the repo root.
+---
+
+## Re-evolving an edit job (`lib/mj-revise.js`)
+
+An **edit job** is one made with images attached — a face photo, a
+scene photo. Its command carries them:
+
+```
+iphone camera realistic couple dancing --ar 3:4 --raw
+  --sref https://s.mj.run/LIw4i-evx5g
+  --profile xy9cz8o 5s2lvkr nq7qlpg gx3g58u 5vodqxt xr39csb det21e6
+  --edit https://s.mj.run/1kgq0q6JG4s https://s.mj.run/3MjF3uJtjlI
+  --stylize 0 --v 8.2 --hd
+```
+
+`lib/mj-revise.js` takes that job and re-runs it with **new prose**,
+keeping the attachments, the style reference, the profile, the moodboard
+codes and every flag:
+
+```bash
+npm run mj:revise -- --source <jobId> \
+  --prompt-file assets/mural-prompts/<pack>.md
+```
+
+The prompt file is an ordinary pack (one top-level bullet per prompt).
+The tool reads the source job's own `full_command` from the live feed,
+so the flags are **never transcribed by hand** — "the same settings" is
+true by construction.
+
+### Why `--edit` travels in the prompt text
+
+Midjourney's web composer has an "Attach to prompt" slot, and driving
+it over CDP means fighting a file input that sits behind a React
+portal, that toggles open and closed, and that MJ **dedupes** (the
+same bytes return the same `s.mj.run` id and render no new chip at
+all). Every one of those is a *silent* failure: the submission lands as
+a plain generation with no reference image and nothing says so.
+
+Typing the source's own `--edit <url> …` into the prompt text does the
+same job with none of that. Verified: the result comes back as
+`v8-2_edit_diffusion` / `edit_ref_diffusion` with the **exact** source
+URLs in its command — one submission in ~8s.
+
+### The outcome check
+
+A submission can still land as a plain `diffusion` job. The tool checks
+the resulting job for the attachments and the edit job type, and says
+so loudly when they are missing rather than shipping the image as a
+success.
+
+### Reuse
+
+A variant whose prose **and** attachments already exist in the feed is
+reused instead of re-generated (the feed match requires the source's
+`--edit` URLs, so an unrelated job can never be mistaken for it). Use
+`--no-reuse` to force a fresh generation.
+
+### Its own browser
+
+The MJ web profile is one mutable resource — one page, one composer,
+one file input — so two agents on the same instance fight over it. The
+tool runs on its own port (`:9445`) with its own copy of the profile
+(`/tmp/mj-revise-profile`); a copied profile keeps Chrome's singleton
+lock, which the tool clears before launching.
+
+### Output
+
+`mj-output/revise/<pack>/prompt-NN/` — the 4-up grid plus a `meta.json`
+carrying the task id, the composed command, the attachment URLs and
+`imageUrls` (the key the dashboard index and the contact sheet read).
+`node lib/mj-contact-sheet.js --pack revise/<pack>` builds the
+comparison sheet.
