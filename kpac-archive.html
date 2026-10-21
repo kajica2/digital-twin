@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>kpac.org · Wayback Archive · Digital Twin</title>
+  <meta name="description" content="Forty-four archived snapshots of kpac.org, scraped from the Wayback Machine and rendered as a documentary archive of a defunct artists' collective (1999 to 2026).">
+  <link rel="canonical" href="https://kajica2.github.io/digital-twin/pages/kpac-archive.html">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%93%9D%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    /* No-flash theme bootstrap, mirrors the rest of the repo (key: kpa-theme). */
+    (function () {
+      var pref = 'system';
+      try { pref = localStorage.getItem('kpa-theme') || 'system'; } catch (e) {}
+      var resolved = pref === 'system'
+        ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        : pref;
+      document.documentElement.setAttribute('data-theme', resolved);
+      document.documentElement.setAttribute('data-theme-pref', pref);
+    })();
+  </script>
+  <style>
+    /* ============================================================
+       1. DESIGN TOKENS, kai-systems house style.
+       Warm cream + copper + forest, paired light and dark.
+       ============================================================ */
+    :root {
+      --bg:           #f7f5f0;
+      --bg-warm:      #f4f0e7;
+      --surface:      #ffffff;
+      --line:         #e9e3d6;
+      --line-soft:    #f0eadf;
+      --ink:          #14171e;
+      --ink-muted:    #3a4256;
+      --ink-faint:    #7c7a72;
+      --primary:      #c97b3f;
+      --primary-2:    #a85f28;
+      --primary-soft: rgba(201, 123, 63, 0.08);
+      --primary-mid:  rgba(201, 123, 63, 0.18);
+      --accent:       #2f6f5e;
+      --accent-2:     #1f4f43;
+      --accent-soft:  rgba(47, 111, 94, 0.08);
+      --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
+      --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
+      --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-xl: 20px; --radius-pill: 999px;
+      --shadow-sm: 0 1px 2px rgba(20, 23, 30, .04), 0 2px 6px rgba(20, 23, 30, .05);
+      --shadow-md: 0 1px 2px rgba(20, 23, 30, .05), 0 8px 24px rgba(20, 23, 30, .08);
+      --shadow-lg: 0 1px 2px rgba(20, 23, 30, .06), 0 16px 48px rgba(20, 23, 30, .12);
+      --font-display: 'DM Serif Display', ui-serif, Georgia, serif;
+      --font-body:    'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      --font-mono:    'JetBrains Mono', ui-monospace, Menlo, monospace;
+      --fs-xs: 12px;  --fs-sm: 14px;  --fs-base: 16px; --fs-md: 20px;
+      --fs-lg: 24px;  --fs-xl: 32px;  --fs-2xl: 40px; --fs-3xl: 56px;
+      --lh-tight: 1.04; --lh-snug: 1.18; --lh-base: 1.5; --lh-loose: 1.7;
+      --dur-fast: 120ms; --dur-base: 220ms; --dur-slow: 400ms;
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --container: 1080px; --container-narrow: 760px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #1a1812; --bg-warm: #211e16; --surface: #25221a;
+        --line: #3a342a; --line-soft: #2d2a22;
+        --ink: #f4efe2; --ink-muted: #c0b8a8; --ink-faint: #807868;
+        --primary: #d9925a; --primary-2: #e6a674;
+        --primary-soft: rgba(217, 146, 90, 0.12); --primary-mid: rgba(217, 146, 90, 0.22);
+        --accent: #6ab098; --accent-2: #8cc8b0; --accent-soft: rgba(106, 176, 152, 0.10);
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, .3), 0 2px 6px rgba(0, 0, 0, .25);
+        --shadow-md: 0 1px 2px rgba(0, 0, 0, .35), 0 8px 24px rgba(0, 0, 0, .35);
+        --shadow-lg: 0 1px 2px rgba(0, 0, 0, .4), 0 16px 48px rgba(0, 0, 0, .5);
+      }
+    }
+    [data-theme="dark"] {
+      --bg: #1a1812; --bg-warm: #211e16; --surface: #25221a;
+      --line: #3a342a; --line-soft: #2d2a22;
+      --ink: #f4efe2; --ink-muted: #c0b8a8; --ink-faint: #807868;
+      --primary: #d9925a; --primary-2: #e6a674;
+      --primary-soft: rgba(217, 146, 90, 0.12); --primary-mid: rgba(217, 146, 90, 0.22);
+      --accent: #6ab098; --accent-2: #8cc8b0; --accent-soft: rgba(106, 176, 152, 0.10);
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, .3), 0 2px 6px rgba(0, 0, 0, .25);
+      --shadow-md: 0 1px 2px rgba(0, 0, 0, .35), 0 8px 24px rgba(0, 0, 0, .35);
+      --shadow-lg: 0 1px 2px rgba(0, 0, 0, .4), 0 16px 48px rgba(0, 0, 0, .5);
+    }
+
+    /* ============================================================
+       2. RESET + BASE
+       ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: 88px; }
+    body, h1, h2, h3, h4, p, ul, ol, figure, blockquote { margin: 0; }
+    ul, ol { padding: 0; list-style: none; }
+    img { max-width: 100%; display: block; }
+    button { font: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
+    a { color: inherit; text-decoration: none; }
+
+    html { color-scheme: light dark; }
+    body {
+      min-height: 100dvh;
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: var(--lh-base);
+      font-size: var(--fs-base);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      transition: background-color var(--dur-base) var(--ease-out-expo), color var(--dur-base) var(--ease-out-expo);
+    }
+    body::before {
+      content: ""; position: fixed; inset: 0;
+      background:
+        radial-gradient(circle at 8% 12%, var(--primary-soft), transparent 38%),
+        radial-gradient(circle at 92% 88%, var(--accent-soft), transparent 42%);
+      pointer-events: none; z-index: 0;
+    }
+    .page { position: relative; z-index: 1; max-width: var(--container); margin: 0 auto; padding: 0 32px 96px; }
+
+    ::selection { background: var(--primary-soft); color: var(--ink); }
+    [data-theme="dark"] ::selection { background: var(--primary-mid); color: var(--ink); }
+    :focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; border-radius: var(--radius-sm); }
+
+    .skip-link { position: absolute; left: -9999px; top: -9999px; }
+    .skip-link:focus {
+      left: 8px; top: 8px; z-index: 100;
+      background: var(--surface); border: 1px solid var(--primary);
+      border-radius: var(--radius-sm); padding: 8px 14px;
+      color: var(--ink);
+    }
+
+    /* ============================================================
+       3. NAV
+       ============================================================ */
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(247, 245, 240, 0.86);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--line);
+    }
+    [data-theme="dark"] .nav { background: rgba(26, 24, 18, 0.86); }
+    .nav-inner {
+      max-width: var(--container); margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 32px; gap: var(--space-4);
+    }
+    .nav-brand { display: flex; align-items: baseline; gap: 10px; font-family: var(--font-mono); font-size: 13px; letter-spacing: 0.02em; }
+    .nav-brand b { font-weight: 600; color: var(--primary); }
+    .nav-links { display: flex; align-items: center; gap: 18px; font-size: 13.5px; color: var(--ink-muted); }
+    .nav-links a:hover { color: var(--primary); }
+
+    theme-toggle {
+      display: inline-flex; gap: 2px; padding: 2px;
+      border: 1px solid var(--line); border-radius: var(--radius-pill);
+      background: var(--bg-warm);
+    }
+    theme-toggle button {
+      font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em;
+      color: var(--ink-faint); padding: 5px 11px; border-radius: var(--radius-pill);
+      transition: color var(--dur-fast), background var(--dur-fast);
+    }
+    theme-toggle button[aria-pressed="true"] {
+      color: var(--ink); background: var(--primary-soft);
+    }
+    theme-toggle button:hover { color: var(--ink); }
+
+    /* ============================================================
+       4. TYPE
+       ============================================================ */
+    .kicker {
+      font-size: 12px; font-weight: 600; color: var(--primary);
+      letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 20px;
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--font-mono);
+    }
+    .kicker::before { content: ""; width: 24px; height: 1px; background: var(--primary); }
+    .h-display {
+      font-family: var(--font-display); font-weight: 400;
+      font-size: clamp(40px, 5.6vw, 64px); line-height: var(--lh-tight);
+      letter-spacing: -0.015em; color: var(--ink); margin-bottom: 24px; max-width: 860px;
+    }
+    .h-display em { font-style: italic; color: var(--primary); }
+    .h-section {
+      font-family: var(--font-display); font-weight: 400;
+      font-size: clamp(28px, 3.4vw, 40px); line-height: var(--lh-tight);
+      color: var(--ink); margin-bottom: 18px;
+    }
+    .lede { font-size: 19px; line-height: 1.6; color: var(--ink-muted); max-width: 680px; margin-bottom: 32px; }
+    .lede strong, .lede em { color: var(--ink); font-style: normal; font-weight: 500; }
+
+    /* ============================================================
+       5. HERO
+       ============================================================ */
+    .hero { padding: 88px 0 56px; }
+    .hero .lede { margin-bottom: 36px; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 14px; font-weight: 600; letter-spacing: 0.01em;
+      padding: 12px 22px; border-radius: var(--radius-pill);
+      border: 1px solid var(--line); color: var(--ink-muted);
+      background: var(--surface); transition: all var(--dur-fast) var(--ease-out-expo);
+    }
+    .btn:hover { border-color: var(--primary); color: var(--ink); }
+    .btn-primary { background: var(--primary-2); border-color: var(--primary-2); color: #fff7ef; box-shadow: var(--shadow-sm); }
+    .btn-primary:hover { background: var(--primary-2); border-color: var(--primary-2); color: #fff; filter: brightness(0.95); }
+    [data-theme="dark"] .btn-primary { background: var(--primary); border-color: var(--primary); color: var(--bg); }
+    [data-theme="dark"] .btn-primary:hover { background: var(--primary); border-color: var(--primary); color: var(--bg); filter: brightness(1.07); }
+
+    .hero-stats {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 16px; margin: 0 0 36px; max-width: 640px;
+    }
+    .stat {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius-lg); padding: 18px 20px;
+      box-shadow: var(--shadow-sm);
+    }
+    .stat-num {
+      font-family: var(--font-display); font-size: 36px; line-height: 1;
+      color: var(--primary); margin-bottom: 6px;
+    }
+    .stat-label {
+      font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--ink-faint); font-weight: 600;
+    }
+
+    /* ============================================================
+       6. SECTIONS
+       ============================================================ */
+    .section { padding: 56px 0 8px; border-top: 1px solid var(--line-soft); }
+    .section-sub { font-size: 17px; line-height: 1.6; color: var(--ink-muted); max-width: 720px; margin-bottom: 32px; }
+
+    /* Era cards: 3-column asymmetric grid for the 3 eras. */
+    .eras { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; margin-top: 12px; }
+    .era {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius-lg); padding: 24px 26px;
+      box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 14px;
+    }
+    .era-range {
+      font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--ink-faint); font-weight: 600;
+    }
+    .era-name {
+      font-family: var(--font-display); font-size: 24px; line-height: 1.18;
+      color: var(--ink); margin: 0;
+    }
+    .era-desc { font-size: 14.5px; line-height: 1.55; color: var(--ink-muted); }
+    .era-count {
+      font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.05em;
+      color: var(--primary-2); margin-top: auto;
+    }
+    [data-theme="dark"] .era-count { color: var(--primary); }
+
+    /* Filters + search */
+    .filters {
+      display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+      justify-content: space-between; margin-bottom: 24px;
+    }
+    .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pill {
+      font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em;
+      padding: 7px 14px; border-radius: var(--radius-pill);
+      border: 1px solid var(--line); background: var(--surface); color: var(--ink-muted);
+      transition: all var(--dur-fast) var(--ease-out-expo);
+    }
+    .pill:hover { border-color: var(--primary); color: var(--ink); }
+    .pill[aria-pressed="true"] {
+      background: var(--primary-2); border-color: var(--primary-2); color: #fff7ef;
+    }
+    [data-theme="dark"] .pill[aria-pressed="true"] {
+      background: var(--primary); border-color: var(--primary); color: var(--bg);
+    }
+    .search {
+      font: inherit; font-size: 14px; padding: 9px 16px;
+      border-radius: var(--radius-pill); border: 1px solid var(--line);
+      background: var(--surface); color: var(--ink); min-width: 240px;
+      transition: border-color var(--dur-fast);
+    }
+    .search::placeholder { color: var(--ink-faint); }
+    .search:focus { outline: none; border-color: var(--primary); }
+
+    /* Snapshot cards */
+    .snapshot-count {
+      font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.06em;
+      color: var(--ink-faint); margin-bottom: 16px;
+    }
+    .snapshots {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .snap {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius-lg); padding: 18px 20px;
+      box-shadow: var(--shadow-sm);
+      display: flex; flex-direction: column; gap: 10px;
+      transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+      cursor: pointer; text-align: left;
+    }
+    .snap:hover { border-color: var(--primary); box-shadow: var(--shadow-md); }
+    .snap-meta {
+      display: flex; justify-content: space-between; align-items: center; gap: 8px;
+      font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.04em;
+      color: var(--ink-faint);
+    }
+    .snap-era {
+      font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em;
+      text-transform: uppercase; padding: 2px 8px; border-radius: var(--radius-sm);
+      color: var(--primary-2); background: var(--primary-soft);
+    }
+    [data-theme="dark"] .snap-era { color: var(--primary); background: var(--primary-soft); }
+    .snap-title {
+      font-family: var(--font-display); font-size: 18px; line-height: 1.22;
+      color: var(--ink);
+    }
+    .snap-excerpt {
+      font-size: 13.5px; line-height: 1.5; color: var(--ink-muted);
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .snap-stats {
+      display: flex; gap: 14px; font-family: var(--font-mono); font-size: 11.5px;
+      color: var(--ink-faint); margin-top: auto;
+    }
+    .snap-stats b { color: var(--ink-muted); font-weight: 500; }
+
+    /* Modal: full snapshot read view */
+    .modal-backdrop {
+      position: fixed; inset: 0; z-index: 80;
+      background: rgba(20, 23, 30, 0.55); backdrop-filter: blur(8px);
+      display: none; align-items: flex-start; justify-content: center;
+      padding: 64px 24px; overflow-y: auto;
+    }
+    .modal-backdrop[data-open="true"] { display: flex; }
+    [data-theme="dark"] .modal-backdrop { background: rgba(0, 0, 0, 0.65); }
+    .modal {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius-xl); box-shadow: var(--shadow-lg);
+      max-width: 760px; width: 100%; padding: 36px 40px;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute; top: 16px; right: 16px;
+      width: 32px; height: 32px; border-radius: var(--radius-pill);
+      background: var(--bg-warm); color: var(--ink-muted);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .modal-close:hover { color: var(--ink); background: var(--primary-soft); }
+    .modal-meta {
+      display: flex; gap: 14px; flex-wrap: wrap;
+      font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em;
+      color: var(--ink-faint); margin-bottom: 8px;
+    }
+    .modal-title {
+      font-family: var(--font-display); font-size: 28px; line-height: 1.2;
+      color: var(--ink); margin-bottom: 8px;
+    }
+    .modal-body {
+      font-size: 14.5px; line-height: 1.65; color: var(--ink);
+      white-space: pre-wrap; margin-top: 20px;
+      max-height: 60vh; overflow-y: auto;
+      padding-right: 8px;
+    }
+    .modal-foot {
+      margin-top: 24px; padding-top: 18px;
+      border-top: 1px solid var(--line-soft);
+      display: flex; flex-wrap: wrap; gap: 14px; justify-content: space-between;
+      font-family: var(--font-mono); font-size: 12px; color: var(--ink-faint);
+    }
+    .modal-foot a { color: var(--primary-2); border-bottom: 1px solid var(--primary-soft); }
+    [data-theme="dark"] .modal-foot a { color: var(--primary); }
+    .modal-foot a:hover { border-bottom-color: var(--primary); }
+
+    /* No-results placeholder */
+    .empty {
+      grid-column: 1 / -1;
+      padding: 48px 20px; text-align: center;
+      color: var(--ink-faint); font-family: var(--font-mono); font-size: 14px;
+    }
+
+    /* Provenance + footer */
+    .provenance-list { list-style: none; display: grid; gap: 8px; }
+    .provenance-list li {
+      font-family: var(--font-mono); font-size: 13.5px;
+      color: var(--ink-muted); padding-left: 18px; position: relative;
+    }
+    .provenance-list li::before {
+      content: ""; position: absolute; left: 0; top: 9px;
+      width: 6px; height: 1px; background: var(--primary);
+    }
+    .provenance-list code {
+      color: var(--primary-2); font-weight: 500;
+    }
+    [data-theme="dark"] .provenance-list code { color: var(--primary); }
+
+    footer {
+      margin-top: 72px; padding-top: 28px; border-top: 1px solid var(--line);
+      display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between;
+      font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.03em; color: var(--ink-faint);
+    }
+    footer a:hover { color: var(--primary); }
+
+    @media (max-width: 720px) {
+      .page { padding: 0 20px 72px; }
+      .nav-inner { padding: 12px 20px; }
+      .hero { padding: 64px 0 40px; }
+      .nav-links { display: none; }
+      .modal { padding: 24px 24px; }
+      .modal-body { max-height: 50vh; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="nav" aria-label="Primary">
+    <div class="nav-inner">
+      <div class="nav-brand"><b>kpac</b> <span>wayback archive</span></div>
+      <div class="nav-links">
+        <a href="#eras">Eras</a>
+        <a href="#snapshots">Snapshots</a>
+        <a href="https://web.archive.org/web/*/http://kpac.org/" rel="noopener">Source</a>
+        <a href="https://kajica2.github.io/digital-twin/" rel="noopener">Digital Twin</a>
+        <theme-toggle>
+          <button type="button" data-theme-value="light" aria-pressed="false">light</button>
+          <button type="button" data-theme-value="system" aria-pressed="true">auto</button>
+          <button type="button" data-theme-value="dark" aria-pressed="false">dark</button>
+        </theme-toggle>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page" id="main">
+    <header class="hero">
+      <span class="kicker">Internet Archive · Wayback Machine</span>
+      <h1 class="h-display">kpac.org, <em>1999 to 2026</em></h1>
+      <p class="lede">
+        Forty-four archived snapshots of a defunct artists' collective, scraped from the Wayback Machine and surfaced as Obsidian notes. The site ran as a working collective for a decade, then collapsed to a placeholder, then was sold to a domain parker.
+      </p>
+
+      <div class="hero-stats">
+        <div class="stat"><div class="stat-num">44</div><div class="stat-label">snapshots</div></div>
+        <div class="stat"><div class="stat-num">3</div><div class="stat-label">eras</div></div>
+        <div class="stat"><div class="stat-num">27y</div><div class="stat-label">span</div></div>
+        <div class="stat"><div class="stat-num">56 KB</div><div class="stat-label">text captured</div></div>
+      </div>
+
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#snapshots">Browse snapshots</a>
+        <a class="btn" href="https://github.com/kajica2/digital-twin" rel="noopener">View on GitHub</a>
+      </div>
+    </header>
+
+    <section class="section" id="eras" aria-labelledby="eras-h">
+      <h2 class="h-section" id="eras-h">Three eras of kpac.org</h2>
+      <div class="eras">
+        <article class="era">
+          <span class="era-range">1999 to 2008</span>
+          <h3 class="era-name">Artists' collective</h3>
+          <p class="era-desc">
+            KPAC ran as a working artists' collective. Member pages, projects, and community notices. Real content, varied voice, the kind of site you only get when people who care are running it.
+          </p>
+          <div class="era-count">38 snapshots</div>
+        </article>
+        <article class="era">
+          <span class="era-range">2009 to 2016 · 2025 to present</span>
+          <h3 class="era-name">Minimal placeholder</h3>
+          <p class="era-desc">
+            The collective had stopped updating. The site was reduced to near-empty pages, sometimes just a single line. The domain still resolved, but the people were gone.
+          </p>
+          <div class="era-count">3 snapshots</div>
+        </article>
+        <article class="era">
+          <span class="era-range">2017 to 2024</span>
+          <h3 class="era-name">Parked domain</h3>
+          <p class="era-desc">
+            The domain had expired and was being sold by a parking service. The "content" is dense JavaScript rendering the price tag. Visible text is mostly "this website is for sale."
+          </p>
+          <div class="era-count">3 snapshots</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="snapshots" aria-labelledby="snapshots-h">
+      <h2 class="h-section" id="snapshots-h">Every snapshot</h2>
+
+      <div class="filters">
+        <div class="pills" role="tablist" aria-label="Filter by era">
+          <button class="pill" data-filter="all" aria-pressed="true" type="button">All</button>
+          <button class="pill" data-filter="artists-collective" aria-pressed="false" type="button">Artists' collective</button>
+          <button class="pill" data-filter="minimal-placeholder" aria-pressed="false" type="button">Placeholder</button>
+          <button class="pill" data-filter="parked-domain" aria-pressed="false" type="button">Parked domain</button>
+        </div>
+        <input type="search" class="search" id="search" placeholder="Search titles and text" aria-label="Search snapshots">
+      </div>
+
+      <div class="snapshot-count" id="count">44 snapshots</div>
+      <div class="snapshots" id="grid"></div>
+    </section>
+
+    <section class="section" id="provenance" aria-labelledby="provenance-h">
+      <h2 class="h-section" id="provenance-h">Provenance</h2>
+      <ul class="provenance-list">
+        <li>Source: <code>web.archive.org</code> CDX index of <code>http://kpac.org/</code></li>
+        <li>Length-bucket deduplicated, SHA-256 confirmed unique</li>
+        <li>Plain-text extracted by a stdlib HTML parser, script and style stripped</li>
+        <li>Archive on disk: <code>~/Documents/kpac-archive/</code> (raw, text, manifest.json)</li>
+        <li>Obsidian mirror: <code>kais-vault/references/kpac-org-archive/</code> (per-snapshot notes)</li>
+      </ul>
+    </section>
+
+    <footer>
+      <span>44 snapshots · 1999 to 2026</span>
+      <span>
+        <a href="https://web.archive.org/web/*/http://kpac.org/" rel="noopener">wayback source</a>
+        <span aria-hidden="true"> · </span>
+        <a href="https://kajica2.github.io/digital-twin/" rel="noopener">digital twin</a>
+      </span>
+    </footer>
+  </main>
+
+  <!-- Modal: opened by clicking any snapshot card -->
+  <div class="modal-backdrop" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" data-open="false">
+    <div class="modal" id="modal-card">
+      <button type="button" class="modal-close" id="modal-close" aria-label="Close">×</button>
+      <div class="modal-meta" id="modal-meta"></div>
+      <h2 class="modal-title" id="modal-title"></h2>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-foot" id="modal-foot"></div>
+    </div>
+  </div>
+
+  <script>
+    // Snapshot data is embedded inline so the page works from file:// or any static host.
+    // Source: ~/Documents/kpac-archive/manifest.json + text/<timestamp>.txt (truncated to 8 KB each).
+    const SNAPSHOTS = [{"ts": "19991128053202", "date": "1999-11-28 05:32", "year": "1999", "title": "Welcome to KPAC.org", "era": "artists-collective", "bytes": 509, "chars": 19, "text": "Welcome to KPAC.org"}, {"ts": "20000226094002", "date": "2000-02-26 09:40", "year": "2000", "title": "KPAC.ORG ARTISTS' COLLECTIVE", "era": "artists-collective", "bytes": 12865, "chars": 1538, "text": "KPAC.ORG ARTISTS' COLLECTIVE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nwelcome\n home,\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMonday, February 28, 2000\n\n\n\n\n\n\n\n Kai Productions Artists Collective exists in order to provide organizational, legal, and financial support for the KPAC open-source development projects. Formerly known as the Kai Productions Record Label, the Organization has been stabilized as a membership-based, not-for-profit organization in order to ensure that the KPAC projects continue to exist beyond the participation of individual volunteers... more\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFebruary 03  ::..\n\n\n\n\n\n\n\nYou have come in time of great action. I am creating a place where you can freely exchange, build grow.\n\nSome new things:\n\nArtist Template\n\n(for your Home page) If you'd like to use this, this love to host your site for free(non-profit artist's site)\nNewsLine\n\n(I have just started this, so if you'd like I'd love to add your collected Article(s) and make it bigger.\n\n\n\n\n\n\n\n\n\nWhat's New  ::..\n\n\n\n\n\n\n\n\n\n·Dalai Lama's Millenium Message\n\n·Artist Template\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSomething to See  ::..\n\n\n\n\n\n\n\n\n\nArtists Collective (the Old Site), Middle Path (the Old Site),MIKI (Photography),\n\n\n\n\n\n\n\nOur Friends  ::..\n\n\n\n\n\n\n\n\n\nike, SHIFT, trespasser, glassdog, k10k, christian tod, Mad design, sabre,\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nHome\n\n\n\n|\n\n\n\nConcept\n\n\n\n|\n\n\n\nSites\n\n\n\n|\n\n\n\nJoin KPAC\n\n\n\n|\n\n\n\nForum\n\n\n\n|\n\n\n\nNewsletter\n\n\n\n|\n\n\n\nLinks\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Questions? Contact Us.\n\n\n © Copyright 1999 Kai Productions Artists Collective, All rights reserved."}, {"ts": "20001017145654", "date": "2000-10-17 14:56", "year": "2000", "title": "KPAC.ORG", "era": "artists-collective", "bytes": 19254, "chars": 1824, "text": "KPAC.ORG\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Kai Productions Artists' Collective\n\n\n\n\nAbout us � Resources � Partners � Contact Us x\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nKpac Network >>\n\nKPAC.org\nGV.KPAC.org\nBD.KPAC.org\nNEWS.KPAC.org\nKaiProductions.net\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nJump To >>\n\nHome\n\nBodhiDharma\n\nVisual Exchange\n\nGuestbook\n\nColors\n\nSlashDot\n\nThe User\n\nThemes.org\n\nW3\n\nExpert\n\nKai Productions\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  Navigate\n\n\n\n\n\n\n\n\n\n\n\n\n\n   · About Us\n   · Projects\n   · Services\n   · Members\n   · Credits\n   · SourceCode\n   · About Linux\n   ·\n\n\n\n\n\n\n\n\n\n\n Test\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  Members\n\n\n\n\n\n  About Us\n\n\n\n\n\n  Projects\n\n\n\n\n\n  Featured\n\n\n\n\n\n  Upload\n\n\n\n\n\n\n\n\n\n\n\nArtists' Features\n\n\n\n\n\nBaby Boomers\n\nby: Mike Artimtage\n\n\n\n\n\n\n\n\nMiki Shinozaki Gallery\n\nAndjelija Gallery\n\n\nBodhisatva's Page\n\n\n\n\n\nWelcome to Our Website\n\n\n\n\nLast week we had a pleasure of having Allen Gavreau over at our Music Studio where we have been working on our latest album \"Acoustic guitar (trumpet).\"\nVery shortly to be available through NAPSTER. You can hear a loop of the guitar by cicking here.\n\nIF YOU HAVE SOUND PLEASE FEEL FREE TO CLICK HERE\n\n\nWe have a new\n\n\nCurrently we are working on making this place, the one place you can keep on coming back to, for latest and most alive place.\n\nSoon by logging in you will be able to edit your Power Pages. A place to sweowcase your art or an offering to the world of your abilities.<\n\n\n\n\n username:\n\n\n\n password:\n\n\n\n\n\n\n\n\nCreate Login\n\n Maintenance\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  Staff\n\n\n\n\n\n  Guestbook\n\n\n\nLinks >>\n\nPHP Links\n\nKPAC Links\n\nJob Links\n\n\n\n\n\n  Contact Us\n\nKai Productions Artists Collective is an open source colaborations.\nCopyright � 1997-2000 by Kai Production Artist's Collective, except if otherwise stated."}, {"ts": "20010124155100", "date": "2001-01-24 15:51", "year": "2001", "title": "KPAC.ORG Welcome Home!", "era": "artists-collective", "bytes": 17760, "chars": 2428, "text": "KPAC.ORG Welcome Home!\n\n KPAC.ORG:\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Select a Topic\n»Latest News\n»About Us\n­Services\n­Mission\n­Support KPAC\n­Benefits\n­Contact\n»Projects\n­Artists Collective\n­Buddha Dharma\n­Global Visual Exchange\n­Code Exchange\n»Resources\n­Featured Software\n­Orginal Files\n»Links.\n­Featured Links.\n­KPAC Links\n­PHP Programming\n­Job Search (Canada)\n­Member Links\n\n\nSplash\n| News\n| About Us\n| Members\n| Resources\n| Links\n\n\n\n LATEST NEWS\n\nWlcome home,\n Our\nNew system involves utalization of community building features such as\nhuman interaction. Our PartnerKPAC Intaranets is providing us\nwith ability to work together towards a common goal.\n\nWe are almost ready to finish the\nAdmin Part of the site\nwhich will than be the way you would edit your details, upload files, and\naccess original sourcefiles of Images/ 3dMAX/ Photoshop Sourcefiles\n\n Do you believe you should be here? Than register! registration is\nfree and easy. Register\ntoday\n\n\n\n\n\nWelcome to KPAC.org\n\nWe have just launched The new Look and feel to\n the KPAC Website. Take a look around and notice as it is changing from day to day... Our purpose is to build a network\nof profesionals who can within KPAC Network, Colaborate and Exchange Ideas\n\nWhat we are about\n\nKPAC CTO Jay Prall decides to move with KPAC in directions,\nand help get the administrative module going. \"Now that We have more time...\"\nAs he speaks many Servers worldwide are connecting to KPAC.org to stay in touch\n\nWhat will happen next...\n\nArtists at KPAC\n\nBaby Boomers\n\nby: Mike Artimtage\n\nMiki\nShinozaki\nBlinks and\nWinks  Latest\nQiwa Gallery Splash Page\n\nAndjelija Gallery\n\nBodhisatva's Page\nOmar Nelson\n\nWe want it to work\n\nThis is a place where dreams will become reality. Are you in yet?\n\nReady to have a website\n\nWe are giving hosting to Non-Profit & Artists as well as a way to\nget into the community of evergrowing Collective, cause you have something to say...\n\nWe have a new feature. You can now\nstream music beats and cool grooves using our Audio Integration. All the\nsamples have been provided by Musicians the friends of\nKPAC.\n\n January\n24, 2001\n\nFREE NEWSLETTER\n\nPowered by YMLP\n\nSEARCH KPAC.ORG\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Feedback |  Help | About\n Us | Projects | Jobs\n  |\n\n\n\n\n\n\nSEARCH  The Web KPAC\n\n\n\n\n\n\n\n\n\n\n\n Privacy Statement |\n Terms and Conditions  |\n Copyright � 1994-2000\n\n\n\n\n\n\nKai Productions Artists'\nCollective. operated by KaiProductions.net\nAll rights reserved."}, {"ts": "20010201082600", "date": "2001-02-01 08:26", "year": "2001", "title": "KPAC.ORG Welcome Home!", "era": "artists-collective", "bytes": 18516, "chars": 2484, "text": "KPAC.ORG Welcome Home!\n\n KPAC.ORG:\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Select a Topic\n»Latest News\n»About Us\n­Services\n­Mission\n­Support KPAC\n­Benefits\n­Contact\n»Projects\n­Artists Collective\n­Buddha Dharma\n­Global Visual Exchange\n­Code Exchange\n»Resources\n­Featured Software\n­Orginal Files\n»Links.\n­Featured Links.\n­KPAC Links\n­PHP Programming\n­Job Search (Canada)\n­Member Links\n\n\nSplash\n| News\n| About Us\n| Members\n| Resources\n| Links\n\n\n\n LATEST NEWS\n\nWlcome home,\n Our\nNew system involves utalization of community building features such as\nhuman interaction. Our PartnerKPAC Intaranets is providing us\nwith ability to work together towards a common goal.\n\nWe are almost ready to finish the\nAdmin Part of the site\nwhich will than be the way you would edit your details, upload files, and\naccess original sourcefiles of Images/ 3dMAX/ Photoshop Sourcefiles\n\n Do you believe you should be here? Than register! registration is\nfree and easy. Register\ntoday\n\n\n\n\n\nWelcome to KPAC.org\n\nWe have just launched The new Look and feel to\n the KPAC Website. Take a look around and notice as it is changing from day to day... Our purpose is to build a network\nof profesionals who can within KPAC Network, Colaborate and Exchange Ideas\n\nWhat we are about\n\nKPAC CTO Jay Prall decides to move with KPAC in directions,\nand help get the administrative module going. \"Now that We have more time...\"\nAs he speaks many Servers worldwide are connecting to KPAC.org to stay in touch\n\nWhat will happen next...\n\nArtists at KPAC\n\nBaby Boomers\n\nby: Mike Artimtage\n\nMiki\nShinozaki\nBlinks and\nWinks  Latest\nQiwa Gallery Splash Page\n\nAndjelija Gallery\n\nBodhisatva's Page\nOmar Nelson\n\nWe want it to work\n\nThis is a place where dreams will become reality. Are you in yet?\n\nReady to have a website\n\nWe are giving hosting to Non-Profit & Artists as well as a way to\nget into the community of evergrowing Collective, cause you have something to say...\n\nWe have a new feature. You can now\nstream music beats and cool grooves using our Audio Integration. All the\nsamples have been provided by Musicians the friends of\nKPAC.\n\n February\n01, 2001\n\nFREE NEWSLETTER\n\nPowered by YMLP\n\nSEARCH KPAC.ORG\n\n\n\n\n\n\n\n\nLogin Into KPAC\n\n\n\n\n Login Name:\n\n\n\n\n Password:\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Feedback |  Help | About\n Us | Projects | Jobs\n  |\n\n\n\n\n\n\nSEARCH  The Web KPAC\n\n\n\n\n\n\n\n\n\n\n\n Privacy Statement |\n Terms and Conditions  |\n Copyright � 1994-2000\n\n\n\n\n\n\nKai Productions Artists'\nCollective. operated by KaiProductions.net\nAll rights reserved."}, {"ts": "20010203212300", "date": "2001-02-03 21:23", "year": "2001", "title": "KPAC.ORG Welcome Home!", "era": "artists-collective", "bytes": 18516, "chars": 2484, "text": "KPAC.ORG Welcome Home!\n\n KPAC.ORG:\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Select a Topic\n»Latest News\n»About Us\n­Services\n­Mission\n­Support KPAC\n­Benefits\n­Contact\n»Projects\n­Artists Collective\n­Buddha Dharma\n­Global Visual Exchange\n­Code Exchange\n»Resources\n­Featured Software\n­Orginal Files\n»Links.\n­Featured Links.\n­KPAC Links\n­PHP Programming\n­Job Search (Canada)\n­Member Links\n\n\nSplash\n| News\n| About Us\n| Members\n| Resources\n| Links\n\n\n\n LATEST NEWS\n\nWlcome home,\n Our\nNew system involves utalization of community building features such as\nhuman interaction. Our PartnerKPAC Intaranets is providing us\nwith ability to work together towards a common goal.\n\nWe are almost ready to finish the\nAdmin Part of the site\nwhich will than be the way you would edit your details, upload files, and\naccess original sourcefiles of Images/ 3dMAX/ Photoshop Sourcefiles\n\n Do you believe you should be here? Than register! registration is\nfree and easy. Register\ntoday\n\n\n\n\n\nWelcome to KPAC.org\n\nWe have just launched The new Look and feel to\n the KPAC Website. Take a look around and notice as it is changing from day to day... Our purpose is to build a network\nof profesionals who can within KPAC Network, Colaborate and Exchange Ideas\n\nWhat we are about\n\nKPAC CTO Jay Prall decides to move with KPAC in directions,\nand help get the administrative module going. \"Now that We have more time...\"\nAs he speaks many Servers worldwide are connecting to KPAC.org to stay in touch\n\nWhat will happen next...\n\nArtists at KPAC\n\nBaby Boomers\n\nby: Mike Artimtage\n\nMiki\nShinozaki\nBlinks and\nWinks  Latest\nQiwa Gallery Splash Page\n\nAndjelija Gallery\n\nBodhisatva's Page\nOmar Nelson\n\nWe want it to work\n\nThis is a place where dreams will become reality. Are you in yet?\n\nReady to have a website\n\nWe are giving hosting to Non-Profit & Artists as well as a way to\nget into the community of evergrowing Collective, cause you have something to say...\n\nWe have a new feature. You can now\nstream music beats and cool grooves using our Audio Integration. All the\nsamples have been provided by Musicians the friends of\nKPAC.\n\n February\n03, 2001\n\nFREE NEWSLETTER\n\nPowered by YMLP\n\nSEARCH KPAC.ORG\n\n\n\n\n\n\n\n\nLogin Into KPAC\n\n\n\n\n Login Name:\n\n\n\n\n Password:\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Feedback |  Help | About\n Us | Projects | Jobs\n  |\n\n\n\n\n\n\nSEARCH  The Web KPAC\n\n\n\n\n\n\n\n\n\n\n\n Privacy Statement |\n Terms and Conditions  |\n Copyright � 1994-2000\n\n\n\n\n\n\nKai Productions Artists'\nCollective. operated by KaiProductions.net\nAll rights reserved."}, {"ts": "20010302111528", "date": "2001-03-02 11:15", "year": "2001", "title": "KPAC.ORG Welcome Home!", "era": "artists-collective", "bytes": 11730, "chars": 1713, "text": "KPAC.ORG Welcome Home!\n\n KPAC.ORG:\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nKAI\n\nProductions\n\nArtists\n\nCollective\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nKPAC.ORG\n\nHOME\n| FORUM | CONTACT\nUS\n\n\n\n\n\n\n\n\n About Us » Collaborate\n » Communicate\n » Share »\n Resources\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nHear the latest music at KPAC.org\n\n\n\n\n\nSee the Current Splash Gallery\n\n\n\n\n\nRbase arts platform covered. Talk about\nit!\n\nHIGHLIGHTS\n\nWe\nhave just lounched KPAC Forum and Invite everyone to\nvisit and participate\nin the open discussions as well as give input, ideas, suggestions. As we\nare building a forum will be a point of refference and direction. Thanks\nfor your input! We have a First Splash Exibition, Check it out. It Contains works of 3 KPAC Artists. Also Get in touch for participating in the next Splash Exibition.\n\nAs it may be noticably clear that we are building still, your interest and participation is appriciated, and yes it does help. Stay close as we unfold into the moment with whats really there. Its not that far between us.\n\nARTISTS FEATURE\nBaby Boomers\n\nby: Mike Artimtage\n\nMiki\nShinozaki\nBlinks and\nWinks  Latest\nQiwa Gallery Splash Page\n\nAndjelija Gallery\n\nBodhisatva's Page\nOmar Nelson\n\nWe have a new feature. You can now\nstream music beats and cool grooves using our Audio Integration. All the\nsamples have been provided by Musicians the friends of\nKPAC.\n\n March\n02, 2001\n\nFREE NEWSLETTER\n\nPowered by YMLP\n\nSEARCH KPAC.ORG\n\n\n\n\n\n\n\n\nLogin Into KPAC\n\n\n\n\n Login Name:\n\n\n\n\n Password:\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Feedback |  Help | About\n Us | Projects | Jobs\n  |\n\n\n\n\n\n\nSEARCH  The Web KPAC\n\n\n\n\n\n\n\n\n\n\n\n Privacy\nStatement |\n Terms and\nConditions  |\n Copyright � 1994-2001\n\n\n\n\n\n\nKai Productions Artists'\nCollective. operated by KaiProductions.net\nAll rights reserved."}, {"ts": "20010331180302", "date": "2001-03-31 18:03", "year": "2001", "title": "KPAC.ORG Welcome Home!", "era": "artists-collective", "bytes": 11294, "chars": 1313, "text": "KPAC.ORG Welcome Home!\n\n KPAC.ORG:\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nHOME\n| FORUM | CONTACT\nUS\n\n\n\n\n\n\n\n\n About Us » Collaborate\n » Communicate\n » Share »\n Resources\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMike Armitage & Kajica soon to get busy.\"\n\n\n\n\nSee the Current Splash Gallery\n\n\n\n\nRbase arts platform covered. Talk about\nit!\n\n March\n31, 2001\n\nHome\n\nLatest News\n\nArtists\n\nPhotography, Writing, Design, Music, Dance\n\nTalent\n\nWeb Designers, Musicians, Writers, Film& Theatre\n\nEvents\n\nMusic, Dance, Theatre, Art Shows\n\nEvents Archive\n\nArt Shows, Music Shows, Exibitions\n\nPlaces to see\n\nCafes, Bars, Live Music, Clubs\n\nARTISTS FEATURE\nBaby Boomers\n\nby: Mike Artimtage\n\nMiki\nShinozaki\nBlinks and\nWinks  Latest\nQiwa Gallery Splash Page\n\nAndjelija Gallery\n\nBodhisatva's Page\nOmar Nelson\n\nWe have a new feature. You can now\nstream music beats and cool grooves using our Audio Integration. All the\nsamples have been provided by Musicians the friends of\nKPAC.\n\nFREE NEWSLETTER\n\nPowered by YMLP\n\nSEARCH KPAC.ORG\n\n\n\n\n\n\n\n\nLogin Into KPAC\n\n\n\n\n Login Name:\n\n\n\n\n Password:\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Feedback |  Help | About\n Us | Projects | Jobs\n  |\n\n\n\n\n\n\nSEARCH  The Web KPAC\n\n\n\n\n\n\n\n\n\n\n\n Privacy\nStatement |\n Terms and\nConditions  |\n Copyright � 1994-2001\n\n\n\n\n\n\nKai Productions Artists'\nCollective. operated by KaiProductions.net\nAll rights reserved."}, {"ts": "20010401235905", "date": "2001-04-01 23:59", "year": "2001", "title": "KPAC.ORG Welcome Home!", "era": "artists-collective", "bytes": 11294, "chars": 1313, "text": "KPAC.ORG Welcome Home!\n\n KPAC.ORG:\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nHOME\n| FORUM | CONTACT\nUS\n\n\n\n\n\n\n\n\n About Us » Collaborate\n » Communicate\n » Share »\n Resources\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMike Armitage & Kajica soon to get busy.\"\n\n\n\n\nSee the Current Splash Gallery\n\n\n\n\nRbase arts platform covered. Talk about\nit!\n\n April\n01, 2001\n\nHome\n\nLatest News\n\nArtists\n\nPhotography, Writing, Design, Music, Dance\n\nTalent\n\nWeb Designers, Musicians, Writers, Film& Theatre\n\nEvents\n\nMusic, Dance, Theatre, Art Shows\n\nEvents Archive\n\nArt Shows, Music Shows, Exibitions\n\nPlaces to see\n\nCafes, Bars, Live Music, Clubs\n\nARTISTS FEATURE\nBaby Boomers\n\nby: Mike Artimtage\n\nMiki\nShinozaki\nBlinks and\nWinks  Latest\nQiwa Gallery Splash Page\n\nAndjelija Gallery\n\nBodhisatva's Page\nOmar Nelson\n\nWe have a new feature. You can now\nstream music beats and cool grooves using our Audio Integration. All the\nsamples have been provided by Musicians the friends of\nKPAC.\n\nFREE NEWSLETTER\n\nPowered by YMLP\n\nSEARCH KPAC.ORG\n\n\n\n\n\n\n\n\nLogin Into KPAC\n\n\n\n\n Login Name:\n\n\n\n\n Password:\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Feedback |  Help | About\n Us | Projects | Jobs\n  |\n\n\n\n\n\n\nSEARCH  The Web KPAC\n\n\n\n\n\n\n\n\n\n\n\n Privacy\nStatement |\n Terms and\nConditions  |\n Copyright � 1994-2001\n\n\n\n\n\n\nKai Productions Artists'\nCollective. operated by KaiProductions.net\nAll rights reserved."}, {"ts": "20010418145636", "date": "2001-04-18 14:56", "year": "2001", "title": "KPAC.ORG Welcome Home!", "era": "artists-collective", "bytes": 11328, "chars": 1313, "text": "KPAC.ORG Welcome Home!\n\n KPAC.ORG:\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nHOME\n| FORUM | CONTACT\nUS\n\n\n\n\n\n\n\n\n About Us » Collaborate\n » Communicate\n » Share »\n Resources\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMike Armitage & Kajica soon to get busy.\"\n\n\n\n\nSee the Current Splash Gallery\n\n\n\n\nRbase arts platform covered. Talk about\nit!\n\n April\n18, 2001\n\nHome\n\nLatest News\n\nArtists\n\nPhotography, Writing, Design, Music, Dance\n\nTalent\n\nWeb Designers, Musicians, Writers, Film& Theatre\n\nEvents\n\nMusic, Dance, Theatre, Art Shows\n\nEvents Archive\n\nArt Shows, Music Shows, Exibitions\n\nPlaces to see\n\nCafes, Bars, Live Music, Clubs\n\nARTISTS FEATURE\nBaby Boomers\n\nby: Mike Artimtage\n\nMiki\nShinozaki\nBlinks and\nWinks  Latest\nQiwa Gallery Splash Page\n\nAndjelija Gallery\n\nBodhisatva's Page\nOmar Nelson\n\nWe have a new feature. You can now\nstream music beats and cool grooves using our Audio Integration. All the\nsamples have been provided by Musicians the friends of\nKPAC.\n\nFREE NEWSLETTER\n\nPowered by YMLP\n\nSEARCH KPAC.ORG\n\n\n\n\n\n\n\n\nLogin Into KPAC\n\n\n\n\n Login Name:\n\n\n\n\n Password:\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Feedback |  Help | About\n Us | Projects | Jobs\n  |\n\n\n\n\n\n\nSEARCH  The Web KPAC\n\n\n\n\n\n\n\n\n\n\n\n Privacy\nStatement |\n Terms and\nConditions  |\n Copyright � 1994-2001\n\n\n\n\n\n\nKai Productions Artists'\nCollective. operated by KaiProductions.net\nAll rights reserved."}, {"ts": "20010517032928", "date": "2001-05-17 03:29", "year": "2001", "title": "KPAC.ORG Welcome Home!", "era": "artists-collective", "bytes": 11542, "chars": 1374, "text": "KPAC.ORG Welcome Home!\n\n KPAC.ORG:\n\n\n\n\n\n\n\n\n\n\n\nKPAC.ORG\n\nWednesday\n16th of May 2001 10:24:27\nPM\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMY\nKPAC\n| FORUM | CONTACT\nUS\n\n\n\n\n\n\n\n\n About Us » Collaborate\n » Communicate\n » Share »\n Resources\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMike Armitage & Kajica soon to get busy.\"\n\n\n\n\nSee the Current Splash Gallery\n\n\n\n\nRbase arts platform covered. Talk about\nit!\n\n May\n16, 2001\n\nHome\n\nLatest News\n\nArtists\n\nPhotography, Writing, Design, Music, Dance\n\nTalent\n\nWeb Designers, Musicians, Writers, Film& Theatre\n\nEvents\n\nMusic, Dance, Theatre, Art Shows\n\nEvents Archive\n\nArt Shows, Music Shows, Exibitions\n\nPlaces to see\n\nCafes, Bars, Live Music, Clubs\n\nARTISTS FEATURE\nBaby Boomers\n\nby: Mike Artimtage\n\nMiki\nShinozaki\nBlinks and\nWinks  Latest\nQiwa Gallery Splash Page\n\nAndjelija Gallery\n\nBodhisatva's Page\nOmar Nelson\n\nWe have a new feature. You can now\nstream music beats and cool grooves using our Audio Integration. All the\nsamples have been provided by Musicians the friends of\nKPAC.\n\nFREE NEWSLETTER\n\nPowered by YMLP\n\nSEARCH KPAC.ORG\n\n\n\n\n\n\n\n\nLogin Into KPAC\n\n\n\n\n Login Name:\n\n\n\n\n Password:\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Feedback |  Help | About\n Us | Projects | Jobs\n  |\n\n\n\n\n\n\nSEARCH  The Web KPAC\n\n\n\n\n\n\n\n\n\n\n\n Privacy\nStatement |\n Terms and\nConditions  |\n Copyright � 1994-2001\n\n\n\n\n\nContact Us\nKai Productions\nArtists'\nCollective. operated by KaiProductions.net\nAll rights reserved."}, {"ts": "20011001182538", "date": "2001-10-01 18:25", "year": "2001", "title": "KPAC.ORG Welcome Home!", "era": "artists-collective", "bytes": 11555, "chars": 1379, "text": "KPAC.ORG Welcome Home!\n\n KPAC.ORG:\n\n\n\n\n\n\n\n\n\n\n\nKPAC.ORG\n\nMonday\n01st of October 2001 09:12:44\nPM\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMY\nKPAC\n| FORUM | CONTACT\nUS\n\n\n\n\n\n\n\n\n About Us » Collaborate\n » Communicate\n » Share »\n Resources\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMike Armitage & Kajica soon to get busy.\"\n\n\n\n\nSee the Current Splash Gallery\n\n\n\n\nRbase arts platform covered. Talk about\nit!\n\n October\n01, 2001\n\nHome\n\nLatest News\n\nArtists\n\nPhotography, Writing, Design, Music, Dance\n\nTalent\n\nWeb Designers, Musicians, Writers, Film& Theatre\n\nEvents\n\nMusic, Dance, Theatre, Art Shows\n\nEvents Archive\n\nArt Shows, Music Shows, Exibitions\n\nPlaces to see\n\nCafes, Bars, Live Music, Clubs\n\nARTISTS FEATURE\nBaby Boomers\n\nby: Mike Artimtage\n\nMiki\nShinozaki\nBlinks and\nWinks  Latest\nQiwa Gallery Splash Page\n\nAndjelija Gallery\n\nBodhisatva's Page\nOmar Nelson\n\nWe have a new feature. You can now\nstream music beats and cool grooves using our Audio Integration. All the\nsamples have been provided by Musicians the friends of\nKPAC.\n\nFREE NEWSLETTER\n\nPowered by YMLP\n\nSEARCH KPAC.ORG\n\n\n\n\n\n\n\n\nLogin Into KPAC\n\n\n\n\n Login Name:\n\n\n\n\n Password:\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Feedback |  Help | About\n Us | Projects | Jobs\n  |\n\n\n\n\n\n\nSEARCH  The Web KPAC\n\n\n\n\n\n\n\n\n\n\n\n Privacy\nStatement |\n Terms and\nConditions  |\n Copyright � 1994-2001\n\n\n\n\n\nContact Us\nKai Productions\nArtists'\nCollective. operated by KaiProductions.net\nAll rights reserved."}, {"ts": "20011128024922", "date": "2001-11-28 02:49", "year": "2001", "title": "KPAC.ORG: a title", "era": "artists-collective", "bytes": 6211, "chars": 679, "text": "KPAC.ORG: a title\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n|\n\n\n\n\n |\n\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n\n|\n\n\n\n\n\n\n\nWelcome to the New Website\n\n\n\nThanks for visiting and enjoy your stay\n\n\nWe are still building this site, so we´d love to hear from! don´t be shy, contact us!\n\n\n\n\n\n\n\n\n\nAbout Us   |   Directory\n  |   Events   |\n  Coverage  |  Communicate   ::\n\nContact | Sitemap | Terms of Use\nAbout KPAC\nNetwork\n\nAll people and places\ninformation on this\nsite, including prices, features is based solely on information made available\nby people and KPAC disclaims any responsibility for this information or the\nproducts & information listed.\n\nCopyright �1996-2001 Kai\nProductions , Inc. All rights reserved. Privacy\npolicy."}, {"ts": "20020605062306", "date": "2002-06-05 06:23", "year": "2002", "title": "CaArts.net Canadian Arts Network", "era": "artists-collective", "bytes": 6301, "chars": 1120, "text": "CaArts.net Canadian Arts Network\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n|\n\n\n\n\n |\n\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n\n|\n\n\n\n\n\n\n\nCanadian Arts Network CaArts.net\n\n\nThe purpose of this on-line community is threefold. All functions are of equal importance to the promotion, growth, and success of this site and its members. One aspect is to foster an artistic community that is able to transcend the limitations of geography. Artists living in remote communities will be able to collaborate with artists in distant urban centres and possibly participate in otherwise inaccessible projects. Artists on one coast will have the opportunity to learn from, teach and exchange ideas with artists on the other.\n...\n\nThis is right column\n\nAbout Us   |   Directory\n  |   Events   |\n  Coverage  |  Communicate   ::\n\nContact | Sitemap | Terms of Use\nAbout KPAC\nNetwork\n\nAll people and places\ninformation on this\nsite, including prices, features is based solely on information made available\nby people of kpac and KPAC disclaims any responsibility for this information or the\nproducts & information listed.\n\nCopyright �1996-2001, Inc. All rights reserved. Privacy\npolicy."}, {"ts": "20030130092501", "date": "2003-01-30 09:25", "year": "2003", "title": "CaArts.net Canadian Arts Network", "era": "artists-collective", "bytes": 6328, "chars": 1122, "text": "CaArts.net Canadian Arts Network\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n|\n\n\n\n\n |\n\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n\n|\n\n\n\n\n\n\n\nCanadian Arts Network CaArts.net\n\n\nThe purpose of this on-line community is threefold. All functions are of equal importance to the promotion, growth, and success of this site and its members. One aspect is to foster an artistic community that is able to transcend the limitations of geography. Artists living in remote communities will be able to collaborate with artists in distant urban centres and possibly participate in otherwise inaccessible projects. Artists on one coast will have the opportunity to learn from, teach and exchange ideas with artists on the other.\n...\n\nThis is right column\n\n\n\nAbout Us   |   Directory\n  |   Events   |\n  Coverage  |  Communicate   ::\n\nContact | Sitemap | Terms of Use\nAbout KPAC\nNetwork\n\nAll people and places\ninformation on this\nsite, including prices, features is based solely on information made available\nby people of kpac and KPAC disclaims any responsibility for this information or the\nproducts & information listed.\n\nCopyright �1996-2001, Inc. All rights reserved. Privacy\npolicy."}, {"ts": "20030411044042", "date": "2003-04-11 04:40", "year": "2003", "title": "KPAC.ORG Welcome Home!", "era": "artists-collective", "bytes": 11536, "chars": 1377, "text": "KPAC.ORG Welcome Home!\n\n KPAC.ORG:\n\n\n\n\n\n\n\n\n\n\n\nKPAC.ORG\n\nThursday\n10th of April 2003 07:19:15\nPM\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMY\nKPAC\n| FORUM | CONTACT\nUS\n\n\n\n\n\n\n\n\n About Us » Collaborate\n » Communicate\n » Share »\n Resources\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMike Armitage & Kajica soon to get busy.\"\n\n\n\n\nSee the Current Splash Gallery\n\n\n\n\nRbase arts platform covered. Talk about\nit!\n\n April\n10, 2003\n\nHome\n\nLatest News\n\nArtists\n\nPhotography, Writing, Design, Music, Dance\n\nTalent\n\nWeb Designers, Musicians, Writers, Film& Theatre\n\nEvents\n\nMusic, Dance, Theatre, Art Shows\n\nEvents Archive\n\nArt Shows, Music Shows, Exibitions\n\nPlaces to see\n\nCafes, Bars, Live Music, Clubs\n\nARTISTS FEATURE\nBaby Boomers\n\nby: Mike Artimtage\n\nMiki\nShinozaki\nBlinks and\nWinks  Latest\nQiwa Gallery Splash Page\n\nAndjelija Gallery\n\nBodhisatva's Page\nOmar Nelson\n\nWe have a new feature. You can now\nstream music beats and cool grooves using our Audio Integration. All the\nsamples have been provided by Musicians the friends of\nKPAC.\n\nFREE NEWSLETTER\n\nPowered by YMLP\n\nSEARCH KPAC.ORG\n\n\n\n\n\n\n\n\nLogin Into KPAC\n\n\n\n\n Login Name:\n\n\n\n\n Password:\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Feedback |  Help | About\n Us | Projects | Jobs\n  |\n\n\n\n\n\n\nSEARCH  The Web KPAC\n\n\n\n\n\n\n\n\n\n\n\n Privacy\nStatement |\n Terms and\nConditions  |\n Copyright � 1994-2001\n\n\n\n\n\nContact Us\nKai Productions\nArtists'\nCollective. operated by KaiProductions.net\nAll rights reserved."}, {"ts": "20030420122719", "date": "2003-04-20 12:27", "year": "2003", "title": "KPAC.ORG Welcome Home!", "era": "artists-collective", "bytes": 11534, "chars": 1375, "text": "KPAC.ORG Welcome Home!\n\n KPAC.ORG:\n\n\n\n\n\n\n\n\n\n\n\nKPAC.ORG\n\nSunday\n20th of April 2003 03:05:06\nAM\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMY\nKPAC\n| FORUM | CONTACT\nUS\n\n\n\n\n\n\n\n\n About Us » Collaborate\n » Communicate\n » Share »\n Resources\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMike Armitage & Kajica soon to get busy.\"\n\n\n\n\nSee the Current Splash Gallery\n\n\n\n\nRbase arts platform covered. Talk about\nit!\n\n April\n20, 2003\n\nHome\n\nLatest News\n\nArtists\n\nPhotography, Writing, Design, Music, Dance\n\nTalent\n\nWeb Designers, Musicians, Writers, Film& Theatre\n\nEvents\n\nMusic, Dance, Theatre, Art Shows\n\nEvents Archive\n\nArt Shows, Music Shows, Exibitions\n\nPlaces to see\n\nCafes, Bars, Live Music, Clubs\n\nARTISTS FEATURE\nBaby Boomers\n\nby: Mike Artimtage\n\nMiki\nShinozaki\nBlinks and\nWinks  Latest\nQiwa Gallery Splash Page\n\nAndjelija Gallery\n\nBodhisatva's Page\nOmar Nelson\n\nWe have a new feature. You can now\nstream music beats and cool grooves using our Audio Integration. All the\nsamples have been provided by Musicians the friends of\nKPAC.\n\nFREE NEWSLETTER\n\nPowered by YMLP\n\nSEARCH KPAC.ORG\n\n\n\n\n\n\n\n\nLogin Into KPAC\n\n\n\n\n Login Name:\n\n\n\n\n Password:\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Feedback |  Help | About\n Us | Projects | Jobs\n  |\n\n\n\n\n\n\nSEARCH  The Web KPAC\n\n\n\n\n\n\n\n\n\n\n\n Privacy\nStatement |\n Terms and\nConditions  |\n Copyright � 1994-2001\n\n\n\n\n\nContact Us\nKai Productions\nArtists'\nCollective. operated by KaiProductions.net\nAll rights reserved."}, {"ts": "20030618103041", "date": "2003-06-18 10:30", "year": "2003", "title": "CaArts.net Canadian Arts Network", "era": "artists-collective", "bytes": 6572, "chars": 581, "text": "CaArts.net Canadian Arts Network\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n|\n\n\n\n\n |\n\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n\n|\n\n\n\n\n\n\n\nOrganization\n\n\n\nComing soon...\n\n...\n\nThis is right column\n\n\n\nAbout Us   |   Directory\n  |   Events   |\n  Coverage  |  Communicate   ::\n\nContact | Sitemap | Terms of Use\nAbout KPAC\nNetwork\n\nAll people and places\ninformation on this\nsite, including prices, features is based solely on information made available\nby people of kpac and KPAC disclaims any responsibility for this information or the\nproducts & information listed.\n\nCopyright �1996-2001, Inc. All rights reserved. Privacy\npolicy."}, {"ts": "20030802101819", "date": "2003-08-02 10:18", "year": "2003", "title": "CaArts.net Canadian Arts Network", "era": "artists-collective", "bytes": 6572, "chars": 581, "text": "CaArts.net Canadian Arts Network\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n|\n\n\n\n\n |\n\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n\n|\n\n\n\n\n\n\n\nOrganization\n\n\n\nComing soon...\n\n...\n\nThis is right column\n\n\n\nAbout Us   |   Directory\n  |   Events   |\n  Coverage  |  Communicate   ::\n\nContact | Sitemap | Terms of Use\nAbout KPAC\nNetwork\n\nAll people and places\ninformation on this\nsite, including prices, features is based solely on information made available\nby people of kpac and KPAC disclaims any responsibility for this information or the\nproducts & information listed.\n\nCopyright �1996-2001, Inc. All rights reserved. Privacy\npolicy."}, {"ts": "20030926093821", "date": "2003-09-26 09:38", "year": "2003", "title": "Kai Productions Artists' Collective", "era": "artists-collective", "bytes": 6302, "chars": 677, "text": "Kai Productions Artists' Collective\n\n\n\n\n\n\n\n\n\n\n\ncoming soon\n\n\n\n\n\n|\n\n\n\n\n |\n\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n\n|\n\n\n\n\n\nContact Us\n\nKai Productions Artists� Collective\n\nKajica Djuric\n\n101 Boulton Ave\n\nToronto, Ontario\n\nM4M2J4\n\n��\n\nEmail us at kajica@kpac.org\n\n...\n\nAbout Us � | � Directory\n� | � Events � |\n� Coverage� | �Communicate � ::\n\nContact | Sitemap | Terms of Use\nAbout KPAC\nNetwork\n\nAll people and places\ninformation on this\nsite, including prices, features is based solely on information made available\nby people of kpac and KPAC disclaims any responsibility for this information or the\nproducts & information listed.\n\nCopyright �1996-2001, Inc. All rights reserved. Privacy\npolicy."}, {"ts": "20031121084735", "date": "2003-11-21 08:47", "year": "2003", "title": "Kai Productions Artists' Collective", "era": "artists-collective", "bytes": 6242, "chars": 677, "text": "Kai Productions Artists' Collective\n\n\n\n\n\n\n\n\n\n\n\nComing soon\n\n\n\n\n\n|\n\n\n\n\n |\n\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n\n|\n\n\n\n\n\nContact Us\n\nKai Productions Artists� Collective\n\nKajica Djuric\n\n101 Boulton Ave\n\nToronto, Ontario\n\nM4M2J4\n\n��\n\nEmail us at kajica@kpac.org\n\n...\n\nAbout Us � | � Directory\n� | � Events � |\n� Coverage� | �Communicate � ::\n\nContact | Sitemap | Terms of Use\nAbout KPAC\nNetwork\n\nAll people and places\ninformation on this\nsite, including prices, features is based solely on information made available\nby people of kpac and KPAC disclaims any responsibility for this information or the\nproducts & information listed.\n\nCopyright �1996-2001, Inc. All rights reserved. Privacy\npolicy."}, {"ts": "20031123200649", "date": "2003-11-23 20:06", "year": "2003", "title": "Kai Productions Artists' Collective", "era": "artists-collective", "bytes": 6242, "chars": 677, "text": "Kai Productions Artists' Collective\n\n\n\n\n\n\n\n\n\n\n\nComing soon\n\n\n\n\n\n|\n\n\n\n\n |\n\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n\n|\n\n\n\n\n\nContact Us\n\nKai Productions Artists� Collective\n\nKajica Djuric\n\n101 Boulton Ave\n\nToronto, Ontario\n\nM4M2J4\n\n��\n\nEmail us at kajica@kpac.org\n\n...\n\nAbout Us � | � Directory\n� | � Events � |\n� Coverage� | �Communicate � ::\n\nContact | Sitemap | Terms of Use\nAbout KPAC\nNetwork\n\nAll people and places\ninformation on this\nsite, including prices, features is based solely on information made available\nby people of kpac and KPAC disclaims any responsibility for this information or the\nproducts & information listed.\n\nCopyright �1996-2001, Inc. All rights reserved. Privacy\npolicy."}, {"ts": "20031219022217", "date": "2003-12-19 02:22", "year": "2003", "title": "Kai Productions Artists' Collective", "era": "artists-collective", "bytes": 6242, "chars": 677, "text": "Kai Productions Artists' Collective\n\n\n\n\n\n\n\n\n\n\n\nComing soon\n\n\n\n\n\n|\n\n\n\n\n |\n\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n\n|\n\n\n\n\n\nContact Us\n\nKai Productions Artists� Collective\n\nKajica Djuric\n\n101 Boulton Ave\n\nToronto, Ontario\n\nM4M2J4\n\n��\n\nEmail us at kajica@kpac.org\n\n...\n\nAbout Us � | � Directory\n� | � Events � |\n� Coverage� | �Communicate � ::\n\nContact | Sitemap | Terms of Use\nAbout KPAC\nNetwork\n\nAll people and places\ninformation on this\nsite, including prices, features is based solely on information made available\nby people of kpac and KPAC disclaims any responsibility for this information or the\nproducts & information listed.\n\nCopyright �1996-2001, Inc. All rights reserved. Privacy\npolicy."}, {"ts": "20040405101142", "date": "2004-04-05 10:11", "year": "2004", "title": "Kai Productions Artists' Collective", "era": "artists-collective", "bytes": 5994, "chars": 677, "text": "Kai Productions Artists' Collective\n\n\n\n\n\n\n\n\n\n\n\nComing soon\n\n\n\n\n\n|\n\n\n\n\n |\n\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n\n|\n\n\n\n\n\nContact Us\n\nKai Productions Artists� Collective\n\nKajica Djuric\n\n101 Boulton Ave\n\nToronto, Ontario\n\nM4M2J4\n\n��\n\nEmail us at kajica@kpac.org\n\n...\n\nAbout Us � | � Directory\n� | � Events � |\n� Coverage� | �Communicate � ::\n\nContact | Sitemap | Terms of Use\nAbout KPAC\nNetwork\n\nAll people and places\ninformation on this\nsite, including prices, features is based solely on information made available\nby people of kpac and KPAC disclaims any responsibility for this information or the\nproducts & information listed.\n\nCopyright �1996-2001, Inc. All rights reserved. Privacy\npolicy."}, {"ts": "20040414100618", "date": "2004-04-14 10:06", "year": "2004", "title": "Kai Productions Artists' Collective", "era": "artists-collective", "bytes": 5994, "chars": 677, "text": "Kai Productions Artists' Collective\n\n\n\n\n\n\n\n\n\n\n\nComing soon\n\n\n\n\n\n|\n\n\n\n\n |\n\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n\n|\n\n\n\n\n\nContact Us\n\nKai Productions Artists� Collective\n\nKajica Djuric\n\n101 Boulton Ave\n\nToronto, Ontario\n\nM4M2J4\n\n��\n\nEmail us at kajica@kpac.org\n\n...\n\nAbout Us � | � Directory\n� | � Events � |\n� Coverage� | �Communicate � ::\n\nContact | Sitemap | Terms of Use\nAbout KPAC\nNetwork\n\nAll people and places\ninformation on this\nsite, including prices, features is based solely on information made available\nby people of kpac and KPAC disclaims any responsibility for this information or the\nproducts & information listed.\n\nCopyright �1996-2001, Inc. All rights reserved. Privacy\npolicy."}, {"ts": "20040514075859", "date": "2004-05-14 07:58", "year": "2004", "title": "Kai Productions Artists' Collective", "era": "artists-collective", "bytes": 5994, "chars": 677, "text": "Kai Productions Artists' Collective\n\n\n\n\n\n\n\n\n\n\n\nComing soon\n\n\n\n\n\n|\n\n\n\n\n |\n\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n\n|\n\n\n\n\n\nContact Us\n\nKai Productions Artists� Collective\n\nKajica Djuric\n\n101 Boulton Ave\n\nToronto, Ontario\n\nM4M2J4\n\n��\n\nEmail us at kajica@kpac.org\n\n...\n\nAbout Us � | � Directory\n� | � Events � |\n� Coverage� | �Communicate � ::\n\nContact | Sitemap | Terms of Use\nAbout KPAC\nNetwork\n\nAll people and places\ninformation on this\nsite, including prices, features is based solely on information made available\nby people of kpac and KPAC disclaims any responsibility for this information or the\nproducts & information listed.\n\nCopyright �1996-2001, Inc. All rights reserved. Privacy\npolicy."}, {"ts": "20040527075646", "date": "2004-05-27 07:56", "year": "2004", "title": "Kai Productions Artists' Collective", "era": "artists-collective", "bytes": 5994, "chars": 677, "text": "Kai Productions Artists' Collective\n\n\n\n\n\n\n\n\n\n\n\nComing soon\n\n\n\n\n\n|\n\n\n\n\n |\n\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n\n|\n\n\n\n\n\nContact Us\n\nKai Productions Artists� Collective\n\nKajica Djuric\n\n101 Boulton Ave\n\nToronto, Ontario\n\nM4M2J4\n\n��\n\nEmail us at kajica@kpac.org\n\n...\n\nAbout Us � | � Directory\n� | � Events � |\n� Coverage� | �Communicate � ::\n\nContact | Sitemap | Terms of Use\nAbout KPAC\nNetwork\n\nAll people and places\ninformation on this\nsite, including prices, features is based solely on information made available\nby people of kpac and KPAC disclaims any responsibility for this information or the\nproducts & information listed.\n\nCopyright �1996-2001, Inc. All rights reserved. Privacy\npolicy."}, {"ts": "20040729175313", "date": "2004-07-29 17:53", "year": "2004", "title": "Kai Productions Artists' Collective", "era": "artists-collective", "bytes": 5994, "chars": 677, "text": "Kai Productions Artists' Collective\n\n\n\n\n\n\n\n\n\n\n\nComing soon\n\n\n\n\n\n|\n\n\n\n\n |\n\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n\n|\n\n\n\n\n\nContact Us\n\nKai Productions Artists� Collective\n\nKajica Djuric\n\n101 Boulton Ave\n\nToronto, Ontario\n\nM4M2J4\n\n��\n\nEmail us at kajica@kpac.org\n\n...\n\nAbout Us � | � Directory\n� | � Events � |\n� Coverage� | �Communicate � ::\n\nContact | Sitemap | Terms of Use\nAbout KPAC\nNetwork\n\nAll people and places\ninformation on this\nsite, including prices, features is based solely on information made available\nby people of kpac and KPAC disclaims any responsibility for this information or the\nproducts & information listed.\n\nCopyright �1996-2001, Inc. All rights reserved. Privacy\npolicy."}, {"ts": "20040927025223", "date": "2004-09-27 02:52", "year": "2004", "title": "Coming Soon!", "era": "artists-collective", "bytes": 29830, "chars": 3178, "text": "Coming Soon!\n\n\n\n\n\n\n\n\n\n www.kpac.org coming soon!\n\n\n This page is parked FREE at GoDaddy.com!\n\n\n\n\n\n\n\n\n\n\n\n\n\nGoDaddy.com is the #1 new domain name registrar!\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nEnter a domain name:\n\n\n\n\n\n\n\n  www.\n\n .com\n .net\n .org\n .info\n .biz\n .us\n .ws\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFREE with every domain:\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nChange of Registration\n\n\n\n\n\n\n\nParked Page\n\n\n\n\n\n\n\nDomain Locking\n\n\n\n\n\n\n\nStatus Alerts\n\n\n\n\n\n\n\nNew! Domain Masking\n\n\n\n\n\n\n\nNew! \"For Sale\" Page\n\n\n\n\n\n\n\nNew! Total DNS Control\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Private Registration\n — Protect yourself from spam, scams, prying eyes and worse. Only $9.00. More\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nJust $18.95\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nYou CAN secure the registration to any .com, .net, .org, .biz, .us and\n.info domain.\n\n\nLearn more\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Only $99/yr!\n\nSell the same products you see here! Complete\n turn-key operation, including site and customer support. No\n technical experience required!\n\n\n\nClick for more info\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSEVERAL PLANS AVAILABLE!\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nWorld Class Data Center\n\n\n\n\n\n\n\nLots of bandwidth — up to 100GB!\n\n\n\n\n\n\n\nMultiple plans to choose from\n\n\n\n\n\n\n\nPHP & FrontPage!\n\n\n\n\n\n\n\nFREE MySQL Databases!\n\n\n\n\n\n\n\nFREE Email/Webmail!\n\n\n\n\n\n\n\nFREE Spam Filter!\n\n\n\n\n\n\n\nFREE Email Forwarding!\n\n\n\n\n\n\n\nFREE Statistics!\n\n\n\n\n\n\n\nFREE 24x7 Phone & Web Support!\n\n\n\n\n\n\n\n99.9% Uptime Guarantee!\n\n\n\n\n\n\n\n\n\n\nLearn more\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSecure SSL Certificates —\n\n Secure your site and boost customer confidence and response with an affordable Secure SSL Certificate from Go Daddy. On sale from only $29.95/yr. Learn more\n\n\n\n Merchant Accounts — Accept credit cards, boost your sales with a merchant account.\n Learn more\n\n\n\n WebSite Complete™ — Create your own Ecommerce site with over 470 templates, shopping cart and more with WebSite Complete.\n Learn more\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Just $9.95 to join!\n\nGet volume discounts on domains, software and more. Join ICANN-accredited Blue Razor Domains now!\n\n\nClick for more info\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nWebSite Tonight — Click 'n build your site online, in minutes! Hosting and email included.\n\n\n WebSite Complete — Build sites from simple to complex.\n\n\n\nLearn more\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNEW Version! Traffic Blazer 3.0 — Turn the search engine odds in your favor! Drive traffic AND sales!\n\n\n EmailCounts™ — The Contact Manager for prospects and customers. Promote your site via permission-based email.\n\n\nLearn more\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nDeposit Box —\n Back up, store and keep your important files safely online, 24/7.\n Learn More\n\n\n\n Just $14.95\n\n c-Site™ —\n File for Federal Copyright protection, safeguard your site and more.\n Learn More\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nPromote your domain name with any easy-to-remember, personalized email address (like you@namegoeshere.com)!\n\n\n GoDaddy.com email accounts are fast; POP3 configured; advertising-free; and spam- and virus-protected. Plus, all accounts\n include FREE WebMail!\n\n\nLearn more\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n© 1999-2004 Go Daddy Software, Inc. All rights reserved."}, {"ts": "20040927175220", "date": "2004-09-27 17:52", "year": "2004", "title": "Kai Productions Artists' Collective", "era": "artists-collective", "bytes": 5994, "chars": 677, "text": "Kai Productions Artists' Collective\n\n\n\n\n\n\n\n\n\n\n\nComing soon\n\n\n\n\n\n|\n\n\n\n\n |\n\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n\n|\n\n\n\n\n\nContact Us\n\nKai Productions Artists� Collective\n\nKajica Djuric\n\n101 Boulton Ave\n\nToronto, Ontario\n\nM4M2J4\n\n��\n\nEmail us at kajica@kpac.org\n\n...\n\nAbout Us � | � Directory\n� | � Events � |\n� Coverage� | �Communicate � ::\n\nContact | Sitemap | Terms of Use\nAbout KPAC\nNetwork\n\nAll people and places\ninformation on this\nsite, including prices, features is based solely on information made available\nby people of kpac and KPAC disclaims any responsibility for this information or the\nproducts & information listed.\n\nCopyright �1996-2001, Inc. All rights reserved. Privacy\npolicy."}, {"ts": "20041206172800", "date": "2004-12-06 17:28", "year": "2004", "title": "Kai Productions Artists' Collective", "era": "artists-collective", "bytes": 5972, "chars": 675, "text": "Kai Productions Artists' Collective\n\n\n\n\n\n\n\n\n\n\n\nComing soon\n\n\n\n\n\n|\n\n\n\n\n |\n\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n\n|\n\n\n\n\n\nContact Us\n\nKai Productions Artists� Collective\n\nKajica Djuric\n\n101 Boulton Ave\n\nToronto, Ontario\n\nM4M2J4\n\n\n\nEmail us at kajica@kpac.org\n\n...\n\nAbout Us � | � Directory\n� | � Events � |\n� Coverage� | �Communicate � ::\n\nContact | Sitemap | Terms of Use\nAbout KPAC\nNetwork\n\nAll people and places\ninformation on this\nsite, including prices, features is based solely on information made available\nby people of kpac and KPAC disclaims any responsibility for this information or the\nproducts & information listed.\n\nCopyright �1996-2001, Inc. All rights reserved. Privacy\npolicy."}, {"ts": "20050201203122", "date": "2005-02-01 20:31", "year": "2005", "title": "Kai Productions Artists' Collective", "era": "artists-collective", "bytes": 5972, "chars": 675, "text": "Kai Productions Artists' Collective\n\n\n\n\n\n\n\n\n\n\n\nComing soon\n\n\n\n\n\n|\n\n\n\n\n |\n\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n\n|\n\n\n\n\n\nContact Us\n\nKai Productions Artists� Collective\n\nKajica Djuric\n\n101 Boulton Ave\n\nToronto, Ontario\n\nM4M2J4\n\n\n\nEmail us at kajica@kpac.org\n\n...\n\nAbout Us � | � Directory\n� | � Events � |\n� Coverage� | �Communicate � ::\n\nContact | Sitemap | Terms of Use\nAbout KPAC\nNetwork\n\nAll people and places\ninformation on this\nsite, including prices, features is based solely on information made available\nby people of kpac and KPAC disclaims any responsibility for this information or the\nproducts & information listed.\n\nCopyright �1996-2001, Inc. All rights reserved. Privacy\npolicy."}, {"ts": "20050304051326", "date": "2005-03-04 05:13", "year": "2005", "title": "Kai Productions Artists' Collective", "era": "artists-collective", "bytes": 5972, "chars": 675, "text": "Kai Productions Artists' Collective\n\n\n\n\n\n\n\n\n\n\n\nComing soon\n\n\n\n\n\n|\n\n\n\n\n |\n\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n\n|\n\n\n\n\n\nContact Us\n\nKai Productions Artists� Collective\n\nKajica Djuric\n\n101 Boulton Ave\n\nToronto, Ontario\n\nM4M2J4\n\n\n\nEmail us at kajica@kpac.org\n\n...\n\nAbout Us � | � Directory\n� | � Events � |\n� Coverage� | �Communicate � ::\n\nContact | Sitemap | Terms of Use\nAbout KPAC\nNetwork\n\nAll people and places\ninformation on this\nsite, including prices, features is based solely on information made available\nby people of kpac and KPAC disclaims any responsibility for this information or the\nproducts & information listed.\n\nCopyright �1996-2001, Inc. All rights reserved. Privacy\npolicy."}, {"ts": "20060715175431", "date": "2006-07-15 17:54", "year": "2006", "title": "Kai Productions Artists' Collective", "era": "artists-collective", "bytes": 5972, "chars": 675, "text": "Kai Productions Artists' Collective\n\n\n\n\n\n\n\n\n\n\n\nComing soon\n\n\n\n\n\n|\n\n\n\n\n |\n\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n\n|\n\n\n\n\n\nContact Us\n\nKai Productions Artists� Collective\n\nKajica Djuric\n\n101 Boulton Ave\n\nToronto, Ontario\n\nM4M2J4\n\n\n\nEmail us at kajica@kpac.org\n\n...\n\nAbout Us � | � Directory\n� | � Events � |\n� Coverage� | �Communicate � ::\n\nContact | Sitemap | Terms of Use\nAbout KPAC\nNetwork\n\nAll people and places\ninformation on this\nsite, including prices, features is based solely on information made available\nby people of kpac and KPAC disclaims any responsibility for this information or the\nproducts & information listed.\n\nCopyright �1996-2001, Inc. All rights reserved. Privacy\npolicy."}, {"ts": "20060807020945", "date": "2006-08-07 02:09", "year": "2006", "title": "Kai Productions Artists' Collective", "era": "artists-collective", "bytes": 5972, "chars": 675, "text": "Kai Productions Artists' Collective\n\n\n\n\n\n\n\n\n\n\n\nComing soon\n\n\n\n\n\n|\n\n\n\n\n |\n\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n\n|\n\n\n\n\n\nContact Us\n\nKai Productions Artists� Collective\n\nKajica Djuric\n\n101 Boulton Ave\n\nToronto, Ontario\n\nM4M2J4\n\n\n\nEmail us at kajica@kpac.org\n\n...\n\nAbout Us � | � Directory\n� | � Events � |\n� Coverage� | �Communicate � ::\n\nContact | Sitemap | Terms of Use\nAbout KPAC\nNetwork\n\nAll people and places\ninformation on this\nsite, including prices, features is based solely on information made available\nby people of kpac and KPAC disclaims any responsibility for this information or the\nproducts & information listed.\n\nCopyright �1996-2001, Inc. All rights reserved. Privacy\npolicy."}, {"ts": "20070117234553", "date": "2007-01-17 23:45", "year": "2007", "title": "Kai Productions Artists' Collective", "era": "artists-collective", "bytes": 5972, "chars": 675, "text": "Kai Productions Artists' Collective\n\n\n\n\n\n\n\n\n\n\n\nComing soon\n\n\n\n\n\n|\n\n\n\n\n |\n\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n\n|\n\n\n\n\n\nContact Us\n\nKai Productions Artists� Collective\n\nKajica Djuric\n\n101 Boulton Ave\n\nToronto, Ontario\n\nM4M2J4\n\n\n\nEmail us at kajica@kpac.org\n\n...\n\nAbout Us � | � Directory\n� | � Events � |\n� Coverage� | �Communicate � ::\n\nContact | Sitemap | Terms of Use\nAbout KPAC\nNetwork\n\nAll people and places\ninformation on this\nsite, including prices, features is based solely on information made available\nby people of kpac and KPAC disclaims any responsibility for this information or the\nproducts & information listed.\n\nCopyright �1996-2001, Inc. All rights reserved. Privacy\npolicy."}, {"ts": "20080418232732", "date": "2008-04-18 23:27", "year": "2008", "title": "Kai Productions Artists' Collective", "era": "artists-collective", "bytes": 5241, "chars": 675, "text": "Kai Productions Artists' Collective\n\n\n\n\n\n\n\n\n\n\n\nComing soon\n\n\n\n\n\n|\n\n\n\n\n |\n\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n|\n\n\n\n\n\n|\n\n\n\n\n\nContact Us\n\nKai Productions Artists� Collective\n\nKajica Djuric\n\n101 Boulton Ave\n\nToronto, Ontario\n\nM4M2J4\n\n\n\nEmail us at kajica@kpac.org\n\n...\n\nAbout Us � | � Directory\n� | � Events � |\n� Coverage� | �Communicate � ::\n\nContact | Sitemap | Terms of Use\nAbout KPAC\nNetwork\n\nAll people and places\ninformation on this\nsite, including prices, features is based solely on information made available\nby people of kpac and KPAC disclaims any responsibility for this information or the\nproducts & information listed.\n\nCopyright �1996-2001, Inc. All rights reserved. Privacy\npolicy."}, {"ts": "20080827225746", "date": "2008-08-27 22:57", "year": "2008", "title": "Index of /", "era": "artists-collective", "bytes": 882, "chars": 311, "text": "Index of /\n\n\n\nIndex of /\n\n Name Last modified Size Description cgi-bin/ 27-Aug-2008 16:07 -\n images/ 27-Aug-2008 16:08 -\n postinfo.html 27-Aug-2008 16:08 2.4K\n\nApache/2.0.63 (Unix) mod_ssl/2.0.63 OpenSSL/0.9.8b mod_auth_passthrough/2.1 mod_bwlimited/1.4 FrontPage/5.0.2.2635 PHP/5.2.5 Server at kpac.org Port 80"}, {"ts": "20131105070702", "date": "2013-11-05 07:07", "year": "2013", "title": "Kai Djuric Video Blog | Just another WordPress site", "era": "minimal-placeholder", "bytes": 8383, "chars": 798, "text": "Kai Djuric Video Blog | Just another WordPress site\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSample Page\n\n\n\n\nKai Djuric Video BlogJust another WordPress site\n\n\n\n Search:\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n 1\n\n\n\n\n\n 2\n\n\n\n\n\n\n\n\n\n\n\n\n\nGood technique\n\n\n\n\n\n\n 36\n\n\n\n\n\n\n\n\n\n\n\n Oops! No Media File was found.\n\n How about embedding a Video or adding Image to this post?\n\n\n\n\nRSS\n\n\nEmail\n\n\nTwitter\n\n\nRead\n\n\nComment\n\n\n\n\n\n\n\n\n\n\n\n\n\nHello world!\n\n\n\n\n\n\n 46\n\n\n\n\n\n\n\n\n\n\n\n Oops! No Media File was found.\n\n How about embedding a Video or adding Image to this post?\n\n\n\n\nRSS\n\n\nEmail\n\n\nTwitter\n\n\nRead\n\n\nComment\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nCategories\n\n\nTags\n\n\n\n\n\n\n\n\n\nUncategorized\n\n\nKung Fu\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n © 2012. Kai Djuric Video Blog. | All Rights Reserved.\n WordPress Theme by SN Design and Frontend development."}, {"ts": "20140517200744", "date": "2014-05-17 20:07", "year": "2014", "title": "Kai Djuric Video Blog | Just another WordPress site", "era": "minimal-placeholder", "bytes": 8383, "chars": 798, "text": "Kai Djuric Video Blog | Just another WordPress site\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSample Page\n\n\n\n\nKai Djuric Video BlogJust another WordPress site\n\n\n\n Search:\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n 1\n\n\n\n\n\n 2\n\n\n\n\n\n\n\n\n\n\n\n\n\nGood technique\n\n\n\n\n\n\n 60\n\n\n\n\n\n\n\n\n\n\n\n Oops! No Media File was found.\n\n How about embedding a Video or adding Image to this post?\n\n\n\n\nRSS\n\n\nEmail\n\n\nTwitter\n\n\nRead\n\n\nComment\n\n\n\n\n\n\n\n\n\n\n\n\n\nHello world!\n\n\n\n\n\n\n 61\n\n\n\n\n\n\n\n\n\n\n\n Oops! No Media File was found.\n\n How about embedding a Video or adding Image to this post?\n\n\n\n\nRSS\n\n\nEmail\n\n\nTwitter\n\n\nRead\n\n\nComment\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nCategories\n\n\nTags\n\n\n\n\n\n\n\n\n\nUncategorized\n\n\nKung Fu\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n © 2012. Kai Djuric Video Blog. | All Rights Reserved.\n WordPress Theme by SN Design and Frontend development."}, {"ts": "20160813190308", "date": "2016-08-13 19:03", "year": "2016", "title": "Index of /", "era": "minimal-placeholder", "bytes": 203, "chars": 35, "text": "Index of /\n\n\n\nIndex of /\n\n cgi-bin/"}, {"ts": "20170925104720", "date": "2017-09-25 10:47", "year": "2017", "title": "kpac.org - This website is for sale! - kpac Resources and Information.", "era": "parked-domain", "bytes": 67161, "chars": 139, "text": "kpac.org - This website is for sale! - kpac Resources and Information.\n\nThis domain is expired. For renewal instructions please click here."}, {"ts": "20180331001654", "date": "2018-03-31 00:16", "year": "2018", "title": "kpac.org - This website is for sale! - kpac Resources and Information.", "era": "parked-domain", "bytes": 69661, "chars": 70, "text": "kpac.org - This website is for sale! - kpac Resources and Information."}, {"ts": "20211201180225", "date": "2021-12-01 18:02", "year": "2021", "title": "kpac.org", "era": "parked-domain", "bytes": 114, "chars": 0, "text": ""}];
+  </script>
+  <script>
+    // ============================================================
+    // Render cards + filters + search + modal
+    // ============================================================
+    (() => {
+      const grid = document.getElementById('grid');
+      const countEl = document.getElementById('count');
+      const search = document.getElementById('search');
+      const pills = Array.from(document.querySelectorAll('[data-filter]'));
+      const modal = document.getElementById('modal');
+      const modalTitle = document.getElementById('modal-title');
+      const modalMeta = document.getElementById('modal-meta');
+      const modalBody = document.getElementById('modal-body');
+      const modalFoot = document.getElementById('modal-foot');
+      const modalClose = document.getElementById('modal-close');
+
+      let activeEra = 'all';
+      let activeQuery = '';
+
+      function eraLabel(e) {
+        return {
+          'artists-collective': "Artists' collective",
+          'minimal-placeholder': 'Placeholder',
+          'parked-domain': 'Parked domain',
+        }[e] || e;
+      }
+
+      function excerpt(s, q) {
+        const t = (s.text || '').replace(/\s+/g, ' ').trim();
+        if (!q) return t.slice(0, 180) + (t.length > 180 ? '…' : '');
+        const i = t.toLowerCase().indexOf(q.toLowerCase());
+        if (i < 0) return t.slice(0, 180) + (t.length > 180 ? '…' : '');
+        const start = Math.max(0, i - 60);
+        const end = Math.min(t.length, i + q.length + 80);
+        return (start > 0 ? '…' : '') + t.slice(start, end) + (end < t.length ? '…' : '');
+      }
+
+      function render() {
+        const q = activeQuery.trim().toLowerCase();
+        const filtered = SNAPSHOTS.filter(s => {
+          if (activeEra !== 'all' && s.era !== activeEra) return false;
+          if (q) {
+            const hay = ((s.title || '') + ' ' + (s.text || '')).toLowerCase();
+            if (!hay.includes(q)) return false;
+          }
+          return true;
+        });
+
+        countEl.textContent = filtered.length + ' snapshot' + (filtered.length === 1 ? '' : 's');
+        grid.innerHTML = '';
+
+        if (filtered.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'empty';
+          empty.textContent = 'No snapshots match the current filter.';
+          grid.appendChild(empty);
+          return;
+        }
+
+        for (const s of filtered) {
+          const card = document.createElement('button');
+          card.type = 'button';
+          card.className = 'snap';
+          card.setAttribute('data-ts', s.ts);
+          card.setAttribute('aria-label', 'Open snapshot ' + s.date);
+          card.innerHTML =
+            '<div class="snap-meta">' +
+              '<span>' + s.date + '</span>' +
+              '<span class="snap-era">' + eraLabel(s.era) + '</span>' +
+            '</div>' +
+            '<div class="snap-title">' + escapeHtml(s.title) + '</div>' +
+            '<div class="snap-excerpt">' + escapeHtml(excerpt(s, q)) + '</div>' +
+            '<div class="snap-stats">' +
+              '<span><b>' + s.bytes.toLocaleString() + '</b> bytes</span>' +
+              '<span><b>' + s.chars.toLocaleString() + '</b> chars</span>' +
+            '</div>';
+          card.addEventListener('click', () => open(s));
+          grid.appendChild(card);
+        }
+      }
+
+      function open(s) {
+        modalTitle.textContent = s.title;
+        modalMeta.innerHTML =
+          '<span>' + s.date + ' UTC</span>' +
+          '<span>' + eraLabel(s.era) + '</span>' +
+          '<span>' + s.bytes.toLocaleString() + ' bytes</span>' +
+          '<span>' + s.chars.toLocaleString() + ' chars</span>';
+        modalBody.textContent = s.text || '(empty)';
+        modalFoot.innerHTML =
+          '<span>SHA-256 ' + s.ts + '</span>' +
+          '<span><a href="https://web.archive.org/web/' + s.ts + '/http://kpac.org/" rel="noopener">view on archive</a></span>';
+        modal.setAttribute('data-open', 'true');
+        document.body.style.overflow = 'hidden';
+        modalClose.focus();
+      }
+
+      function close() {
+        modal.setAttribute('data-open', 'false');
+        document.body.style.overflow = '';
+      }
+
+      function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, c => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+        }[c]));
+      }
+
+      pills.forEach(p => {
+        p.addEventListener('click', () => {
+          activeEra = p.dataset.filter;
+          pills.forEach(o => o.setAttribute('aria-pressed', o === p ? 'true' : 'false'));
+          render();
+        });
+      });
+
+      search.addEventListener('input', () => {
+        activeQuery = search.value;
+        render();
+      });
+
+      modalClose.addEventListener('click', close);
+      modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.getAttribute('data-open') === 'true') close();
+      });
+
+      render();
+    })();
+
+    // ============================================================
+    // Theme toggle (mirrors the rest of the repo)
+    // ============================================================
+    (() => {
+      const KEY = 'kpa-theme';
+      const toggle = document.querySelector('theme-toggle');
+      if (!toggle) return;
+      const buttons = Array.from(toggle.querySelectorAll('button[data-theme-value]'));
+
+      function reflect() {
+        const pref = document.documentElement.getAttribute('data-theme-pref') || 'system';
+        buttons.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.themeValue === pref)));
+      }
+
+      buttons.forEach(b => {
+        b.addEventListener('click', () => {
+          const next = b.dataset.themeValue;
+          try { localStorage.setItem(KEY, next); } catch (e) {}
+          const resolved = next === 'system'
+            ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+            : next;
+          document.documentElement.setAttribute('data-theme', resolved);
+          document.documentElement.setAttribute('data-theme-pref', next);
+          reflect();
+        });
+      });
+
+      reflect();
+    })();
+  </script>
+</body>
+</html>

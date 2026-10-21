@@ -1,0 +1,152 @@
+name: pages-test
+
+# Puppeteer deploy-test loop for digital_twin.
+# Mirrors the AGENTS.md "Puppeteer deploy-test loop" memory rule:
+# the deploy is NOT done until the e2e hits the live URL and passes.
+#
+# Flow:
+#   1. push lands on main
+#   2. GitHub Pages builds + deploys (existing pages-build-and-deploy
+#      workflow, fires automatically because Pages is enabled on main)
+#   3. this workflow polls pages until the deploy is live, then
+#      verifies a served file's bytes match HEAD — the poll alone can
+#      be satisfied by a STALE build (site answers 200 while the new
+#      build is still in flight), which is how a deploy once went
+#      green before its own content was live
+#   4. installs puppeteer in e2e/
+#   5. runs e2e specs with E2E_URL=https://kajica2.github.io/digital-twin
+#   6. any failure fails the build → no green check, the deploy is
+#      treated as not-done
+#
+# On PRs (no E2E_URL — Pages isn't built yet for a branch), the
+# e2e runs against the local server on :5173.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: read
+  deployments: read
+
+jobs:
+  e2e:
+    name: Puppeteer deploy-test loop
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install e2e dependencies
+        run: cd e2e && npm install
+
+      - name: Wait for Pages deploy (push only)
+        if: github.event_name == 'push'
+        run: |
+          echo "Waiting for GitHub Pages to deploy..."
+          for i in $(seq 1 60); do
+            status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 \
+              "https://kajica2.github.io/digital-twin/pages/landing.html" || echo "000")
+            if [ "$status" = "200" ]; then
+              echo "Pages is live (attempt $i)"
+              break
+            fi
+            echo "  attempt $i: HTTP $status — retrying in 5s"
+            sleep 5
+          done
+          if [ "$status" != "200" ]; then
+            echo "::error::Pages never came up after 5 minutes"
+            exit 1
+          fi
+
+      - name: Verify deployed content matches HEAD (push only)
+        if: github.event_name == 'push'
+        run: |
+          # The wait step above only proves the site answers 200 — a
+          # STALE build satisfies that while the new build is still in
+          # flight (observed 2026-09-30: green CI before the new
+          # mj-config.json was live). This step proves the NEW build is
+          # serving by diffing a file on the site against the same file
+          # at HEAD. lib/mj-config.json is the sentinel because Jekyll
+          # copies it verbatim and it changes with realistic frequency.
+          FILE="lib/mj-config.json"
+          git show "HEAD:$FILE" > /tmp/expected.json
+          for i in $(seq 1 60); do
+            curl -s --max-time 10 -H "Cache-Control: no-cache" \
+              "https://kajica2.github.io/digital-twin/$FILE?x=${GITHUB_SHA}" \
+              > /tmp/served.json || true
+            if cmp -s /tmp/expected.json /tmp/served.json; then
+              echo "deployed content matches HEAD (attempt $i)"
+              exit 0
+            fi
+            echo "  attempt $i: served content != HEAD — retrying in 5s"
+            sleep 5
+          done
+          echo "::error::deployed content still != HEAD after 5 minutes"
+          exit 1
+
+      - name: Run e2e (deployed URL on push, local on PR)
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            cd e2e && E2E_URL=https://kajica2.github.io/digital-twin node landing.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node twin-os.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node twin-os-songs.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-default.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-icon.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-nav.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-progress.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-theme.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-verify.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-a11y.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node ct-phase3.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node clip-interrogator.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node refael.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node how-to.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node loopable-video-segmenter.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node marketplace.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node temple-of-control.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://kajica2.github.io/digital-twin node integrations.spec.mjs
+          else
+            echo "(PR run - Pages is not built for branches, e2e runs locally)"
+            python3 -m http.server 5180 --directory . &
+            SERVER_PID=$!
+            sleep 2
+            cd e2e && node landing.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && node twin-os.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && node twin-os-songs.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node ct-default.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node ct-icon.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node ct-nav.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node ct-progress.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node ct-theme.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node ct-verify.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node ct-a11y.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node ct-phase3.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node clip-interrogator.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node refael.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node how-to.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node loopable-video-segmenter.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node marketplace.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node temple-of-control.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node integrations.spec.mjs
+            kill $SERVER_PID 2>/dev/null || true
+          fi
+          echo "(watcher specs are filesystem-only and require a live chart-watcher LaunchAgent + mscore, neither of which exists on Linux CI runners. Run locally via npm run test:watcher && npm run test:songs-watcher. The watcher.spec.mjs + songs-watcher.spec.mjs files exist in e2e/ for that purpose.)"
+
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts
+          path: e2e/artifacts/
+          if-no-files-found: ignore
