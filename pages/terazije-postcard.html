@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Београд. Теразије. — Terazije Square</title>
+  <style>
+    :root {
+      --sepia-dark: #3d2b1f;
+      --sepia-medium: #704214;
+      --sepia-light: #a67c52;
+      --sepia-tint: #d4c4a8;
+      --sepia-cream: #f5efe0;
+      --flag-red: #c6363c;
+      --flag-blue: #0c4076;
+      --flag-white: #f5f5f5;
+      --eagle-gold: #b8860b;
+      --fountain-bronze: #8b7355;
+      --building-stone: #8b7355;
+      --building-cream: #d4c4a8;
+      --building-terracotta: #b5651d;
+      --sky-warm: #e8d4b8;
+      --sky-haze: #c9b896;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #2a1f14 0%, #1a1410 100%);
+      font-family: 'Playfair Display', Georgia, serif;
+      padding: 20px;
+    }
+
+    .postcard {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+      background: var(--sepia-cream);
+      box-shadow: 
+        0 0 0 8px var(--sepia-medium),
+        0 0 0 12px var(--sepia-dark),
+        0 8px 40px rgba(0,0,0,0.6);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .postcard-inner {
+      position: relative;
+      padding: 15px;
+      background: linear-gradient(180deg, #f5efe0 0%, #e8dcc8 100%);
+    }
+
+    .postcard-image {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 3 / 2;
+      overflow: hidden;
+      border: 3px solid var(--sepia-dark);
+    }
+
+    .scene {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, var(--sky-warm) 0%, var(--sky-haze) 60%, var(--sepia-tint) 100%);
+    }
+
+    /* Serbian Flag with Eagle */
+    .flag {
+      position: absolute;
+      top: 20px;
+      left: 25px;
+      width: 70px;
+      height: 45px;
+      z-index: 10;
+    }
+
+    .flag-bg {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, 
+        var(--flag-red) 0%, var(--flag-red) 33%,
+        var(--flag-blue) 33%, var(--flag-blue) 66%,
+        var(--flag-white) 66%, var(--flag-white) 100%
+      );
+      border: 2px solid var(--sepia-dark);
+      border-radius: 2px;
+    }
+
+    .eagle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 22px;
+      filter: drop-shadow(0 1px 1px rgba(0,0,0,0.3));
+    }
+
+    /* Postcard Text */
+    .postcard-text {
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 10;
+    }
+
+    .postcard-text h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--flag-red);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+      background: rgba(245, 239, 224, 0.85);
+      padding: 6px 20px;
+      border-radius: 2px;
+    }
+
+    /* Buildings - Right Side */
+    .buildings-right {
+      position: absolute;
+      bottom: 20%;
+      right: 0;
+      width: 70%;
+      height: 75%;
+    }
+
+    .building {
+      position: absolute;
+      bottom: 0;
+      background: linear-gradient(180deg, var(--building-cream) 0%, var(--building-stone) 100%);
+      border: 2px solid var(--sepia-dark);
+    }
+
+    .building-1 { left: 0%; width: 18%; height: 65%; }
+    .building-2 { left: 19%; width: 15%; height: 80%; }
+    .building-3 { left: 35%; width: 20%; height: 90%; }
+    .building-4 { left: 56%; width: 22%; height: 85%; }
+    .building-5 { right: 0; width: 22%; height: 95%; }
+
+    /* Hotel Moskva - Prominent */
+    .hotel-moskva {
+      position: absolute;
+      bottom: 15%;
+      right: 2%;
+      width: 28%;
+      height: 90%;
+      background: linear-gradient(180deg, #e8dcc8 0%, #c9b896 50%, #a67c52 100%);
+      border: 3px solid var(--sepia-dark);
+      border-radius: 4px 4px 0 0;
+    }
+
+    .hotel-moskva::before {
+      content: 'HOTEL MOSKVA';
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--sepia-dark);
+      letter-spacing: 2px;
+      white-space: nowrap;
+    }
+
+    .hotel-balcony {
+      position: absolute;
+      left: 10%;
+      width: 80%;
+      height: 6%;
+      background: var(--building-cream);
+      border: 2px solid var(--sepia-dark);
+      border-bottom: none;
+    }
+
+    .balcony-1 { top: 18%; }
+    .balcony-2 { top: 32%; }
+    .balcony-3 { top: 46%; }
+
+    .hotel-windows {
+      position: absolute;
+      top: 20%;
+      left: 15%;
+      width: 70%;
+      height: 70%;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .window {
+      width: 18%;
+      height: 12%;
+      background: linear-gradient(180deg, #87ceeb 0%, #4a6fa5 100%);
+      border: 2px solid var(--sepia-medium);
+      border-radius: 4px 4px 0 0;
+    }
+
+    /* Windows on other buildings */
+    .windows-row {
+      position: absolute;
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .w-row-1 { top: 15%; left: 10%; width: 80%; }
+    .w-row-2 { top: 35%; left: 10%; width: 80%; }
+    .w-row-3 { top: 55%; left: 10%; width: 80%; }
+
+    .win {
+      width: 12px;
+      height: 16px;
+      background: linear-gradient(180deg, #87ceeb 0%, #5a7fa8 100%);
+      border: 1px solid var(--sepia-medium);
+      border-radius: 2px 2px 0 0;
+    }
+
+    /* Center Median with Gardens */
+    .median {
+      position: absolute;
+      bottom: 25%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 35%;
+      height: 20%;
+      background: linear-gradient(90deg, 
+        transparent 0%, #3d5c3d 10%, #2d4a2d 50%, #3d5c3d 90%, transparent 100%
+      );
+      border-radius: 50%;
+    }
+
+    .garden-bed {
+      position: absolute;
+      bottom: 28%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40%;
+      height: 12%;
+      background: linear-gradient(180deg, #4a7c4a 0%, #2d5a2d 100%);
+      border-radius: 30px;
+    }
+
+    .bush {
+      position: absolute;
+      bottom: 0;
+      width: 20px;
+      height: 15px;
+      background: #3d5c3d;
+      border-radius: 50% 50% 40% 40%;
+    }
+
+    /* Fountain */
+    .fountain {
+      position: absolute;
+      bottom: 22%;
+      left: 30%;
+      width: 80px;
+      height: 30px;
+    }
+
+    .fountain-base {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 20px;
+      background: radial-gradient(ellipse at center, #a67c52 0%, #8b7355 100%);
+      border: 2px solid var(--sepia-dark);
+      border-radius: 50%;
+    }
+
+    .fountain-bowl {
+      position: absolute;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50px;
+      height: 12px;
+      background: radial-gradient(ellipse at center, #c9b896 0%, #a67c52 100%);
+      border: 2px solid var(--sepia-dark);
+      border-radius: 50%;
+    }
+
+    .fountain-water {
+      position: absolute;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 30px;
+      height: 20px;
+      background: radial-gradient(ellipse at bottom, #87ceeb 0%, rgba(135,206,235,0.3) 100%);
+      border-radius: 50% 50% 30% 30%;
+      animation: fountain-spray 2s ease-in-out infinite;
+    }
+
+    @keyframes fountain-spray {
+      0%, 100% { transform: translateX(-50%) scaleY(1); opacity: 0.7; }
+      50% { transform: translateX(-50%) scaleY(1.2); opacity: 1; }
+    }
+
+    /* Streetlights */
+    .streetlight {
+      position: absolute;
+      bottom: 20%;
+      width: 8px;
+      height: 60px;
+    }
+
+    .light-1 { left: 8%; }
+    .light-2 { left: 25%; }
+    .light-3 { right: 35%; }
+    .light-4 { right: 10%; }
+
+    .light-pole {
+      width: 6px;
+      height: 55px;
+      background: linear-gradient(90deg, #4a4a4a 0%, #2a2a2a 50%, #4a4a4a 100%);
+      margin: 0 auto;
+      border: 1px solid var(--sepia-dark);
+    }
+
+    .light-lamp {
+      width: 20px;
+      height: 14px;
+      background: radial-gradient(ellipse at center, #f5e6c8 0%, #d4a84b 100%);
+      border: 2px solid var(--sepia-dark);
+      border-radius: 4px;
+      margin: -2px auto 0;
+    }
+
+    /* Pedestrians */
+    .pedestrian {
+      position: absolute;
+      bottom: 18%;
+      width: 12px;
+      height: 25px;
+    }
+
+    .ped-head {
+      width: 8px;
+      height: 8px;
+      background: var(--sepia-tint);
+      border: 1px solid var(--sepia-dark);
+      border-radius: 50%;
+      margin: 0 auto;
+    }
+
+    .ped-body {
+      width: 10px;
+      height: 14px;
+      background: linear-gradient(180deg, #5a4a3a 0%, #3a2a1a 100%);
+      border: 1px solid var(--sepia-dark);
+      border-radius: 3px;
+      margin: 1px auto 0;
+    }
+
+    .ped-1 { left: 15%; }
+    .ped-2 { left: 22%; animation: walk 3s ease-in-out infinite; }
+    .ped-3 { left: 40%; }
+    .ped-4 { left: 55%; animation: walk 2.5s ease-in-out infinite 0.5s; }
+    .ped-5 { left: 70%; }
+    .ped-6 { right: 20%; animation: walk 4s ease-in-out infinite 1s; }
+    .ped-7 { right: 8%; }
+
+    @keyframes walk {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(8px); }
+    }
+
+    /* Road/Ground */
+    .ground {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 22%;
+      background: linear-gradient(180deg, #8b7355 0%, #6b5344 50%, #5a4535 100%);
+    }
+
+    .sidewalk {
+      position: absolute;
+      bottom: 18%;
+      left: 0;
+      width: 100%;
+      height: 4%;
+      background: linear-gradient(180deg, #a67c52 0%, #8b7355 100%);
+      border-top: 2px solid var(--sepia-medium);
+    }
+
+    /* Paved pattern on sidewalk */
+    .pavement {
+      position: absolute;
+      bottom: 18%;
+      left: 0;
+      width: 100%;
+      height: 4%;
+      background-image: 
+        repeating-linear-gradient(90deg, 
+          transparent 0px, 
+          transparent 28px, 
+          var(--sepia-dark) 28px, 
+          var(--sepia-dark) 30px
+        );
+      opacity: 0.3;
+    }
+
+    /* Vintage overlay effects */
+    .vignette {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 40%, rgba(61, 43, 31, 0.4) 100%);
+      pointer-events: none;
+    }
+
+    .grain {
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      opacity: 0.08;
+      pointer-events: none;
+    }
+
+    .sepia-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(166, 124, 82, 0.15) 0%, rgba(112, 66, 20, 0.25) 100%);
+      pointer-events: none;
+    }
+
+    /* Postmark */
+    .postmark {
+      position: absolute;
+      bottom: 25px;
+      right: 30px;
+      width: 80px;
+      height: 80px;
+      border: 3px solid var(--flag-red);
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transform: rotate(-15deg);
+      opacity: 0.7;
+    }
+
+    .postmark-text {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--flag-red);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .postmark-date {
+      font-size: 8px;
+      color: var(--flag-red);
+      margin-top: 2px;
+    }
+
+    /* Stamp */
+    .stamp {
+      position: absolute;
+      top: 80px;
+      right: 25px;
+      width: 50px;
+      height: 60px;
+      border: 2px dashed var(--sepia-medium);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(245, 239, 224, 0.6);
+    }
+
+    .stamp-icon {
+      font-size: 24px;
+    }
+
+    .stamp-text {
+      font-size: 6px;
+      color: var(--sepia-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    /* Postal lines */
+    .postal-lines {
+      position: absolute;
+      bottom: 30px;
+      left: 25px;
+      width: 150px;
+      height: 2px;
+      background: repeating-linear-gradient(90deg, var(--sepia-medium) 0px, var(--sepia-medium) 2px, transparent 2px, transparent 6px);
+      opacity: 0.4;
+    }
+
+    /* Back of postcard styling for the back */
+    .postcard-back {
+      margin-top: 15px;
+      padding: 20px;
+      background: linear-gradient(180deg, #f5efe0 0%, #e8dcc8 100%);
+      border: 3px solid var(--sepia-dark);
+      display: flex;
+      gap: 20px;
+    }
+
+    .back-left {
+      flex: 1;
+      border-right: 1px solid var(--sepia-light);
+      padding-right: 20px;
+    }
+
+    .back-right {
+      flex: 1;
+      padding-left: 20px;
+    }
+
+    .address-lines {
+      margin-top: 40px;
+    }
+
+    .address-line {
+      border-bottom: 1px solid var(--sepia-medium);
+      height: 25px;
+      margin-bottom: 8px;
+    }
+
+    .back-title {
+      font-size: 14px;
+      color: var(--sepia-dark);
+      margin-bottom: 10px;
+      letter-spacing: 2px;
+    }
+
+    .message-area {
+      border: 1px solid var(--sepia-light);
+      height: 100px;
+      padding: 8px;
+      font-style: italic;
+      color: var(--sepia-medium);
+      font-size: 12px;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .postcard-text h1 { font-size: 12px; padding: 4px 10px; }
+      .flag { width: 50px; height: 32px; top: 10px; left: 15px; }
+      .eagle { font-size: 16px; }
+      .hotel-moskva::before { font-size: 7px; }
+      .postcard-back { flex-direction: column; }
+      .back-left, .back-right { border: none; padding: 0; }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="postcard">
+    <div class="postcard-inner">
+      <div class="postcard-image">
+        <div class="scene">
+          <!-- Sky gradient is set in CSS -->
+          
+          <!-- Serbian Flag with Double-Headed Eagle -->
+          <div class="flag">
+            <div class="flag-bg"></div>
+            <div class="eagle">🦅</div>
+          </div>
+          
+          <!-- Postcard Text -->
+          <div class="postcard-text">
+            <h1>београд. теразије. belgrad. terazia.</h1>
+          </div>
+          
+          <!-- Buildings - Left Background -->
+          <div class="buildings-right">
+            <div class="building building-1">
+              <div class="windows-row w-row-1">
+                <div class="win"></div><div class="win"></div><div class="win"></div>
+              </div>
+              <div class="windows-row w-row-2">
+                <div class="win"></div><div class="win"></div><div class="win"></div>
+              </div>
+              <div class="windows-row w-row-3">
+                <div class="win"></div><div class="win"></div><div class="win"></div>
+              </div>
+            </div>
+            <div class="building building-2">
+              <div class="windows-row w-row-1">
+                <div class="win"></div><div class="win"></div>
+              </div>
+              <div class="windows-row w-row-2">
+                <div class="win"></div><div class="win"></div>
+              </div>
+              <div class="windows-row w-row-3">
+                <div class="win"></div><div class="win"></div>
+              </div>
+            </div>
+            <div class="building building-3">
+              <div class="windows-row w-row-1">
+                <div class="win"></div><div class="win"></div><div class="win"></div><div class="win"></div>
+              </div>
+              <div class="windows-row w-row-2">
+                <div class="win"></div><div class="win"></div><div class="win"></div><div class="win"></div>
+              </div>
+              <div class="windows-row w-row-3">
+                <div class="win"></div><div class="win"></div><div class="win"></div><div class="win"></div>
+              </div>
+            </div>
+            <div class="building building-4">
+              <div class="windows-row w-row-1">
+                <div class="win"></div><div class="win"></div><div class="win"></div>
+              </div>
+              <div class="windows-row w-row-2">
+                <div class="win"></div><div class="win"></div><div class="win"></div>
+              </div>
+              <div class="windows-row w-row-3">
+                <div class="win"></div><div class="win"></div><div class="win"></div>
+              </div>
+            </div>
+            <div class="building building-5">
+              <div class="windows-row w-row-1">
+                <div class="win"></div><div class="win"></div><div class="win"></div>
+              </div>
+              <div class="windows-row w-row-2">
+                <div class="win"></div><div class="win"></div><div class="win"></div>
+              </div>
+              <div class="windows-row w-row-3">
+                <div class="win"></div><div class="win"></div><div class="win"></div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Hotel Moskva -->
+          <div class="hotel-moskva">
+            <div class="hotel-balcony balcony-1"></div>
+            <div class="hotel-balcony balcony-2"></div>
+            <div class="hotel-balcony balcony-3"></div>
+            <div class="hotel-windows">
+              <div class="window"></div><div class="window"></div><div class="window"></div><div class="window"></div>
+              <div class="window"></div><div class="window"></div><div class="window"></div><div class="window"></div>
+              <div class="window"></div><div class="window"></div><div class="window"></div><div class="window"></div>
+              <div class="window"></div><div class="window"></div><div class="window"></div><div class="window"></div>
+              <div class="window"></div><div class="window"></div><div class="window"></div><div class="window"></div>
+            </div>
+          </div>
+          
+          <!-- Center Median with Gardens -->
+          <div class="garden-bed"></div>
+          
+          <!-- Fountain -->
+          <div class="fountain">
+            <div class="fountain-water"></div>
+            <div class="fountain-bowl"></div>
+            <div class="fountain-base"></div>
+          </div>
+          
+          <!-- Streetlights -->
+          <div class="streetlight light-1">
+            <div class="light-lamp"></div>
+            <div class="light-pole"></div>
+          </div>
+          <div class="streetlight light-2">
+            <div class="light-lamp"></div>
+            <div class="light-pole"></div>
+          </div>
+          <div class="streetlight light-3">
+            <div class="light-lamp"></div>
+            <div class="light-pole"></div>
+          </div>
+          <div class="streetlight light-4">
+            <div class="light-lamp"></div>
+            <div class="light-pole"></div>
+          </div>
+          
+          <!-- Pedestrians -->
+          <div class="pedestrian ped-1">
+            <div class="ped-head"></div>
+            <div class="ped-body"></div>
+          </div>
+          <div class="pedestrian ped-2">
+            <div class="ped-head"></div>
+            <div class="ped-body"></div>
+          </div>
+          <div class="pedestrian ped-3">
+            <div class="ped-head"></div>
+            <div class="ped-body"></div>
+          </div>
+          <div class="pedestrian ped-4">
+            <div class="ped-head"></div>
+            <div class="ped-body"></div>
+          </div>
+          <div class="pedestrian ped-5">
+            <div class="ped-head"></div>
+            <div class="ped-body"></div>
+          </div>
+          <div class="pedestrian ped-6">
+            <div class="ped-head"></div>
+            <div class="ped-body"></div>
+          </div>
+          <div class="pedestrian ped-7">
+            <div class="ped-head"></div>
+            <div class="ped-body"></div>
+          </div>
+          
+          <!-- Ground -->
+          <div class="ground"></div>
+          <div class="sidewalk"></div>
+          <div class="pavement"></div>
+          
+          <!-- Vintage Effects -->
+          <div class="vignette"></div>
+          <div class="grain"></div>
+          <div class="sepia-overlay"></div>
+          
+          <!-- Postmark -->
+          <div class="postmark">
+            <div class="postmark-text">Београд</div>
+            <div class="postmark-text">Пошта</div>
+            <div class="postmark-date">2024</div>
+          </div>
+          
+          <!-- Stamp -->
+          <div class="stamp">
+            <div class="stamp-icon">🦅</div>
+            <div class="stamp-text">Србија</div>
+          </div>
+          
+          <!-- Postal Lines -->
+          <div class="postal-lines"></div>
+        </div>
+      </div>
+      
+      <!-- Back of postcard -->
+      <div class="postcard-back">
+        <div class="back-left">
+          <div class="back-title">POST CARD</div>
+          <div class="message-area">
+            Dear friend, Terazije is the heart of Belgrade - the fountain, the gardens, Hotel Moskva standing proud. The city breathes history in every corner. Warmest wishes from Belgrade!
+          </div>
+        </div>
+        <div class="back-right">
+          <div class="back-title">ADDRESS</div>
+          <div class="address-lines">
+            <div class="address-line"></div>
+            <div class="address-line"></div>
+            <div class="address-line"></div>
+            <div class="address-line"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

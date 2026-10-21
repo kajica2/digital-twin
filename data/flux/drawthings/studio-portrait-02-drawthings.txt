@@ -1,0 +1,21 @@
+# DrawThings 2-Second Loop
+# Input: studio-portrait-02.png
+# Config: studio_portrait_02
+
+## Main Prompt
+professional male model, relaxed posture, seated on wooden stool, relaxed posture, dark gray seamless backdrop, overhead strip light, subtle chest rise and fall, gentle eye blink, 2 second seamless loop, film grain
+
+## Motion
+breathing, occasional blink
+
+## Settings
+- Duration: 2 seconds
+- Loop: Seamless/Infinite
+- Seed: Auto
+
+## How to Use
+1. Open DrawThings → Animate mode
+2. Load studio-portrait-02.png as reference
+3. Paste prompt above
+4. Set: 2 seconds, seamless loop
+5. Generate & export
