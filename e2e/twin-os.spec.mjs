@@ -12,6 +12,8 @@
 //   - task list: the add form takes several tasks at once (';'-separated)
 //   - task list: done state survives a reload (localStorage)
 //   - Twin panel has 3 stat cards
+//   - the Twin panel's storefront links the Gumroad store + the
+//     mood-frame catalogue, and the catalogue link resolves
 //   - Songs panel renders the empty-state with the catalog path
 //   - theme-toggle has 3 buttons (light / system / dark)
 //   - data-theme attribute respects the system default
@@ -213,6 +215,32 @@ async function main() {
     const statCount = await page.$$eval('.twin-stat', els => els.length);
     assert(statCount === 3, `twin panel has 3 stat cards (got ${statCount})`);
 
+    // --- 5b. Storefront — the one front door for finished work ---
+    const store = await page.evaluate(() => {
+      const g = document.querySelector('[data-store-gumroad]');
+      const m = document.querySelector('[data-store-marketplace]');
+      return {
+        gHref: g ? g.getAttribute('href') : null,
+        gTarget: g ? g.getAttribute('target') : null,
+        gRel: g ? g.getAttribute('rel') : null,
+        mHref: m ? m.getAttribute('href') : null,
+        inTwin: !!(g && g.closest('.panel[data-panel="twin"]')),
+      };
+    });
+    assert(store.gHref === 'https://kaidjuric.gumroad.com/',
+      `storefront points at the Gumroad store (got ${store.gHref})`);
+    assert(store.gTarget === '_blank' && /noopener/.test(store.gRel || ''),
+      'store link opens in a new tab with rel=noopener');
+    assert(store.mHref === '../marketplace.html',
+      `storefront points at the mood-frame catalogue (got ${store.mHref})`);
+    assert(store.inTwin, 'storefront lives in the Twin panel');
+    // The catalogue link has to resolve — a relative href that 404s is
+    // worse than no link at all.
+    const marketHref = new URL('../marketplace.html', `${BASE}${PAGE_PATH}`).href;
+    const marketResp = await fetch(marketHref, { method: 'HEAD' }).catch(() => null);
+    assert(marketResp && marketResp.status === 200,
+      `catalogue link resolves (got ${marketResp ? marketResp.status : 'no response'})`);
+
     // --- 6. Theme toggle has 3 buttons ---
     const toggleBtns = await page.$$eval('theme-toggle button', els => els.map(b => b.dataset.value));
     assert(JSON.stringify(toggleBtns) === '["light","system","dark"]', `theme-toggle has 3 buttons: ${JSON.stringify(toggleBtns)}`);
@@ -261,6 +289,13 @@ async function main() {
     await new Promise(r => setTimeout(r, 200));
     await page.screenshot({ path: join(ART, 'today-dark.png'), fullPage: true });
     dim(`saved today-dark.png`);
+
+    // Back to light for the remaining artifacts — the previous shot left
+    // the page on dark, so "songs-light" and "twin-light" were capturing
+    // the dark theme. The file names were lying.
+    await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'light'));
+    await page.evaluate(() => document.documentElement.setAttribute('data-theme-pref', 'light'));
+    await new Promise(r => setTimeout(r, 200));
 
     await page.click('.rail-item[data-panel="songs"]');
     await new Promise(r => setTimeout(r, 200));

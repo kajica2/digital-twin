@@ -55,6 +55,16 @@
   .tt { border: 1px solid var(--line); background: var(--surface); color: var(--ink);
         border-radius: 8px; padding: 10px 14px; cursor: pointer; font-family: var(--mono); font-size: 13px; }
   .tt.on { border-color: var(--accent); color: var(--accent); }
+  .store-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 18px; }
+  .store-cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 12px; letter-spacing: .1em;
+    text-transform: uppercase; text-decoration: none;
+    color: var(--bg); background: var(--accent);
+    border-radius: 8px; padding: 11px 18px;
+  }
+  .store-cta:hover { background: var(--accent-hover); }
+  .store-note { font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
   @media (max-width: 700px) { .story { grid-template-columns: 1fr; } h1 { font-size: 32px; } }
 </style>
 </head>
@@ -74,6 +84,10 @@
       <button class="tt" data-theme-btn="light">light</button>
       <button class="tt" data-theme-btn="dark">dark</button>
       <button class="tt" data-theme-btn="auto">auto</button>
+    </div>
+    <div class="store-row">
+      <a class="store-cta" href="https://kaidjuric.gumroad.com/" target="_blank" rel="noopener" data-store-gumroad>shop the store&nbsp;↗</a>
+      <span class="store-note">the shelf is the catalogue above &middot; the checkout is Gumroad</span>
     </div>
   </header>
 
@@ -244,7 +258,8 @@
     System Error plates: 16:9, 832&times;464, seeds 9600&ndash;9609, rendered locally on
     FLUX.2 klein-4B &mdash; text-free by design.<br>
     Tones after <a href="how-to.html" data-rel>the twin's how-to</a> · copy from the
-    <a href="cognitive-twin.html" data-rel>cognitive twin</a>.
+    <a href="cognitive-twin.html" data-rel>cognitive twin</a>.<br>
+    Checkout: <a href="https://kaidjuric.gumroad.com/" target="_blank" rel="noopener" data-store-gumroad>kaidjuric.gumroad.com</a> — one store for everything the twin finishes.
   </footer>
 </div>
 

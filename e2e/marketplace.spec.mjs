@@ -63,6 +63,32 @@ function check(name, ok, detail = '') {
 
   check('market: hero <h1> "Mood Frames"', await page.evaluate(() =>
     document.querySelector('h1')?.textContent === 'Mood Frames'));
+
+  // The catalogue is the shelf; Gumroad is the checkout. Both the header
+  // CTA and the footer line must point at the store, and the link is
+  // external — so it opens in a new tab with rel=noopener, and it is
+  // deliberately NOT marked data-rel (that attribute is the spec's
+  // "internal link, please resolve this" marker).
+  const store = await page.evaluate(() => {
+    const links = Array.from(document.querySelectorAll('a[data-store-gumroad]'));
+    return {
+      count: links.length,
+      hrefs: links.map(a => a.getAttribute('href')),
+      external: links.every(a =>
+        a.getAttribute('target') === '_blank' && /noopener/.test(a.getAttribute('rel') || '')),
+      cta: !!document.querySelector('.store-cta'),
+      inHeader: !!document.querySelector('header a[data-store-gumroad]'),
+      inFooter: !!document.querySelector('footer a[data-store-gumroad]'),
+    };
+  });
+  check('market: Gumroad store linked from header and footer',
+        store.count >= 2 && store.hrefs.every(h => h === 'https://kaidjuric.gumroad.com/'),
+        `${store.count} links: ${store.hrefs.join(', ')}`);
+  check('market: store link is a header CTA and a footer line',
+        store.cta && store.inHeader && store.inFooter);
+  check('market: store links open externally, safely',
+        store.external, 'target=_blank + rel=noopener');
+
   check('market: eight story cards', await page.evaluate(() =>
     document.querySelectorAll('.story').length === 8));
   check('market: story badges present', await page.evaluate(() =>

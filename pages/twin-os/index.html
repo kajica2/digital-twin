@@ -731,6 +731,54 @@
       letter-spacing: 0.04em;
     }
 
+    /* Storefront — one front door for finished work. Not a tool, so it
+       lives in the Twin panel as its own block rather than as a card in
+       the Songs panel's tools grid. */
+    .storefront {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+      max-width: 640px;
+    }
+    .storefront-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      padding: 13px 18px;
+      color: var(--ink);
+      text-decoration: none;
+      transition: border-color 0.18s ease, background 0.18s ease;
+    }
+    .storefront-link:hover {
+      border-color: var(--primary-mid);
+      background: var(--primary-soft);
+    }
+    .storefront-link:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+    .storefront-name { font-size: 15px; font-weight: 600; }
+    .storefront-url {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      color: var(--ink-muted);
+    }
+    .storefront-cta {
+      margin-left: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    @media (max-width: 520px) {
+      .storefront-link { flex-wrap: wrap; gap: 6px 12px; }
+      .storefront-cta { margin-left: 0; }
+    }
+
     @media (max-width: 720px) {
       .song-row {
         grid-template-columns: 56px 1fr;
@@ -1093,6 +1141,27 @@
             <div class="stat-label">spent (so far)</div>
             <div class="stat-value">$0.04</div>
             <div class="stat-sub">3 subagent runs, all under $0.02</div>
+          </div>
+        </div>
+
+        <!-- STOREFRONT — where the twin's finished work goes -->
+        <div class="panel-section" style="margin-top:28px" data-storefront>
+          <h2>Storefront</h2>
+          <p class="lede">One front door. The mood-frame catalogue that ships with this
+            repo is the shelf; the Gumroad store is the checkout. Everything the twin
+            finishes that is for sale goes through one link, so there is one place to
+            change when the catalogue moves.</p>
+          <div class="storefront">
+            <a class="storefront-link" href="https://kaidjuric.gumroad.com/" target="_blank" rel="noopener" data-store-gumroad>
+              <span class="storefront-name">Gumroad</span>
+              <span class="storefront-url">kaidjuric.gumroad.com</span>
+              <span class="storefront-cta">open ↗</span>
+            </a>
+            <a class="storefront-link" href="../marketplace.html" data-store-marketplace>
+              <span class="storefront-name">Mood Frames</span>
+              <span class="storefront-url">the catalogue in this repo</span>
+              <span class="storefront-cta">open →</span>
+            </a>
           </div>
         </div>
       </section>

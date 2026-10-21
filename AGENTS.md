@@ -4714,3 +4714,82 @@ cleanup fell out of the second.
   (needs user approval, irreversible); (b) `data/clip/samples.json`;
   (c) clip CLI `--out <file>`; (d) woody-shaw chart variants; (e) the
   `.kai/` durability call.
+
+### 2026-10-21 — sprint 0.47 (the Gumroad store, on the twin)
+
+Asked: "add to twin https://kaidjuric.gumroad.com/". The store is the one
+checkout for everything the twin finishes; the twin had no link to it
+anywhere, and the mood-frame catalogue was a dead end with no way to buy.
+
+**Shipped:**
+
+- **Twin OS app (`pages/twin-os/index.html`)** — a new **Storefront**
+  block in the Twin panel (panel 03), below the three runtime counters.
+  Two rows: **Gumroad** → `https://kaidjuric.gumroad.com/` (external,
+  `target="_blank" rel="noopener"`) and **Mood Frames** → the catalogue
+  page at `../marketplace.html` (internal). New `.storefront` CSS built
+  from the house tokens only — no new colours, no magic numbers.
+- **Marketplace catalogue (`pages/marketplace.html`)** — a "shop the
+  store ↗" CTA under the theme row in the header, and a footer line
+  ("Checkout: kaidjuric.gumroad.com — one store for everything the twin
+  finishes"). The page keeps its job as the shelf; the CTA is the way
+  off the shelf.
+
+**Decisions:**
+
+- **One front door, one place to change.** Both surfaces point at the
+  same URL and nothing else — when the store moves, there are two edits,
+  not a dozen.
+- **The store is not a tool.** It did *not* go into the Songs panel's
+  tools grid (that grid is for services the twin pairs with, and a
+  marketplace is not a service the twin calls). It got its own block in
+  the Twin panel instead, and it kept the rail at three panels — the
+  e2e asserts `["today","songs","twin"]` and a store is not a panel.
+- **AA contrast, not house-of-house.** The tool cards use copper
+  (`--primary`) for their CTA text: 3.27:1 on white, which does not
+  clear AA at 11.5px. The storefront rows use `--accent` (forest:
+  5.9:1 light, 6.3:1 dark) and `--ink-muted` for the secondary line
+  (the first draft used `--ink-faint` at 3.75:1 in dark — caught by
+  measuring, and fixed before commit). New text clears AA in both
+  themes; the old copper pattern was left alone, not spread.
+- **The external link is marked, the internal one is not.** The
+  marketplace spec's link check only walks `a[data-rel]` — the
+  internal-link marker. The Gumroad link is deliberately not marked
+  (it is not internal) and opens in a new tab with `rel="noopener"`.
+
+**Also fixed (a spec defect, not a page defect):**
+
+- `e2e/twin-os.spec.mjs` took `today-dark.png` and then never switched
+  back, so `songs-light.png` and `twin-light.png` were capturing the
+  **dark** theme while claiming to be light. The artifacts were lying.
+  The theme is now reset to light before those two shots, so the
+  filenames match the pixels.
+- **New assertions:** the Twin panel's storefront points at the exact
+  Gumroad URL, opens externally with noopener, links the catalogue, sits
+  in the Twin panel, and the catalogue link **resolves 200**. The
+  marketplace spec asserts the store is linked from header and footer,
+  that the header one is a CTA, and that both open externally.
+
+**Verified:**
+
+- `e2e/twin-os.spec.mjs` — ALL CHECKS PASSED, including the 4 new
+  storefront assertions and the catalogue link resolving 200.
+- `e2e/marketplace.spec.mjs` — 28/28 PASS, including the 3 new store
+  checks; 33 images still load, 0 console errors, the motion video
+  still plays.
+- `npm run verify` (landing / twin-os / twin-os-songs) — green.
+- `clip-interrogator` / `refael` / `loopable-video-segmenter` specs —
+  green (they each visit the Twin OS).
+- **Visual proof, both themes:** the storefront block was read from the
+  rendered screenshots — two bordered rows, nothing clipped, "open ↗"
+  green and legible on cream and on near-black, rows visually distinct
+  from the stat cards above.
+
+**Open:**
+
+- The **landing page** and the **cognitive-twin footer** were left
+  alone. The landing is the public pitch and its three variants are an
+  A/B position; a store CTA there is a positioning decision, not a
+  plumbing one. Say the word and it goes in.
+- The floating toolset (the drop-in panel) has no link surface, so the
+  store was not added there.
