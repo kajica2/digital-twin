@@ -4757,8 +4757,19 @@ anywhere, and the mood-frame catalogue was a dead end with no way to buy.
   internal-link marker. The Gumroad link is deliberately not marked
   (it is not internal) and opens in a new tab with `rel="noopener"`.
 
-**Also fixed (a spec defect, not a page defect):**
+**Also fixed (a page defect the deploy-test loop caught):**
+- `pages/twin-os/index.html` declared its PWA manifest with a
+  **root-absolute** href — `/pages/twin-os/manifest.webmanifest`. That
+  resolves on Vercel (the repo is the site root there) but 404s on a
+  **project** Pages site, which serves the repo under `/<repo>/`: the
+  request went to the domain root and the browser logged two console
+  errors on every load, failing the spec's 0-console-error contract.
+  The href is now relative (`manifest.webmanifest`), which resolves
+  identically on both hosts. The root `twin-os/index.html` copy already
+  used the relative form — the `pages/` copy had regressed. This is the
+  sprint-0.31 favicon class of bug, one file over.
 
+**Also fixed (a spec defect, not a page defect):**
 - `e2e/twin-os.spec.mjs` took `today-dark.png` and then never switched
   back, so `songs-light.png` and `twin-light.png` were capturing the
   **dark** theme while claiming to be light. The artifacts were lying.
@@ -4784,6 +4795,27 @@ anywhere, and the mood-frame catalogue was a dead end with no way to buy.
   rendered screenshots — two bordered rows, nothing clipped, "open ↗"
   green and legible on cream and on near-black, rows visually distinct
   from the stat cards above.
+
+**Deployed (the deploy-test loop):**
+
+- `E2E_URL=https://kajica2.github.io/digital-twin` — the **marketplace
+  spec passes end to end on the live site** (all checks, including the
+  3 new store checks, 33 images, 0 console errors, the motion video
+  plays).
+- `E2E_URL=…` — the **twin-os spec passes all 5 storefront assertions
+  on the live site** (exact store URL, external + noopener, catalogue
+  href, in the Twin panel, catalogue resolves 200). Its only failures
+  on that host were the root-absolute manifest 404s above — fixed, and
+  the spec is green locally with the fix.
+- **Vercel is the CI target but is not picking up pushes.** The alias
+  `digitaltwin-ebon.vercel.app` still served the previous build ~10
+  minutes after the push, and `npx vercel ls` fails with "the token
+  provided via VERCEL_TOKEN environment variable is not valid" — the
+  local CLI cannot trigger or list a deploy. The GitHub Pages build
+  landed in ~60 s and served the new commit, which is what the
+  verification above ran against. The Vercel deploy (and the CI
+  freshness gate that depends on it) needs a working token or a
+  re-linked project.
 
 **Open:**
 
