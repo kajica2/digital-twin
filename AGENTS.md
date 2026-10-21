@@ -4190,3 +4190,111 @@ system working, verified.
     clone.
   - `suno-prompts.html` still has no theme toggle; it follows the
     family's `dt-theme-pref` preference but offers no control.
+
+### 2026-10-21 — sprint 0.45 (floating toolset)
+
+Brief: a floating, draggable panel matching a reference screenshot — a
+macOS-style window with traffic-light dots, a `~/twin — online · local`
+title bar, a red **live** badge, a 2×2 grid of TODAY / NOW PLAYING /
+CODE / PATTERNS, and a footer reading
+`twin  3 agents running · 8 events today · 0.4¢ spent` with `local` on
+the right.
+
+- **Shipped:**
+  - **`lib/floating-toolset.js`** — a self-contained `<floating-toolset>`
+    Web Component (no deps, no build step). Shadow DOM with its own
+    styles, so it cannot fight a host page's CSS; CSS custom properties
+    inherit through the boundary, so the skin tokens reach it and it
+    re-tints with the family (light/dark, house/studio). Pure helpers
+    (`mergePayload`, `clampPosition`, `escapeHtml`) are exported for
+    Node; a `HAS_DOM` guard keeps the module requireable in tests.
+  - **`data/twin/toolset.json`** — the shipped payload (title, live
+    badge, four panels, footer).
+  - **`pages/floating-toolset.html`** — the host page: hero, what-it-is,
+    the drop-in snippet (copy-able), the payload table, the API, and a
+    footer link to the reference doc. The panel starts **closed** so the
+    copy reads first; three buttons drive it.
+  - **`lib/floating-toolset.test.js`** — 28 pure-function checks.
+  - **`e2e/floating-toolset.spec.mjs`** — 25 browser checks.
+  - **`docs/FLOATING-TOOLSET.md`** — the reference (embed snippet,
+    payload table, API, the three lights, limits).
+  - npm: `e2e:floating-toolset`, `test:floating-toolset`; the unit
+    suite is in `test:all`. CI: the spec runs in both the push (deployed
+    URL) and PR (local `:5180`) e2e lists.
+  - README (bullet + "Run the Floating Toolset" section), the how-to
+    page-map row, and a `<floating-toolset>` entry in
+    `docs/COMPONENT-CATALOGUE.md`.
+
+- **Decisions:**
+  - **A shared component in `lib/`, not a page-only widget.** The
+    `<meditate-temperature>` precedent: one `<script>` + one tag, so the
+    toolset can be parked on any page — which is the whole point of a
+    floating panel.
+  - **Shadow DOM, deliberately.** Isolation from the host page is worth
+    more than the ability to style the panel from outside, and the
+    inheritance of custom properties gives the skin its re-tint for
+    free.
+  - **A built-in demo state, merged under every payload.** A partial
+    payload never blanks a panel, and a failed fetch leaves the panel
+    populated rather than empty. `mergePayload()` never mutates the
+    demo.
+  - **The three window lights are functional** (red = close and leave a
+    restore tab, yellow = collapse to the chrome bar, green = widen to
+    the single-column layout). Decoration would have been a lie in a
+    panel that pretends to be a window.
+  - **The panel starts closed.** It is a demo of a widget, not an
+    obstruction over the copy.
+  - **A failed test was a wrong test, not wrong code — twice.** The
+    first drag assertion moved the panel rightward, but the panel starts
+    anchored to the right edge, so the viewport clamp stopped it at
+    24px; the drag is now leftward and asserts the exact −100/−60.
+    Separately, the first hero assertion looked for the literal string
+    "floating panel" while the h1 says "One panel, floating over
+    everything." — the assertion now checks for both words.
+  - **Panel width 470px.** At 380px and 430px the CODE row
+    `chaos_magick — Vercel redeploy` truncated with an ellipsis. The
+    width was raised until no card text truncates (confirmed on the
+    screenshot, not by eye).
+  - **Fixed a pre-existing skin-lint fragility.** `lib/skin-lint.js`
+    walked the repo for HTML, so a *generated* page left in the
+    gitignored `mj-output/` directory failed the lint
+    ("uses 5 contract tokens but loads no skin") and broke
+    `npm run test:all` for reasons unrelated to any source page. The
+    walk now skips gitignored directories. The new page was confirmed to
+    still be linted (41 skinned, 0 errors).
+
+- **Verified end-to-end:**
+  - `npm run test:floating-toolset` — **28/28**.
+  - `npm run e2e:floating-toolset` — **25/25** against the repo-root
+    `:5180` server: the four cards and their rows (3 / 24 equalizer bars
+    / 3 / 3), the chrome title, the live badge, the three lights, the
+    footer text, open / collapse / zoom / close / restore, a real
+    pointer drag (−100px / −60px exactly), the remembered position, the
+    viewport clamp, the embed snippet, a copy click that throws
+    nothing, the theme flip and its persistence across a reload, and
+    **0 console errors**.
+  - Screenshot reviewed: the 2×2 grid reads TODAY / NOW PLAYING / CODE /
+    PATTERNS as in the reference, and **no card text is truncated**.
+  - `npm run test:all` — **19 suites, 0 failures** (the unit chain
+    grew from 18 to 19 with the toolset suite).
+  - `npm run verify` — landing / twin-os / twin-os-songs green.
+  - `npm run e2e:howto` — green after the page-map row; the new
+    `../docs/FLOATING-TOOLSET.md` link resolves 200.
+  - `npm run skin:check` — 41 skinned, 8 opted out, 1 plain, **0
+    errors**.
+
+- **Open:**
+  - The payload is static — the panel reads JSON and does not poll the
+    agent hub or the Twin OS state. Pointing `src` at whatever the twin
+    writes is the missing link.
+  - The code ticks are display-only; they do not write back to a task
+    list.
+  - One panel per page: two instances would share the
+    `dt-floating-toolset-pos` storage key.
+  - The deploy-test loop for this page still has to run against the
+    deployed URL once the commit lands on Vercel.
+
+- **Next:** (a) run the deploy-test loop for the new page; (b) point
+  the payload at a live state file so the panel reflects real work;
+  (c) the standing backlog — reel LaunchAgent bootstrap, the
+  `.kai/` durability call, the chart variants.

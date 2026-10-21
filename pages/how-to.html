@@ -11,7 +11,7 @@
     <title>How To — Digital Twin</title>
     <meta name="description" content="How to run everything in the digital-twin repo: Twin OS, the CLIP Interrogator, the Refael MP4 Maker, the chart pipeline, the song indexer, the e2e tests, and the LaunchAgents.">
     <meta property="og:title" content="How To — Digital Twin">
-    <meta property="og:description" content="One repo, nine pages, four live watchers, zero frameworks. Here's how to run all of it.">
+    <meta property="og:description" content="One repo, twelve pages, four live watchers, zero frameworks. Here's how to run all of it.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://kajica2.github.io/digital-twin/pages/how-to.html">
     <link rel="canonical" href="https://kajica2.github.io/digital-twin/pages/how-to.html">
@@ -281,7 +281,7 @@
         <div class="hero-badge">User Guide · sprint 0.20</div>
         <h1>How to run <em>everything</em>.</h1>
         <p class="hero-desc">
-            One repo, nine pages, four live watchers, zero frameworks. This page is the
+            One repo, twelve pages, four live watchers, zero frameworks. This page is the
             operator's manual: how to serve the site, use the Twin OS, run the CLIP
             Interrogator and Refael, drive the chart pipeline and song indexer, run the
             tests, and understand what the LaunchAgents are doing on this machine.
@@ -329,6 +329,7 @@ python3 -m http.server 5180 --directory .
                 <tr><td><code>pages/agent-dashboard.html</code></td><td>Live view of the persistent agent loop — <code>run</code> rewrites it on pause/exit and every 10 iterations; <code>dashboard --out</code> by hand.</td></tr>
                 <tr><td><code>pages/marketplace.html</code></td><td>Mood-frame listing — eight music-video stills, three studio extras, twelve cover studies and ten System Error plates in the house sound-tones, each with its marketplace blurb.</td></tr>
                 <tr><td><code>pages/temple-of-control.html</code></td><td>Three temperature sliders (heat / breath / glow) driving a meditation visual; MIDI-driven, pluggable on any page via <code>lib/meditate-temperature.js</code>.</td></tr>
+                <tr><td><code>pages/floating-toolset.html</code></td><td>The floating toolset — a draggable TODAY / NOW PLAYING / CODE / PATTERNS panel; drop-in on any page via <code>lib/floating-toolset.js</code>. Reference: <a href="../docs/FLOATING-TOOLSET.md">docs/FLOATING-TOOLSET.md</a>.</td></tr>
                 <tr><td><code>pages/integrations.html</code></td><td>Connect external services — enter API keys and cookies for Midjourney, Instagram, YouTube. Styled like Desktop Commander's welcome page.</td></tr>
             </table>
         </div>
@@ -449,7 +450,7 @@ npm run verify               # landing + twin-os + twin-os-songs
 npm run e2e:ct               # 8 cognitive-twin specs (needs Chrome)
 npm run e2e:clip             # CLIP page contract (no Python deps)
 npm run e2e:refael           # Refael page contract
-npm run test:all             # 11 unit suites: watchers, MJ, jazz-solos, agent-loop</code></pre></div>
+npm run test:all             # 19 unit suites: watchers, MJ, jazz-solos, agent-loop, toolset</code></pre></div>
         <ul class="tight">
             <li>CI runs the deployed URL on push (deploy-test loop: deploy is not done until the e2e hits the live site) and the local repo-root server on PRs.</li>
             <li>Watcher specs are filesystem-only — run locally, not in CI (they touch LaunchAgent state).</li>

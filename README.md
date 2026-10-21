@@ -56,6 +56,10 @@ For now, what's here:
 - **`pages/how-to.html`** — the operator's manual: quickstart, Twin OS,
   CLIP Interrogator, Refael, chart pipeline, song indexer, testing,
   LaunchAgents, troubleshooting. Linked from the cognitive-twin footer.
+- **`pages/floating-toolset.html`** — the floating toolset: a draggable
+  panel with TODAY / NOW PLAYING / CODE / PATTERNS that can be parked in
+  the corner of any page. The component (`lib/floating-toolset.js`) is
+  drop-in.
 - **`lib/songs-indexer.js`** — walks audio dirs, builds
   `data/songs/catalog.json`.
 - **`assets/mural-prompts/STYLE-PRESETS.md`** — the 23-entry MJ style
@@ -260,6 +264,30 @@ To put it on any page:
 Hardware (Maschine Mikro profiled, generic fallback) on top of it via
 `lib/midi-automap.js` — three automap modes cycle from the controller's
 mode button. Reference: [`docs/COMPONENT-CATALOGUE.md`](docs/COMPONENT-CATALOGUE.md).
+
+## Run the Floating Toolset
+
+A draggable panel with **today**, **now playing**, **code** and
+**patterns** — the one-glance version of what the twin is doing. Pure
+client-side, one file, no build step:
+
+```bash
+node lib/serve.js --port 5173
+# → http://127.0.0.1:5173/pages/floating-toolset.html
+```
+
+To park it in the corner of any page:
+
+```html
+<script src="/lib/floating-toolset.js"></script>
+<floating-toolset src="/data/twin/toolset.json"></floating-toolset>
+```
+
+The chrome bar is the drag handle, the three window lights are
+functional (close / collapse / widen), and the position is remembered.
+It renders in a shadow root, so it cannot fight the host page's CSS, and
+it picks up the skin tokens for free. Reference:
+[`docs/FLOATING-TOOLSET.md`](docs/FLOATING-TOOLSET.md).
 
 ## Re-skin the family
 

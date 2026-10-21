@@ -130,6 +130,7 @@ jobs:
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node loopable-video-segmenter.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node marketplace.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node temple-of-control.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node floating-toolset.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node integrations.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node mj-dashboard.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node skin.spec.mjs
@@ -155,6 +156,7 @@ jobs:
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node loopable-video-segmenter.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node marketplace.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node temple-of-control.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node floating-toolset.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node integrations.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node mj-dashboard.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node skin.spec.mjs

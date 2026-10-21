@@ -95,6 +95,43 @@ entry below.
   value)` is pure and unit-tested; `desk.receive(cc, value)` is the
   no-hardware test seam.
 
+## `<floating-toolset>`
+
+- **Purpose:** the draggable panel with **today**, **now playing**,
+  **code** and **patterns** — the one-glance version of what the twin
+  is doing, parkable in the corner of any page.
+- **Home:** `lib/floating-toolset.js` (a shared component, like
+  `<meditate-temperature>` — one `<script>` + one tag, droppable into
+  any page).
+- **Rendering:** a **shadow root** with its own styles, so it cannot
+  collide with the host page's CSS. CSS custom properties inherit
+  through the boundary, so the skin tokens reach it and it re-tints
+  with the family (light/dark, house/studio).
+- **Props / attrs:** `src` (URL of a JSON payload). Also
+  `setData(obj)` / the `data` getter.
+- **Payload:** `{ title, live, panels: { today, nowPlaying, code,
+  patterns }, footer: { left, right } }`. Every key is optional — the
+  built-in demo state fills whatever is missing, so a partial payload
+  never blanks a panel and a failed fetch keeps the panel populated
+  rather than blank. `mergePayload()` is pure and unit-tested.
+- **Window:** macOS-style chrome bar with three **functional** lights —
+  red closes (leaving a restore tab), yellow collapses to the bar,
+  green widens to the single-column layout. The bar is the drag
+  handle; arrow keys nudge it when it has focus. The position is
+  clamped to the viewport.
+- **Transport:** `open()` / `close()` / `toggleCollapse()` /
+  `toggleZoom()`; events `toolset:open`, `toolset:close`,
+  `toolset:collapse` (`{ collapsed }`) and `toolset:move` (`{ x, y }`).
+- **Persistence:** position, collapsed and zoom state in
+  `localStorage["dt-floating-toolset-pos"]`.
+- **Calm-by-default:** the only motion is the equalizer in NOW PLAYING,
+  and it stops under `prefers-reduced-motion`.
+- **Companion files:** `data/twin/toolset.json` (the payload),
+  `lib/floating-toolset.test.js` (28 pure checks),
+  `e2e/floating-toolset.spec.mjs` (25 browser checks),
+  `pages/floating-toolset.html` (the host page),
+  `docs/FLOATING-TOOLSET.md` (the reference).
+
 ## Reusable SVG icon library
 
 The `ICONS` object (in the inline script) holds 14 inline SVG paths
