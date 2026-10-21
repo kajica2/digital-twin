@@ -112,7 +112,7 @@
     <h2>One by one</h2>
     <p class="lede" style="margin:0 0 14px">Click any tile to open it. The task id under each
       one is the Midjourney job that produced it — the sheet's provenance, not decoration.</p>
-    <div class="tiles" id="tiles"></div>
+    <div class="tiles" id="tile-grid"></div>
   </section>
 
   <section id="method">
@@ -200,7 +200,7 @@
       return r.json();
     })
     .then(function (m) {
-      var host = document.getElementById('tiles');
+      var host = document.getElementById('tile-grid');
       host.innerHTML = m.variants.map(function (v) {
         var src = DIR + 'tiles/prompt-' + v.index + '.webp';
         var meta = v.index + ' — ' + v.label;
@@ -217,7 +217,7 @@
       });
     })
     .catch(function (err) {
-      document.getElementById('tiles').innerHTML =
+      document.getElementById('tile-grid').innerHTML =
         '<p class="lede">Could not load the sheet manifest (' + esc(err.message) +
         '). The contact sheet above is a static file and is unaffected.</p>';
     });

@@ -4389,7 +4389,7 @@ at night — rendered at twelve different camera angles, presented as a single
   13 code blocks) is unchanged — the pattern is row + count, never a new
   section.
 
-**Four bugs found and fixed:**
+**Five bugs found and fixed:**
 
 1. **Wrong-job attribution (the serious one).** The imagine feed is a
    *shared timeline* — the account owner's own concurrent jobs sit in it with
@@ -4416,6 +4416,23 @@ at night — rendered at twelve different camera angles, presented as a single
    to "overhead…" and "behind the shoulder of the figure, …" to "behind…".
    Replaced with a last-word-boundary cut + a 24-char floor. All 12
    captions now carry their full clause.
+5. **A duplicate `id` broke the page's layout — and the spec passed.**
+   The section and the grid div were both `id="tiles"`. `getElementById`
+   returns the FIRST match, so the script wrote the tiles into the
+   `<section>` and the grid div stayed empty: the CSS never applied and
+   the twelve tiles rendered as **twelve full-width stacked rows** instead
+   of a grid. Every functional check still passed — 12 figures, 12
+   captions, 12 images, all correct. Only the geometry was wrong.
+   The e2e now asserts three things that see it: the grid computes
+   `display: grid` with more than one column and fewer rows than tiles;
+   the served **source** has no duplicate ids (the live DOM is not the
+   contract — the page's own script rewrites `#tile-grid`); and the tile
+   check requires `n === manifest.length` rather than merely "no bad
+   rows", which had passed **vacuously** on zero tiles.
+
+   The general lesson: a spec that counts elements cannot see a layout
+   bug, and a check that only asserts "no bad rows" passes vacuously when
+   there are no rows. Both are now pinned.
 
 **Also fixed:** `--s` and `--stylize` are the same flag (folded via
 `FLAG_ALIASES`); `expectedAspect` now delegates to `feed.commandAspect`
@@ -4477,11 +4494,15 @@ successful job is not evidence that the angle landed.**
 
 - `npm run test:all` — **998 assertions across 23 suites, 0 failures**
   (up from 971/22: +27 mj-contact-sheet).
-- `e2e/mj-sheets.spec.mjs` — **15/15 PASS** on the repo-root `:5180`
-  server: 12 tiles each caption-tied to its manifest entry, no truncated
-  caption stubs, the lightbox opens on click and closes on Escape, the
-  theme toggle flips and persists on reload, 0 console errors, 13 images
-  all `naturalWidth > 0`.
+- `e2e/mj-sheets.spec.mjs` — **17/17 PASS** on the repo-root `:5180`
+  server: 12 tiles each caption-tied to its manifest entry, the grid
+  lays out as multiple columns, the served source has no duplicate ids,
+  no truncated caption stubs, the lightbox opens on click and closes on
+  Escape, the theme toggle flips and persists on reload, 0 console
+  errors, 13 images all `naturalWidth > 0`. The three layout checks were
+  verified to FAIL against the broken page (7 named failures, no thrown
+  error) and PASS against the fix — a check that cannot fail is not a
+  check.
 - `npm run e2e:howto` — ALL PASS after the page-map row (the new
   `../docs/MJ-CONTACT-SHEET.md` link resolves 200).
 - `npm run verify` (landing / twin-os / twin-os-songs) — all green.

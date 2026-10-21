@@ -76,7 +76,7 @@ function check(name, ok, detail = '') {
     const res = await fetch(new URL(rel, location.href).href, { cache: 'no-store' });
     if (!res.ok) return { ok: false, why: 'manifest HTTP ' + res.status, n: 0, listed: 0 };
     const man = await res.json();
-    const figs = Array.from(document.querySelectorAll('#tiles figure'));
+    const figs = Array.from(document.querySelectorAll('#tile-grid figure'));
     const bad = [];
     for (const f of figs) {
       const img = f.querySelector('img');
@@ -87,20 +87,61 @@ function check(name, ok, detail = '') {
       if (!got.includes(src.label)) bad.push(`caption lacks clause: ${got}`);
       if (!got.includes(src.taskId.slice(0, 8))) bad.push(`caption lacks task id: ${got}`);
     }
-    return { ok: bad.length === 0, why: bad.join(' | '), n: figs.length, listed: (man.variants || []).length };
+    return {
+      ok: bad.length === 0 && figs.length === (man.variants || []).length && figs.length > 0,
+      why: bad.join(' | ') || (figs.length ? '' : 'no tiles rendered'),
+      n: figs.length,
+      listed: (man.variants || []).length,
+    };
   });
   check('mjs: 12 tiles, each caption tied to its manifest entry', tileCheck.ok,
     tileCheck.ok ? `${tileCheck.n} tiles vs ${tileCheck.listed} manifest entries` : tileCheck.why);
 
+  // The tiles must actually LAY OUT as a grid. A duplicate id once made
+  // getElementById('tiles') return the <section> instead of the grid div,
+  // so the CSS never applied and the twelve tiles stacked in one column —
+  // while every other check still passed. Geometry is the only assertion
+  // that sees it.
+  const layout = await page.evaluate(() => {
+    const grid = document.querySelector('#tile-grid');
+    if (!grid) return { error: 'no #tile-grid element' };
+    const figs = Array.from(document.querySelectorAll('#tile-grid figure'));
+    const cs = getComputedStyle(grid);
+    const tops = [...new Set(figs.map(f => Math.round(f.getBoundingClientRect().top)))];
+    return {
+      display: cs.display,
+      cols: cs.gridTemplateColumns.split(' ').length,
+      rows: tops.length,
+      n: figs.length,
+      width: Math.round(figs[0]?.getBoundingClientRect().width || 0),
+    };
+  });
+  check('mjs: the tiles lay out as a multi-column grid',
+    !layout.error && layout.display === 'grid' && layout.cols > 1 && layout.rows < layout.n,
+    layout.error || `display=${layout.display} cols=${layout.cols} rows=${layout.rows} tileWidth=${layout.width}`);
+
+  // A duplicate id is invalid HTML and silently redirects getElementById.
+  // This scans the SERVED SOURCE, not the live DOM: the page's own script
+  // rewrites #tile-grid's contents, so the DOM is not the contract.
+  const dupIds = await (async () => {
+    const html = await (await fetch(PAGE, { cache: 'no-store' })).text();
+    const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]);
+    const seen = new Set(), dupes = new Set();
+    for (const id of ids) { if (seen.has(id)) dupes.add(id); seen.add(id); }
+    return [...dupes];
+  })();
+  check('mjs: no duplicate element ids in the source', dupIds.length === 0,
+    dupIds.join(' | ') || 'source scanned');
+
   check('mjs: every tile has descriptive alt text', await page.evaluate(() => {
-    const imgs = Array.from(document.querySelectorAll('#tiles img'));
+    const imgs = Array.from(document.querySelectorAll('#tile-grid img'));
     return imgs.length === 12 && imgs.every(i => (i.getAttribute('alt') || '').trim().length > 20);
   }));
 
   // Every caption must be the clause, not a stub. A caption that truncated
   // to "overhead…" tells the reader nothing about the tile.
   check('mjs: no caption is a truncated stub', await page.evaluate(() => {
-    const caps = Array.from(document.querySelectorAll('#tiles figcaption'));
+    const caps = Array.from(document.querySelectorAll('#tile-grid figcaption'));
     return caps.length === 12 && caps.every(c => {
       const label = c.textContent.replace(/\s+/g, ' ').trim();
       return label.length > 25 && !/^[a-z ]+…$/.test(label);
@@ -118,20 +159,30 @@ function check(name, ok, detail = '') {
 
   // Every image must actually render. The lightbox's <img> is excluded: it
   // is empty until a tile is clicked, so it has no naturalWidth to report.
-  await page.waitForFunction(() => {
-    const imgs = Array.from(document.querySelectorAll('img:not(#lbImg)'));
-    return imgs.length >= 13 && imgs.every(i => i.complete && i.naturalWidth > 0);
-  }, { timeout: 15000 });
+  // The wait is on the GRID's own images, not a total count: the count
+  // would also be satisfied by a page that rendered the sheet but no tiles.
+  const imagesReady = await page.waitForFunction(() => {
+    const tiles = Array.from(document.querySelectorAll('#tile-grid img'));
+    const sheet = document.querySelector('.sheet img');
+    return tiles.length > 0 && sheet
+      && tiles.every(i => i.complete && i.naturalWidth > 0)
+      && sheet.complete && sheet.naturalWidth > 0;
+  }, { timeout: 15000 }).then(() => true).catch(() => false);
   const imgs = await page.evaluate(() => {
     const all = Array.from(document.querySelectorAll('img:not(#lbImg)'));
-    return { count: all.length, ok: all.every(i => i.naturalWidth > 0) };
+    return { count: all.length, ok: all.length > 0 && all.every(i => i.naturalWidth > 0) };
   });
-  check('mjs: images load (naturalWidth > 0)', imgs.ok, `count=${imgs.count}`);
+  check('mjs: images load (naturalWidth > 0)', imagesReady && imgs.ok, `count=${imgs.count}`);
 
   // the lightbox opens on a tile click and closes on Escape
-  await page.click('#tiles figure:first-child img');
+  const tileClicked = await page.evaluate(() => {
+    const img = document.querySelector('#tile-grid figure:first-child img');
+    if (!img) return false;
+    img.click();
+    return true;
+  });
   await new Promise(r => setTimeout(r, 250));
-  check('mjs: clicking a tile opens the lightbox', await page.evaluate(() =>
+  check('mjs: clicking a tile opens the lightbox', tileClicked && await page.evaluate(() =>
     !document.getElementById('lightbox').hidden));
   await page.keyboard.press('Escape');
   await new Promise(r => setTimeout(r, 250));
