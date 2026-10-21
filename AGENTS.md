@@ -3768,3 +3768,53 @@ render dirs should collapse to one canonical set.
   must be re-run against the deployed URL once Pages has the commit.
   The `data/mj/index.json` (751,083 bytes with the real URLs — they are
   not reconstructible from the task id) ships with the commit.
+
+### 2026-10-21 — sprint 0.44 (Vercel deploy, cleanUrls fix, flux loops)
+
+- **Shipped:**
+  - **Vercel deploy setup** — project linked to `digital_twin` repo,
+    deployed to `https://digitaltwin-ebon.vercel.app` (alias) /
+    `digitaltwin-kai-djurics-projects.vercel.app`. Project ID
+    `prj_OCd1U8SSANiMQfooWFYa13QPBmGW`. SSO protection enabled
+    (`deploymentProtection: ["vercel_authentication"]`), so the alias
+    requires a Vercel login; a public custom domain would be needed for
+    truly public access.
+  - **`.vercelignore`** — excludes FLUX.2 model weights (23 GB),
+    uv venvs, `node_modules`, and other non-deployment artifacts.
+    Without this, deploys reported READY but uploaded **0 files** —
+    the API rejected the 30+ GB upload with `missing_files` and Vercel
+    created an empty deployment.
+  - **`vercel.json`** — `cleanUrls: false`, `trailingSlash: true`,
+    catch-all rewrite `/(.*)` → `/pages/landing.html`. This fixes
+    the silent URL break: with `cleanUrls: true`, Vercel 308-redirects
+    `/pages/twin-os/index.html` → `/pages/twin-os`, dropping the last
+    segment and breaking every relative URL in the page (manifest,
+    sw.js, catalog-relative assets). GitHub Pages serves `/pages/twin-os/`
+    with the trailing slash intact; the new config makes Vercel match.
+  - **Flux loop path fix** — the `loops-catalog.json` stores
+    repo-root-relative paths (`data/flux/loops-final/<file>.mp4`), but
+    the page at `/pages/twin-os/` resolved them as
+    `/pages/twin-os/data/flux/...`. Fixed by prefixing `src`/`poster`
+    with a computed `MEDIA_BASE` (`../../` from the fetch depth) so they
+    resolve to `/data/flux/...`. Applied to both `pages/twin-os/index.html`
+    and the root `twin-os/index.html` copy.
+  - **MP4 assets committed** — `data/flux/loops-final/*.mp4` (3 files,
+    2.8 MB) were gitignored. Force-added to ensure a fresh clone has
+    the videos.
+  - **Workflow repointed** — `.github/workflows/pages-test.yml` now
+    targets `https://digitaltwin-ebon.vercel.app` instead of the dead
+    `kajica2.github.io/digital-twin` URL. Wait step polls the Vercel
+    URL, content verification uses the Vercel URL as sentinel.
+- **Verified:**
+  - Production deploy: all key paths return 200
+    (`/pages/twin-os/`, `manifest.webmanifest`, `sw.js`,
+    `/data/flux/loops-catalog.json`, `/data/flux/loops-final/...`).
+  - E2E specs against production URL: `landing.spec.mjs` ✓,
+    `twin-os.spec.mjs` ✓, `mj-dashboard.spec.mjs` ✓.
+- **Open / next:**
+  - Some tool-page specs still fail their "twin-os: 0 console errors"
+    sub-assertion (`clip-interrogator.spec.mjs`, `refael.spec.mjs`,
+    `loopable-video-segmenter.spec.mjs`) — they need the same
+    `data/flux/` + script-404 filters that the twin-os specs carry.
+  - The Vercel alias requires a login; decide whether to add a custom
+    domain for public access or accept the login requirement.
