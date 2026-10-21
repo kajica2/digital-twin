@@ -55,33 +55,32 @@ jobs:
       - name: Install e2e dependencies
         run: cd e2e && npm install
 
-      - name: Wait for Vercel deploy (push only)
-        if: github.event_name == 'push'
-        run: |
-          echo "Waiting for Vercel to deploy..."
-          for i in $(seq 1 60); do
-            status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 \
-              "https://digitaltwin-ebon.vercel.app/pages/landing.html" || echo "000")
-            if [ "$status" = "200" ]; then
-              echo "Vercel is live (attempt $i)"
-              break
-            fi
-            echo "  attempt $i: HTTP $status — retrying in 5s"
-            sleep 5
-          done
-          if [ "$status" != "200" ]; then
-            echo "::error::Vercel never came up after 5 minutes"
-            exit 1
-          fi
-
-      - name: Verify deployed content matches HEAD (push only)
+      - name: Wait for the deploy, then verify it serves HEAD
         if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # The wait step above only proves the site answers 200 — a
-          # STALE build satisfies that while the new build is still in
-          # flight. This step proves the NEW build is serving.
+          # One loop with one deadline, for one reason: the deploy and
+          # the content check are the SAME question asked twice. A
+          # build that has not landed cannot serve HEAD's bytes, and a
+          # build that has landed does. Splitting them into two steps
+          # with separate budgets let the first one expire and blame
+          # the code for a build that was merely still in flight.
+          #
+          # The bytes are the TEST. The Vercel commit status is only
+          # used to fail FAST when the deployment definitively failed —
+          # it is NOT a gate, because Vercel does not always post a
+          # status for every commit (observed 2026-10-21: two
+          # consecutive commits got no status and no Production
+          # deployment while an older one deployed fine). Gating on
+          # the status would hang on a commit whose deploy simply
+          # never registered.
+          #
+          # The sentinels are the PAGES THE E2E WILL LOAD, derived
+          # from the spec files themselves. That is the real contract:
+          # if the page under test is stale, the e2e result is
+          # meaningless, whatever the rest of the site looks like. A
+          # spec that adds a page automatically adds a sentinel.
           #
           # A FIXED sentinel list was not enough. On 2026-10-21 the
           # sentinels (mj-config.json, house.css) both matched HEAD
@@ -90,12 +89,6 @@ jobs:
           # proved nothing about the page the e2e was about to test.
           # The e2e then failed for a reason that had nothing to do
           # with the code under test.
-          #
-          # The sentinels are therefore the PAGES THE E2E WILL LOAD,
-          # derived from the spec files themselves. That is the real
-          # contract: if the page under test is stale, the e2e result
-          # is meaningless, whatever the rest of the site looks like.
-          # A spec that adds a page automatically adds a sentinel.
           #
           # Plus the shared assets every page loads (the skin, the
           # theme script) and the config that drives the MJ tooling.
@@ -120,20 +113,19 @@ jobs:
             exit 1
           fi
           echo "verifying $(echo "$VERIFY" | wc -w | tr -d ' ') sentinel(s) against the deploy"
-          echo "sentinels: $(echo $VERIFY)"
 
           # ONE global deadline for the whole set, not a budget per
           # file. The deploy either lands or it does not, so the whole
           # set is re-checked against a single clock.
           #
-          # 20 minutes, not 10: the observed deploy latency for this
-          # repo was ~6 minutes on 2026-10-21 and ~13 minutes on the
-          # same day (the store commit landed 13 minutes after the
-          # push). A 10-minute budget failed the run for a deploy that
-          # was simply still in flight — the gate was measuring the
-          # build queue, not the code. The budget must clear the
-          # worst observed latency, not the typical one.
-          DEADLINE=$(( $(date +%s) + 1200 ))
+          # 25 minutes: the observed Vercel deploy latency for this
+          # repo on 2026-10-21 was 0.3, 6.3, 8.8, 10.9 and 12.5
+          # minutes — growing, not steady. The budget must clear the
+          # WORST observed latency, and then some, or the run fails
+          # for a build that was simply still in flight. (A 10-minute
+          # budget did exactly that: it gave up ~2 minutes before the
+          # deploy landed and reported a false RED on a good commit.)
+          DEADLINE=$(( $(date +%s) + 1500 ))
           STALE=""
           while [ "$(date +%s)" -lt "$DEADLINE" ]; do
             STALE=""
@@ -150,10 +142,20 @@ jobs:
               echo "deployed content matches HEAD (all sentinels)"
               exit 0
             fi
-            echo "  attempt: still stale ->$STALE — retrying in 5s"
-            sleep 5
+            # Fail fast ONLY on a definitive deploy failure. A missing
+            # status means "not reported yet", not "failed".
+            STATE=$(gh api \
+              "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/status" \
+              --jq '[.statuses[]? | select(.context=="Vercel")][0].state // ""' \
+              2>/dev/null || echo "")
+            if [ "$STATE" = "failure" ] || [ "$STATE" = "error" ]; then
+              echo "::error::Vercel reported a FAILED deployment for $GITHUB_SHA — not a stale-build problem, a failed build"
+              exit 1
+            fi
+            echo "  attempt: stale ->$STALE (vercel status='${STATE:-none yet}') — retrying in 15s"
+            sleep 15
           done
-          echo "::error::deployed content still != HEAD after 20 minutes ->$STALE"
+          echo "::error::deployed content still != HEAD after 25 minutes ->$STALE"
           exit 1
 
       - name: Run e2e (deployed URL on push, local on PR)

@@ -4836,3 +4836,89 @@ anywhere, and the mood-frame catalogue was a dead end with no way to buy.
   plumbing one. Say the word and it goes in.
 - The floating toolset (the drop-in panel) has no link surface, so the
   store was not added there.
+
+### 2026-10-21 — sprint 0.45.b (the deploy gate measured the build queue, not the code)
+
+Follows sprint 0.45's deploy-test loop. A push went red for a reason
+that had nothing to do with the code under test, and the root cause was
+in the gate this repo wrote for itself.
+
+**Symptom.** Push `70cca55` (the Gumroad store) → CI run `39621791767`
+failed with `deployed content still != HEAD after 10 minutes ->
+pages/marketplace.html pages/twin-os/index.html`. The e2e never ran. The
+commit was fine; the deploy was merely late.
+
+**Root cause — a budget shorter than the thing it was waiting for.**
+
+The gate had two steps with two budgets: a 5-minute "wait for Vercel"
+step that only polled the site for HTTP 200, then a 10-minute byte
+comparison. Measured Vercel deploy latency on 2026-10-21:
+
+| commit | push | Vercel deploy ready | latency |
+|---|---|---|---|
+| `45bf9f5` | 14:21:58 | 14:22:14 | 0.3 min |
+| `749f2f4` | 14:28:35 | 14:34:51 | 6.3 min |
+| `18a7aa4` | 14:44:03 | 14:54:55 | 10.9 min |
+| `ee2521d` | 14:47:33 | 14:56:20 | 8.8 min |
+| `70cca55` | 14:59:41 | **15:12:10** | **12.5 min** |
+
+The gate gave up at ~15:10. The deploy landed at **15:12:10** — two
+minutes later. The gate was measuring the build queue and reporting it
+as a code failure. A budget must clear the *worst* observed latency,
+not the typical one, and it was rising.
+
+**The wait step was also not a wait at all.** Polling for HTTP 200
+proves the site is up, not that *this commit* is being served — a stale
+build answers 200 just as happily as a fresh one. That was the same
+class of bug sprint 0.34 fixed with a content sentinel; the wait step
+was never upgraded to match.
+
+**A status-gated wait would have been worse.** The obvious fix — block
+until Vercel's commit status says `success` — hangs forever on the
+commits that got no status at all. Observed: `58f4747` and `e398074`
+received **no Vercel status and no Production deployment**, while
+`70cca55` deployed fine. Gating on the status would burn the full
+budget and still fail, for a reason the status cannot explain.
+
+**Fix — one loop, one deadline, one question.**
+
+Merged the two steps into `Wait for the deploy, then verify it serves
+HEAD`. The bytes are the *test*; the Vercel status is used only to
+**fail fast** on a definitive deploy failure (`failure`/`error`), never
+as a gate. A missing status means "not reported yet", not "failed".
+Budget: 25 minutes, one global deadline for the whole sentinel set.
+
+**Verified with a throwaway harness** (run, then deleted) that executes
+the *real* step body against a local `lib/serve.js` server, with the
+server **proven up** (`curl → 200`) in both cases so the test cannot
+pass vacuously:
+
+- **stale build** (server serving `70cca55` while HEAD is newer) →
+  exit 1, `deployed content still != HEAD` ✓
+- **fresh build** (server serving HEAD) → exit 0, `deployed content
+  matches HEAD (all sentinels)`, 17 sentinels verified ✓
+- **definitive Vercel failure** (stubbed status `failure`) → exit 1
+  with `::error::Vercel reported a FAILED deployment for <sha> — not a
+  stale-build problem, a failed build` ✓ (distinct message, so the two
+  failures are never confused in a log)
+
+**Decisions:**
+
+- **The bytes are the test; the status is a fast-fail hint.** Gating on
+  a third-party status is only safe if that status is guaranteed, and
+  Vercel's is not (two consecutive commits got no status at all).
+- **One loop, not two steps.** The deploy and the content check are
+  the same question asked twice: a build that has not landed cannot
+  serve HEAD's bytes. Two budgets let the first expire and blame the
+  code for a build that was still in flight.
+- **Fail fast on a definitive failure only.** `failure`/`error` means
+  the build itself broke; a missing status means nothing at all yet.
+- **The sentinel derivation is unchanged** (the pages the e2e loads,
+  from the spec files) — that part was correct and is what caught the
+  original race.
+
+**Lesson (the recurring one):** a gate that can expire while the thing
+it waits for is still arriving will blame the code. Budgets must clear
+the worst observed latency, and a gate must be able to tell "the build
+is late" from "the build is broken" — otherwise every slow deploy
+reads as a code regression.
