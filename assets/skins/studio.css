@@ -1,0 +1,270 @@
+/*! skin: studio
+ *  title: Studio (kai-systems)
+ *  author: digital_twin
+ *  note: a mixing desk — near-black ground, hot magenta brand, dense panel hierarchy.
+ */
+
+/* Palette lifted from Suno's own production CSS (its "dumbo" neutral ramp is
+   inverted: dumbo-50 is near-black, dumbo-900 near-white). The dark scope is
+   this skin's natural home; the light scope is the inverted counterpart, with
+   the same hues restepped for daylight reading. */
+
+/* Surfaces */
+:root {
+  --bg: #ffffff;
+  --bg-warm: #f7f4ef;
+  --surface: #fcfbf9;
+  --surface2: #edeae4;
+  --line: rgba(0, 0, 0, 0.10);
+  --line-soft: rgba(0, 0, 0, 0.05);
+  --bg-card: #fcfbf9;
+  --bg-card-hover: #f7f4ef;
+  --bg-primary: #ffffff;
+  --bg-secondary: #fcfbf9;
+  --bg-soft: #f7f4ef;
+  --bg-soft-2: #edeae4;
+  --bg-tertiary: #e0deda;
+
+  /* Ink */
+  --ink: #101012;
+  --ink-muted: #5b5b62;
+  --ink-faint: #6a6a72;
+  --ink-2: #2e2e33;
+  --fg: #101012;
+  --fg-dim: #5b5b62;
+  --fg-mute: #6a6a72;
+  --fg-muted: #5b5b62;
+  --text: #101012;
+  --text-dim: #5b5b62;
+  --text-primary: #101012;
+  --text-secondary: #5b5b62;
+  --text-tertiary: #6a6a72;
+  --muted: #6a6a72;
+
+  /* Brand — strawberry, the one hot signal on the panel */
+  --primary: #fd429c;
+  --primary-2: #de1677;
+  --primary-soft: color-mix(in srgb, var(--primary) 10%, transparent);
+  --primary-mid: color-mix(in srgb, var(--primary) 20%, transparent);
+
+  /* Accents — the instrument's secondary voices */
+  --accent: #8b6efe;
+  --accent-2: #1f8bff;
+  --accent-3: #ff6a00;
+  --accent-hover: #7251f7;
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
+  --accent-strong: #4d33b7;
+  --accent-text: #4d33b7;
+  --accent-2-text: #005cbe;
+  --accent-3-text: #8d3b00;
+
+  /* Domain accents — one per cognitive-twin layer, hues spread around the
+     wheel for instant recognition. The -text twins are the legible step of
+     the same hue against --surface, so a label never inherits the raw fill. */
+  --accent-agents: #de1677;
+  --accent-audio: #0071ea;
+  --accent-github: #5b5b62;
+  --accent-knowledge: #947d04;
+  --accent-model: #6244d7;
+  --accent-music: #017431;
+  --accent-orchestrator: #0092b5;
+  --accent-reasoner: #c32906;
+  --accent-scanner: #3d8d03;
+  --accent-visual: #e12afb;
+  --accent-agents-text: #981e59;
+  --accent-audio-text: #005cbe;
+  --accent-github-text: #38383e;
+  --accent-knowledge-text: #725f03;
+  --accent-model-text: #4d33b7;
+  --accent-music-text: #015725;
+  --accent-orchestrator-text: #007492;
+  --accent-reasoner-text: #c32906;
+  --accent-scanner-text: #317203;
+  --accent-visual-text: #6e11b0;
+  --node-color: #6244d7;
+
+  /* Status */
+  --success: #317203;
+  --success-bg: rgba(49, 115, 3, 0.10);
+  --error: #c32906;
+  --warn: #725f03;
+  --warning: #725f03;
+  --ok: #017431;
+  --info: #005cbe;
+  --red: #c32906;
+  --green: #317203;
+  --yellow: #725f03;
+  --blue: #005cbe;
+  --purple: #4d33b7;
+
+  /* Code */
+  --code-bg: #edeae4;
+  --code-text: #101012;
+
+  /* Series — one analogous sweep from magenta to teal, held to the same
+     hues in both themes so a chart keeps its meaning when the lights
+     change; only the steps move. */
+  --c1: #de1677;
+  --c2: #ac4bff;
+  --c3: #625fff;
+  --c4: #0071ea;
+  --c5: #0092b5;
+  --c6: #009767;
+
+  /* Typography — technical sans, monospace-forward */
+  --font-display: 'Space Grotesk', 'Inter Tight', 'Inter', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+  --sans: 'Inter', system-ui, sans-serif;
+  --serif: 'Fraunces', Georgia, serif;
+  --mono: ui-monospace, 'SF Mono', Menlo, monospace;
+  --fs-xs: 11px;
+  --fs-sm: 13px;
+  --fs-md: 15px;
+  --fs-lg: 18px;
+  --fs-xl: 22px;
+  --fs-2xl: 28px;
+  --fs-3xl: 36px;
+  --fs-4xl: 46px;
+  --fs-5xl: 60px;
+  --fs-base: 16px;
+  --lh-tight: 1.02;
+  --lh-normal: 1.5;
+  --lh-base: 1.55;
+  --lh-snug: 1.15;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 48px;
+  --space-9: 64px;
+
+  /* Radius — machined, not bubbly */
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 16px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 18px 40px rgba(0, 0, 0, 0.18);
+  --shadow-glow: 0 0 0 1px rgba(253, 66, 156, 0.35), 0 0 24px rgba(253, 66, 156, 0.25);
+
+  /* Motion */
+  --dur-fast: 120ms;
+  --dur-base: 220ms;
+  --dur-slow: 400ms;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Layout */
+  --container: 1200px;
+  --container-narrow: 780px;
+  --container-wide: 1440px;
+}
+
+:root[data-theme="dark"] {
+  /* Surfaces */
+  --bg: #000000;
+  --bg-warm: #101012;
+  --surface: #101012;
+  --surface2: #1c1c1f;
+  --line: rgba(255, 255, 255, 0.15);
+  --line-soft: rgba(255, 255, 255, 0.08);
+  --bg-card: #1c1c1f;
+  --bg-card-hover: #252529;
+  --bg-primary: #000000;
+  --bg-secondary: #101012;
+  --bg-soft: #1c1c1f;
+  --bg-soft-2: #252529;
+  --bg-tertiary: #2e2e33;
+
+  /* Ink */
+  --ink: #f7f4ef;
+  --ink-muted: #c2c2c1;
+  --ink-faint: #a3a3a3;
+  --ink-2: #e0deda;
+  --fg: #f7f4ef;
+  --fg-dim: #c2c2c1;
+  --fg-mute: #a3a3a3;
+  --fg-muted: #c2c2c1;
+  --text: #f7f4ef;
+  --text-dim: #c2c2c1;
+  --text-primary: #f7f4ef;
+  --text-secondary: #c2c2c1;
+  --text-tertiary: #a3a3a3;
+  --muted: #a3a3a3;
+
+  /* Brand */
+  --primary: #fd429c;
+  --primary-2: #ff78b9;
+  --primary-soft: color-mix(in srgb, var(--primary) 16%, transparent);
+  --primary-mid: color-mix(in srgb, var(--primary) 30%, transparent);
+
+  /* Accents */
+  --accent: #8b6efe;
+  --accent-2: #1f8bff;
+  --accent-3: #ff6a00;
+  --accent-hover: #9e86ff;
+  --accent-soft: color-mix(in srgb, var(--accent) 18%, transparent);
+  --accent-strong: #b7a4ff;
+  --accent-text: #b7a4ff;
+  --accent-2-text: #91c6ff;
+  --accent-3-text: #ff9448;
+
+  /* Domain accents */
+  --accent-agents: #fd429c;
+  --accent-audio: #1f8bff;
+  --accent-github: #7d7c83;
+  --accent-knowledge: #f5d907;
+  --accent-model: #8b6efe;
+  --accent-music: #02d95c;
+  --accent-orchestrator: #00d2ef;
+  --accent-reasoner: #f8441b;
+  --accent-scanner: #4aab04;
+  --accent-visual: #e12afb;
+  --accent-agents-text: #ff78b9;
+  --accent-audio-text: #91c6ff;
+  --accent-github-text: #c2c2c1;
+  --accent-knowledge-text: #f5d907;
+  --accent-model-text: #b7a4ff;
+  --accent-music-text: #23fd7e;
+  --accent-orchestrator-text: #53eafd;
+  --accent-reasoner-text: #fa7658;
+  --accent-scanner-text: #aefc76;
+  --accent-visual-text: #ec6cff;
+  --node-color: #8b6efe;
+
+  /* Status */
+  --success: #4aab04;
+  --success-bg: rgba(74, 171, 4, 0.14);
+  --error: #f8441b;
+  --warn: #f5d907;
+  --warning: #f5d907;
+  --ok: #02d95c;
+  --info: #1f8bff;
+  --red: #f8441b;
+  --green: #4aab04;
+  --yellow: #f5d907;
+  --blue: #1f8bff;
+  --purple: #8b6efe;
+
+  /* Code */
+  --code-bg: #1c1c1f;
+  --code-text: #edeae4;
+
+  /* Series */
+  --c1: #ff78b9;
+  --c2: #c07eff;
+  --c3: #7d87ff;
+  --c4: #58a8ff;
+  --c5: #00d2ef;
+  --c6: #5ee9b5;
+}

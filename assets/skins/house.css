@@ -1,0 +1,284 @@
+/*! skin: house
+ *  title: House (kai-systems)
+ *  author: digital_twin
+ *  note: warm cream and copper — the family's default voice
+ */
+
+/* Surfaces — the house ground is cream, never white-on-white. The dark
+   scope is the twin's own warm near-black: designed, not inverted. */
+:root {
+  --bg: #f7f5f0;
+  --bg-warm: #f4f0e7;
+  --surface: #ffffff;
+  --surface2: #fbfaf7;
+  --line: #e9e3d6;
+  --line-soft: #f0eadf;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f9f7f1;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f4f0e7;
+  --bg-soft: #f4f0e7;
+  --bg-soft-2: #f7f5f0;
+  --bg-tertiary: #ebe4d7;
+
+  /* Ink — three levels of emphasis, plus the aliases the older pages
+     still ask for so every family of page skims the same. */
+  --ink: #14171e;
+  --ink-muted: #3a4256;
+  --ink-faint: #7c7a72;
+  --ink-2: #242b3d;
+  --fg: #14171e;
+  --fg-dim: #7c7a72;
+  --fg-mute: #3a4256;
+  --fg-muted: #3a4256;
+  --text: #14171e;
+  --text-dim: #7c7a72;
+  --text-primary: #14171e;
+  --text-secondary: #3a4256;
+  --text-tertiary: #7c7a72;
+  --muted: #3a4256;
+
+  /* Brand — copper. The soft variants are derived, so re-tinting
+     --primary alone re-tints everything that leans on it. */
+  --primary: #c97b3f;
+  --primary-2: #a85f28;
+  --primary-soft: color-mix(in srgb, var(--primary) 8%, transparent);
+  --primary-mid: color-mix(in srgb, var(--primary) 18%, transparent);
+
+  /* Accent — forest green, the supporting voice. Each -text token is a
+     deeper step of its own hue, because it has to survive as type on
+     --surface while its sibling is used as a fill. */
+  --accent: #2f6f5e;
+  --accent-2: #1f4f43;
+  --accent-3: #b45309;
+  --accent-hover: #286253;
+  --accent-soft: color-mix(in srgb, var(--accent) 8%, transparent);
+  --accent-strong: #17453a;
+  --accent-text: #24594a;
+  --accent-2-text: #1f4f43;
+  --accent-3-text: #92400e;
+
+  /* Domain accents — the cognitive-twin layers, one hue each, so a node
+     is recognisable before its label is read. The -text twins are the
+     readable step of the same hue against --surface. */
+  --accent-agents: #ec4899;
+  --accent-audio: #06b6d4;
+  --accent-github: #6b7280;
+  --accent-knowledge: #84cc16;
+  --accent-model: #10b981;
+  --accent-music: #8b5cf6;
+  --accent-orchestrator: #ef4444;
+  --accent-reasoner: #f59e0b;
+  --accent-scanner: #0ea5e9;
+  --accent-visual: #f97316;
+  --accent-agents-text: #be185d;
+  --accent-audio-text: #0e7490;
+  --accent-github-text: #4b5563;
+  --accent-knowledge-text: #4d7c0f;
+  --accent-model-text: #047857;
+  --accent-music-text: #6d28d9;
+  --accent-orchestrator-text: #b91c1c;
+  --accent-reasoner-text: #b45309;
+  --accent-scanner-text: #0369a1;
+  --accent-visual-text: #c2410c;
+  --node-color: #2f6f5e;
+
+  /* Status — every one reads in both themes without leaning on hue
+     alone, so each ships with a deeper text step. */
+  --success: #2d8a4e;
+  --success-bg: color-mix(in srgb, var(--success) 10%, transparent);
+  --error: #d92b2b;
+  --warn: #b45309;
+  --warning: #b45309;
+  --ok: #047857;
+  --info: #2563eb;
+  --red: #d92b2b;
+  --green: #2d8a4e;
+  --yellow: #b45309;
+  --blue: #2563eb;
+  --purple: #7c3aed;
+
+  /* Code — a block of code is a surface of its own; it follows the
+     page's neutrals so a snippet never sits on a foreign card. */
+  --code-bg: #f5f5f4;
+  --code-text: #44403c;
+
+  /* Series — the categorical chart colours. Copper leads because the
+     first bar of a chart should belong to the product; the rest step
+     around the wheel at one tonal weight so a chart reads as one
+     family rather than six borrowed hues. */
+  --c1: #c97b3f;
+  --c2: #0ea5e9;
+  --c3: #b45309;
+  --c4: #7c3aed;
+  --c5: #be123c;
+  --c6: #2f6f5e;
+
+  /* Typography — the family's three voices: a display serif, a humanist
+     sans for reading, a mono for machines. */
+  --font-display: 'DM Serif Display', ui-serif, Georgia, serif;
+  --font-body: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  --sans: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --serif: 'DM Serif Display', ui-serif, Georgia, serif;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  --fs-xs: 12px;
+  --fs-sm: 14px;
+  --fs-md: 20px;
+  --fs-lg: 24px;
+  --fs-xl: 32px;
+  --fs-2xl: 40px;
+  --fs-3xl: 56px;
+  --fs-4xl: 72px;
+  --fs-5xl: 84px;
+  --fs-base: 16px;
+  --lh-tight: 1.04;
+  --lh-normal: 1.6;
+  --lh-base: 1.5;
+  --lh-snug: 1.18;
+
+  /* Spacing — an 8px base, with 4px for the hairline steps. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  /* Radius — soft, never bubbly. */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
+
+  /* Shadows — separators, not effects. The ink is mixed from the page's
+     own ground so the dark theme gets its darker, quieter shadow from
+     the same rule, instead of the light theme's shadow pasted in. */
+  --shadow-sm: 0 1px 2px color-mix(in srgb, color-mix(in srgb, var(--bg) 12%, #000000) 4%, transparent),
+               0 2px 6px color-mix(in srgb, color-mix(in srgb, var(--bg) 12%, #000000) 5%, transparent);
+  --shadow-md: 0 1px 2px color-mix(in srgb, color-mix(in srgb, var(--bg) 12%, #000000) 5%, transparent),
+               0 8px 24px color-mix(in srgb, color-mix(in srgb, var(--bg) 12%, #000000) 8%, transparent);
+  --shadow-lg: 0 1px 2px color-mix(in srgb, color-mix(in srgb, var(--bg) 12%, #000000) 6%, transparent),
+               0 16px 48px color-mix(in srgb, color-mix(in srgb, var(--bg) 12%, #000000) 12%, transparent);
+  --shadow-glow: 0 0 0 1px color-mix(in srgb, var(--primary) 12%, transparent),
+                 0 12px 40px -8px color-mix(in srgb, var(--primary) 25%, transparent);
+
+  /* Motion — a whisper; nothing bounces. */
+  --dur-fast: 120ms;
+  --dur-base: 220ms;
+  --dur-slow: 400ms;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* Layout — the reading column and its two relatives. */
+  --container: 1080px;
+  --container-narrow: 760px;
+  --container-wide: 1320px;
+}
+
+:root[data-theme="dark"] {
+  /* Surfaces — warm near-black, so the cream of the light theme reads
+     as paper rather than as glare. */
+  --bg: #1a1812;
+  --bg-warm: #211e16;
+  --surface: #25221a;
+  --surface2: #2b2820;
+  --line: #3a342a;
+  --line-soft: #2d2a22;
+  --bg-card: #25221a;
+  --bg-card-hover: #2b2820;
+  --bg-primary: #25221a;
+  --bg-secondary: #211e16;
+  --bg-soft: #211e16;
+  --bg-soft-2: #1a1812;
+  --bg-tertiary: #332e25;
+
+  /* Ink — cream on warm black; the faint step stays a step. */
+  --ink: #f4efe2;
+  --ink-muted: #c0b8a8;
+  --ink-faint: #807868;
+  --ink-2: #ded7c6;
+  --fg: #f4efe2;
+  --fg-dim: #807868;
+  --fg-mute: #c0b8a8;
+  --fg-muted: #c0b8a8;
+  --text: #f4efe2;
+  --text-dim: #807868;
+  --text-primary: #f4efe2;
+  --text-secondary: #c0b8a8;
+  --text-tertiary: #807868;
+  --muted: #c0b8a8;
+
+  /* Brand — the same copper, lifted so it still glows on near-black. */
+  --primary: #d9925a;
+  --primary-2: #e6a674;
+  --primary-soft: color-mix(in srgb, var(--primary) 12%, transparent);
+  --primary-mid: color-mix(in srgb, var(--primary) 22%, transparent);
+
+  /* Accent — the forest, lifted to a mint that reads on dark. */
+  --accent: #6ab098;
+  --accent-2: #4f9d86;
+  --accent-3: #fbbf24;
+  --accent-hover: #85c5ae;
+  --accent-soft: color-mix(in srgb, var(--accent) 10%, transparent);
+  --accent-strong: #8cc8b0;
+  --accent-text: #8cc8b0;
+  --accent-2-text: #8cc8b0;
+  --accent-3-text: #fcd34d;
+
+  /* Domain accents — the same hues, lifted; the -text twins move the
+     other way, to the pale step that is legible on a dark surface. */
+  --accent-agents: #f472b6;
+  --accent-audio: #22d3ee;
+  --accent-github: #9ca3af;
+  --accent-knowledge: #a3e635;
+  --accent-model: #34d399;
+  --accent-music: #a78bfa;
+  --accent-orchestrator: #f87171;
+  --accent-reasoner: #fbbf24;
+  --accent-scanner: #38bdf8;
+  --accent-visual: #fb923c;
+  --accent-agents-text: #f9a8d4;
+  --accent-audio-text: #67e8f9;
+  --accent-github-text: #9ca3af;
+  --accent-knowledge-text: #bef264;
+  --accent-model-text: #6ee7b7;
+  --accent-music-text: #c4b5fd;
+  --accent-orchestrator-text: #fca5a5;
+  --accent-reasoner-text: #fcd34d;
+  --accent-scanner-text: #7dd3fc;
+  --accent-visual-text: #fdba74;
+  --node-color: #6ab098;
+
+  /* Status — lifted for the dark ground. */
+  --success: #4ade80;
+  --success-bg: color-mix(in srgb, var(--success) 15%, transparent);
+  --error: #f87171;
+  --warn: #fbbf24;
+  --warning: #fbbf24;
+  --ok: #34d399;
+  --info: #60a5fa;
+  --red: #f87171;
+  --green: #4ade80;
+  --yellow: #fbbf24;
+  --blue: #60a5fa;
+  --purple: #c4b5fd;
+
+  /* Code */
+  --code-bg: #292524;
+  --code-text: #e7e5e4;
+
+  /* Series — the same hues at the step they take on a dark ground; the
+     order is unchanged, so a chart keeps its meaning when the theme
+     flips. */
+  --c1: #d9925a;
+  --c2: #38bdf8;
+  --c3: #fbbf24;
+  --c4: #a78bfa;
+  --c5: #f472b6;
+  --c6: #6ab098;
+}
