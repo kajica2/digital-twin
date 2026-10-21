@@ -5,7 +5,11 @@
 set -e
 
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-DEPLOYED_URL="${DEPLOYED_URL:-https://kajica2.github.io/digital_twin}"
+# The deploy target is Vercel, not GitHub Pages. The Pages project site
+# (https://kajica2.github.io/digital-twin/) is a DIFFERENT deployment and
+# it is not what CI's deploy-test loop checks — .github/workflows/
+# pages-test.yml waits on and verifies this Vercel host.
+DEPLOYED_URL="${DEPLOYED_URL:-https://digitaltwin-ebon.vercel.app}"
 
 echo "[update-check] $(date '+%Y-%m-%d %H:%M:%S')"
 echo "---"
@@ -29,10 +33,13 @@ fi
 # Check deployed site (try multiple paths)
 if command -v curl &> /dev/null; then
     DEPLOYED_OK=false
-    for PATH in "landing.html" "pages/landing.html" "index.html"; do
-        STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$DEPLOYED_URL/$PATH" 2>/dev/null || echo "000")
+    # NOTE: the loop variable must NOT be named PATH — it would shadow
+    # the shell's PATH and `curl` could not be found, so every probe
+    # returned 000 and the site always looked down.
+    for REL_PATH in "landing.html" "pages/landing.html" "index.html"; do
+        STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$DEPLOYED_URL/$REL_PATH" 2>/dev/null || echo "000")
         if [ "$STATUS" = "200" ]; then
-            echo "✓ Deployed site responding ($PATH → 200 OK)"
+            echo "✓ Deployed site responding ($REL_PATH → 200 OK)"
             DEPLOYED_OK=true
             break
         fi

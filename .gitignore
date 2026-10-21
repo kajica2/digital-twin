@@ -52,6 +52,7 @@ data/songs/catalog-jazz-solos.json
 logs/*.log
 logs/*.out.log
 logs/*.err.log
+logs/*.err
 logs/*.gz
 
 # OS junk
