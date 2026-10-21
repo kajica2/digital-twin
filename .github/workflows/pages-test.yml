@@ -75,24 +75,40 @@ jobs:
           # STALE build satisfies that while the new build is still in
           # flight (observed 2026-09-30: green CI before the new
           # mj-config.json was live). This step proves the NEW build is
-          # serving by diffing a file on the site against the same file
-          # at HEAD. lib/mj-config.json is the sentinel because Vercel
-          # serves it verbatim and it changes with realistic frequency.
-          FILE="lib/mj-config.json"
-          git show "HEAD:$FILE" > /tmp/expected.json
-          for i in $(seq 1 60); do
-            curl -s --max-time 10 -H "Cache-Control: no-cache" \
-              "https://digitaltwin-ebon.vercel.app/$FILE?x=${GITHUB_SHA}" \
-              > /tmp/served.json || true
-            if cmp -s /tmp/expected.json /tmp/served.json; then
-              echo "deployed content matches HEAD (attempt $i)"
-              exit 0
+          # serving by diffing files on the site against the same files
+          # at HEAD.
+          #
+          # One sentinel per class of change we cannot afford to miss:
+          #   lib/mj-config.json      a config (the original sentinel)
+          #   assets/skins/house.css  a static asset the whole family
+          #                            loads — if the skin is stale on
+          #                            the deploy, every page on the
+          #                            site loses its stylesheet
+          # Both are served verbatim by Vercel, so a byte compare is
+          # meaningful. Every sentinel must match; one stale file
+          # fails the run.
+          SENTINELS="lib/mj-config.json assets/skins/house.css"
+          for FILE in $SENTINELS; do
+            git show "HEAD:$FILE" > /tmp/expected
+            MATCHED=0
+            for i in $(seq 1 60); do
+              curl -s --max-time 10 -H "Cache-Control: no-cache" \
+                "https://digitaltwin-ebon.vercel.app/$FILE?x=${GITHUB_SHA}" \
+                > /tmp/served || true
+              if cmp -s /tmp/expected /tmp/served; then
+                echo "  $FILE matches HEAD (attempt $i)"
+                MATCHED=1
+                break
+              fi
+              echo "  attempt $i: served $FILE != HEAD — retrying in 5s"
+              sleep 5
+            done
+            if [ "$MATCHED" != "1" ]; then
+              echo "::error::deployed $FILE still != HEAD after 5 minutes"
+              exit 1
             fi
-            echo "  attempt $i: served content != HEAD — retrying in 5s"
-            sleep 5
           done
-          echo "::error::deployed content still != HEAD after 5 minutes"
-          exit 1
+          echo "deployed content matches HEAD (all sentinels)"
 
       - name: Run e2e (deployed URL on push, local on PR)
         run: |

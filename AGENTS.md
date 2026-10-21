@@ -4147,6 +4147,15 @@ system working, verified.
     serves the repo with `node lib/serve.js` instead of
     `python3 -m http.server` — the repo's own server, the same one the
     LaunchAgent runs.
+  - **The deploy-content guard now watches two sentinels, not one.**
+    Sprint 0.34 added a byte-compare of `lib/mj-config.json` between
+    HEAD and the served copy, with the note "extend to a list the
+    moment a second blind spot shows up". The skin system *is* that
+    blind spot: a commit that changes only `assets/skins/house.css`
+    leaves the config sentinel untouched, so a stale deploy would pass
+    the guard while every page on the site lost its stylesheet. The
+    guard now compares a list — the config **and** the skin — and
+    every sentinel must match. A stale skin is now a red build.
   - **The deploy-test loop ran against the live Vercel URL** —
     `https://digitaltwin-ebon.vercel.app` — with the skin system
     deployed. **14/14 specs green**: skin, landing, twin-os,
