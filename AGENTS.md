@@ -4305,8 +4305,12 @@ the right.
     spec was run against the live Vercel URL
     (`E2E_URL=https://digitaltwin-ebon.vercel.app`) — 26/26 — and the
     CI run for that push passed every step, including the
-    "deployed content matches HEAD" guard. The amendment in this entry
-    (the two fixes above) re-runs the same loop on its own commit.
+    "deployed content matches HEAD" guard.
+  - **Deploy-test loop green again** for the two fixes above
+    (commit `9233c6d`): the deployed page was confirmed to be serving
+    the new commit, the spec passed **26/26 against
+    `https://digitaltwin-ebon.vercel.app`**, and CI run `39607126814`
+    passed every step — including the content guard.
   - Screenshot reviewed: the 2×2 grid reads TODAY / NOW PLAYING / CODE /
     PATTERNS as in the reference, and **no card text is truncated**.
   - The traffic lights were measured in both themes and both skins: the
