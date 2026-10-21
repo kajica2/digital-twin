@@ -4512,6 +4512,51 @@ successful job is not evidence that the angle landed.**
 - Hygiene grep clean — no absolute filesystem paths in any new or edited
   file; the manifest carries CDN urls only.
 
+**A CI failure that was not a product bug — the deploy-test race.**
+
+The push of the layout fix (`749f2f4`) went **red** in CI: 7 `mjs:`
+checks failed. The cause was not the code under test. The runner
+executed the new spec against the **previous build** of
+`pages/mj-sheets.html` — the page with the duplicate `id` — so the
+very checks the fix added reported the old failure.
+
+The "Verify deployed content matches HEAD" step existed precisely to
+catch this, and it did not. Its sentinels were `lib/mj-config.json`
+and `assets/skins/house.css`, and **neither file had changed in that
+commit** — so both matched HEAD, the step passed, and the e2e ran
+against a stale page. This is the second blind spot the sprint-0.34
+entry predicted ("extend to a small list the moment a second blind
+spot shows up").
+
+**Fixed by changing what a sentinel IS** (commit `18a7aa4`): the
+sentinels are now **the pages the e2e specs actually load**, derived
+from the spec files themselves (`e2e/*.spec.mjs` + `e2e/ct-*.mjs`),
+plus the shared assets every page loads (`assets/skins/house.css`,
+`lib/theme.js`, `lib/skin.js`, `lib/mj-config.json`). That is the real
+contract — if the page under test is stale, the e2e result is
+meaningless whatever else the site looks like — and a spec that adds
+a page automatically adds a sentinel. 17 sentinels, covering all 13
+pages the CI e2e exercises.
+
+- Files Vercel does not serve are excluded with
+  `git -c core.excludesFile=.vercelignore check-ignore --no-index`, so
+  a sentinel that could never match cannot fail the run forever.
+- **One global 10-minute deadline** for the whole set, not a per-file
+  budget. Twelve files x 5 minutes each would have blown the job
+  timeout long before the deploy landed.
+- Job timeout 10 → 30 minutes: wait (5) + freshness (10) + the e2e
+  run does not fit in 10. The 10-minute freshness budget matches the
+  observed ~6-minute Vercel deploy latency; a 5-minute budget fails
+  runs for a deploy that was simply still in flight.
+- **Verified locally** with a harness (12/12) that exercises the
+  selection logic and the freshness check against a local server
+  serving a deliberately stale build: the check FAILS on stale and
+  PASSES on fresh, and the harness proves the server was up so the
+  check cannot pass vacuously. The step was then run **verbatim**
+  against the live deploy (17 sentinels, PASS), and a simulated stale
+  page — the pre-fix page with the duplicate `id` — is detected as the
+  only stale file.
+
 **Open:**
 
 - The pack's `mj-output/red_coat_underpass_12/` metas still reference the
