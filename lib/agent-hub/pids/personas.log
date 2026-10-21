@@ -1,0 +1,15 @@
+(node:21633) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/kajicadjuric/Documents/digital_twin/lib/personas/persona-engine.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/kajicadjuric/Documents/digital_twin/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Persona Engine running in daemon mode...
+[2026-10-21T04:39:54.530Z] Tick: 0 posts, 1 interactions
+[2026-10-21T04:44:54.484Z] Tick: 0 posts, 1 interactions
+[2026-10-21T04:49:54.488Z] Tick: 0 posts, 1 interactions
+[2026-10-21T04:59:54.505Z] Tick: 0 posts, 1 interactions
+[2026-10-21T05:04:54.501Z] Tick: 0 posts, 3 interactions
+[2026-10-21T05:09:54.489Z] Tick: 0 posts, 1 interactions
+[2026-10-21T05:19:54.489Z] Tick: 0 posts, 1 interactions
+[2026-10-21T05:24:54.502Z] Tick: 0 posts, 2 interactions
+[2026-10-21T05:29:54.499Z] Tick: 0 posts, 1 interactions
+[2026-10-21T05:34:54.510Z] Tick: 0 posts, 1 interactions

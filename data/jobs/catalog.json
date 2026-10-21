@@ -1,0 +1,19 @@
+{
+  "jobs": [
+    {
+      "id": "mj-7790712b",
+      "type": "mj",
+      "status": "complete",
+      "title": "Vintage comic book style, two women",
+      "input": {
+        "prompt": "Vintage comic book style, two women, monochrome etching"
+      },
+      "output": {
+        "path": "mj-output/retro_women/prompt-01/",
+        "images": ["01.webp","02.webp","03.webp","04.webp"]
+      },
+      "createdAt": "2025-10-21T05:40:00.000Z",
+      "completedAt": "2025-10-21T05:45:00.000Z"
+    }
+  ]
+}
