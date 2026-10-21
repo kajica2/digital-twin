@@ -4156,6 +4156,15 @@ system working, verified.
     the guard while every page on the site lost its stylesheet. The
     guard now compares a list — the config **and** the skin — and
     every sentinel must match. A stale skin is now a red build.
+  - **A tools band now sits between the hub-nav and the hero.** The
+    Tools (CLIP Interrogator, Refael MP4 Maker, Loopable Video,
+    Marketplace) get the same first-paint visibility as Twin OS,
+    because they are the part of the project anyone can pick up
+    without the rest of the system. Four pill cards on the warm
+    `--bg-warm` rail, glyph + name + one-line sublabel, surfaces
+    drawn from skin tokens only — they re-skin with the rest of the
+    family. Deployed (`48ed351`); landing e2e still green (additive
+    change, no existing contract shifts).
   - **The deploy-test loop ran against the live Vercel URL** —
     `https://digitaltwin-ebon.vercel.app` — with the skin system
     deployed. **14/14 specs green**: skin, landing, twin-os,
