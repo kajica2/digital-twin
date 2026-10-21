@@ -35,7 +35,12 @@ jobs:
   e2e:
     name: Puppeteer deploy-test loop
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # The wait step (up to 5 min) + the content-freshness check (up to
+    # 10 min) + the e2e run (a few min) do not fit in 10 minutes. The
+    # observed Vercel deploy latency for this repo was ~6 minutes, so
+    # the freshness budget is generous on purpose: a deploy that lands
+    # late must not be reported as a test failure.
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -70,45 +75,81 @@ jobs:
 
       - name: Verify deployed content matches HEAD (push only)
         if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           # The wait step above only proves the site answers 200 — a
           # STALE build satisfies that while the new build is still in
-          # flight (observed 2026-09-30: green CI before the new
-          # mj-config.json was live). This step proves the NEW build is
-          # serving by diffing files on the site against the same files
-          # at HEAD.
+          # flight. This step proves the NEW build is serving.
           #
-          # One sentinel per class of change we cannot afford to miss:
-          #   lib/mj-config.json      a config (the original sentinel)
-          #   assets/skins/house.css  a static asset the whole family
-          #                            loads — if the skin is stale on
-          #                            the deploy, every page on the
-          #                            site loses its stylesheet
-          # Both are served verbatim by Vercel, so a byte compare is
-          # meaningful. Every sentinel must match; one stale file
-          # fails the run.
-          SENTINELS="lib/mj-config.json assets/skins/house.css"
-          for FILE in $SENTINELS; do
-            git show "HEAD:$FILE" > /tmp/expected
-            MATCHED=0
-            for i in $(seq 1 60); do
+          # A FIXED sentinel list was not enough. On 2026-10-21 the
+          # sentinels (mj-config.json, house.css) both matched HEAD
+          # while pages/mj-sheets.html was still the PREVIOUS build —
+          # those two files had not changed in that commit, so they
+          # proved nothing about the page the e2e was about to test.
+          # The e2e then failed for a reason that had nothing to do
+          # with the code under test.
+          #
+          # The sentinels are therefore the PAGES THE E2E WILL LOAD,
+          # derived from the spec files themselves. That is the real
+          # contract: if the page under test is stale, the e2e result
+          # is meaningless, whatever the rest of the site looks like.
+          # A spec that adds a page automatically adds a sentinel.
+          #
+          # Plus the shared assets every page loads (the skin, the
+          # theme script) and the config that drives the MJ tooling.
+          SENTINELS=$(grep -hoE '/pages/[A-Za-z0-9._/-]*\.html' \
+            e2e/*.spec.mjs e2e/ct-*.mjs 2>/dev/null \
+            | sed 's|^/||' | sort -u)
+          SENTINELS="$SENTINELS assets/skins/house.css lib/theme.js lib/skin.js lib/mj-config.json"
+
+          # Dedupe, drop anything Vercel does not serve (a sentinel
+          # that can never match would fail the run forever), and
+          # require the file to exist at HEAD.
+          VERIFY=""
+          for FILE in $(echo "$SENTINELS" | tr ' ' '\n' | awk 'NF' | sort -u); do
+            git cat-file -e "HEAD:$FILE" 2>/dev/null || continue
+            if git -c core.excludesFile=.vercelignore check-ignore --no-index -q "$FILE" 2>/dev/null; then
+              continue
+            fi
+            VERIFY="$VERIFY $FILE"
+          done
+          if [ -z "$(echo "$VERIFY" | tr -d ' ')" ]; then
+            echo "::error::no sentinels to verify — refusing to pass silently"
+            exit 1
+          fi
+          echo "verifying $(echo "$VERIFY" | wc -w | tr -d ' ') sentinel(s) against the deploy"
+          echo "sentinels: $(echo $VERIFY)"
+
+          # ONE global deadline for the whole set, not a budget per
+          # file. The deploy either lands or it does not, so the whole
+          # set is re-checked against a single clock.
+          #
+          # 10 minutes, not 5: the observed deploy latency for this
+          # repo was ~6 minutes (2026-10-21). A 5-minute budget would
+          # fail the run for a deploy that was simply still in flight.
+          DEADLINE=$(( $(date +%s) + 600 ))
+          STALE=""
+          while [ "$(date +%s)" -lt "$DEADLINE" ]; do
+            STALE=""
+            for FILE in $VERIFY; do
+              git show "HEAD:$FILE" > /tmp/expected
               curl -s --max-time 10 -H "Cache-Control: no-cache" \
                 "https://digitaltwin-ebon.vercel.app/$FILE?x=${GITHUB_SHA}" \
                 > /tmp/served || true
-              if cmp -s /tmp/expected /tmp/served; then
-                echo "  $FILE matches HEAD (attempt $i)"
-                MATCHED=1
-                break
+              if ! cmp -s /tmp/expected /tmp/served; then
+                STALE="$STALE $FILE"
               fi
-              echo "  attempt $i: served $FILE != HEAD — retrying in 5s"
-              sleep 5
             done
-            if [ "$MATCHED" != "1" ]; then
-              echo "::error::deployed $FILE still != HEAD after 5 minutes"
-              exit 1
+            if [ -z "$STALE" ]; then
+              echo "deployed content matches HEAD (all sentinels)"
+              exit 0
             fi
+            echo "  attempt: still stale ->$STALE — retrying in 5s"
+            sleep 5
           done
-          echo "deployed content matches HEAD (all sentinels)"
+          echo "::error::deployed content still != HEAD after 10 minutes ->$STALE"
+          exit 1
 
       - name: Run e2e (deployed URL on push, local on PR)
         run: |
