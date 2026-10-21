@@ -92,6 +92,7 @@ HAD_CHART=false;  HAD_SONGS=false;  HAD_MJ=false;  HAD_REEL=false;  HAD_SERVE=fa
 [ -f "$REPO/lib/mj-watcher.js" ]     && HAD_MJ=true
 [ -f "$REPO/lib/reel-watcher.js" ]   && HAD_REEL=true
 [ -f "$REPO/lib/serve.js" ]          && HAD_SERVE=true
+[ -f "$REPO/lib/daily-pipeline.js" ] && HAD_DAILY=true
 
 CHANGED=$(git rev-list "HEAD..origin/$BRANCH")
 COUNT=$(echo "$CHANGED" | grep -c . || true)
@@ -144,6 +145,15 @@ fi
 # disk, so a pull that changes it needs a reload to take effect.
 if $HAD_SERVE && [ -f "$REPO/lib/serve.js" ]; then
     reload_if_loaded "com.kaidjuric.digital-twin.server"
+fi
+# The daily pipeline fires on a launchd calendar schedule (one shot
+# per day, no KeepAlive), so the reload is just a "bootstrap again"
+# — the agent is one-shot; the next calendar fire picks up the new
+# code automatically, but a manual reload lets the next morning's
+# shipment use it without waiting. Same idempotency assumption as
+# the watchers: only reload if the agent was already loaded.
+if $HAD_DAILY && [ -f "$REPO/lib/daily-pipeline.js" ]; then
+    reload_if_loaded "com.kaidjuric.digital-twin.daily-pipeline"
 fi
 
 append_log <<EOF

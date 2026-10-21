@@ -1,6 +1,7 @@
 # Generated outputs — never commit auto-generated images or processed inputs
 mj-output/
 prompts-inbox/processed/
+daily/
 
 # MJ watcher runtime state — per-prompt done markers + in-flight lockfile.
 # The other watchers' lockfiles live in their own inbox dirs; same pattern
