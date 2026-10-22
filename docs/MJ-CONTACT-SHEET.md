@@ -49,7 +49,7 @@ browser is the only client the CDN serves.
 
 ---
 
-## The three things that can silently corrupt a sheet
+## The four things that can silently corrupt a sheet
 
 ### 1. Wrong-job attribution
 
@@ -100,6 +100,50 @@ provably in sync.
 glass, muted 35mm documentary` collapsed to `overhead…`. It now cuts at
 the *last* separator in the kept span. `lib/mj-contact-sheet.test.js`
 pins this.
+
+---
+
+### 4. A sheet that no longer came from its pack
+
+The three failures above happen *while* a sheet is being built. The
+fourth happens afterwards: someone edits the pack, re-renders one
+variant, or regenerates the manifest from a different run — and the
+shipped artifact quietly stops being the output of the pipeline.
+
+**The fix is a guard on the artifact, not on the code.** A test on
+synthetic input proves the builder behaves; it does not prove the
+shipped sheet is what the builder produced. The gap between the two is
+where drift lives.
+
+`lib/mj-contact-sheet.test.js` (section 5) therefore walks every
+directory under `assets/mj-sheets/` and pins the whole chain of
+custody, **data-driven** — a second pack is covered with no edit to the
+test. It asserts:
+
+- the pack still exists and still parses with the submitter's own
+  `extractPrompts`;
+- the pack yields exactly the manifest's variant count;
+- every prompt is `16:9`;
+- it is **one brief with twelve variants** — proved by
+  longest-common-prefix and longest-common-suffix, not by hardcoding
+  marker strings;
+- every caption is the clause that produced its tile, and every caption
+  is a prefix of its own clause;
+- the twelve task ids are distinct, and every tile's URL embeds its own
+  task id;
+- every tile ships as a **local real webp with real pixels**, and **no
+  two tiles are the same image**;
+- the sheet PNG is a real PNG, large enough for its grid.
+
+**It reads tracked files only.** `mj-output/` is gitignored, so a guard
+that needed the metas would be skipped in CI — which is exactly where a
+broken sheet would be published.
+
+**The guard was proven by making it fail.** Eight mutations (mangled
+caption, mangled task id, duplicated task id, duplicated tile, mangled
+pack clause, mangled count, missing tile, stubbed PNG) were each caught
+by the guard that should catch them. A guard that never fails is
+decoration.
 
 ---
 
@@ -166,11 +210,27 @@ pack header).
 ## Tests
 
 ```bash
-npm run test:mj-contact-sheet   # 27 checks, no browser, no network
+npm run test:mj-contact-sheet   # 48 checks, no browser, no network
 ```
 
 Covers the caption derivation (including the word-boundary truncation),
-the grid-cell picker, the per-variant slot map, and the HTML builder.
+the grid-cell picker, the per-variant slot map, the HTML builder, and
+the **shipped artifact's chain of custody** (section 4 above).
+
+The reconcile tool has its own suite:
+
+```bash
+npm run test:mj-feed-reconcile   # 43 checks, no browser, no network
+```
+
+It covers the half of `lib/mj-feed-reconcile.js` that **writes** the
+pack's metas — the repair path for the pipeline, and therefore the path
+that most needs a test. Among other things it pins the `taskIdChanged`
+contract: two ids are the same job when one is a prefix of the other.
+That tolerance is deliberate — the comparison it replaced truncated the
+old id to 8 characters and compared it against a full uuid, so the
+"changed" flag was **always** true, and every line of the output said
+`CHANGED` even when nothing had changed.
 
 `e2e/mj-sheets.spec.mjs` covers the shipped page: the sheet image, the
 twelve tiles, each caption tied back to its manifest entry, no truncated
@@ -186,6 +246,8 @@ cd e2e && PORT=5180 node mj-sheets.spec.mjs
 
 - `lib/mj-feed.js` — the feed gate (parsers + the in-page expressions)
 - `lib/mj-feed-reconcile.js` — re-derive every slot's task id from the
-  live feed and rewrite the metas
+  live feed and rewrite the metas. Importable (`require.main === module`
+  guards the CLI), so the file-IO half is unit-testable without a
+  browser; `npm run test:mj-feed-reconcile` covers it.
 - `lib/mj-web.js` — the web backend that submits prompts
 - `docs/MJ-WATCHER.md` — the drop-a-file watcher around all of it
