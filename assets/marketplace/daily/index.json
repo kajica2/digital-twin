@@ -1,0 +1,44 @@
+{
+  "updatedAt": "2026-10-22T18:29:25.899Z",
+  "count": 1,
+  "collections": [
+    {
+      "date": "2026-10-22",
+      "id": "relay",
+      "title": "Relay",
+      "badge": "cyberpunk / hk",
+      "teaser": "Something travels the line and comes out the other side changed.",
+      "aspect": "16:9",
+      "dir": "assets/marketplace/daily/2026-10-22",
+      "plates": [
+        {
+          "file": "frame-01.jpg",
+          "caption": "pylon · line",
+          "alt": "A run of power pylons crossing flat ground at dusk, the line running out of frame to the right.",
+          "prompt": "a run of power pylons crossing flat ground at dusk, the cable running out of frame to the right, heavy air, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "0a495dec-7f5f-46a3-aa6f-022ab579c4a0",
+          "width": 1280,
+          "height": 716
+        },
+        {
+          "file": "frame-02.jpg",
+          "caption": "switchboard · lamp",
+          "alt": "An old switchboard in a dim room, one indicator lamp lit, the rest dark, dust on the keys.",
+          "prompt": "an old switchboard in a dim room, one indicator lamp lit and the rest dark, dust settled on the keys, close-up, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "181cc9a1-e15c-436c-a57e-2fe85c3160ab",
+          "width": 1280,
+          "height": 716
+        },
+        {
+          "file": "frame-03.jpg",
+          "caption": "platform · signal",
+          "alt": "An empty rail platform seen down its length, a single signal light burning at the far end.",
+          "prompt": "an empty rail platform seen down its length, one signal light burning at the far end, tunnel mouth behind it, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "b9e611a9-0c42-4f4e-a7bc-63fd8242561e",
+          "width": 1280,
+          "height": 716
+        }
+      ]
+    }
+  ]
+}
