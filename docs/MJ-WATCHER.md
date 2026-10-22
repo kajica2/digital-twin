@@ -623,3 +623,56 @@ now lives at `~/.instagram-cookies.txt` (see `lib/ig-config.json`).
 **debug URL** — the poster's reel path had been failing with
 `Error: Invalid URL` before it ever reached Instagram. Fixed to
 `cdpConnect(\`http://127.0.0.1:${PORT}\`)`.
+
+### What the web composer can and cannot do
+
+**Instagram's web create menu has three entries: Post, Live video and Ad.**
+There is no **Story** — stories cannot be made from a browser at all.
+That is a product limitation, not a selector problem, and the tool
+says so out loud rather than failing silently:
+
+```
+the web composer has no "Story" option (it offers Post, Live video and
+Ad) — posting as a feed POST WITH NO CAPTION instead. A post is
+permanent and public; a story lives 24 hours.
+```
+
+The fallback is the other thing worth having: a feed post with an
+**empty** caption. The caption box is simply never touched.
+
+### Six things that were wrong, in the order they were found
+
+1. **`cdpConnect(PORT)`** — it takes a debug URL. The reel path had been
+   failing with `Error: Invalid URL` before it ever reached Instagram.
+2. **`GET /json/new`** — Chrome answers that with "Using unsafe HTTP
+   verb GET…", which is not JSON. A browser with no open tab could not
+   be attached to at all. `lib/mj-submitter.js` now uses **PUT**, with
+   the GET kept for older Chrome.
+3. **The cookie URL** was built as `https://.instagram.com` — the
+   Netscape domain field carries a leading dot, which belongs in the
+   `domain` attribute but not in a URL. Chrome would not place a
+   sessionid set that way.
+4. **The "logged in" check read `innerText`** for "Home" / "Messages".
+   The web nav is icon-only; the labels live in `aria-label` on the
+   svg. The check reported "not logged in" on a page that was plainly
+   logged in — the feed was right there in the screenshot.
+5. **The create control is `svg[aria-label="New post"]`** now, not
+   `a[href="/compose/"]` and not `svg[aria-label="Create"]`.
+6. **The share button had to be scoped to the create dialog.** The feed
+   behind the modal has its own "Share" button on every post, and an
+   unscoped search found THAT one first: the click opened a share sheet
+   for somebody else's post, nothing was published, and the post count
+   did not move. The upload also lands on a **crop screen** ("back",
+   "next", "select crop", "select zoom") — "next" has to be clicked
+   through before the caption screen appears.
+
+And one that was in the browser, not the code: `input.files` is
+read-only in current Chrome, so the old
+`DataTransfer → input.files = dt.files` trick throws and uploads
+nothing. `DOM.setFileInputFiles` sets the files natively — the same
+call puppeteer's `uploadFile()` makes, and it needs no native file
+dialog to be dismissed.
+
+**Verified end to end:** the post is live at
+`instagram.com/kaidjuric/p/Dezt_6ckTv3/` — no caption, post count
+578 → 579.
