@@ -28,7 +28,10 @@ video files. For each new file:
    is ever treated as a sibling: an audio file with a different
    basename is left strictly alone.
 3. Build a caption from the audio tags (`Title — Artist (Album)
-   [Genre] 🎺 Reel from the twin.`) + hashtag block.
+   [Genre] 🎺 Reel from the twin.`) + hashtag block. The hashtags
+   follow the genre: a jazz genre (or no genre at all — a chart
+   demo) gets the jazz block, anything else gets `#reel`,
+   `#digitaltwin` and the genre's own words.
 4. `ffmpeg` re-encode the source to 1080×1920 (9:16) H.264 high-
    profile, 30 fps, ~6 Mbps, with `force_original_aspect_ratio=
    decrease` + black-pad letterbox (no crop), audio fade in/out.
@@ -232,9 +235,11 @@ change.
   file in the inbox is ignored rather than guessed at. A dropped
   `.mov` with no sibling audio falls back to
   `basename — 🎺 Reel from the twin.` with default hashtags.
-- **Hardcoded hashtags.** The jazz tag block is built-in. Extend
-  `JAZZ_TAGS` in `lib/reel-watcher.js` or pass a JSON file when
-  adding new genres — future enhancement.
+- **The jazz tag block is built-in.** A reel with no genre, or a
+  jazz-ish one, gets `JAZZ_TAGS` from `lib/reel-watcher.js`; a reel
+  with another genre gets `#reel`, `#digitaltwin` and the genre's own
+  words instead. Extend `JAZZ_TAGS` when the project's vocabulary
+  grows — a new tag map per genre is the natural next step.
 - **No IG upload.** Intentional. See top of doc.
 - **Letterbox, not crop.** Videos with a non-9:16 source aspect
   ratio get black bars top/bottom or left/right. Cropping

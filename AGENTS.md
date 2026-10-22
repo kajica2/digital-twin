@@ -6838,3 +6838,40 @@ collide, and neither session's work is lost.
   silent track.
 - Let the reel's caption come from the collection's own words (the
   badge, the teaser) instead of the jazz house tags.
+
+### 2026-10-22 — sprint 0.47.b (the reel's hashtags follow the genre)
+
+Sprint 0.47 shipped the daily run's reel hand-off and then left a lie
+in the artifact: the reel-watcher's hashtag block is hardcoded to jazz
+(`#jazz #trumpet #modalmusic #postbop …`), so a plate whose badge is
+*cyberpunk / hk* came out captioned with jazz tags. The daily run's
+plates are not jazz, and a caption that misdescribes the work is worse
+than no caption.
+
+**The rule now:** a reel with **no genre** (a chart demo — the twin's
+domain) or a **jazz-ish** genre keeps the jazz block; any other genre
+gets `#reel`, `#digitaltwin` and the genre's own words.
+
+```
+cyberpunk / hk  →  #reel #digitaltwin #cyberpunk #hk
+```
+
+**Verified.** The reel-watcher's suite grew by 16 assertions (114
+total): the jazz case is unchanged, the non-jazz case drops the jazz
+tags and carries its own, the tag list never exceeds ten, and the
+caption carries the same tags the picker returned. Then, live: the
+watcher was restarted (`launchctl kickstart -k` — the running service
+still had the old code loaded, the same trap the social worker set),
+the day's three reels were re-queued, and each POST sheet now reads
+*Hashtags: #reel #digitaltwin #cyberpunk #hk*.
+
+**Decision.** The genre field is the contract, not a free-text label:
+the daily run writes the collection's badge into the ID3 genre, so the
+tags follow the day's own words without a second mapping. The jazz
+block stays the default because an untagged chart demo is jazz — the
+twin's domain.
+
+**Open.** The "🎺 Reel from the twin." suffix still sits on a
+cyberpunk plate. That is the twin's voice rather than a description of
+the work, so it was left alone — but it is the next line to argue
+about.
