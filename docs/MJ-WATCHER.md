@@ -284,6 +284,40 @@ with a message naming the likely parameter, instead of burning eight
 retries on a prompt that can never land. The refusal is recorded per prompt
 and the pack continues.
 
+### The account's moodboards apply to every prompt
+
+The composer's **Personalize** control is on by default, and it puts the
+account's profile and moodboards into every generation — whatever the prompt
+says. There is no flag for "no moodboards": the prompt text cannot express
+it, and a style reference (`--sref`) is a different thing entirely.
+
+Measured on the account used for the sheets (2026-10-22): profile #8 plus
+four moodboards (#92, popart, yellow taxi, kowloon city). Every generation
+inherited them until the control was cleared.
+
+`--no-personalize` clears it before the pack runs:
+
+```bash
+node lib/mj-web.js --prompt-file <file.md> --all-prompts --no-personalize
+```
+
+Two things make this less obvious than it looks:
+
+- **A React `element.click()` does not flip the control.** It needs a real
+  mouse event (`Input.dispatchMouseEvent`) at the button's coordinates.
+- **The state has no attribute to read.** The selected option is painted a
+  saturated coral and the unselected one a neutral grey, so the two are
+  separated by their oklab **chroma** (~0.23 against ~0.02).
+
+The backend therefore reads the state, clicks, and then **reads it again** —
+a flip that did not take is reported rather than silently producing
+personalised output.
+
+The flag is opt-in: the default path is untouched. That is deliberate for a
+**comparison sheet**, where every variant has to be rendered under the same
+conditions — re-rendering one tile without the account's moodboards would
+make it the odd one out visually, whatever the angle says.
+
 
 ## Chrome profile setup (one-time) — Discord backend only
 
