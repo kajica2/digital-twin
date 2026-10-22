@@ -60,6 +60,14 @@ For now, what's here:
   panel with TODAY / NOW PLAYING / CODE / PATTERNS that can be parked in
   the corner of any page. The component (`lib/floating-toolset.js`) is
   drop-in.
+- **`pages/persona-social-pack.html`** — the Persona Social Pack: give it
+  a URL that carries creative-persona descriptions and it returns, per
+  persona, three hashtag tiers (primary / secondary / niche), YouTube
+  metadata and four social posts (Instagram, TikTok, X, Facebook). The
+  Gemini call is made from the browser with a key you paste; the key
+  lives in `sessionStorage` and never leaves the tab. Logic in
+  `lib/persona-social-pack.js`, reference in
+  `docs/PERSONA-SOCIAL-PACK.md`.
 - **`lib/suno-*.js`** — the Suno style-variant pipeline: ten covers of
   one song, each with a different reference-lock protocol and Audio
   Influence value. Browser-driven (the studio API needs the SPA's own
@@ -365,6 +373,36 @@ is a deliberate edit, and it needs a valid cookie. The per-item opt-in
 (`publish: true`) still applies on top of that.
 
 Reference: [`docs/X-COOKIES.md`](docs/X-COOKIES.md).
+
+## Run the Persona Social Pack
+
+Point it at a page that describes creative personas and it gives every
+persona on that page three hashtag tiers, YouTube metadata and four
+social posts. Pure client-side — the browser calls Gemini directly, so
+there is no server and no key in the repo:
+
+```bash
+node lib/serve.js --port 5173
+# → http://127.0.0.1:5173/pages/persona-social-pack.html
+```
+
+Paste a Gemini API key into the page and hit **Generate pack**. The key
+is kept in `sessionStorage` — it is gone when the tab closes, and it is
+never written to the repo, to `localStorage`, or to any file. The model
+defaults to `gemini-2.5-pro` and is overridable in the page.
+
+Per persona you get **POST.md** (the file `lib/ig-poster.js` reads to
+post a reel) and **metadata JSON** (title, description, tags and the
+`--tags "a,b,c"` string `lib/youtube-poster.js` wants), plus a
+pack-level **copy all hashtags** and a single JSON file for the whole
+pack. The unit suite is offline — it stubs the Gemini endpoint:
+
+```bash
+npm run test:persona-social-pack   # unit suite, no network, no key
+npm run e2e:persona-social-pack    # Puppeteer, Gemini intercepted
+```
+
+Reference: [`docs/PERSONA-SOCIAL-PACK.md`](docs/PERSONA-SOCIAL-PACK.md).
 
 ## Run the Suno style variants
 

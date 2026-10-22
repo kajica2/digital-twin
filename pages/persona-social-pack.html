@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Design tokens live in the skin, not in this page. See DESIGN.md. -->
+    <link rel="stylesheet" href="../assets/skins/house.css" data-skin-stylesheet>
+    <script src="../lib/skin.js"></script>
+    <script src="../lib/theme.js" data-theme-key="psp-theme"></script>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Persona Social Pack — digital_twin</title>
+    <meta name="description" content="Turn a URL of creative-persona descriptions into three hashtag tiers, YouTube metadata and four social posts per persona. Runs in the browser; your API key never leaves the tab.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='16,4 28,11 28,21 16,28 4,21 4,11' fill='none' stroke='%23c97b3f' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23c97b3f'/%3E%3C/svg%3E">
+
+    <script>
+        // Theme bootstrap - applied before first paint to prevent flash
+        (function () {
+            try {
+                var saved = localStorage.getItem('psp-theme');
+                var pref = saved || 'system';
+                var resolved = pref === 'system'
+                    ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+                    : pref;
+                document.documentElement.setAttribute('data-theme', resolved);
+                document.documentElement.classList.add('js');
+            } catch (e) {}
+        })();
+    </script>
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+
+        body {
+            background: var(--bg);
+            color: var(--ink);
+            font-family: var(--font-body);
+            font-size: var(--fs-base);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .psp-wrap { width: 100%; max-width: var(--container-wide); margin: 0 auto; padding: 0 var(--space-5); }
+
+        .psp-top {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: var(--space-4); padding: var(--space-6) 0 var(--space-2);
+        }
+        .psp-back {
+            font-family: var(--font-mono); font-size: var(--fs-xs);
+            color: var(--text-secondary); text-decoration: none;
+        }
+        .psp-back:hover { color: var(--accent-text); }
+
+        .psp-theme { display: flex; gap: var(--space-1); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-pill); padding: var(--space-1); }
+        .psp-theme button {
+            width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+            background: transparent; border: none; border-radius: var(--radius-md);
+            color: var(--ink-faint); cursor: pointer; transition: color var(--dur-fast) ease;
+        }
+        .psp-theme button:hover { color: var(--ink); }
+        .psp-theme button[aria-pressed="true"] { background: var(--primary-soft); color: var(--primary); }
+        .psp-theme svg { width: 17px; height: 17px; }
+
+        .psp-hero { padding: var(--space-6) 0 var(--space-6); border-bottom: 1px solid var(--line); }
+        .psp-kicker {
+            font-family: var(--font-mono); font-size: var(--fs-xs);
+            letter-spacing: .14em; text-transform: uppercase; color: var(--accent-text);
+        }
+        .psp-hero h1 {
+            font-family: var(--font-display); font-size: clamp(30px, 5vw, 46px);
+            line-height: 1.1; letter-spacing: -0.02em; margin: var(--space-3) 0 var(--space-3);
+            font-weight: 400;
+        }
+        .psp-lede { font-size: 17px; color: var(--text-secondary); max-width: 68ch; }
+
+        main { flex: 1; padding: var(--space-7) 0 var(--space-8); }
+
+        .psp-panel {
+            background: var(--bg-card); border: 1px solid var(--line);
+            border-radius: var(--radius-lg); padding: var(--space-5);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .psp-form { display: grid; gap: var(--space-4); }
+        .psp-field { display: grid; gap: var(--space-2); }
+        .psp-field label { font-family: var(--font-mono); font-size: var(--fs-xs); letter-spacing: .08em; text-transform: uppercase; color: var(--text-tertiary); }
+        .psp-field input, .psp-field select {
+            font-family: var(--font-body); font-size: 15px;
+            background: var(--surface); color: var(--ink);
+            border: 1px solid var(--line); border-radius: var(--radius-md);
+            padding: 10px 12px; width: 100%;
+        }
+        .psp-field input:focus, .psp-field select:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+        .psp-hint { font-size: var(--fs-xs); color: var(--text-tertiary); }
+        .psp-hint strong { color: var(--accent-text); font-weight: 600; }
+
+        .psp-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+        .psp-btn {
+            font-family: var(--font-mono); font-size: 12px;
+            padding: 9px 16px; cursor: pointer;
+            background: var(--surface); color: var(--ink);
+            border: 1px solid var(--line); border-radius: var(--radius-md);
+        }
+        .psp-btn:hover { color: var(--accent-text); border-color: var(--accent); }
+        .psp-btn[disabled] { opacity: .55; cursor: default; }
+        .psp-btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .psp-btn-primary:hover { filter: brightness(1.07); color: #fff; }
+
+        .psp-status {
+            font-family: var(--font-mono); font-size: var(--fs-sm);
+            color: var(--text-secondary); min-height: 1.5em;
+        }
+        .psp-status[data-state="error"] { color: var(--error); }
+        .psp-status[data-state="done"] { color: var(--success); }
+        .psp-status[data-state="busy"] { color: var(--primary); }
+
+        .psp-results { display: grid; gap: var(--space-5); margin-top: var(--space-6); }
+        .psp-persona { background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: var(--space-5); }
+        .psp-persona-head { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: baseline; justify-content: space-between; }
+        .psp-persona h2 { font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 400; letter-spacing: -0.01em; }
+        .psp-persona-desc { color: var(--text-secondary); margin-top: var(--space-2); max-width: 76ch; }
+
+        .psp-warn {
+            margin-top: var(--space-3); font-size: var(--fs-sm); color: var(--warn);
+            border-left: 3px solid var(--warn); padding-left: var(--space-3);
+        }
+
+        .psp-block { margin-top: var(--space-5); border-top: 1px solid var(--line-soft); padding-top: var(--space-4); }
+        .psp-block-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-3); }
+        .psp-block h3 {
+            font-family: var(--font-mono); font-size: var(--fs-xs);
+            letter-spacing: .1em; text-transform: uppercase; color: var(--text-tertiary); font-weight: 500;
+        }
+        .psp-copy {
+            font-family: var(--font-mono); font-size: 11px;
+            padding: 5px 11px; cursor: pointer;
+            background: var(--surface); color: var(--text-secondary);
+            border: 1px solid var(--line); border-radius: 7px;
+        }
+        .psp-copy:hover { color: var(--accent-text); border-color: var(--accent); }
+
+        .psp-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+        .psp-tag {
+            font-family: var(--font-mono); font-size: 12px;
+            background: var(--bg-soft); color: var(--text-primary);
+            border: 1px solid var(--line-soft); border-radius: var(--radius-pill);
+            padding: 3px 10px;
+        }
+        .psp-caption {
+            font-size: 15px; color: var(--text-primary); white-space: pre-wrap;
+            background: var(--bg-soft); border: 1px solid var(--line-soft);
+            border-radius: var(--radius-md); padding: var(--space-3);
+        }
+        .psp-yt-title { font-weight: 600; margin-bottom: 4px; }
+        .psp-yt-desc { color: var(--text-secondary); font-size: 14px; margin-bottom: var(--space-3); }
+        .psp-yt-tags { font-family: var(--font-mono); font-size: 12px; color: var(--text-tertiary); }
+
+        .psp-export {
+            margin-top: var(--space-6); display: flex; flex-wrap: wrap; gap: var(--space-3);
+            padding-top: var(--space-5); border-top: 1px solid var(--line);
+        }
+
+        footer {
+            border-top: 1px solid var(--line); margin-top: var(--space-8);
+            padding: var(--space-6) 0 var(--space-8); color: var(--text-tertiary); font-size: var(--fs-sm);
+        }
+        footer a { color: var(--accent-text); text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="psp-wrap psp-top">
+        <a class="psp-back" href="how-to.html">← how-to</a>
+        <div class="psp-theme" role="group" aria-label="Theme">
+            <button type="button" data-theme-set="light" aria-label="Light" title="Light">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="5"/>
+                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                </svg>
+            </button>
+            <button type="button" data-theme-set="system" aria-label="System" title="System">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="3" width="20" height="14" rx="2"/>
+                    <path d="M8 21h8M12 17v4"/>
+                </svg>
+            </button>
+            <button type="button" data-theme-set="dark" aria-label="Dark" title="Dark">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+</header>
+
+<main>
+    <div class="psp-wrap">
+        <section class="psp-hero">
+            <div class="psp-kicker">tool · social pack</div>
+            <h1>Persona Social Pack.</h1>
+            <p class="psp-lede">
+                One URL in. A whole social pack out. Point it at a page that describes creative
+                personas: it finds every persona on that page and gives each one three hashtag
+                tiers, YouTube metadata and four social posts — Instagram, TikTok, X and
+                Facebook. The key stays in this tab.
+            </p>
+        </section>
+
+        <section class="psp-panel">
+            <div class="psp-form">
+                <div class="psp-field">
+                    <label for="psp-url">Page URL</label>
+                    <input id="psp-url" type="url" placeholder="https://example.com/personas" autocomplete="off" spellcheck="false">
+                    <span class="psp-hint">The page that carries the persona descriptions.</span>
+                </div>
+
+                <div class="psp-field">
+                    <label for="psp-key">Gemini API key</label>
+                    <input id="psp-key" type="password" placeholder="AIza…" autocomplete="off" spellcheck="false">
+                    <span class="psp-hint" id="psp-key-hint">
+                        <strong>Session only.</strong> Kept in <code>sessionStorage</code> and gone when
+                        this tab closes. It is never written to the repo, to localStorage, or to any
+                        file — the request goes straight from this tab to Google.
+                    </span>
+                </div>
+
+                <div class="psp-field">
+                    <label for="psp-model">Model</label>
+                    <input id="psp-model" type="text" value="gemini-2.5-pro" autocomplete="off" spellcheck="false">
+                    <span class="psp-hint">Any model that can read a URL and search.</span>
+                </div>
+
+                <div class="psp-actions">
+                    <button id="psp-generate" class="psp-btn psp-btn-primary" type="button">Generate pack</button>
+                    <span id="psp-status" class="psp-status" role="status" aria-live="polite"></span>
+                </div>
+            </div>
+        </section>
+
+        <section id="psp-results" class="psp-results"></section>
+    </div>
+</main>
+
+<footer>
+    <div class="psp-wrap">
+        <p>
+            Persona Social Pack — a port of <a href="https://github.com/kajica2/Persona-hashtags" target="_blank" rel="noopener">Persona-hashtags</a>
+            to the twin. Logic in <code>lib/persona-social-pack.js</code>, reference in
+            <code>docs/PERSONA-SOCIAL-PACK.md</code>.
+        </p>
+    </div>
+</footer>
+
+<script src="../lib/persona-social-pack.js"></script>
+<script>
+(function () {
+    'use strict';
+
+    var PSP = window.PersonaSocialPack;
+    var KEY_STORE = 'psp-api-key';
+    var urlEl = document.getElementById('psp-url');
+    var keyEl = document.getElementById('psp-key');
+    var modelEl = document.getElementById('psp-model');
+    var generateEl = document.getElementById('psp-generate');
+    var statusEl = document.getElementById('psp-status');
+    var resultsEl = document.getElementById('psp-results');
+
+    // ---- the key: sessionStorage only ---------------------------------------
+    // sessionStorage dies with the tab. Nothing else is written anywhere.
+    function loadKey() {
+        try { return sessionStorage.getItem(KEY_STORE) || ''; } catch (e) { return ''; }
+    }
+    function saveKey(value) {
+        try { sessionStorage.setItem(KEY_STORE, value); } catch (e) { /* storage disabled */ }
+    }
+
+    // ---- status line ---------------------------------------------------------
+    function status(message, state) {
+        statusEl.textContent = message || '';
+        if (state) statusEl.setAttribute('data-state', state);
+        else statusEl.removeAttribute('data-state');
+    }
+
+    // ---- copy ----------------------------------------------------------------
+    // The exact text a button copies lives in its data-copy attribute, so the
+    // thing on screen and the thing on the clipboard are the same string.
+    function copyText(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).catch(function () { fallbackCopy(text); });
+            return;
+        }
+        fallbackCopy(text);
+    }
+    function fallbackCopy(text) {
+        var area = document.createElement('textarea');
+        area.value = text;
+        area.setAttribute('readonly', '');
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.appendChild(area);
+        area.select();
+        try { document.execCommand('copy'); } catch (e) { /* nothing else to try */ }
+        document.body.removeChild(area);
+    }
+
+    function copyButton(text, label) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'psp-copy';
+        btn.setAttribute('data-copy', text);
+        btn.textContent = label || 'copy';
+        btn.addEventListener('click', function () {
+            copyText(text);
+            // What was actually handed to the clipboard, so the exact
+            // string is observable without clipboard permissions.
+            btn.setAttribute('data-copied', text);
+            btn.textContent = 'copied';
+            setTimeout(function () { btn.textContent = label || 'copy'; }, 1200);
+        });
+        return btn;
+    }
+
+    // A download button carries the exact file content in data-content, so
+    // what lands on disk and what the button promises are the same bytes.
+    function downloadButton(label, filename, content, type) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'psp-btn';
+        btn.textContent = label;
+        btn.setAttribute('data-content', content);
+        btn.setAttribute('data-filename', filename);
+        btn.addEventListener('click', function () { download(filename, content, type); });
+        return btn;
+    }
+
+    // ---- rendering -----------------------------------------------------------
+    function el(tag, className, text) {
+        var node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text != null) node.textContent = text;
+        return node;
+    }
+
+    function block(title, copyLabel, copyText_) {
+        var section = el('div', 'psp-block');
+        var head = el('div', 'psp-block-head');
+        head.appendChild(el('h3', null, title));
+        if (copyText_ !== null && copyText_ !== undefined) {
+            head.appendChild(copyButton(copyText_, copyLabel || 'copy'));
+        }
+        section.appendChild(head);
+        return section;
+    }
+
+    function tierBlock(title, tags) {
+        var text = tags.join(' ');
+        var section = block(title, 'copy tags', text);
+        var row = el('div', 'psp-tags');
+        for (var i = 0; i < tags.length; i++) {
+            row.appendChild(el('span', 'psp-tag', tags[i]));
+        }
+        section.appendChild(row);
+        return section;
+    }
+
+    function socialBlock(platform, caption) {
+        var section = block(platform, 'copy caption', caption);
+        section.appendChild(el('div', 'psp-caption', caption));
+        return section;
+    }
+
+    function youtubeBlock(meta) {
+        var text = [meta.title, meta.description, meta.tagsCsv].filter(Boolean).join('\n');
+        var section = block('YouTube', 'copy metadata', text);
+        section.appendChild(el('div', 'psp-yt-title', meta.title));
+        section.appendChild(el('div', 'psp-yt-desc', meta.description));
+        section.appendChild(el('div', 'psp-yt-tags', meta.tagsCsv));
+        return section;
+    }
+
+    function personaCard(persona, index) {
+        var content = PSP.buildPlatformContent(persona);
+        var meta = PSP.toYoutubeMetadata(persona);
+        var card = el('article', 'psp-persona');
+        card.setAttribute('data-persona', String(index));
+
+        var head = el('div', 'psp-persona-head');
+        head.appendChild(el('h2', null, persona.personaName));
+        head.appendChild(el('span', 'psp-kicker',
+            persona.primarySet.length + ' / ' + persona.secondarySet.length + ' / ' +
+            persona.nicheSet.length + ' tags'));
+        card.appendChild(head);
+
+        if (persona.description) card.appendChild(el('p', 'psp-persona-desc', persona.description));
+
+        if (persona.warnings && persona.warnings.length) {
+            card.appendChild(el('p', 'psp-warn', persona.warnings.join(' ')));
+        }
+
+        card.appendChild(tierBlock('Primary set', persona.primarySet));
+        card.appendChild(tierBlock('Secondary set', persona.secondarySet));
+        card.appendChild(tierBlock('Niche set', persona.nicheSet));
+        card.appendChild(youtubeBlock(meta));
+
+        for (var i = 0; i < PSP.PLATFORMS.length; i++) {
+            var platform = PSP.PLATFORMS[i];
+            card.appendChild(socialBlock(platform, content.social[platform].caption));
+        }
+
+        var exportRow = el('div', 'psp-export');
+        exportRow.appendChild(downloadButton(
+            'POST.md',
+            'POST.md',
+            PSP.toIgPostMd(persona),
+            'text/markdown'
+        ));
+        exportRow.appendChild(downloadButton(
+            'metadata JSON',
+            'persona-metadata.json',
+            JSON.stringify({
+                personaName: persona.personaName,
+                description: persona.description,
+                primarySet: persona.primarySet,
+                secondarySet: persona.secondarySet,
+                nicheSet: persona.nicheSet,
+                youtube: meta,
+                social: content.social,
+            }, null, 2),
+            'application/json'
+        ));
+        card.appendChild(exportRow);
+        return card;
+    }
+
+    function download(filename, text, type) {
+        var blob = new Blob([text], { type: type || 'text/plain' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    }
+
+    function render(personas) {
+        resultsEl.textContent = '';
+        for (var i = 0; i < personas.length; i++) {
+            resultsEl.appendChild(personaCard(personas[i], i));
+        }
+
+        var bar = el('div', 'psp-export');
+
+        var allTags = [];
+        for (var j = 0; j < personas.length; j++) {
+            allTags = allTags.concat(PSP.personaHashtags(personas[j]));
+        }
+        var tagText = allTags.join(' ');
+        var copyTags = el('button', 'psp-btn', 'Copy all hashtags');
+        copyTags.type = 'button';
+        copyTags.setAttribute('data-copy', tagText);
+        copyTags.addEventListener('click', function () { copyText(tagText); });
+        bar.appendChild(copyTags);
+
+        // One JSON file for the whole pack. The per-persona POST.md stays
+        // on its card, because ig-poster reads one POST.md per reel dir.
+        var packJson = JSON.stringify(personas.map(function (p) {
+            var meta = PSP.toYoutubeMetadata(p);
+            var content = PSP.buildPlatformContent(p);
+            return {
+                personaName: p.personaName,
+                description: p.description,
+                primarySet: p.primarySet,
+                secondarySet: p.secondarySet,
+                nicheSet: p.nicheSet,
+                youtube: meta,
+                social: content.social,
+            };
+        }), null, 2);
+        bar.appendChild(downloadButton(
+            'Download metadata JSON',
+            'persona-social-pack.json',
+            packJson,
+            'application/json'
+        ));
+
+        resultsEl.appendChild(bar);
+    }
+
+    // ---- generate ------------------------------------------------------------
+    generateEl.addEventListener('click', function () {
+        var url = urlEl.value.trim();
+        if (!url) {
+            status('A URL is required.', 'error');
+            return;
+        }
+        var apiKey = keyEl.value.trim();
+        if (!apiKey) {
+            status('Paste a Gemini API key first.', 'error');
+            return;
+        }
+        saveKey(apiKey);
+
+        generateEl.disabled = true;
+        status('Reading the page…', 'busy');
+
+        PSP.generatePack(url, {
+            apiKey: apiKey,
+            model: modelEl.value.trim() || undefined,
+        }).then(function (personas) {
+            generateEl.disabled = false;
+            if (!personas || !personas.length) {
+                status('No personas found on that page, and no related page either.', 'error');
+                return;
+            }
+            render(personas);
+            status(personas.length + ' persona' + (personas.length === 1 ? '' : 's') + ' ready.', 'done');
+        }).catch(function (err) {
+            generateEl.disabled = false;
+            status(err && err.message ? err.message : 'Something went wrong.', 'error');
+        });
+    });
+
+    // ---- boot ----------------------------------------------------------------
+    keyEl.value = loadKey();
+    modelEl.addEventListener('change', function () { /* the model is read on generate */ });
+
+    // ---- theme ---------------------------------------------------------------
+    var themeButtons = document.querySelectorAll('.psp-theme button');
+    function paintTheme() {
+        var pref = (window.DTTheme && window.DTTheme.pref) || 'system';
+        for (var i = 0; i < themeButtons.length; i++) {
+            themeButtons[i].setAttribute('aria-pressed', String(themeButtons[i].getAttribute('data-theme-set') === pref));
+        }
+    }
+    for (var t = 0; t < themeButtons.length; t++) {
+        themeButtons[t].addEventListener('click', function (event) {
+            var next = event.currentTarget.getAttribute('data-theme-set');
+            if (window.DTTheme) window.DTTheme.set(next);
+            else document.documentElement.setAttribute('data-theme', next === 'dark' ? 'dark' : 'light');
+            paintTheme();
+        });
+    }
+    paintTheme();
+    document.addEventListener('dt-theme', paintTheme);
+})();
+</script>
+</body>
+</html>

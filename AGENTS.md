@@ -4926,6 +4926,130 @@ the worst observed latency, and a gate must be able to tell "the build
 is late" from "the build is broken" — otherwise every slow deploy
 reads as a code regression.
 
+### 2026-10-22 — sprint 0.48 (the Persona Social Pack)
+
+Ported [Persona-hashtags](https://github.com/kajica2/Persona-hashtags)
+(kajica2) to the twin. Upstream finds the creative personas on a URL and
+gives each one three hashtag tiers; this port adds the platform copy the
+upstream tool never had — YouTube metadata and four social captions per
+persona — and keeps the upstream's five JSON keys unchanged.
+
+**Shipped:**
+
+- **`lib/persona-social-pack.js`** — the whole thing: prompts, parser,
+  normaliser, formatters, the Gemini call. Dual-mode (CommonJS in Node,
+  `window.PersonaSocialPack` in the page), zero dependencies, injectable
+  `fetch` / `baseUrl`.
+- **`pages/persona-social-pack.html`** — the page. Plain DOM, no new Web
+  Component, house skin (`house.css`), `psp-theme` for the theme.
+- **`lib/persona-social-pack.test.js`** — 52 checks, offline, no key.
+- **`e2e/persona-social-pack.spec.mjs`** — 29 checks, Gemini intercepted.
+- **`docs/PERSONA-SOCIAL-PACK.md`** — the reference.
+
+**Decisions:**
+
+- **The browser calls Gemini; the twin has no server to hold a key.**
+  The twin is a static site: `vercel.json` rewrites everything to
+  `/pages/landing.html`, `lib/serve.js` is GET/HEAD-only and shared with
+  a launchd LaunchAgent — so putting a proxy there would break the
+  LaunchAgent contract. CORS was verified live against the endpoint: the
+  `OPTIONS` preflight answers 200 with the origin echoed and
+  `allow-headers: content-type,x-goog-api-key`, so a browser-side call
+  works. **The key lives in `sessionStorage` only** — never in the repo,
+  never in `localStorage`, never in a file. The e2e asserts both halves.
+- **The tool keys are snake_case in the v1beta REST body**
+  (`url_context`, `google_search`); camelCase is SDK-only. Upstream used
+  the SDK, so the port had to un-translate that.
+- **A short tier is reported, never padded.** The caps (7/10/15) are
+  hard; the minimums (5/7/10) produce a warning on the card. Padding
+  would invent reach the model did not promise.
+- **POST.md is written for `lib/ig-poster.js`, not for a human.**
+  `readCaption()` is not exported, so the unit suite replicates its parse
+  loop exactly and asserts the generated file against it. The two
+  behaviours that shape the format: the first non-empty line after
+  `## Next` BREAKS the parse loop, and the hashtags are matched over the
+  whole file. So the caption body carries no tags, and the tag list lives
+  in a trailing `## Hashtags` section that sits *after* the break — every
+  tag appears exactly once in the posted caption.
+- **Tags are canonicalised to `[A-Za-z0-9_]`.** `ig-poster` extracts
+  with `/#[a-zA-Z0-9_]+/g`, so a tag carrying anything else is truncated
+  on the way to the caption. Normalising at the source means the file on
+  disk and the caption that gets posted are the same string.
+- **The model is overridable; the key is not in the repo.** Default
+  `gemini-2.5-pro`, overridable in the page and by
+  `PERSONA_PACK_MODEL`; the key by `PERSONA_PACK_API_KEY` in the shell
+  or by the page field.
+- **A blank answer is "nothing found", not a failure.** Upstream says
+  the same, and for the same reason: a blank response is exactly the
+  case the fallback phase exists for, so it must reach phase two
+  instead of aborting the run. A *malformed* answer is still an error —
+  a misparse must never be mistaken for "nothing found", because that
+  decision drives the fallback and a broken response would hide behind
+  it.
+
+- **The shared rules are duplicated, and a test keeps that honest.**
+  `lib/social-shared.js` — the social worker's rules module, committed
+  in a parallel session — carries a second copy of the tag/tier/POST.md
+  rules this lib also implements, and its own header asks this file to
+  require it "instead of keeping a second copy". The two copies are
+  equivalent today, and the unit suite now **proves** it: it runs both
+  implementations over the same fixtures and fails if they diverge
+  (verified by injecting a one-character drift — the guard failed, and
+  passed again on restore). The check is skipped when the other module
+  is absent.
+  **The lib stays standalone** (no cross-module require: it has to drop
+  into the browser and into Node without a bundler), and the
+  duplication is made *detectable* rather than silent. When the two
+  sides are next edited together, the fix is to make one require the
+  other — not to leave two conventions to drift apart.
+
+**Two bugs the suite was not actually testing for:**
+
+- **The unit helper was synchronous while nine checks were async.**
+  `check(name, fn)` called `fn()` without awaiting, so a failing
+  assertion inside an async body did not throw synchronously: the check
+  printed **"ok"**, the rejection escaped as an unhandled rejection, and
+  the process died before the summary and before the remaining checks
+  ran. The suite was green by luck, not by coverage. The helper now
+  awaits, and every call site is awaited with it.
+- **Fixing the helper immediately exposed a real failure.** The check
+  "a non-empty first answer does NOT trigger the fallback" was
+  pointed at the *fallback* server, which answers the base prompt with
+  `[]` — so the fallback did run, and the check had only ever "passed"
+  because its failure was unobserved. It now uses the server that
+  answers with a persona, and the two servers have separate call
+  counters. **A gate that cannot report a failure is not a gate.**
+
+**Verified:**
+
+- `node lib/persona-social-pack.test.js` — **52 passed, 0 failed** (no
+  network, no credentials; the Gemini path runs against a local stub
+  server through the base-URL override. Every check is awaited, so an
+  async body that fails is counted as a failure).
+- `npm run e2e:persona-social-pack` — **all 29 checks passed** (the
+  Gemini endpoint is intercepted: the CORS preflight is answered locally
+  and the POST returns a two-persona fixture. Two persona cards, every
+  tag `#`-prefixed, tier counts, the YouTube title, all four social
+  blocks, the copy buttons exposing the text on screen, a **real copy
+  click** copying exactly that text without a page error, the theme
+  persisting under `psp-theme`, the key in `sessionStorage` and not in
+  `localStorage`, the no-key guard making no request at all, the
+  empty-result path reporting an error instead of a blank page, and 0
+  console errors on both paths).
+- `npm run skin:check` — **0 errors** (the page is skinned, exactly one
+  skin link and one skin runtime, no contract token defined by the page).
+- **Visual proof, both themes** — the rendered pack was read from the
+  screenshots: the tier chips, the four caption blocks, the YouTube
+  block and the export row all sit on the house surfaces, and the
+  short-tier warning shows where the model under-delivered.
+- `npm run test:all` — the new suite is chained into it.
+
+**Open:**
+
+- The persona descriptions have to be *on* the page, not merely linked
+  from it. A page that only links to them comes back empty and triggers
+  the fallback search.
+
 ### 2026-10-21 — sprint 0.49 (the social worker)
 
 Asked for: *"start worker that starts socialengine auto tagging posting

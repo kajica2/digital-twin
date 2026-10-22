@@ -182,6 +182,7 @@ jobs:
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node integrations.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node mj-dashboard.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node mj-sheets.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node persona-social-pack.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node skin.spec.mjs
           else
             echo "(PR run - Vercel doesn't deploy PRs, e2e runs locally)"
@@ -209,6 +210,7 @@ jobs:
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node integrations.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node mj-dashboard.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node mj-sheets.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node persona-social-pack.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node skin.spec.mjs
             kill $SERVER_PID 2>/dev/null || true
           fi
