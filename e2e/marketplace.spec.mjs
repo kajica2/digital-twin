@@ -45,8 +45,22 @@ function check(name, ok, detail = '') {
   const page = await browser.newPage();
   const errors = [];
   const mediaAborts = [];
+  const dailyCatalogueMisses = [];
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
-  page.on('console', m => { if (m.type() === 'error') errors.push('console.error: ' + m.text()); });
+  // The daily catalogue is optional: a checkout that has never run the daily
+  // pipeline has no assets/marketplace/daily/index.json, and Chrome logs a
+  // fetch for a missing file as a console error however the page handles it.
+  // The page's own handling (it states the empty state instead) is asserted
+  // below. The twin-os specs filter the song catalogue the same way.
+  page.on('console', m => {
+    if (m.type() !== 'error') return;
+    const url = (m.location() && m.location().url) || '';
+    if (/assets\/marketplace\/daily\/index\.json/.test(url)) {
+      dailyCatalogueMisses.push(m.text());
+      return;
+    }
+    errors.push('console.error: ' + m.text());
+  });
   // A <video> element cancels its own in-flight range request once it has
   // buffered enough, which Chrome surfaces as net::ERR_ABORTED. That happens
   // on GitHub Pages and Vercel exactly as it does locally, so counting it as a
@@ -190,6 +204,78 @@ function check(name, ok, detail = '') {
         plateCheck.ok
           ? `${plateCheck.n} plates vs ${plateCheck.listed} manifest entries`
           : plateCheck.why);
+
+  // Daily Frames — the daily run publishes assets/marketplace/daily/index.json
+  // and the page renders it. Both states are legal: a published bundle (the
+  // plates render and match the catalogue) or no bundle yet (the page says so
+  // plainly). The contract is that whichever state holds, the page tells the
+  // truth and the captions match the catalogue.
+  const daily = await page.evaluate(async () => {
+    const rel = '../assets/marketplace/daily/index.json';
+    const res = await fetch(new URL(rel, location.href).href, { cache: 'no-store' });
+    if (!res.ok) return { state: 'none', status: res.status };
+    // A missing catalogue does not have to be a 404: Vercel's catch-all
+    // rewrite answers unknown paths with the landing page and a 200. So the
+    // body is parsed defensively — a non-JSON body means "no catalogue
+    // yet", never a crash.
+    const txt = await res.text();
+    let idx = null;
+    try { idx = JSON.parse(txt); } catch { idx = null; }
+    if (!idx) return { state: 'none', status: res.status, note: 'body is not JSON' };
+    const list = idx.collections || [];
+    return { state: list.length ? 'published' : 'empty', collections: list.length, index: idx };
+  });
+
+  if (daily.state === 'published') {
+    // The daily plates are lazy-loaded, so they have to be scrolled into
+    // view before they can be asserted on.
+    await page.evaluate(() => document.querySelector('#daily')?.scrollIntoView({ block: 'center' }));
+    await page.waitForFunction(() => {
+      const imgs = [...document.querySelectorAll('#daily img')];
+      return imgs.length > 0 && imgs.every(i => i.complete && i.naturalWidth > 0);
+    }, { timeout: 20000 });
+
+    check('market: the daily section renders plates', await page.evaluate(() =>
+      document.querySelectorAll('#daily figure').length > 0),
+      await page.evaluate(() => `${document.querySelectorAll('#daily figure').length} figures`));
+
+    check('market: every daily plate has alt text', await page.evaluate(() => {
+      const imgs = Array.from(document.querySelectorAll('#daily img'));
+      return imgs.length > 0 && imgs.every(i => (i.getAttribute('alt') || '').trim().length > 20);
+    }));
+
+    const dailyCheck = await page.evaluate((idx) => {
+      const newest = (idx.collections || [])[0];
+      if (!newest) return { ok: false, why: 'no collections in the index' };
+      const byFile = {};
+      for (const p of (newest.plates || [])) byFile[p.file] = p;
+      const figs = Array.from(document.querySelectorAll('#daily figure'));
+      const bad = [];
+      for (const f of figs) {
+        const img = f.querySelector('img');
+        const cap = f.querySelector('figcaption');
+        const file = (img?.getAttribute('src') || '').split('/').pop();
+        const src = byFile[file];
+        const got = (cap?.textContent || '').replace(/\s+/g, ' ').trim();
+        if (!src) bad.push(`${file}: not in the catalogue`);
+        else if (got !== src.caption) bad.push(`${file}: caption ${JSON.stringify(got)} != ${JSON.stringify(src.caption)}`);
+        else if ((img.getAttribute('alt') || '').trim() !== src.alt) bad.push(`${file}: alt text != the catalogue`);
+        else if (img.getAttribute('width') !== String(src.width)) bad.push(`${file}: declared width != the catalogue`);
+        else if (img.getAttribute('height') !== String(src.height)) bad.push(`${file}: declared height != the catalogue`);
+      }
+      return { ok: bad.length === 0, why: bad.join(' | '), n: figs.length, listed: Object.keys(byFile).length };
+    }, daily.index);
+    check('market: every daily plate matches the catalogue',
+          dailyCheck.ok,
+          dailyCheck.ok
+            ? `${dailyCheck.n} plates vs ${dailyCheck.listed} catalogue entries`
+            : dailyCheck.why);
+  } else {
+    check('market: the daily section states that nothing is published yet', await page.evaluate(() => {
+      const t = document.querySelector('#daily')?.innerText || '';
+      return /has not published a collection yet/i.test(t);
+    }));
+  }
 
   // every image must actually render (naturalWidth > 0)
   await page.waitForFunction(() => {

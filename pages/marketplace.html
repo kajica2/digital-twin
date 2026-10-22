@@ -232,6 +232,18 @@
     </div>
   </section>
 
+  <section id="daily">
+    <h2>Daily Frames</h2>
+    <p class="lede">One collection a day, rendered on Midjourney and published by the
+      twin's daily run &mdash; the same voice as the work above, arriving on its own.
+      Each plate carries the prompt it was made from, so the picture and its caption
+      can always be checked against each other.</p>
+    <div id="daily-body" data-daily-body>
+      <p class="lede" style="color:var(--ink-2)" data-daily-empty>The daily run has not
+        published a collection yet &mdash; it writes one a day.</p>
+    </div>
+  </section>
+
   <section id="motion">
     <h2>Motion</h2>
     <p class="lede">A cycle through 186 black-and-white network patterns — city lights,
@@ -279,6 +291,44 @@
       apply(m);
     }));
     // internal cross-links point at the served repo-root pages (resolve ../docs too)
+  })();
+
+  // Daily Frames — the daily run publishes assets/marketplace/daily/index.json.
+  // The catalogue is a tracked file, so the section renders from data the repo
+  // carries; a missing index (a fresh clone before the first run) is a state
+  // the page states plainly rather than an error.
+  (function () {
+    var body = document.querySelector("[data-daily-body]");
+    if (!body) return;
+    function esc(s) {
+      return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+      });
+    }
+    function render(index) {
+      var list = (index && index.collections) || [];
+      if (!list.length) return;                 // keep the empty state
+      var html = "";
+      list.slice(0, 3).forEach(function (c) {
+        html += '<p class="kicker" style="margin:26px 0 10px">' + esc(c.title) +
+                ' &middot; ' + esc(c.badge) + ' &middot; ' + esc(c.date) + '</p>';
+        if (c.teaser) html += '<p class="lede" style="margin:0 0 12px">' + esc(c.teaser) + '</p>';
+        html += '<div class="grid">';
+        (c.plates || []).forEach(function (p) {
+          var src = "../" + c.dir + "/" + p.file;
+          html += '<figure><img src="' + esc(src) + '" alt="' + esc(p.alt || p.caption) + '"' +
+                  (p.width ? ' width="' + esc(p.width) + '"' : '') +
+                  (p.height ? ' height="' + esc(p.height) + '"' : '') +
+                  ' loading="lazy"><figcaption>' + esc(p.caption) + '</figcaption></figure>';
+        });
+        html += '</div>';
+      });
+      body.innerHTML = html;
+    }
+    fetch("../assets/marketplace/daily/index.json", { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) { if (j) render(j); })
+      .catch(function () { /* the empty state already says it */ });
   })();
 </script>
 </body>

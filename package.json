@@ -36,6 +36,8 @@
     "index-songs": "node lib/songs-indexer.js --apply --yes",
     "index-jazz-solos": "node lib/jazz-solos-indexer.js --apply --yes",
     "daily": "node lib/daily-pipeline.js --apply --yes",
+    "daily:content": "node lib/daily-content.js",
+    "daily:content:dry": "node lib/daily-content.js --dry-run",
     "export-parts": "node lib/chart-export.js",
     "musicxml-pdf": "node lib/musicxml-to-pdf.js",
     "export-mp3": "node lib/chart-export.js --apply --yes --mp3-only",
@@ -74,7 +76,7 @@
     "test:prompt-lint": "node lib/prompt-lint.test.js",
     "test:floating-toolset": "node lib/floating-toolset.test.js",
     "test:daily-pipeline": "node lib/daily-pipeline.test.js",
-    "test:all": "npm run test:watcher && npm run test:songs-watcher && npm run test:reel-watcher && npm run test:mj && npm run test:mj-cookies && npm run test:mj-web && npm run test:suno-styles && npm run test:suno-run && npm run test:suno-web && npm run test:mj-feed && npm run test:mj-feed-reconcile && npm run test:mj-revise && npm run test:mj-contact-sheet && npm run test:ingest && npm run test:deepseek && npm run test:persona-social-pack && npm run test:mj-submitter && npm run test:mj-prompt-generator && npm run test:jazz-solos && npm run test:musicxml-pdf && npm run test:range && npm run test:skin && npm run test:social && npm run test:social-shared && npm run test:x-cookies && npm run test:x-text && npm run test:x-poster && npm run test:floating-toolset && npm run test:daily-pipeline && npm run skin:check && npm run test:prompt-lint && npm run prompt:check && npm run test:agent-loop && npm run test:flux2 && npm run test:lettering && npm run test:clip-samples",
+    "test:all": "npm run test:watcher && npm run test:songs-watcher && npm run test:reel-watcher && npm run test:mj && npm run test:mj-cookies && npm run test:mj-web && npm run test:suno-styles && npm run test:suno-run && npm run test:suno-web && npm run test:mj-feed && npm run test:mj-feed-reconcile && npm run test:mj-revise && npm run test:mj-contact-sheet && npm run test:ingest && npm run test:deepseek && npm run test:persona-social-pack && npm run test:mj-submitter && npm run test:mj-prompt-generator && npm run test:jazz-solos && npm run test:musicxml-pdf && npm run test:range && npm run test:skin && npm run test:social && npm run test:social-shared && npm run test:x-cookies && npm run test:x-text && npm run test:x-poster && npm run test:floating-toolset && npm run test:daily-pipeline && npm run skin:check && npm run test:prompt-lint && npm run prompt:check && npm run test:agent-loop && npm run test:flux2 && npm run test:lettering && npm run test:clip-samples && npm run test:daily-content",
     "clip:setup": "uv sync --project lib/clip-interrogator",
     "clip:ui": "uv run --project lib/clip-interrogator python -m clip_interrogator_app.ui",
     "clip:interrogate": "uv run --project lib/clip-interrogator clip-interrogate interrogate assets/clip-interrogator/example01.jpg --mode best",
@@ -118,7 +120,8 @@
     "test:x-poster": "node lib/x-poster.test.js",
     "x:capture": "node lib/x-cookie-capture.js",
     "x:check": "node lib/x-cookie-capture.js --check",
-    "x:post": "node lib/x-poster.js"
+    "x:post": "node lib/x-poster.js",
+    "test:daily-content": "node lib/daily-content.test.js"
   },
   "dependencies": {
     "puppeteer": "^25.15.0"

@@ -1,7 +1,13 @@
 # Generated outputs — never commit auto-generated images or processed inputs
 mj-output/
 prompts-inbox/processed/
-daily/
+/daily/
+# The daily content run's work product (prompt packs, submissions, downloads).
+# The PUBLISHED bundle is tracked — it lives in assets/marketplace/daily/.
+daily-content/
+# The account's own style identifiers, typed into the daily run's prompts.
+# Local only — the tracked library never carries them.
+lib/mj-profile.local.json
 
 # MJ watcher runtime state — per-prompt done markers + in-flight lockfile.
 # The other watchers' lockfiles live in their own inbox dirs; same pattern

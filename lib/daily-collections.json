@@ -1,0 +1,282 @@
+{
+  "_note": "Daily content library — the marketplace's daily collections. lib/daily-content.js picks one per day (deterministic, day-of-year) and renders its three plates on Midjourney. Each plate carries the caption and alt text the marketplace page shows, so the copy is written once here and never drifts from the art. The prompt is subject-first (the acceptance-matcher rule from the MJ sheet work): the subject leads, then camera, light and texture, then 'no text'. The aspect ratio is appended by the pipeline, not stored here.",
+  "aspect": "16:9",
+  "collections": [
+    {
+      "id": "sodium-hour",
+      "title": "Sodium Hour",
+      "badge": "cyberpunk / hk",
+      "teaser": "The streetlights know the hour better than the clock does.",
+      "plates": [
+        {
+          "caption": "parking deck · last lamp",
+          "alt": "An empty multi-storey parking deck at night, one sodium lamp burning at the far end, wet concrete holding its reflection, city haze beyond.",
+          "prompt": "an empty multi-storey parking deck at night, one sodium lamp burning at the far end as the only key light, wet concrete holding a thin reflection, low camera on the level, 35mm film still, fine grain, muted palette, no text"
+        },
+        {
+          "caption": "noodle stall · steam",
+          "alt": "A closed food stall under a covered walkway, steam still rising into one yellow lamp, shutters down, no people.",
+          "prompt": "a closed food stall under a covered walkway, steam still rising into one yellow lamp, metal shutters down, no people, 35mm film still, deep shadows, fine grain, muted palette, no text"
+        },
+        {
+          "caption": "flyover · crossing",
+          "alt": "A figure in a long coat crossing an empty flyover at night, haze, a single lamp overhead, unlit road ahead.",
+          "prompt": "a lone figure in a long coat crossing an empty elevated flyover at night, city haze, a single overhead lamp as only key light, the road ahead unlit, 35mm film still, fine grain, muted palette, no text"
+        }
+      ]
+    },
+    {
+      "id": "long-exposure",
+      "title": "Long Exposure",
+      "badge": "deep house",
+      "teaser": "The camera stayed open after the dancer left.",
+      "plates": [
+        {
+          "caption": "studio · trail",
+          "alt": "A dancer reduced to a single streak of light in a dark studio, shutter left open, the floor faintly visible.",
+          "prompt": "a dancer reduced to one continuous streak of light in a dark studio, shutter left open, faint floor and one bare bulb above, 35mm film still, motion blur, fine grain, muted palette, no text"
+        },
+        {
+          "caption": "turntable · hand",
+          "alt": "A hand resting on the edge of a spinning vinyl record, the light streaking around the platter.",
+          "prompt": "a hand resting on the edge of a spinning vinyl record on a turntable, the light streaking into a ring around the platter, close-up, 35mm film still, fine grain, muted palette, no text"
+        },
+        {
+          "caption": "corridor · flash",
+          "alt": "A corridor lit by a single flash held at waist height, the far end falling into darkness.",
+          "prompt": "a narrow corridor lit by one flash held at waist height, the far end falling into complete darkness, 35mm film still, hard falloff, fine grain, muted palette, no text"
+        }
+      ]
+    },
+    {
+      "id": "tide-line",
+      "title": "Tide Line",
+      "badge": "soundhealing",
+      "teaser": "The sea keeps the hours it has no use for.",
+      "plates": [
+        {
+          "caption": "flat · mirror",
+          "alt": "Wet sand at low tide holding a perfect reflection of an overcast sky, a line of foam halfway out.",
+          "prompt": "wet sand at low tide holding a perfect reflection of an overcast sky, one line of foam halfway out, no horizon detail, 35mm film still, fine grain, muted palette, no text"
+        },
+        {
+          "caption": "break · backlit",
+          "alt": "A small wave breaking against an empty shore, backlit by flat winter light, spray suspended.",
+          "prompt": "a small wave breaking on an empty shore, backlit by flat winter light, spray suspended in the air, long lens, 35mm film still, fine grain, muted palette, no text"
+        },
+        {
+          "caption": "post · rope",
+          "alt": "A weathered mooring post in shallow water, rope trailing off frame, grey sky reflected around it.",
+          "prompt": "a weathered wooden mooring post standing in shallow water, rope trailing off frame, grey sky reflected around it, 35mm film still, fine grain, muted palette, no text"
+        }
+      ]
+    },
+    {
+      "id": "negative-space",
+      "title": "Negative Space",
+      "badge": "collective",
+      "teaser": "A room with one chair in it and everyone still coming.",
+      "plates": [
+        {
+          "caption": "room · chair",
+          "alt": "An empty rehearsal room with a single wooden chair under a low window, dust in the light, floorboards worn.",
+          "prompt": "an empty rehearsal room with a single wooden chair under a low window, dust suspended in one shaft of light, worn floorboards, 35mm film still, fine grain, muted palette, no text"
+        },
+        {
+          "caption": "table · cups",
+          "alt": "A long table with an uneven row of empty cups, one lamp low over the far end.",
+          "prompt": "a long table with an uneven row of empty cups, one low lamp hanging over the far end, long empty room, 35mm film still, fine grain, muted palette, no text"
+        },
+        {
+          "caption": "doorway · sound",
+          "alt": "A doorway at the back of a dark room with light spilling in from the corridor, nobody present.",
+          "prompt": "a doorway at the back of a dark room with cold light spilling in from the corridor, nobody present, deep shadows, 35mm film still, fine grain, muted palette, no text"
+        }
+      ]
+    },
+    {
+      "id": "after-image",
+      "title": "After Image",
+      "badge": "identity",
+      "teaser": "What the eye keeps after the light is gone.",
+      "plates": [
+        {
+          "caption": "portrait · burn",
+          "alt": "A face lit by a single hard light source that burns out across the cheek, the far side falling to black.",
+          "prompt": "a face lit by one hard light source burning out across the cheek, the far side falling to black, no background detail, 35mm film still, fine grain, muted palette, no text"
+        },
+        {
+          "caption": "glass · ghost",
+          "alt": "A double exposure of a face and a window, the two layers drifting slightly out of register.",
+          "prompt": "a double exposure of a face and a window frame, the two layers drifting slightly out of register, soft focus, 35mm film still, fine grain, muted palette, no text"
+        },
+        {
+          "caption": "mirror · delay",
+          "alt": "A figure caught mid-turn in a bathroom mirror, the reflection trailing a fraction behind.",
+          "prompt": "a figure caught mid-turn in a small bathroom mirror, the reflection trailing a fraction behind, one cold ceiling light, 35mm film still, fine grain, muted palette, no text"
+        }
+      ]
+    },
+    {
+      "id": "relay",
+      "title": "Relay",
+      "badge": "cyberpunk / hk",
+      "teaser": "Something travels the line and comes out the other side changed.",
+      "plates": [
+        {
+          "caption": "pylon · line",
+          "alt": "A run of power pylons crossing flat ground at dusk, the line running out of frame to the right.",
+          "prompt": "a run of power pylons crossing flat ground at dusk, the cable running out of frame to the right, heavy air, 35mm film still, fine grain, muted palette, no text"
+        },
+        {
+          "caption": "switchboard · lamp",
+          "alt": "An old switchboard in a dim room, one indicator lamp lit, the rest dark, dust on the keys.",
+          "prompt": "an old switchboard in a dim room, one indicator lamp lit and the rest dark, dust settled on the keys, close-up, 35mm film still, fine grain, muted palette, no text"
+        },
+        {
+          "caption": "platform · signal",
+          "alt": "An empty rail platform seen down its length, a single signal light burning at the far end.",
+          "prompt": "an empty rail platform seen down its length, one signal light burning at the far end, tunnel mouth behind it, 35mm film still, fine grain, muted palette, no text"
+        }
+      ]
+    },
+    {
+      "id": "frost-window",
+      "title": "Frost Window",
+      "badge": "soundhealing",
+      "teaser": "Winter writes on the glass and the room reads it slowly.",
+      "plates": [
+        {
+          "caption": "pane · fern",
+          "alt": "Frost branching across a window pane at dawn, the room behind it out of focus and cold blue.",
+          "prompt": "frost branching across a window pane at dawn, the room behind it out of focus and cold blue, close-up, 35mm film still, fine grain, muted palette, no text"
+        },
+        {
+          "caption": "kettle · steam",
+          "alt": "A kettle just beginning to steam on a stove in a cold kitchen, window light behind.",
+          "prompt": "a kettle just beginning to steam on a stove in a cold kitchen, flat window light behind it, close-up, 35mm film still, fine grain, muted palette, no text"
+        },
+        {
+          "caption": "breath · glass",
+          "alt": "A breath fogging a pane of glass from the inside, a hand held just off the surface.",
+          "prompt": "a breath fogging a pane of glass from the inside, a hand held just off the surface, cold blue room beyond, 35mm film still, fine grain, muted palette, no text"
+        }
+      ]
+    },
+    {
+      "id": "hand-cast",
+      "title": "Hand Cast",
+      "badge": "collective",
+      "teaser": "A thing made once, by hand, for one person.",
+      "plates": [
+        {
+          "caption": "press · screw",
+          "alt": "A screw press in a workshop with a fresh impression in the metal, hand tools on the bench.",
+          "prompt": "a heavy screw press in a workshop with a fresh impression in the metal, hand tools scattered on the bench, one work lamp, 35mm film still, fine grain, muted palette, no text"
+        },
+        {
+          "caption": "strings · tuning",
+          "alt": "Hands tuning a small stringed instrument on a workbench, the headstock filling the frame.",
+          "prompt": "hands tuning a small stringed instrument on a workbench, the headstock filling the frame, shallow depth of field, 35mm film still, fine grain, muted palette, no text"
+        },
+        {
+          "caption": "kiln · shelf",
+          "alt": "A cooling kiln with its door ajar, one shelf of unglazed pots visible inside, dim workshop.",
+          "prompt": "a cooling kiln with its door ajar, one shelf of unglazed pots visible inside, dim workshop, warm glow from the chamber, 35mm film still, fine grain, muted palette, no text"
+        }
+      ]
+    },
+    {
+      "id": "low-tide-radio",
+      "title": "Low Tide Radio",
+      "badge": "deep house",
+      "teaser": "The signal gets better the further out you go.",
+      "plates": [
+        {
+          "caption": "antenna · shore",
+          "alt": "A radio mast on a wide empty shore at low tide, wet sand leading out to it, flat light.",
+          "prompt": "a radio mast on a wide empty shore at low tide, wet sand leading out to it, flat overcast light, long lens, 35mm film still, fine grain, muted palette, no text"
+        },
+        {
+          "caption": "receiver · dial",
+          "alt": "A valve receiver lit by its own dial lamp, the tuning needle resting slightly off centre.",
+          "prompt": "a valve radio receiver lit by its own dial lamp, the tuning needle resting slightly off centre, dark room, close-up, 35mm film still, fine grain, muted palette, no text"
+        },
+        {
+          "caption": "pier · cables",
+          "alt": "A concrete pier running into flat water, cables running along its edge, a lamp at the far end.",
+          "prompt": "a concrete pier running into flat water, cables running along its edge, one lamp at the far end, 35mm film still, fine grain, muted palette, no text"
+        }
+      ]
+    },
+    {
+      "id": "greenhouse-night",
+      "title": "Greenhouse Night",
+      "badge": "soundhealing",
+      "teaser": "Warmth kept alive on purpose, against the dark.",
+      "plates": [
+        {
+          "caption": "glasshouse · lamp",
+          "alt": "A small glasshouse lit from inside at night, condensation on the panes, dark garden beyond.",
+          "prompt": "a small glasshouse lit from inside at night, condensation on the panes, dark garden beyond, one warm lamp, 35mm film still, fine grain, muted palette, no text"
+        },
+        {
+          "caption": "benches · seedlings",
+          "alt": "Rows of seedling trays on wooden benches under a grow lamp, watering can at the end.",
+          "prompt": "rows of seedling trays on wooden benches under a grow lamp, a watering can at the end of the row, 35mm film still, fine grain, muted palette, no text"
+        },
+        {
+          "caption": "ivy · pane",
+          "alt": "Ivy pressing against a window pane from outside, lit from within, the leaves half in shadow.",
+          "prompt": "ivy pressing against a window pane from the outside, lit from within so the leaves are half in shadow, close-up, 35mm film still, fine grain, muted palette, no text"
+        }
+      ]
+    },
+    {
+      "id": "one-way-mirror",
+      "title": "One-Way Mirror",
+      "badge": "identity",
+      "teaser": "You can see out. They can see in.",
+      "plates": [
+        {
+          "caption": "studio · pane",
+          "alt": "A one-way mirror in a dark studio reflecting a lit room behind the viewer, half the reflection is the room itself.",
+          "prompt": "a one-way mirror in a dark studio reflecting a lit room behind the viewer, half the reflection is the room itself, 35mm film still, fine grain, muted palette, no text"
+        },
+        {
+          "caption": "booth · light",
+          "alt": "A recording booth with the mic lit from above and the glass between two spaces, one chair empty.",
+          "prompt": "a recording booth with the microphone lit from above, glass between two spaces, one empty chair, small red indicator, 35mm film still, fine grain, muted palette, no text"
+        },
+        {
+          "caption": "screen · ghost",
+          "alt": "A face on a monitor seen through the darker side of a one-way pane, the room behind the glass almost black.",
+          "prompt": "a face on a monitor seen through the darker side of a one-way pane, the room behind the glass almost black, 35mm film still, fine grain, muted palette, no text"
+        }
+      ]
+    },
+    {
+      "id": "last-ferry",
+      "title": "Last Ferry",
+      "badge": "cyberpunk / hk",
+      "teaser": "The last crossing leaves the city quieter than it found it.",
+      "plates": [
+        {
+          "caption": "deck · railing",
+          "alt": "The empty back deck of a ferry at night, one railing lamp, the far shore a line of lights in rain.",
+          "prompt": "the empty back deck of a ferry at night, one railing lamp, the far shore a line of lights in rain, 35mm film still, fine grain, muted palette, no text"
+        },
+        {
+          "caption": "bow · wake",
+          "alt": "The bow of a ferry cutting black water, spray lit from the side by the terminal lights behind.",
+          "prompt": "the bow of a ferry cutting black water, spray lit from the side by terminal lights behind, wide lens, 35mm film still, fine grain, muted palette, no text"
+        },
+        {
+          "caption": "queue · terminal",
+          "alt": "An almost empty ferry terminal at night, fluorescent tubes overhead, a bench and a departure board.",
+          "prompt": "an almost empty ferry terminal at night, fluorescent tubes overhead, one bench and a blank departure board, 35mm film still, fine grain, muted palette, no text"
+        }
+      ]
+    }
+  ]
+}

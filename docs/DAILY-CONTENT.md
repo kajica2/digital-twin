@@ -1,0 +1,154 @@
+# Daily Content — the marketplace's daily run
+
+> One collection a day, rendered on Midjourney, published as marketplace
+> plates. The run is the twin producing something new every night
+> instead of waiting to be asked.
+
+## What it does
+
+`lib/daily-content.js` runs once a day (launchd, 00:20 local) and:
+
+1. **picks a collection** from `lib/daily-collections.json` — deterministic
+   by day-of-year, so the same date always carries the same collection and
+   the cycle wraps;
+2. **writes its prompts** as a Midjourney pack (one top-level bullet per
+   plate, each ending in `--ar 16:9`) into `daily-content/<date>/`;
+3. **submits them** through `lib/mj-web.js` — the same web submitter the
+   watcher uses, so the prompt composition and the acceptance evidence
+   are identical to every other Midjourney job in the repo;
+4. **downloads** the accepted job's grid cell through a real browser (the
+   CDN answers curl and headless clients with 403) and converts it to the
+   marketplace's JPG;
+5. **publishes** the bundle to `assets/marketplace/daily/<date>/` and
+   updates `assets/marketplace/daily/index.json`;
+6. **commits and pushes** it, which is what puts it on the site.
+
+The page (`pages/marketplace.html`, the *Daily Frames* section) reads
+`index.json` and renders whatever the catalogue holds. A clone that has
+never run the pipeline shows the section's empty state — the page states
+that plainly rather than erroring.
+
+## Why it is built this way
+
+**The copy comes from the library, never from the run.** Each plate's
+caption, alt text and prompt live in `lib/daily-collections.json`, so the
+page cannot drift from the art and the e2e can tie every caption to the
+manifest it came from. Nothing is generated, so nothing has to be
+reviewed twice.
+
+**The prompts are subject-first.** The subject leads, then the camera, the
+light and the texture, then `no text`. This is the rule the Midjourney
+acceptance matcher needs: a prompt that starts with the same forty
+characters as its siblings collapses into one excerpt, and the matcher
+then credits the wrong job (see `docs/MJ-CONTACT-SHEET.md`).
+
+**The account's style codes are typed in, not stored in the library.**
+`lib/mj-profile.local.json` (gitignored) holds the profile and moodboard
+codes; the pipeline appends them to the submitted prompt. The library is
+tracked, and those codes are the account's own identifiers. Without them
+the render carries the profile alone — which is what makes a daily plate
+look different from the rest of the Midjourney work in this repo.
+
+**The run owns its browser.** Port 9445 and its own profile directory,
+not the shared 9444 session the watcher and any hand-driven session use.
+A calendar job that types into a shared composer is a collision waiting
+for a night.
+
+**It refuses to publish over somebody else's work.** Before committing,
+the run reads `git status --porcelain` and refuses to proceed if anything
+outside `assets/marketplace/daily/` has changed. A daily job that
+swallows a colleague's uncommitted work is worse than a daily job that
+does nothing.
+
+**It never re-renders a day it already published.** The bundle's
+`plates.json` is the record; without `--force` a second run on the same
+date stops with one line. That is how a daily run quietly burns a quota.
+
+## Running it
+
+```bash
+npm run daily:content           # today's collection: render, publish, push
+npm run daily:content:dry       # the plan only — no browser, no generations
+node lib/daily-content.js --collection last-ferry --no-publish
+node lib/daily-content.js --date 2026-10-22 --force
+```
+
+| flag | meaning |
+|---|---|
+| `--date YYYY-MM-DD` | the day to render (default: today) |
+| `--collection <id>` | pick a collection instead of the day's |
+| `--count N` | how many plates of the collection (default: 3) |
+| `--slot N` | which cell of the 4-up to publish (default: 0) |
+| `--port N` | the browser's debug port (default: 9445) |
+| `--profile <dir>` | the browser's profile directory (default: `/tmp/mj-daily-profile`) |
+| `--profile-codes "a b c"` | override the account's style codes |
+| `--dry-run` | print the plan and stop |
+| `--no-publish` | render, but write nothing (a trial) |
+| `--no-git` | write the bundle and the catalogue, but do not commit |
+| `--force` | re-render a day that is already published |
+
+## The schedule
+
+`~/Library/LaunchAgents/com.kaidjuric.digital-twin.daily-content.plist`
+fires it at **00:20 local**, on purpose: Midjourney's fast hours are
+00:00–03:00, so the day's plates render in about a minute instead of
+queueing in relax mode. The launcher (`daily-content-launcher.sh`)
+lives in `~/Library/LaunchAgents/` because launchd on Sequoia cannot
+`execve` a path under `$HOME` from its own spawn context — bash can, so
+the shim resolves Node and execs it (the same fix the watcher fleet
+uses).
+
+```bash
+launchctl print gui/$UID/com.kaidjuric.digital-twin.daily-content
+launchctl kickstart -k gui/$UID/com.kaidjuric.digital-twin.daily-content
+```
+
+## What the run publishes
+
+```
+assets/marketplace/daily/index.json          the catalogue the page reads
+assets/marketplace/daily/<date>/frame-01.jpg  the plates
+assets/marketplace/daily/<date>/frame-02.jpg
+assets/marketplace/daily/<date>/frame-03.jpg
+assets/marketplace/daily/<date>/plates.json   provenance: prompt, task id, dimensions
+assets/marketplace/daily/<date>/collection.json
+```
+
+`plates.json` is the evidence file: it ties each image to the prompt it
+was made from, the Midjourney task id, and the dimensions it was
+published at. The e2e spec reads the catalogue and fails if a caption,
+an alt text or a declared dimension disagrees with it.
+
+## Cost
+
+One collection a day is three Midjourney generations — one per plate.
+Each generation is a 4-up, and the run publishes one cell of it. The
+collection cycle is twelve days, so the same collection comes back every
+twelve days with different renders.
+
+## Tests
+
+```bash
+npm run test:daily-content      # the pure logic: selection, prompts, index, guard
+cd e2e && PORT=5180 node marketplace.spec.mjs   # the page contract
+```
+
+The unit test covers the collection cycle, the pack format, the index
+update and the publish guard (which paths a commit is allowed to touch).
+The e2e spec covers the page: the catalogue resolves, the plates render,
+and every caption matches the catalogue it came from.
+
+## Limits
+
+- **The cookie jar expires.** Midjourney's session comes from
+  `~/.midjourney-cookies.txt`. When it goes stale the run fails loudly
+  at the browser step — re-export the jar from a logged-in browser.
+- **The download is browser-dependent.** The CDN answers curl and
+  headless clients with 403, so the plates are fetched through a headed
+  browser. A headless machine cannot run this pipeline.
+- **One cell of the 4-up.** The run publishes slot 0 by default; the
+  other three are discarded. `--slot` picks a different one, but the
+  choice is not evaluated — see the sheet's own lesson that the audit of
+  a render is a look, not a measurement.
+- **No music.** The daily mood-journey pipeline (`lib/daily-pipeline.js`)
+  writes the day's music brief; the content run does not touch it.
