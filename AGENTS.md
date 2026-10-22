@@ -188,6 +188,19 @@ green.
 - **The twin is calm, not chatty.** Every feature should default to
   "silent unless something matters." No eager notifications, no
   pings, no "by the way did you know..." nudges.
+- **Prompts must not name the subject's race or ethnicity.** Stated
+  by the user on 2026-10-22, and the reason is operational: these
+  prompts exist so a **reference photo** can be attached and the
+  model gives back what the photo shows. A prompt that says "a Black
+  man" overrides the photo — the model renders that ethnicity
+  whatever the reference contains, and the reference stops being
+  authoritative. Describe the **scene** (light, lens, medium, mood,
+  era, wardrobe, gesture, setting); leave the person's identity to
+  the photo. Enforced by `npm run prompt:check` (`lib/prompt-lint.js`),
+  which reads packs through the submitter's own parser so it checks
+  exactly what the watcher would send. See
+  `assets/mural-prompts/PROMPT-EXPANSION-FORMAT.md` § "The subject's
+  identity".
 - **The architecture is the system, the tools are the binding.**
   When a tool changes (and they will, every quarter), the structure
   holds. Don't hardcode tool assumptions into the architecture.
@@ -2426,12 +2439,16 @@ outputs rather than running its own instance — so it needed no change.
 
 **Open:**
 
-- **The reel watcher leaves the sibling audio in the inbox.** It only
+- ~~**The reel watcher leaves the sibling audio in the inbox.**~~ It only
   moves video files, so dropping `clip.mp4` + `clip.mp3` leaves the mp3
   in `reel-inbox/` indefinitely. Not harmful (the watcher ignores
   non-video extensions) but confusing, and a later drop with the same
   basename would silently pair with the stale audio. Should move (or
   archive) the consumed sibling too.
+  **RESOLVED — the consumed sibling is now parked** alongside the
+  source as `<base>_audio<ext>`, so the inbox drains and a later drop
+  can never pair with stale audio. Shipped later the same day; see the
+  sprint log for the sibling-parking work.
 - **The MIDI from the test chart has PPQ 2** because the fixture used
   `divisions=2`. `midi-export.js` maps MusicXML divisions straight to
   PPQ; real charts use 4–480 so this is a fixture artifact, but a very
@@ -2440,8 +2457,8 @@ outputs rather than running its own instance — so it needed no change.
 - **Four bugs in the tests themselves** were fixed alongside (reel
   spec selectors, songs spec race, landing favicon server, format-chip
   assertion) — all cases of the suite lagging the code it guards.
-- **Next:** as sprint 0.27's list, plus (g) move/archive the reel's
-  consumed sibling audio; (h) PPQ floor in `midi-export.js`.
+- **Next:** as sprint 0.27's list, plus (g) ~~move/archive the reel's
+  consumed sibling audio~~ **done**; (h) PPQ floor in `midi-export.js`.
 
 ### 2026-09-23 — sprint 0.29 (MusicXML → PDF, standalone)
 

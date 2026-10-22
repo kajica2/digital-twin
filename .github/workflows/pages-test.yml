@@ -55,6 +55,9 @@ jobs:
       - name: Install e2e dependencies
         run: cd e2e && npm install
 
+      - name: Prompt lint — no prompt may name the subject's race
+        run: node lib/prompt-lint.js
+
       - name: Wait for the deploy, then verify it serves HEAD
         if: github.event_name == 'push'
         env:

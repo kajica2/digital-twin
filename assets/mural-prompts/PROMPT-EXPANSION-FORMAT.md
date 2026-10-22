@@ -54,6 +54,43 @@ The convention is designed to be writable by:
   leaked into the submitted prompt).
 - **Code fences (```` ``` ````) are ignored.** Useful for
   embedding reference raw output inside the file.
+- **Do not state the subject's race or ethnicity.** See "The
+  subject's identity" below. `npm run prompt:check` enforces it.
+
+### The subject's identity
+
+These prompts are written so a **reference photo** can be attached and
+the model gives back what the photo shows. A prompt that names the
+subject's race overrides the photo: the model renders a person of the
+named ethnicity whatever the reference actually contains, and the
+reference stops being authoritative.
+
+So describe the **scene**, not the person:
+
+- light, lens, medium, film stock
+- time of day, weather, setting
+- wardrobe, gesture, posture, expression
+- era, palette, production format
+
+Leave the person's identity to the reference photo. Age, build and
+face come with it.
+
+```text
+✗  a young Black man in a grey quilted puffer jacket on the steps
+✓  a young man in a grey quilted puffer jacket on the steps
+```
+
+`node lib/prompt-lint.js` checks this: a demographic adjective
+directly modifying a person noun ("a black man", "an Asian woman",
+"African-American saxophonist") is a finding. It reads packs through
+the submitter's own parser, so it checks exactly what the watcher
+would send, and it ignores frontmatter, blockquotes and code fences
+just as the watcher does.
+
+It deliberately does **not** fire on photographic treatments or
+clothing — "black and white", "a black-and-white portrait", "a woman
+in a black coat", "a black piano", "white wine" are all fine. Only a
+claim about a person is a finding.
 
 ## Where the file goes
 

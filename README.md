@@ -506,6 +506,7 @@ npm run e2e:howto
 npm run e2e:lvs
 npm run e2e:temple
 npm run e2e:skin
+npm run e2e:tools-instagram
 npm run e2e:mj-sheets
 ```
 
@@ -515,8 +516,15 @@ npm run e2e:mj-sheets
 > every spec now follows.
 
 `npm run test:all` covers the watcher unit tests (chart / songs / reel
-/ MJ), the skin contract + lint, the agent loop, and the python
-suites.
+/ MJ), the skin contract + lint, the prompt lint, the agent loop, and
+the python suites.
+
+> **Prompt lint.** `npm run prompt:check` fails if any prompt pack
+> names the subject's race or ethnicity. These prompts exist so a
+> reference photo can be attached and the model returns what the photo
+> shows — a prompt that says "a Black man" overrides the photo. See
+> `assets/mural-prompts/PROMPT-EXPANSION-FORMAT.md` § "The subject's
+> identity".
 
 ## Architecture (sprint 0 + planned)
 
@@ -537,6 +545,7 @@ digital_twin/
 │   ├── skin-contract.js      # the token contract (source of truth)
 │   ├── skin-tokens.js        # skin validator
 │   ├── skin-lint.js          # the permanent per-page guard
+│   ├── prompt-lint.js        # no prompt may name the subject's race
 │   ├── skin.js               # the browser runtime (?skin=)
 │   ├── theme.js              # the shared no-flash theme bootstrap
 │   ├── songs-indexer.js      # walks audio roots → data/songs/catalog.json
