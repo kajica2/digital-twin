@@ -5928,3 +5928,119 @@ holding if the slot map ever changes.)
 
 `npm run test:all` → **exit 0, 1145 assertions**, 0 failures
 (1144 → 1145).
+
+### 2026-10-22 — sprint 0.54 (CLIP sample catalog test + the backlog that had gone stale)
+
+**Shipped:**
+
+- **`lib/clip-interrogator/test_samples.py`** — 41 checks, pure stdlib
+  (system `python3` is 3.9.6; the module imports thanks to `from
+  __future__ import annotations`). No torch, no gradio, no model, no
+  image. Wired as `npm run test:clip-samples` and appended to
+  `test:all`.
+- **`docs/CLIP-INTERROGATOR.md`** — a "The sample catalog's merge
+  contract" section, the `test:clip-samples` row in the npm table, and
+  the stale `python3 -m http.server` line replaced with
+  `node lib/serve.js --port 5180` (matching CI).
+
+**Why this test existed at all.** `clip-interrogate … --out
+data/clip/samples.json` merges an interrogation result into the
+catalog the page renders — the **write side** of the sample strip.
+That half shipped untested: the module was in the repo, the CLI flag
+was in the CLI, the page fetched the file, and nothing checked that
+the merge behaved. A broken catalog does not error on the page; it
+just quietly shows the wrong sample. That is the worst failure shape
+for a tool whose whole point is "never fabricate the sample".
+
+**What it pins:** entry shape + label defaulting to the image stem;
+merge creates the file and its parents; **idempotent per image** (a
+re-run replaces rather than duplicates — which is what makes
+`npm run clip:samples` safely re-runnable); the key is the **image**,
+not the (image, mode) pair; a **corrupt** catalog is replaced rather
+than raised and the old file is kept as `<file>.corrupt` (the evidence
+is never destroyed, and a broken catalog must not kill an
+interrogation run); valid-JSON-wrong-shape (a list, a number,
+`samples` not a list, `samples` null) is treated as empty; unrelated
+top-level keys survive; the write is **atomic** (temp + rename, so a
+served catalog is never seen half-written) and leaves no temp file
+behind; the written catalog carries **no absolute path**.
+
+**Proven by making it fail — five mutations of `samples.py`:** broken
+idempotency → red; no corrupt-file backup → red; wrong default label
+→ red; accepting any JSON shape → red; missing timestamp → red.
+Restoring the module → green each time.
+
+**A fix the mutation pass forced.** The first version of the
+wrong-shape block called `merge_samples()` *outside* `check()`, so a
+raising merge **aborted the suite** — one broken behaviour hid every
+check after it. Both `check()` and the merge call are now guarded, so
+a raise reports as a failed check with the exception type named and
+the run continues. Under the `wrongshape` mutation the suite now
+reports **8 clean failures instead of one crash**, and the other 33
+checks still run.
+
+**The bigger finding — the standing backlog had decayed into
+fiction.** The backlog list had been carried forward verbatim since
+sprint 0.16, re-stated in a dozen entries without ever being
+re-verified against the repo. Re-checking each item:
+
+- **"(a) reel LaunchAgent bootstrap (needs user approval)"** — already
+  **bootstrapped and healthy**: `launchctl print` → `state = running`,
+  `last exit code = 0`, and a live process (PID 58735 running
+  `lib/reel-watcher.js`) whose log shows a clean boot with
+  ffmpeg/ffprobe resolved. The launchd-exec shim from sprint 0.26
+  made this work; the backlog line simply never noticed. (Verified
+  with `pgrep` + the log, not `state = running` alone — sprint 0.25's
+  lesson: the plist being loaded is not the same as the watcher
+  running.)
+- **"(b) `data/clip/samples.json` for the CLIP sample strip"** —
+  already shipped. The module, the `--out` flag, `npm run
+  clip:samples` and the page's `fetch` + `ok` check all exist; this
+  sprint added the *test* for the half nobody had covered.
+- **"(c) clip CLI `--out <file>`"** — already shipped.
+- **"(d) woody-shaw chart variants"** — still open (no chart files
+  in the repo or inbox).
+- **"(e) the `.kai/` durability call"** — still open and still the
+  user's: `.kai/` is populated (memory.yaml, conventions, preferences,
+  tech-debt, postmortems) and is gitignored at `.gitignore:100`.
+  Committing a redacted `memory.yaml` remains a judgement call about
+  what is safe to publish.
+- **"(f) a custom domain for the Vercel alias"** — still open (the
+  alias requires a Vercel login).
+
+Historical sprint entries keep the list as it stood when they were
+written — rewriting a log would be falsifying it. The correction
+belongs here, and the rule it teaches is the one this repo already
+knows: **a carried-forward backlog is a hypothesis, not a record.**
+Re-verify it against the repo before acting on it, or it will keep
+listing finished work as open forever.
+
+**Also found — the local-server convention has drifted.** CI serves
+with `node lib/serve.js --port 5180` and the README explains *why*
+(macOS grants filesystem access per-binary; `/usr/bin/python3` is
+denied under launchd and 404s every path). But these still say
+`python3 -m http.server`: `docs/LOOPABLE-VIDEO-SEGMENTER.md:133`,
+`docs/REFAEL-MP4-MAKER.md:59` and `:73`,
+`docs/PERFORMANCE-BOTTLENECK-ANALYSIS.md:119`, `README.md:226`, and
+the usage comments in `e2e/clip-interrogator.spec.mjs:16`/`:66` and
+`e2e/ct-verify.mjs:8`/`:46`. `e2e/floating-toolset.spec.mjs:12`
+already says `lib/serve.js`. Fixed in the CLIP doc this sprint (the
+file being edited); the rest is left as one cleanup item rather than
+edited piecemeal.
+
+**Verified:**
+
+- `npm run test:all` → **exit 0, 1186 assertions, 0 failures**
+  (1145 → 1186: +41 from the clip-samples suite).
+- `python3 lib/clip-interrogator/test_samples.py` → 41/41, exit 0.
+- Five mutations → five red runs; module restored → green.
+- The reel watcher re-verified live (process + log + exit code), not
+  by `state = running` alone.
+
+**Next:** the standing backlog, re-verified — (a) *closed*; (b)
+*closed*; (c) *closed*; (d) woody-shaw chart variants; (e) the
+`.kai/` durability call; (f) a custom domain for the Vercel alias;
+(g) the `python3 -m http.server` → `lib/serve.js` doc/spec-comment
+cleanup listed above; (h) the MJ captions describe the prompt, not
+the render (unchanged, not automatable); (i) a live end-to-end run of
+`mj-revise` against a real edit job.

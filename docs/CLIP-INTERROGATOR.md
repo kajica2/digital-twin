@@ -119,7 +119,43 @@ constructs models at import time.
 | `clip:interrogate` | `uv run --project lib/clip-interrogator clip-interrogate interrogate assets/clip-interrogator/example01.jpg --mode best` |
 | `clip:samples` | regenerate `data/clip/samples.json` (example01 best + example02 fast, both `--out`) |
 | `clip:check` | `uv run --project lib/clip-interrogator clip-interrogate check --self-check` |
+| `test:clip-samples` | `python3 lib/clip-interrogator/test_samples.py` — the sample catalog's merge contract (no torch, no gradio, no model) |
 | `e2e:clip` | `cd e2e && CHROME_PATH="${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}" PORT=5180 node clip-interrogator.spec.mjs` |
+
+## The sample catalog's merge contract
+
+`clip-interrogate … --out data/clip/samples.json` merges an
+interrogation result into the catalog the page renders. That merge is
+the **write side** of the tool's sample strip, and it is where a silent
+failure would live: a broken catalog does not error on the page, it just
+shows the wrong sample.
+
+`npm run test:clip-samples` (41 checks, pure stdlib — no torch, no
+gradio, no model, no image) pins:
+
+- the entry's shape, and that the label defaults to the image stem;
+- the merge **creates** the catalog and its parent directories;
+- the merge is **idempotent per image** — re-running replaces the
+  entry rather than duplicating it, which is what makes
+  `npm run clip:samples` safely re-runnable;
+- the key is the **image**, not the (image, mode) pair;
+- a **corrupt** catalog is replaced rather than raised, and the old
+  file is kept as `<file>.corrupt` — the evidence is never destroyed,
+  and a broken catalog must not kill an interrogation run;
+- a catalog that is valid JSON but the **wrong shape** (a list, a
+  number, `samples` that is not a list) is treated as empty;
+- unrelated top-level keys survive the merge;
+- the write is **atomic** — a temp file is written and renamed, so a
+  served catalog is never seen half-written, and no temp file is left
+  behind;
+- the written catalog carries **no absolute filesystem path** (the
+  hygiene rule the module documents and the CLI enforces via
+  `_display_path`).
+
+The suite was proven by making it fail: five mutations of
+`samples.py` (broken idempotency, no corrupt-file backup, a wrong
+default label, accepting any JSON shape, a missing timestamp) each
+turned the suite red, and restoring the module turned it green.
 
 ## Static page + e2e
 
@@ -138,9 +174,13 @@ sample-output presence) and the twin-os `data-tool-clip` link. It runs
 **without** Python deps:
 
 ```bash
-python3 -m http.server 5180 --directory . &
+node lib/serve.js --port 5180 &
 npm run e2e:clip
 ```
+
+> Use `lib/serve.js`, not `python3 -m http.server` — macOS grants
+> filesystem access per-binary, so a python server can 404 every path
+> on this machine. CI uses the same program. See the README.
 
 URL convention: single path in every mode (GitHub Pages, launchd dev
 server, CI PR-mode server, ad-hoc local server — all serve the repo
