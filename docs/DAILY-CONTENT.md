@@ -21,7 +21,11 @@
    marketplace's JPG;
 5. **publishes** the bundle to `assets/marketplace/daily/<date>/` and
    updates `assets/marketplace/daily/index.json`;
-6. **commits and pushes** it, which is what puts it on the site.
+6. **commits and pushes** it, which is what puts it on the site;
+7. **hands the plates to the reel pipeline** — each plate becomes a
+   1080×1920 vertical video plus a tagged audio track, and both land in
+   `reel-inbox/`, where the running reel-watcher picks them up and
+   writes the POST sheet.
 
 The page (`pages/marketplace.html`, the *Daily Frames* section) reads
 `index.json` and renders whatever the catalogue holds. A clone that has
@@ -119,6 +123,36 @@ was made from, the Midjourney task id, and the dimensions it was
 published at. The e2e spec reads the catalogue and fails if a caption,
 an alt text or a declared dimension disagrees with it.
 
+## The reel hand-off
+
+A plate on a page is not distribution. After the day's bundle is
+published, `lib/daily-reels.js` builds a vertical reel for each plate
+and drops it into `reel-inbox/`:
+
+```
+reel-inbox/relay-pylon-line.mp4   1080×1920, H.264 + AAC, 6 s
+reel-inbox/relay-pylon-line.mp3   silent, ID3: title / artist / album / genre
+```
+
+The reel-watcher (a launchd service) picks the pair up, transcodes it
+and writes the cover and the POST sheet, whose caption comes from the
+audio's ID3 title — which is the plate's own caption. The social engine
+then packages the reel as a product, staged and **not** posted.
+
+The source is built **vertical on purpose**: the watcher letterboxes
+rather than crops, so a 16:9 source would sit in a black band. Instead
+the still is centred over a blurred, darkened extension of itself and
+drifts slowly right.
+
+The reels cost **no Midjourney quota** — they are built from plates that
+were already published. They are also **not tracked**: `reel-inbox/` is
+working state, so the reels live on the machine that made them.
+
+```bash
+npm run daily:reels                     # queue the newest published day
+node lib/daily-reels.js --date 2026-10-22 --dry-run
+```
+
 ## Cost
 
 One collection a day is three Midjourney generations — one per plate.
@@ -130,6 +164,7 @@ twelve days with different renders.
 
 ```bash
 npm run test:daily-content      # the pure logic: selection, prompts, index, guard
+npm run test:daily-reels        # the hand-off: names, the band, a real ffmpeg build
 cd e2e && PORT=5180 node marketplace.spec.mjs   # the page contract
 ```
 
@@ -151,4 +186,10 @@ and every caption matches the catalogue it came from.
   choice is not evaluated — see the sheet's own lesson that the audit of
   a render is a look, not a measurement.
 - **No music.** The daily mood-journey pipeline (`lib/daily-pipeline.js`)
-  writes the day's music brief; the content run does not touch it.
+  writes the day's music brief; the content run does not touch it. The
+  reel's audio track is silent by design — Instagram reels are posted
+  silent and the music is added in the app.
+- **Nothing is posted.** The reel reaches the social engine as a staged
+  package. `posting.autoPublish` is off and every item is marked
+  `publish: false`, so a reel never goes out without a deliberate
+  decision.

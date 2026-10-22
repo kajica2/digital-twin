@@ -355,7 +355,9 @@ section — caption, alt text and provenance included.
 ```bash
 npm run daily:content      # today's collection: render, publish, push
 npm run daily:content:dry  # the plan only — no browser, no generations
+npm run daily:reels        # turn the newest day's plates into vertical reels
 npm run test:daily-content # the pure logic: selection, prompts, index, guard
+npm run test:daily-reels   # the hand-off: names, the band, a real ffmpeg build
 ```
 
 It needs a logged-in Midjourney session in Chrome (it types into
@@ -371,6 +373,11 @@ tail -f logs/daily-content.out.log
 Three generations a day. The catalogue lives at
 `assets/marketplace/daily/index.json`; the page reads it and says
 plainly when there is nothing yet.
+
+Each published plate is also handed to the reel pipeline: it becomes a
+1080×1920 vertical video with a tagged audio track, the reel-watcher
+picks it up and writes the POST sheet, and the social engine packages it
+as a product — staged, never posted on its own.
 
 Reference: [`docs/DAILY-CONTENT.md`](docs/DAILY-CONTENT.md).
 

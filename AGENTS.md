@@ -6744,3 +6744,97 @@ recognise will eat the output of whatever else just ran.
   published plate to the reel pipeline in one step.
 - Give the reels their own pricing tier and a cover frame on the
   marketplace page.
+
+### 2026-10-22 — sprint 0.47 (the daily run hands its plates to the reel pipeline)
+
+Sprint 0.46 proved that a reel can reach a social package. It did it
+by hand, which is not the same thing as the daily run doing it. This
+sprint closes the loop inside the run itself.
+
+**Shipped.**
+
+- **`lib/daily-reels.js`** — the hand-off. For every plate of a
+  published day it builds two files and drops both into `reel-inbox/`:
+  - `<base>.mp4` — 1080×1920, H.264 + AAC, 6 s, 30 fps: the still as a
+    sharp horizontal band over a blurred, darkened extension of itself,
+    drifting slowly right;
+  - `<base>.mp3` — silent, with the plate's caption, the collection's
+    title and the collection's badge in its ID3 tags. The reel-watcher
+    reads the sibling audio's tags and writes the caption into the POST
+    sheet, so this is where the reel's words come from.
+- **`lib/daily-content.js`** — the run calls the hand-off after the
+  bundle is published and pushed (`--no-reels` skips it). A failure
+  there cannot undo a published day: it warns and the run still ends
+  clean.
+- **`lib/daily-reels.test.js`** — 35 assertions, including a real
+  ffmpeg build (the file is written, ffprobe reads 1080×1920 / h264 /
+  audio present) and the hand-off itself (both files land in the inbox
+  under one basename).
+- **`npm run daily:reels`** — queue the newest published day by hand,
+  with `--dry-run` to see the plan. `npm run test:daily-reels` is wired
+  into `test:all`.
+- **Docs** — `docs/DAILY-CONTENT.md` gained *The reel hand-off*;
+  `README.md` and the how-to page's requirements now mention ffmpeg
+  and what the daily plates become.
+
+**Verified end-to-end, against the live services.**
+
+- `node lib/daily-reels.js --date 2026-10-22` queued three reels
+  (`relay-pylon-line`, `relay-switchboard-lamp`,
+  `relay-platform-signal`).
+- The **running** reel-watcher took all three within the minute and
+  wrote, for each: the reel, a cover, a POST sheet, and the parked
+  source and audio.
+- The POST sheet's caption came from the ID3 title:
+  *platform · signal — Digital Twin (Relay) [cyberpunk / hk] 🎺 Reel
+  from the twin.*
+- The **running** social worker then packaged all three — three new
+  products, 20 in the plan — each **staged and not posted**.
+
+**Decisions.**
+
+- **The source is built vertical, not letterboxed.** The watcher pads
+  rather than crops (by design, so nothing is lost), but a 16:9 source
+  would sit in a black band. The source is 1080×1920 to begin with, so
+  the watcher's letterbox has nothing to do.
+- **The reel is silent.** Instagram reels are posted silent and the
+  music is added in the app. The audio track exists so the watcher's
+  fade and AAC path run, and because its ID3 is where the caption
+  lives.
+- **The reels cost no quota.** They are built from plates that were
+  already published and paid for. A reel is a format change, not a
+  generation.
+- **The hand-off runs after the publish.** `reel-inbox/` is gitignored
+  working state; queuing before the commit would have put untracked
+  files in the working tree while the publish guard was checking it.
+- **The band keeps the plate's aspect** (1080 × height / width → 604px
+  for a 16:9 plate), so the pan shows the whole frame at a readable
+  size rather than a crop of it.
+
+**Working practice worth keeping.** A second session was editing
+`package.json` at the same time. The commit stages the file from a
+version that carries only this work's changes (`git show
+HEAD:package.json`, patched, then `git add`), and the working tree
+keeps the other session's lines uncommitted — the two changes never
+collide, and neither session's work is lost.
+
+**Open.**
+
+- The reels are **not tracked**: `reel-inbox/` is working state, so a
+  reel exists on the machine that made it. The marketplace page still
+  shows plates only.
+- Nothing posts by itself. The Instagram poster waits behind
+  `publish: true`, and X is not armed.
+- The reel's hashtags are the jazz house set — the right audience, but
+  the day's own badge is not in them.
+- The daily pipeline's music brief (`lib/daily-pipeline.js`) still has
+  no path into the reel's audio track.
+
+**Next.**
+
+- Put the day's reel on the marketplace page — a cover frame and a
+  pricing tier of its own.
+- Give the reel a real music bed from the daily brief, and drop the
+  silent track.
+- Let the reel's caption come from the collection's own words (the
+  badge, the teaser) instead of the jazz house tags.
