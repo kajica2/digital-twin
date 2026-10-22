@@ -513,3 +513,71 @@ carrying the task id, the composed command, the attachment URLs and
 `imageUrls` (the key the dashboard index and the contact sheet read).
 `node lib/mj-contact-sheet.js --pack revise/<pack>` builds the
 comparison sheet.
+
+---
+
+## The account's personalization (`--profile`) — what actually happens
+
+Measured 2026-10-22 while re-sending a 19-still pack.
+
+**The composer toggle is not the lever.** The account's profile and
+moodboards are injected into the `POST /api/submit-jobs` payload by the
+web app itself:
+
+```json
+{"t":"imagine",
+ "prompt":"… --ar 16:9 --raw --profile p7486486688810663962 --stylize 50 --hd --v 8.2",
+ "f":{"mode":"relaxed"}}
+```
+
+The `--profile <id>` is **not** in the text that was typed. The
+composer's "Personalize → On/Off" toggle can read **"Off"** while the
+profile is still injected, and the profile id is in the job's recorded
+`full_command` — which is the record of what Midjourney actually ran.
+
+**Things that were tried, and what happened:**
+
+| Approach | Result |
+|---|---|
+| Composer's "Personalize → Off" | Removes *some* of the moodboard references (4 of 6 in one run) and **does not** remove the profile. The toggle reads "Off" while the profile is still injected. |
+| Stripping `--profile` from the payload (CDP `Fetch` interception) | The request is **answered but unreadable** — the app publishes the submit result on a page global (`window.__mjSubmit`), which a debugger-continued request never reaches. |
+| Stripping `--profile` from the payload (patching the page's own `fetch`) | Midjourney **refuses** the submission: a submit-jobs payload without the profile token creates no job at all. The token is required. |
+| `midjourney.com/moodboards` → the "Selected (4)" buttons | Those are a **bulk counter**, not a per-moodboard toggle. Clicking them does not deselect anything. |
+| Deselecting moodboards, then submitting in the same session | **Works.** The recorded command has no `--profile` and the prose comes back verbatim — but the state does not survive, and another session working in the same account re-selects them. |
+
+**So the tool verifies instead of pretending.** `lib/mj-web.js
+--no-personalize` checks the accepted job's own `full_command` and
+**fails the prompt** if a `--profile` is there, naming the cause:
+
+```
+(7/19) FAIL — the account's personalization was applied
+(--profile aeq4jzq mhw6dpq xr39csb det21e6 67lkfw3)
+```
+
+That is better than a silent moodboard-styled generation: the failure
+record says what to do, and the failure is per-prompt, not per-pack.
+
+### Two more things the web backend gets wrong silently
+
+**Draft mode.** The composer has a per-account "Draft Mode" toggle. A
+job submitted in draft mode comes back as `v8-2_draft_bs24_diffusion`
+with a `--draft` flag — not a still. The feed gate (which requires a
+plain job) rejects it, *after* the generation was paid for. The tool
+now clears draft mode before submitting (`ensurePromptMode`), read with
+the same chroma test as the other segmented controls: the selected
+option is a saturated coral, the unselected one a neutral grey.
+
+**Aspect-ratio spelling.** A request for `--ar 21:9` comes back
+recorded as `--ar 7:3` — the same 2.333:1 picture, Midjourney's own name
+for it. A strict string comparison called that a mismatch and failed two
+good generations. `lib/mj-feed.js` now treats the two as the same ratio.
+
+### Prompt length
+
+Midjourney **rewrites a prompt over ~1000 characters**. Measured on the
+same pack: the brief's 1,800-character versions came back compressed
+("A wide, static shot at the mouth of a tenement stoop" → "Wide static
+shot, tenement stoop mouth") — losing exactly the measurable details a
+plate check asks for. 922 characters came back verbatim; 1,006 did not.
+A marker word does not help: it is part of the prose, and Midjourney
+renders prose.

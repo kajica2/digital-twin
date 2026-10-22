@@ -15,6 +15,7 @@ lib/mj-profile.local.json
 # `*/processed/` since they move out on completion. The MJ watcher's markers
 # stay in place until the whole pack finishes, so they need explicit rules.
 prompts-inbox/.mj-done-*
+.mj-done-*
 prompts-inbox/.processing-*
 
 # Local free-model test renders (pollinations / draw-things)
