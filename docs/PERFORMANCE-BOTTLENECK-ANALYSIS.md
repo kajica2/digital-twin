@@ -114,12 +114,14 @@ speedup, but the `e2e/artifacts/` writes are not isolated
 per-process today, so concurrent runs would step on each other.
 Tracked as a pre-flight risk for any future parallelism.
 
-### 5. The 12 e2e suites share a single port
+### 5. The e2e suites share a single port
 
-Every `*.spec.mjs` boots its own `python3 -m http.server 5180
---directory .` (or relies on the launchd server on :5173).
-Suite-startup overlap is ~3-5s each. `npm run test:all` runs
-13 suites serially: ~1 minute wall. Parallelizing them needs
+Most `*.spec.mjs` specs expect a server already running on :5180 —
+CI starts one with `node lib/serve.js --port 5180 --host 127.0.0.1`
+and the specs connect to it. Three of them (`landing`, `twin-os`,
+`twin-os-songs`) build their own Node `http.createServer` inline, and
+`media-set` spawns `lib/serve.js` itself. `npm run test:all` runs
+34 node suites serially: ~28s wall. Parallelizing them needs
 a port-allocation scheme (5180, 5181, 5182, ...) and
 `puppeteer.launch({ args: ['--remote-debugging-port=...'] })`
 per suite. Not done.

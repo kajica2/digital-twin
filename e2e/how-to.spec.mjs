@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 //   local    → ${BASE}/pages/how-to.html   (server runs --directory .)
 //
 //   E2E_URL=https://kajica2.github.io/digital-twin node how-to.spec.mjs
-//   PORT=5180 node how-to.spec.mjs         # python3 -m http.server 5180 --directory .
+//   PORT=5180 node how-to.spec.mjs         # node lib/serve.js --port 5180
 const DEPLOYED_URL = process.env.E2E_URL || null;
 const PORT = process.env.PORT || '5180';
 const BASE = DEPLOYED_URL || `http://127.0.0.1:${PORT}`;
@@ -51,7 +51,7 @@ try {
     await page.goto(HOWTO_URL, { waitUntil: 'networkidle0', timeout: 20000 });
   } catch (err) {
     console.log('⚠ server unreachable: ' + err.message);
-    console.log('start a static server first: python3 -m http.server 5180 --directory .');
+    console.log('start a static server first: node lib/serve.js --port 5180');
     for (const r of results) console.log(r);
     console.log(`FAILED — ${failed} check(s) failed (0 assertions could run)`);
     process.exit(1);

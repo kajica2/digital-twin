@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 //   twin-os  → ${BASE}/pages/twin-os/index.html (same in every mode)
 //
 //   E2E_URL=https://kajica2.github.io/digital-twin node refael.spec.mjs
-//   PORT=5180 node refael.spec.mjs     # python3 -m http.server 5180 --directory .
+//   PORT=5180 node refael.spec.mjs     # node lib/serve.js --port 5180
 const DEPLOYED_URL = process.env.E2E_URL || null;
 const PORT = process.env.PORT || '5180';
 const BASE = DEPLOYED_URL || `http://127.0.0.1:${PORT}`;
@@ -54,7 +54,7 @@ try {
   } catch (err) {
     // Down-server ergonomics: give the fix hint, dump checks so far, exit 1.
     console.log('⚠ server unreachable: ' + err.message);
-    console.log('start a static server first: python3 -m http.server 5180 --directory .');
+    console.log('start a static server first: node lib/serve.js --port 5180');
     for (const r of results) console.log(r);
     console.log(`FAILED — ${failed} check(s) failed (0 assertions could run)`);
     process.exit(1);

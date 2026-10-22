@@ -4,7 +4,7 @@
 //
 // Contract for the Midjourney dashboard (pages/midjourney-dashboard.html).
 // Mirrors the repo-root URL convention of the marketplace/temple/how-to specs:
-//   PORT=5180 node mj-dashboard.spec.mjs   # after python3 -m http.server 5180 --directory .
+//   PORT=5180 node mj-dashboard.spec.mjs   # after node lib/serve.js --port 5180
 //
 //   E2E_URL=https://kajica2.github.io/digital-twin node mj-dashboard.spec.mjs
 //

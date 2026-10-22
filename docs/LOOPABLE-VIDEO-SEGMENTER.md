@@ -130,7 +130,7 @@ internal link resolves, **0 console errors** on both pages, light +
 dark screenshots. Runs from the repo root
 
 ```bash
-python3 -m http.server 5180 --directory .     # in one terminal
+node lib/serve.js --port 5180                 # in one terminal
 npm run e2e:lvs                                # in another
 ```
 

@@ -223,7 +223,7 @@ No setup — it's one static HTML file. Serve it or open it from disk:
 open pages/refael-mp4-maker.html
 
 # Option B: serve it with the rest of the pages
-python3 -m http.server 5173 --directory .
+node lib/serve.js --port 5173
 # then visit http://127.0.0.1:5173/pages/refael-mp4-maker.html
 ```
 

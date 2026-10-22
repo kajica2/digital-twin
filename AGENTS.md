@@ -6018,15 +6018,33 @@ listing finished work as open forever.
 **Also found — the local-server convention has drifted.** CI serves
 with `node lib/serve.js --port 5180` and the README explains *why*
 (macOS grants filesystem access per-binary; `/usr/bin/python3` is
-denied under launchd and 404s every path). But these still say
-`python3 -m http.server`: `docs/LOOPABLE-VIDEO-SEGMENTER.md:133`,
-`docs/REFAEL-MP4-MAKER.md:59` and `:73`,
-`docs/PERFORMANCE-BOTTLENECK-ANALYSIS.md:119`, `README.md:226`, and
-the usage comments in `e2e/clip-interrogator.spec.mjs:16`/`:66` and
-`e2e/ct-verify.mjs:8`/`:46`. `e2e/floating-toolset.spec.mjs:12`
-already says `lib/serve.js`. Fixed in the CLIP doc this sprint (the
-file being edited); the rest is left as one cleanup item rather than
-edited piecemeal.
+denied under launchd and 404s every path). But these still said
+`python3 -m http.server`: `docs/LOOPABLE-VIDEO-SEGMENTER.md`,
+`docs/REFAEL-MP4-MAKER.md` (two places),
+`docs/PERFORMANCE-BOTTLENECK-ANALYSIS.md`, `README.md`, and the
+usage comments + "server unreachable" fix hints in eight e2e specs
+(`clip-interrogator`, `ct-verify`, `how-to`,
+`loopable-video-segmenter`, `marketplace`, `mj-dashboard`, `refael`,
+`temple-of-control`). `e2e/floating-toolset.spec.mjs` already said
+`lib/serve.js`. **All of them now say `lib/serve.js`** (commit
+`9efa665`).
+
+The performance doc also asserted something that was never true:
+*"Every `*.spec.mjs` boots its own `python3 -m http.server 5180
+--directory .`"*. No spec boots a python server. Three (`landing`,
+`twin-os`, `twin-os-songs`) build their own Node `http.createServer`
+inline, `media-set` spawns `lib/serve.js`, and the rest expect one
+already running on :5180 — which is what CI starts. The claim also
+carried a derived number ("suite-startup overlap is ~3-5s each") that
+only made sense for suites that each boot a server. That paragraph now
+describes reality, and the stale counts in it (12 e2e suites; 13 node
+suites at ~1 minute) were corrected against the repo (34 node suites,
+~28s wall).
+
+Verified by running **every affected spec** against a live
+`node lib/serve.js`: `clip-interrogator`, `how-to`, `marketplace`,
+`mj-dashboard`, `refael`, `temple-of-control`,
+`loopable-video-segmenter` and `ct-verify` all exit 0.
 
 **Verified:**
 
@@ -6038,9 +6056,9 @@ edited piecemeal.
   by `state = running` alone.
 
 **Next:** the standing backlog, re-verified — (a) *closed*; (b)
-*closed*; (c) *closed*; (d) woody-shaw chart variants; (e) the
-`.kai/` durability call; (f) a custom domain for the Vercel alias;
-(g) the `python3 -m http.server` → `lib/serve.js` doc/spec-comment
-cleanup listed above; (h) the MJ captions describe the prompt, not
-the render (unchanged, not automatable); (i) a live end-to-end run of
-`mj-revise` against a real edit job.
+*closed*; (c) *closed*; (g) the `python3 -m http.server` →
+`lib/serve.js` doc/spec-comment cleanup — *closed this sprint*;
+(d) woody-shaw chart variants; (e) the `.kai/` durability call;
+(f) a custom domain for the Vercel alias; (h) the MJ captions
+describe the prompt, not the render (unchanged, not automatable);
+(i) a live end-to-end run of `mj-revise` against a real edit job.

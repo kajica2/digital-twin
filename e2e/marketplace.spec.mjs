@@ -5,7 +5,7 @@
 // Contract for the marketplace listing page (pages/marketplace.html).
 // Runs WITHOUT the drawthings/midjourney stack. Mirrors the repo-root
 // URL convention of the clip/refael/how-to specs:
-//   PORT=5180 node marketplace.spec.mjs   # after python3 -m http.server 5180 --directory .
+//   PORT=5180 node marketplace.spec.mjs   # after node lib/serve.js --port 5180
 
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
