@@ -6897,3 +6897,104 @@ quota, no Midjourney, just ffmpeg over a published plate.
 already processed — left alone* for each of the three, and *0 reel(s)
 queued*. The reels' suite grew two assertions (37 total): a processed
 reel is skipped, and `--force` queues it anyway.
+
+### 2026-10-22 — sprint 0.48 (the "seemingly so" release + the Instagram composer)
+
+Released **"seemingly so"** to Instagram, and repaired the two
+social posters so the next release is a command rather than an
+afternoon.
+
+**Shipped:**
+
+- **The release.** `data/releases/seemingly-so/` — a 1920×1080
+  YouTube master (204.800 s, H.264 + AAC) and a 1080×1920 Instagram
+  reel (the same length, blurred-fill rather than black bars). The
+  visual is a palindrome loop: the clip's last frame IS its first, so
+  there is no seam at any of the ~41 joins. Published at
+  `instagram.com/kaidjuric/reel/DezwGpcsOBe/`.
+- **`lib/ig-poster.js` — the reel path repaired.** It was dead code
+  with six separate bugs: a create control Instagram no longer
+  renders, an upload through `input.files` (read-only in current
+  Chrome), no crop-screen walk, a page-wide "Share" search that
+  found the feed's buttons instead of the composer's, a caption
+  insertion that silently did nothing, and a login check that
+  reported "not logged in" on a logged-in page.
+- **`lib/youtube-poster.js` — four blockers fixed.** A CDP connect
+  that passed an object where a URL was expected; calls to a client
+  method that does not exist (`getDOMain()`); a file upload that
+  died on `require` inside the page; and React-controlled Studio
+  inputs that swallow a plain `.value` write. The visibility block
+  computed a visibility and threw it away — it is now a real walk
+  that logs whether it applied.
+- **Two test suites.** `lib/ig-poster.test.js` (15 assertions,
+  fake CDP client — the helpers take the client as an argument
+  precisely so they can be driven without a browser) and
+  `lib/youtube-poster.test.js` (11 assertions on the pure metadata
+  logic). Both wired into `test:all`.
+- **`docs/YOUTUBE-POSTER.md`** and a new section in
+  `docs/IG-WATCHER.md` — what the web composers actually do.
+
+**The four Instagram findings (all measured, all now handled):**
+
+1. **The caption commits on blur.** Instagram's caption editor holds
+   the typed text in a local state and commits it when the field
+   loses focus. Clicking "Share" while the field still has focus
+   publishes the PREVIOUS caption — the empty one — while the
+   editor's own counter reads the new text ("124/2,200"). The
+   counter is not proof; only the published page is. The field is
+   now blurred explicitly before the publish click.
+2. **Only a real text insertion lands.**
+   `document.execCommand('insertText')` returns `true` and inserts
+   nothing. CDP's `Input.insertText` is the insertion Instagram
+   accepts.
+3. **The publish modal needs a focused page.** The "Sharing" modal
+   Instagram renders itself sits on a spinner forever in a
+   backgrounded tab. Chrome's focus emulation fixes it without
+   stealing the user's window.
+4. **A vertical video opens the "New reel" panel.** The create menu
+   has no Reel tab, but the panel is still titled "New reel", and the
+   publish button is labelled "Share" — which the feed also has on
+   every post. The search stays scoped to the dialog.
+
+**Verified end-to-end (real posts, real browser):**
+
+- The reel published with the full caption; the published page
+  carries it. The two test reels made along the way (a 15 s clip,
+  and the full clip before the blur fix) were deleted.
+- The blur guard was proven to bite: removing the blur turns the
+  test red, restoring it turns it green.
+- `npm run test:ig-poster` 15/15 · `npm run test:youtube-poster`
+  11/11.
+
+**Decisions:**
+
+- **Repair the house tools rather than script around them.** The IG
+  reel path and the YouTube upload path were both dead code with the
+  same class of bug. Fixing them is the durable fix and it matches
+  the repo's "fix the tool, not the workaround" rule.
+- **Prove the guard bites.** A test that cannot fail proves nothing,
+  so the blur fix was removed on purpose to watch the suite go red.
+- **Blurred fill, not black bars.** A 16:9 frame in a 9:16 slot is
+  1080×608; black reads as a mistake, a blurred extension of the
+  same frame reads as a frame.
+- **The master and the reel live in separate directories.**
+  `findReelMp4` takes the first `.mp4` a directory listing returns,
+  and the listing order is not guaranteed.
+- **Delete the test posts.** Two reels went up while working this
+  out; both were removed so the profile carries one release.
+
+**Open:**
+
+- **The YouTube upload is blocked on the user.** The cookies are
+  correct but the session is dead server-side — `studio.youtube.com`
+  answers with a 302 to `accounts.google.com/ServiceLogin`. The
+  sign-in page is open and focused in the 9447 Chrome window; one
+  manual sign-in is all it needs.
+- **`lib/youtube-batch.js` is still a stub** — its `uploadVideo()`
+  returns before any real work. The 64 videos on the channel were
+  uploaded by hand.
+- **The reel's caption needed an Edit to add.** The first publish
+  went up caption-less (the blur fix came after it). The caption
+  was added through the composer's Edit screen — the same editor,
+  the same fix. Republishing from scratch would work now, but the
+  edit was less destructive than a delete-and-repost.

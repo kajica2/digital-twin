@@ -39,6 +39,7 @@ audio-inbox/processed/
 
 # Reel-inbox test artifacts (e2e reel processing)
 reel-inbox/processed/
+data/releases/
 # Instagram posted reels (moved after successful post)
 reel-inbox/posted/
 

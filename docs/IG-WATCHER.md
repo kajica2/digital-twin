@@ -90,11 +90,49 @@ npm run ig:check-cookies  # Verify cookie validity
 - **One at a time** - Sequential posting only (to avoid rate limits)
 - **Manual verify** - Check Instagram after posting to confirm success
 
+## What the web composer actually does
+
+Publishing through instagram.com's web composer has four behaviours
+that are not obvious and cost real time to rediscover. All four are
+handled by `lib/ig-poster.js` and pinned by `lib/ig-poster.test.js`.
+
+**The caption commits on blur.** Instagram's caption editor keeps the
+typed text in a local state and commits it when the field loses
+focus. Clicking "Share" while the field still has focus publishes the
+PREVIOUS caption — the empty one — while the editor's own counter
+still reads the new text ("124/2,200"). The counter is not proof the
+post carries the caption; only the published page is. So the field is
+blurred explicitly before the publish button is pressed.
+
+**Only a real text insertion lands.** `document.execCommand('insertText')`
+returns `true` and inserts nothing into Instagram's caption box. CDP's
+`Input.insertText` is the insertion Instagram accepts — it arrives as
+a real input event and the counter moves.
+
+**The publish modal needs a focused page.** Clicking "Share" opens a
+modal that Instagram renders itself, and a backgrounded tab throttles
+that render: the modal sits on a spinner indefinitely and the post
+never goes up. The poster turns on Chrome's focus emulation
+(`Emulation.setFocusEmulationEnabled`) so the modal completes without
+stealing the user's window.
+
+**A vertical video opens the "New reel" panel.** The create menu has
+no "Reel" tab — only Post, Live video and Ad — but a vertical video
+still opens a panel titled "New reel". The publish button is labelled
+"Share", and its search must stay scoped to the create dialog: the
+feed behind the modal has a "Share" button on every post, and finding
+that one opens a share sheet for somebody else's post.
+
+The confirmation is read from the modal ("Shared reel — Your reel has
+been shared.") or from the URL, whichever arrives first. A fixed wait
+cannot tell "published" from "hung".
+
 ## Files
 
 - `lib/ig-config.json` - Configuration
 - `lib/ig-cookies.js` - Cookie parsing
 - `lib/ig-poster.js` - Single poster
+- `lib/ig-poster.test.js` - Poster contract tests (no browser needed)
 - `lib/ig-watcher.js` - Watcher loop
 - `bin/ig-watcher.sh` - LaunchAgent wrapper
 - `com.kaidjuric.digital-twin.ig-watcher.plist` - LaunchAgent plist
