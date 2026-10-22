@@ -5677,3 +5677,122 @@ sheet, and the sheet's captions are that pack's clauses.
 - The 12 tiles share one style, so the sheet compares **camera only**.
 - `lib/mj-feed-reconcile.js`'s own file-I/O path still has no test
   (its matching is covered by `mj-feed.test.js`).
+
+### 2026-10-22 — sprint 0.52 (the reconcile tool's file-IO path, tested — and a flag that was always on)
+
+Closes the last reachable item in the sheet's thread: `lib/mj-feed-reconcile.js`'s
+own file-I/O path had no test. The matching half was covered by
+`mj-feed.test.js`; the half that *writes* the artifact was covered by
+nothing.
+
+**Why that half matters.** The reconcile tool is the **repair path** for the
+MJ pipeline: the web backend's DOM matcher can attribute a prompt to the
+wrong card, so the tool re-derives the truth from Midjourney's live feed
+and rewrites the pack's `meta.json` files. Those metas are what the
+contact sheet's manifest, tiles and captions are derived from. A bug in
+the file-I/O half corrupts the provenance of every image in the pack
+while leaving the images themselves perfectly fine — the worst kind of
+bug, because nothing looks wrong.
+
+**Shipped:**
+
+- **`lib/mj-feed-reconcile.js` is now importable.** The IIFE became
+  `async function main()` guarded by `if (require.main === module)`.
+  Before this, `require()`ing the file would have opened a browser and
+  exited the process — it was untestable by construction.
+- **Extracted and exported:** `expectedAspect`, `collectSlots`,
+  `buildMeta`, `writeMeta`, `taskIdChanged`. The CLI's behaviour is
+  unchanged; the IIFE now calls the same functions the tests do.
+- **`lib/mj-feed-reconcile.test.js`** — 43 checks, no browser, no
+  network, real files in a temp dir. Covers: the aspect is read from
+  the composed prompt and the *first* `--ar` wins; only `prompt-NN` dirs
+  are collected; the `# Prompt N` header is stripped; a **corrupt**
+  `meta.json` becomes null instead of taking the run down (a pack with
+  one damaged meta is exactly when you run the repair); a dir with no
+  `prompt.md` is skipped; **twelve slots come back in numeric order**
+  (lexicographic sorting would put `prompt-10` before `prompt-2`); the
+  rebuilt meta carries the reconciled task id, the feed attribution, the
+  image urls and count, the composed prompt and the reconcile time; the
+  stale `isNewestTask` claim from the DOM matcher is dropped and does
+  not come back; unrelated old fields survive; the index is kept when
+  the old meta has one and derived from the dir name when it does not;
+  the written file round-trips as valid JSON with exactly the expected
+  key set.
+
+**The bug this found — a flag that was always on.**
+
+```js
+const oldId = slot.meta.taskId.slice(0, 8);   // 8 chars
+const newId = pick.id;                        // 36 chars
+const changed = oldId !== newId;              // ALWAYS true
+```
+
+Every line of the reconcile output said `CHANGED`, including the lines
+where nothing had changed. The tool's entire job is to tell the
+operator *which* job landed; a flag that is permanently on trains the
+operator to ignore the one line that means it.
+
+The fix is not just "compare the full ids" — that leaves the mistake
+one refactor away. **`taskIdChanged` is prefix-aware:** two ids are the
+same job when one is a prefix of the other, because the truncated
+display form (`e17ecddc`) and the full uuid (`e17ecddc-2eb2-…`) are one
+id expressed at two lengths. The old mistake can no longer produce a
+false change, whatever the caller passes. The regression is pinned:
+`taskIdChanged(A.slice(0,8), A)` is false, while two ids sharing a
+prefix but differing is still a change.
+
+**Operational find — the live MJ backend had drifted.** The first
+`--dry-run` failed with `could not discover the account user_id from the
+page`. The cause was not the code: the Chrome on `:9444` was sitting on
+`chrome://new-tab-page/` instead of the Imagine page, so the feed
+snippet had no page to read. Navigated it back to
+`https://www.midjourney.com/imagine` (title "Create", no login form —
+the session is still authenticated). **The MJ watcher would have failed
+the same way**; worth knowing before the next pack.
+
+**Independent confirmation of the shipped sheet.** With the feed live
+again, the reconcile re-derived the pack's 12 job ids from Midjourney's
+own feed and they match the shipped manifest **exactly, 12/12**:
+
+```
+e17ecddc 10e199ff 22326362 e55a2cff 69861263 923bcad4
+b128decb 95417351 8fd1fb8d 23f35b08 00d31dde 71b31f09
+```
+
+So the sheet's provenance is now confirmed against the source of truth,
+not merely internally consistent. Every job reports
+`v8-2_hd_diffusion 16:9` — the aspect the pack asked for.
+
+**Decisions:**
+
+- **Make the module importable rather than testing it through the
+  CLI.** A subprocess test would have needed a live browser for a
+  file-reading function.
+- **Fix the comparison by making the mistake unrepresentable.** The
+  prefix-aware rule is one line more than strict equality and it
+  removes the whole class of "compared a truncated id to a full one".
+- **A corrupt meta must not kill the run.** The reconcile exists for
+  damaged packs; it has to survive one damaged file.
+
+**Verified:**
+
+- `npm run test:all` → **exit 0, 1119 assertions**, 0 failures
+  (1076 → 1119; `test:mj-feed-reconcile` is now in `test:all`).
+- `node lib/mj-feed-reconcile.js --pack red_coat_underpass_12 --dry-run`
+  against the **live** feed → 12/12 job ids re-derived and matched,
+  exit 0, and the false `CHANGED` markers are gone.
+- CLI error paths unchanged: no `--pack` → exit 2; unknown pack → exit 2.
+- CI green on the previous push (`66f5a34`, the sheet provenance
+  guard).
+
+**Open:**
+
+- **The captions describe the prompt, not the render.** A tile whose
+  *rendering* diverges from its clause still reads as correct, because
+  the caption is derived from the prompt. The angle check was a manual
+  vision pass; it cannot be fully automated without reading pixels for
+  meaning. Sprint 0.51's guard prevents the prompt→caption half of the
+  problem; it cannot prevent the render→caption half.
+- The 12 tiles share one style, so the sheet compares **camera only**.
+- The MJ cookie jar expires; when the feed returns the login page, the
+  jar has to be re-exported to `~/.midjourney-cookies.txt`.
