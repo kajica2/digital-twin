@@ -4905,6 +4905,27 @@ pass vacuously:
   stale-build problem, a failed build` ✓ (distinct message, so the two
   failures are never confused in a log)
 
+**Verified live** (CI run `39624758853` on `c6fd40b`, green, 8m46s):
+the gate polled 22 times over 6 minutes — `attempt: stale ->
+pages/twin-os/index.html (vercel status='none yet')` — and then
+`deployed content matches HEAD (all sentinels)` the moment the deploy
+landed. The e2e then ran all 22 specs against the deployed URL and
+passed.
+
+**The decisive measurement, and why the design is not negotiable:**
+
+| event | time |
+|---|---|
+| gate saw the content go live | **15:27:00** |
+| Vercel posted its commit status | **15:39:38** |
+
+The content was correct **12.5 minutes before** Vercel reported it.
+A status-gated wait would have blocked for those 12.5 minutes on a
+perfectly good deploy — and on a slower deploy it would have burned
+the whole budget and failed. The bytes arrived first; the status
+arrived last. That is the whole argument, measured on this repo's own
+deploys, and it is why the status is a fast-fail hint and never a gate.
+
 **Decisions:**
 
 - **The bytes are the test; the status is a fast-fail hint.** Gating on
