@@ -334,6 +334,44 @@ The tool reads the source job's own `full_command` from the live feed,
 so the flags are **never transcribed by hand** — "the same settings" is
 true by construction.
 
+### Which flags the new prompt wins
+
+The source's flags are carried over, but a flag the **new prompt**
+already names is not appended a second time. Midjourney resolves a
+doubled flag by taking the **last** one, so a collision does not error
+— it silently picks the wrong value, and the artist never finds out.
+
+Concretely: the source job was made with `--style raw --s 21`, and the
+new prompt says `--style niji`. Appending the source's flags blindly
+produced
+
+```
+… --style niji --style raw --s 21 --edit … --ar 16:9
+```
+
+MJ takes the last `--style`, so the source's `raw` won and the
+prompt's `niji` was discarded. Same failure class as the duplicated
+`--ar` and `--sref` (PM-2026-09-24-dup-flags).
+
+The rule, one flag at a time:
+
+| Flag | Owner | Why |
+| --- | --- | --- |
+| `--style` / `--raw` | the **new prompt**, if it names one | the prompt's style must not be shadowed by the source's |
+| `--s` | the **new prompt**, if it names one — or if it names a style | the source's `--s` is coupled to the source's `--style` |
+| `--ar` | the **source** | this tool re-evolves a job, so it keeps the job's shape. Emitted **last** so it wins. |
+| `--edit` | the source's attachments | emitted before `--ar` |
+| everything else | the source | carried verbatim |
+
+`--raw` is the same switch as `--style raw`, so a prompt carrying
+`--raw` owns the style slot too. The guards match the **flag**, not a
+value: a prompt ending in a bare `--style` still means the prompt owns
+that flag.
+
+**Every flag is resolved exactly once — the composed command never
+contains two of the same flag.** That invariant is what
+`npm run test:mj-revise` checks, across six prompt shapes.
+
 ### Why `--edit` travels in the prompt text
 
 Midjourney's web composer has an "Attach to prompt" slot, and driving

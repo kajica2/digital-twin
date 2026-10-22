@@ -5796,3 +5796,114 @@ not merely internally consistent. Every job reports
 - The 12 tiles share one style, so the sheet compares **camera only**.
 - The MJ cookie jar expires; when the feed returns the login page, the
   jar has to be re-exported to `~/.midjourney-cookies.txt`.
+
+### 2026-10-22 — sprint 0.53 (mj-revise: a prompt's own --style was being shadowed)
+
+A real bug, found by reading the flag composition rather than by running
+the tool — and fixed with a test that is proven to fail without the
+fix.
+
+**The bug.** `lib/mj-revise.js` re-evolves an edit job: new prose, the
+source job's attachments, the source job's flags. It composed the
+command as `<new prose> <the source's flags> --edit <urls> --ar <ratio>`.
+
+Midjourney resolves a **doubled** flag by taking the **last** one, so a
+collision does not error — it silently picks the wrong value and the
+artist never finds out. Concretely, with a source job made with
+`--style raw --s 21` and a pack prompt that says `--style niji`:
+
+```
+… --style niji --style raw --s 21 --edit … --ar 16:9
+```
+
+MJ takes the last `--style`, so the **source's** `raw` won and the
+**prompt's** `niji` was discarded. The artist asked for one style and
+got another, with no error anywhere.
+
+This is the same failure class as the duplicated `--ar` and `--sref`
+(PM-2026-09-24-dup-flags) — the third instance of it in this repo, and
+the reason the fix is a rule rather than a patch.
+
+**The fix.** Two pure functions, `carriedFor(text, flags)` and
+`composePrompt(text, flags, ar, attach)`, resolve each flag **exactly
+once**:
+
+| Flag | Owner |
+| --- | --- |
+| `--style` / `--raw` | the new prompt, if it names one |
+| `--s` | the new prompt, if it names one — or if it names a style (the source's `--s` is coupled to the source's `--style`) |
+| `--ar` | the source, deliberately, and emitted **last** so it wins — this tool re-evolves a job, so it keeps the job's shape |
+| `--edit` | the source's attachments |
+| everything else | the source, carried verbatim |
+
+`--raw` is the same switch as `--style raw`, so a prompt carrying
+`--raw` owns the style slot too. The guards match the **flag**, not a
+value: a prompt ending in a bare `--style` still means the prompt owns
+that flag.
+
+**The module had to become importable first.** `require()`ing
+`lib/mj-revise.js` used to launch Chrome, connect to Midjourney and
+submit jobs — so the composition was untestable by construction, and
+the composition is where the bug was. The IIFE is now `main()` guarded
+by `if (require.main === module)`, the same shape the reconcile tool
+got in sprint 0.52, and the pure functions are exported. The CLI's
+behaviour is unchanged (verified: no `--source` → exit 2, missing
+prompt file → exit 2).
+
+**The meta now tells the truth.** The per-prompt `meta.json` records
+the flags **that prompt** actually carried, under `carriedFlags`; the
+pack-level manifest records the source's full carryable set under
+`sourceCarriedFlags`. Recording the source's set on every prompt would
+have misreported what was submitted — the same class of misreporting
+the reconcile tool's `CHANGED` flag had.
+
+**The test.** `lib/mj-revise.test.js` — 25 checks, no browser, no
+network, no account. It covers the command split (prose vs. flag
+segments, a flag owning the tokens up to the next flag, a trailing
+valueless flag), the carry set, the ownership rules, and the
+composition.
+
+The invariant it pins is **at most one of each flag** — zero is correct
+and often right (a prompt that owns `--style` drops the source's `--s`
+entirely); more than one is the bug. It checks that across six prompt
+shapes.
+
+**Proven by making the test fail.** Reintroducing the old carry
+behaviour turns **8 of the 25** checks red; restoring the fix turns
+them all green. A guard that never fails is decoration.
+
+**Decisions:**
+
+- **A rule, not a patch.** The third instance of this bug class in the
+  repo says the per-flag ownership belongs in one place with one
+  explanation, not in a string concatenation.
+- **Make the module importable rather than testing through the CLI.** A
+  subprocess test would need a live browser and a live account for a
+  pure string function.
+- **`--ar` deliberately stays the source's.** This tool re-evolves a
+  job; keeping the job's ratio is the point. The fix makes the
+  ownership explicit instead of accidental.
+- **Record what was actually carried, per prompt.** A manifest that
+  reports the source's flags for every prompt cannot describe a pack
+  whose prompts carry their own.
+
+**Verified:**
+
+- `node lib/mj-revise.test.js` → **25/25**, and **8 failures** with
+  the bug reintroduced.
+- `npm run test:all` → **exit 0, 1144 assertions**, 0 failures
+  (1119 → 1144; `test:mj-revise` is now in `test:all`).
+- CLI error paths unchanged (exit 2 for a missing `--source` and for a
+  missing prompt file); `node --check` clean.
+- `docs/MJ-WATCHER.md` gained a "Which flags the new prompt wins"
+  section with the ownership table.
+
+**Open:**
+
+- **The captions describe the prompt, not the render** — unchanged from
+  sprint 0.52; not automatable without reading pixels for meaning.
+- The MJ cookie jar expires; re-export to `~/.midjourney-cookies.txt`
+  when the feed returns the login page.
+- `mj-revise` still has no live end-to-end run against a real edit job
+  since the fix — the composition is proven by unit test, but the tool
+  has not been driven through a real submission in this state.
