@@ -143,6 +143,21 @@ function check(name, ok, detail = '') {
   check('temple: copy click flips the label without throwing', copy.clicked === 'copied', copy.clicked);
 
   // Theme: toggle to dark and persist across reload.
+  //
+  // The starting state must be PINNED first. The page's preference
+  // defaults to 'system', so on a machine whose Chrome reports
+  // prefers-color-scheme: dark the page opens DARK — and the toggle
+  // would then flip it to LIGHT. The assertion below would fail on a
+  // dark-mode machine and pass on a light-mode one, which is a spec
+  // defect, not a page defect.
+  await page.evaluate(() => {
+    try { localStorage.setItem('tc-theme', 'light'); } catch (e) {}
+  });
+  await page.reload({ waitUntil: 'networkidle2' });
+  const startsLight = await page.evaluate(() =>
+    document.documentElement.getAttribute('data-theme') === 'light');
+  check('temple: the pinned starting state is light', startsLight === true);
+
   await page.evaluate(() => document.getElementById('themeToggle').click());
   const darkNow = await page.evaluate(() =>
     document.documentElement.getAttribute('data-theme') === 'dark');
