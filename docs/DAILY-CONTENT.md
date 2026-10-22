@@ -151,7 +151,14 @@ working state, so the reels live on the machine that made them.
 ```bash
 npm run daily:reels                     # queue the newest published day
 node lib/daily-reels.js --date 2026-10-22 --dry-run
+node lib/daily-reels.js --date 2026-10-22 --force   # re-queue, re-transcode
 ```
+
+A reel the watcher has already produced is **left alone** — re-queuing
+it would re-transcode the same video for nothing. `--force` overrides.
+That also means the daily run is safe to re-run: an already-published
+day skips the render (no quota) and the hand-off finds its reels
+already processed.
 
 ## Cost
 

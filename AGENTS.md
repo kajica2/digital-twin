@@ -6875,3 +6875,25 @@ twin's domain.
 cyberpunk plate. That is the twin's voice rather than a description of
 the work, so it was left alone — but it is the next line to argue
 about.
+
+### 2026-10-22 — sprint 0.47.c (the hand-off is idempotent)
+
+The daily run was safe to re-run for the plates — an already-published
+day returns before the render, so no quota is spent — but the reel
+hand-off had no such guard: re-running it re-queued every reel and the
+watcher re-transcoded all of them. Wasted work, and a watcher queue
+full of videos nobody asked for.
+
+**Now:** a reel the watcher has already produced is left alone
+(`reel-inbox/processed/<base>.mp4` exists → skip). `--force` overrides.
+And the run's already-published path — the one that returns before the
+render — now still runs the hand-off, because the plates can be
+published while their reels are not (a run that died after the publish
+would otherwise leave the day without them). The hand-off is free: no
+quota, no Midjourney, just ffmpeg over a published plate.
+
+**Verified:** `node lib/daily-content.js --date 2026-10-22` now prints
+*already published — nothing to render*, then *relay-pylon-line is
+already processed — left alone* for each of the three, and *0 reel(s)
+queued*. The reels' suite grew two assertions (37 total): a processed
+reel is skipped, and `--force` queues it anyway.
