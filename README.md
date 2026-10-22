@@ -345,6 +345,35 @@ document: Gumroad has no API wired here, so a human applies it.
 
 Reference: [`docs/SOCIAL-ENGINE.md`](docs/SOCIAL-ENGINE.md).
 
+## Run the daily content
+
+The marketplace is not a hand-made shelf any more. Once a day the twin
+picks a collection from a tracked library, renders its plates on
+Midjourney, and publishes them to the marketplace's *Daily Frames*
+section — caption, alt text and provenance included.
+
+```bash
+npm run daily:content      # today's collection: render, publish, push
+npm run daily:content:dry  # the plan only — no browser, no generations
+npm run test:daily-content # the pure logic: selection, prompts, index, guard
+```
+
+It needs a logged-in Midjourney session in Chrome (it types into
+`midjourney.com` through a real browser — the CDN answers curl and
+headless clients with 403), and it runs as a launchd service at 00:20
+local, inside Midjourney's fast hours:
+
+```bash
+launchctl print gui/$UID/com.kaidjuric.digital-twin.daily-content
+tail -f logs/daily-content.out.log
+```
+
+Three generations a day. The catalogue lives at
+`assets/marketplace/daily/index.json`; the page reads it and says
+plainly when there is nothing yet.
+
+Reference: [`docs/DAILY-CONTENT.md`](docs/DAILY-CONTENT.md).
+
 ## Post to X (Twitter)
 
 The twin can post to X on your behalf. It needs your logged-in X

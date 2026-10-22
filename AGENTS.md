@@ -6500,3 +6500,150 @@ session. No audio clips exist, so no generation ever ran.
 - The `twin-os/` root copy has drifted from `pages/twin-os/` — it
   lacks the storefront block that `pages/twin-os/` carries. Pre-existing
   (present at HEAD, before this sprint), not introduced here.
+
+### 2026-10-22 — sprint 0.45 (the daily content run — marketplace plates, every night)
+
+**The finding.** The marketplace page was a hand-made shelf: eight
+music-video stills, three studio extras, twelve covers, ten System Error
+plates, one video — every one of them made by hand, and none of them
+moving. The repo already had a *daily pipeline* (`lib/daily-pipeline.js`,
+08:15, writes the day's mood brief) but it was never bootstrapped, and
+nothing in the repo turned a day's output into marketplace-grade
+content: no plate, no caption, no catalogue entry, and a static page that
+could not show a new arrival even if one existed. The user asked for the
+missing half, and corrected the renderer: **Midjourney**, not FLUX.2.
+
+**Shipped.**
+
+- **`lib/daily-content.js`** — the run. Picks a collection from a tracked
+  library (deterministic by day-of-year), writes its prompts as a
+  Midjourney pack, submits them through `lib/mj-web.js` (the same web
+  submitter the watcher uses, so the composition and the acceptance
+  evidence are identical to every other MJ job in the repo), downloads
+  the accepted job's grid cell **through a real browser** (the CDN
+  answers curl and headless clients with 403), converts it to the
+  marketplace's JPG, publishes the bundle and the catalogue, and commits
+  and pushes it — which is what puts it on the site. Flags: `--date
+  --collection --count --slot --port --profile --profile-codes
+  --dry-run --no-publish --no-git --resume --force`.
+- **`lib/daily-collections.json`** — the curated library: 12 collections
+  × 3 plates. Each plate carries its caption, its alt text and its
+  prompt, so the copy is written once, by hand, and reviewed — never
+  generated and never drifting from the art.
+- **`pages/marketplace.html`** — a *Daily Frames* section between the
+  plates and the motion block. It reads
+  `assets/marketplace/daily/index.json` and renders the three newest
+  collections; when there is no catalogue it says so plainly instead of
+  erroring.
+- **`e2e/marketplace.spec.mjs`** — the contract for both states: the
+  catalogue resolves, the plates render, and **every caption, alt text
+  and declared dimension matches the catalogue entry it came from**.
+- **`docs/DAILY-CONTENT.md`**, `bin/daily-content.sh`,
+  `~/Library/LaunchAgents/daily-content-launcher.sh`,
+  `~/Library/LaunchAgents/com.kaidjuric.digital-twin.daily-content.plist`
+  (00:20 local, inside Midjourney's fast hours), `npm run
+  daily:content` / `daily:content:dry` / `test:daily-content`.
+
+**Verified end-to-end (a real run, on the real account).**
+
+- The 2026-10-22 collection (*relay* — "Relay (cyberpunk / hk)") was
+  rendered for real: three jobs — `0a495dec` (pylon · line), `181cc9a1`
+  (switchboard · lamp), `b9e611a9` (platform · signal) — each four
+  images, each downloaded through the browser and published at
+  **1280×716**.
+- The plates were looked at, not just measured: "a row of electrical
+  transmission towers … at dawn or dusk, no lettering"; "an old, dusty
+  switchboard in a dim room with one bright indicator lamp, no visible
+  text"; "a dark, empty railway platform seen down its length toward a
+  glowing signal light, small signs present but no legible text".
+- The account's personalization was applied and confirmed by the
+  submitter: `--profile brvazka mhw6dpq xr39csb det21e6 67lkfw3
+  --stylize 21 --hd --v 8.2` — so the daily plates land in the same
+  visual world as the contact-sheet work.
+- `npm run test:daily-content` — **55 checks, 0 failures** (library
+  integrity, the collection cycle and its wrap, the pack format, the
+  index update, the publish guard).
+- `e2e/marketplace.spec.mjs` — green in **both** states: the empty
+  catalogue (the page states it) and the published one (3 figures, 3
+  catalogue entries, every caption and dimension matching).
+- The launchd agent is **loaded**: `runs = 1`, `last exit code = 0`,
+  and the kickstart stopped at the *already published → nothing to do*
+  guard, so proving the schedule cost no generations.
+
+**Decisions.**
+
+- **MJ, not FLUX.2** (the user's instruction). It is also the better
+  fit: node-only (no TCC/python exposure under launchd), and the
+  account's moodboard codes give the daily plates the same look as the
+  rest of the Midjourney work in this repo.
+- **The copy comes from the library, never from the run.** A generated
+  caption would drift from the art and would make the e2e vacuous; a
+  written one can be tied to the manifest, and the spec does exactly
+  that.
+- **The profile codes are typed in, not stored in the library.** They
+  live in a gitignored `lib/mj-profile.local.json` and are appended to
+  the submitted prompt at run time. The library is tracked; those codes
+  are the account's own identifiers.
+- **The run owns its browser** — port 9445 and its own profile
+  directory. The shared 9444 session belongs to the watcher and to
+  hand-driven work; a calendar job typing into a shared composer is a
+  collision waiting for a night.
+- **The publish guard is about the index, not the tree.** The first
+  version refused to publish when *anything* was uncommitted, which a
+  shared checkout never is. But the commit stages an explicit file list,
+  so the only thing that can be swallowed is what somebody else had
+  already **staged** — that is the case to refuse. Unstaged work and
+  untracked files are not the job's business. (Guard, rule and test
+  updated together.)
+- **Never re-render a published day.** The bundle's `plates.json` is the
+  record; a second run stops with one line unless `--force` is given.
+  A daily job that quietly re-renders is a daily job that quietly
+  burns a quota.
+- **The catalogue is a tracked file under `assets/`.** `data/` is
+  gitignored, so a catalogue there would not survive a deploy — and a
+  page that points at a gitignored path renders locally and 404s on
+  Vercel.
+
+**Four bugs found by running it, not by reading it.**
+
+1. **The collector looked in the wrong directory.** `mj-web` names its
+   output after the pack's *slugified* name (`relay_2026_10_22`), not
+   the file's name — so the first run rendered successfully and then
+   reported "no meta for prompt 1 — skipped". Fixed by using the
+   submitter's own `slugify()`.
+2. **A missing catalogue is not necessarily a 404.** Vercel's catch-all
+   rewrite answers an unknown path with the landing page and a **200**,
+   so `res.json()` on a missing catalogue threw a parse error rather
+   than returning null. Both the page and the spec now parse
+   defensively, and a non-JSON body means "no catalogue yet" — never a
+   crash.
+3. **A fetch for a missing file is a console error in Chrome**,
+   however the page handles it. The spec filters that one URL and
+   asserts the page's own handling instead — the same pattern the
+   twin-os specs use for the song catalogue.
+4. **`--no-publish` meant two things.** It is now "render, write
+   nothing" (a trial) and `--no-git` is "write, do not commit".
+
+**Open.**
+
+- The run needs a headed browser and a live Midjourney session; on a
+  headless machine it cannot work at all. The cookie jar expires and
+  the run fails loudly when it does.
+- The **profile codes are local-only** — a fresh clone renders without
+  the account's moodboards, so the plates will not look like the rest of
+  the work until the file is restored.
+- The `daily-pipeline` agent (the 08:15 mood brief) is still not
+  bootstrapped, and it feeds the mj-watcher with two more generations a
+  day. It is not needed by this run and it was deliberately left alone.
+- The social engine's catalogue discovery is still hardcoded to the two
+  existing manifests, so the daily plates do **not** get social packages
+  yet.
+- The daily run publishes one cell of each 4-up (`--slot` picks
+  another). Which cell is best is not evaluated — the sheet's own
+  lesson is that the audit of a render is a look, not a measurement.
+
+**Next.**
+
+- Run the reel-inbox pipeline end to end with one of these plates as
+  the source — the distribution side is still the unproven half.
+- Extend the social engine's catalogue discovery to the daily bundle.
