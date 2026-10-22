@@ -6340,3 +6340,163 @@ left the toggle off; the account was left exactly as found.)
   audit is a look, not a measurement.
 - Unchanged backlog: woody-shaw chart variants; the `.kai/` durability
   call; a custom domain for the Vercel alias; the MJ cookie jar expiry.
+
+### 2026-10-22 — sprint 0.45 (three parallel agents + the prompt-race rule)
+
+Two asks, run as one sprint: **"start three agent hardness"** (three
+parallel subagents on meaty slices, integrated into one body of work)
+and **"make a note when creating prompts do not specify the race of the
+person so that I can easily just reference the photo and get what I'm
+looking for"** (turn a stated preference into an enforced guard).
+
+**Shipped — three parallel agents, one integrator:**
+
+- **`SkinPagesSpec` → `e2e/tools-instagram.spec.mjs`** (41 checks).
+  A contract spec for `pages/tools.html` + `pages/instagram-autopilot.html`:
+  the skin contract (one `link[data-skin-stylesheet]` → `house.css`, one
+  `lib/skin.js`, `data-skin === 'house'`, the token values, the body
+  colours in light AND dark, the header gradients), the caption
+  generator (a `🔥` button literal, the `STOP SCROLLING` output), the
+  tab switch, and every internal link — **verified by content marker,
+  not status code**, because the Vercel catch-all answers a dead path
+  with landing HTML and a 200. Green locally and against the deployed
+  URL. The agent demonstrated the spec biting (removing the skin
+  `<link>` → 8 failures; un-escaping the caption quote → 9 failures
+  including a `pageerror`) and restored both pages byte-identically.
+- **`ReelSiblingAudio` → the reel inbox drains.** The consumed sibling
+  audio is now parked next to the source as `<base>_audio<ext>`
+  (`processed/<base>_source<ext>` for the video), so the inbox empties
+  and a later drop can never silently pair with stale audio. The
+  sibling's move rolls back if the source move throws, so a retry still
+  finds the tags. The undocumented "any audio file in the same
+  directory" fallback was removed — the docs said *same basename* in
+  three places, so the code now matches the stated contract. Tests
+  29 → 98 assertions.
+- **`CorpusFilters` → the corpus is filterable.** The Twin OS
+  Transcription corpus gains **style**, **instrument** and **tempo
+  min/max** filters that AND with each other and with the free-text
+  search. The counter reports the filtered count while the meta line
+  keeps the catalogue totals; a filter stack that matches nothing shows
+  a distinct **"no matches"** state, not the "not indexed yet" state;
+  the audio catalogue above is untouched. The filter CSS uses only
+  existing tokens, the controls are properly labelled, and both
+  twin-os copies (`pages/twin-os/` and the root `twin-os/`) carry the
+  identical block.
+  **The spec is fixture-driven, which is the part worth keeping.** The
+  real corpus catalogue is gitignored and reaches neither CI nor the
+  deploy, so the spec serves a committed 14-item fixture
+  (`e2e/fixtures/catalog-jazz-solos.json`) through request
+  interception — every expected count is then exact rather than
+  approximate. A second page with a 404 on the same URL proves the
+  missing-catalogue state is distinct from the no-match state. The spec
+  grew 28 → 79 assertions.
+
+**Shipped — the prompt-race rule, encoded rather than written down:**
+
+- **`lib/prompt-lint.js`** + **`lib/prompt-lint.test.js`** (53
+  assertions). A demographic adjective directly modifying a person
+  noun is a finding. It reads packs through `extractPrompts` from
+  `lib/mj-submitter.js`, so it checks exactly what the watcher would
+  submit and the two can never disagree about what a prompt is.
+  Photographic treatments and clothing are deliberately not findings
+  ("black and white", "a woman in a black coat", "white wine", "the
+  Black Sea"); `portrait` was removed from the noun list after it
+  produced a false positive on "a framed black-and-white portrait".
+  Wired as `npm run prompt:check` + `npm run test:prompt-lint`,
+  chained into `test:all`, and given **its own CI step** — CI runs the
+  e2e specs, not `test:all`, so without the step the lint would never
+  gate a deploy.
+- **The rule is now in every context that matters:** a standing bullet
+  in `AGENTS.md` § "Things to remember", a new § "The subject's
+  identity" in `assets/mural-prompts/PROMPT-EXPANSION-FORMAT.md`, a
+  `docs/PROMPT-LINT.md` reference, a README entry, and a prevention
+  rule (`PM-2026-10-22-prompt-race`) plus a machine-readable
+  `prompt_identity` block in the `.kai/` memory.
+- **Two genuine violations found and fixed** — the same subject line in
+  two packs: *"A young Black man in a grey quilted puffer jacket and a
+  lemon-coloured fur trapper hat"* → *"A young man in…"*.
+- **The guard was shown to bite**, in both paths: a dirty pack on the
+  CLI → exit 1 with the file, line, prompt number and offending text;
+  a pack dropped into the scanned directory → exit 1 (this is exactly
+  what the CI step runs); restored → exit 0.
+
+**Verified end-to-end:**
+
+- `npm run test:all` — exit 0 (28 suites).
+- `npm run skin:check` — 0 errors. `npm run prompt:check` — 46 packs,
+  465 prompts, 0 violations.
+- e2e: landing (53), twin-os (39), twin-os-songs (26),
+  tools-instagram, clip-interrogator, refael, how-to,
+  loopable-video-segmenter, mj-dashboard — all green.
+- **The reel watcher, live.** The LaunchAgent was reloaded onto the
+  new code (`launchctl kickstart -k`, new PID, exit 0) and a real
+  mp4+mp3 pair was dropped into the live `reel-inbox/`: the daemon
+  logged `[done] … (source parked as live-smoke_source.mp4, sibling
+  audio parked as live-smoke_audio.mp3)`, the inbox drained, the reel
+  came out **h264 1080×1920 30fps**, the cover **mjpeg 1080×1920**,
+  the parked sibling a real 2.0s 128 kbps MP3 with its ID3 intact, and
+  the POST.md caption was built from those tags. Smoke artifacts
+  removed afterwards.
+- **The corpus filters, driven in a real browser against the real
+  456-item catalogue:** 456 rows → style (Postbop) 147 → +instrument
+  (tenor saxophone) 70 → +tempo ≥ 250 15 → an impossible stack 0 with
+  the "no matches" state showing and "not indexed yet" staying hidden;
+  the counter tracked every step; the meta line stayed at the
+  catalogue totals; the audio catalogue held at 6 rows throughout;
+  reset restored 456; 0 console errors.
+- **The corpus spec bites.** Three separate breaks in
+  `pages/twin-os/index.html` — the instrument filter made a no-op, the
+  "no matches" state suppressed, the tempo floor ignored — each turned
+  the spec red on the matching assertion, and the page was restored
+  to its original md5 after each. The first attempt at the instrument
+  assertion was a count comparison and it **passed against a broken
+  implementation**; it was rewritten as a semantic one ("every
+  surviving row IS the selected instrument"), which bites.
+- **The fixture is load-bearing** — moved aside, the spec fails loudly
+  with the exact path it could not open.
+- **CI green on both pushes** — including the new lint step
+  (`✓ Prompt lint — no prompt may name the subject's race`) and the
+  e2e run against the deployed URL.
+
+**Suno: confirmed idle.** Re-checked live, not from memory: no Suno
+LaunchAgent, no cron entry, no Suno process; the `daily-pipeline`
+plist is **not loaded** and `lib/daily-pipeline.js` makes no network
+call at all (it writes a text brief); `lib/ingest.js`'s Suno support
+only *downloads* already-generated audio, it cannot generate; the
+`suno:*` npm scripts are manual-CLI-only and no live service invokes
+them. Last Suno artifact: **2026-10-21 16:14**, the user's own
+session. No audio clips exist, so no generation ever ran.
+
+**Decisions:**
+
+- **Three agents, one integrator.** The agents were given meaty,
+  self-contained slices; the integrator reviewed each diff, re-ran
+  every spec independently, and wrote the sprint entry. Two of the
+  three proved their guard by breaking the thing and watching it go
+  red.
+- **The lint reuses the submitter's parser** rather than
+  re-implementing prompt parsing — one definition of "what a prompt
+  is", so the lint and the watcher cannot drift apart.
+- **A stated rule gets a guard.** The house pattern (sprint 0.30:
+  "two constraints, both encoded rather than left to the caller")
+  says a rule someone has to remember is a rule that will be broken.
+  The doc explains; the lint enforces.
+- **The noun list was widened after the tests found the gap.** The
+  first list had generic person words but not the roles a music corpus
+  actually reaches for — "a Black pianist" and "an Indian guitarist"
+  were sliding through. The tests are what caught it.
+
+**Open / for the user:**
+
+- **Rotate the Suno token in git history** (`cd434e4`) — it was
+  committed and is still in the repository's history.
+- **Approve the reel LaunchAgent bootstrap** if the other watchers are
+  to be bootstrapped too — an irreversible service-state change, so it
+  has not been done.
+- **Decide whether to delete the unloaded `daily-pipeline` plist** or
+  guard `lib/suno-style-batch.js` against unattended runs. It is inert
+  today (not loaded, no network call), but the plist on disk is a
+  loaded gun for whoever loads it next.
+- The `twin-os/` root copy has drifted from `pages/twin-os/` — it
+  lacks the storefront block that `pages/twin-os/` carries. Pre-existing
+  (present at HEAD, before this sprint), not introduced here.

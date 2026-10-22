@@ -663,6 +663,73 @@
       font-size: 11.5px;
       color: var(--ink-faint);
     }
+    .song-filters {
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 10px 14px;
+    }
+    .song-filter {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .song-filter-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+    }
+    .song-filter-pick { position: relative; display: inline-block; }
+    .song-filter-pick::after {
+      content: '';
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      width: 6px;
+      height: 6px;
+      margin-top: -4px;
+      border-right: 1.5px solid var(--ink-muted);
+      border-bottom: 1.5px solid var(--ink-muted);
+      transform: rotate(45deg);
+      pointer-events: none;
+    }
+    .song-filter select,
+    .song-filter input {
+      appearance: none;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font: inherit;
+      font-size: 14px;
+      color: var(--ink);
+    }
+    .song-filter select { padding-right: 32px; min-width: 150px; }
+    .song-filter input { width: 104px; }
+    .song-filter select:focus,
+    .song-filter input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+    .song-filter-reset {
+      appearance: none;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font: inherit;
+      font-size: 13px;
+      color: var(--ink-muted);
+      cursor: pointer;
+    }
+    .song-filter-reset:hover {
+      color: var(--ink);
+      border-color: var(--primary-mid);
+    }
 
     /* Tools — external music services. Each tool is a card that opens
        in a new tab. The grid is a single column for now (only one
@@ -793,6 +860,13 @@
       .song-row .song-dur {
         grid-column: 2;
       }
+      .song-filters {
+        align-items: stretch;
+        gap: 10px;
+      }
+      .song-filter { flex: 1 1 140px; }
+      .song-filter select,
+      .song-filter input { width: 100%; }
     }
 
     /* ============================================================
@@ -1115,7 +1189,34 @@
               <input type="search" placeholder="Filter by performer, title, style, instrument…" data-jz-search aria-label="Filter transcription corpus" />
               <span class="song-search-count" data-jz-search-count></span>
             </div>
+            <div class="song-filters" data-jz-filters>
+              <label class="song-filter">
+                <span class="song-filter-label">Style</span>
+                <span class="song-filter-pick">
+                  <select data-jz-style aria-label="Filter transcription corpus by style"></select>
+                </span>
+              </label>
+              <label class="song-filter">
+                <span class="song-filter-label">Instrument</span>
+                <span class="song-filter-pick">
+                  <select data-jz-instrument aria-label="Filter transcription corpus by instrument"></select>
+                </span>
+              </label>
+              <label class="song-filter">
+                <span class="song-filter-label">Tempo min</span>
+                <input type="number" data-jz-tempo-min min="0" max="400" step="0.1" placeholder="BPM" aria-label="Minimum tempo in beats per minute" />
+              </label>
+              <label class="song-filter">
+                <span class="song-filter-label">Tempo max</span>
+                <input type="number" data-jz-tempo-max min="0" max="400" step="0.1" placeholder="BPM" aria-label="Maximum tempo in beats per minute" />
+              </label>
+              <button type="button" class="song-filter-reset" data-jz-filters-reset>Reset</button>
+            </div>
             <div class="song-groups" data-jz-groups></div>
+            <div class="song-empty" data-jz-no-match hidden>
+              <p><strong>No solos match these filters.</strong></p>
+              <p>Try another style or instrument, widen the tempo range, or clear the search box.</p>
+            </div>
           </div>
         </div>
       </section>
@@ -1474,12 +1575,23 @@
     const meta    = document.querySelector('[data-jz-meta]');
     const groups  = document.querySelector('[data-jz-groups]');
     const counter = document.querySelector('[data-jz-search-count]');
+    const noMatch = document.querySelector('[data-jz-no-match]');
+    const searchInput = document.querySelector('[data-jz-search]');
+    const styleSel   = document.querySelector('[data-jz-style]');
+    const instrSel   = document.querySelector('[data-jz-instrument]');
+    const tempoMin   = document.querySelector('[data-jz-tempo-min]');
+    const tempoMax   = document.querySelector('[data-jz-tempo-max]');
+    const resetBtn   = document.querySelector('[data-jz-filters-reset]');
 
     if (!loading || !empty || !catalog) return;
 
     let allItems = [];
     let source = null;
     let facets = { performers: [], styles: [], instruments: [] };
+
+    // The filter stack. Every dimension ANDs with the others and with
+    // the free-text query; an empty / "all" selection is no constraint.
+    const filters = { q: '', style: '', instrument: '', tempoMin: null, tempoMax: null };
 
     function show(node) {
       [loading, empty, catalog].forEach(n => { if (n) n.hidden = (n !== node); });
@@ -1517,14 +1629,72 @@
         `<span><strong>${c.midiVerified || 0}</strong> midi · <strong>${c.pdfVerified || 0}</strong> pdf</span>`;
     }
 
-    function renderGroups(filter) {
-      const q = (filter || '').trim().toLowerCase();
-      const matches = q
-        ? allItems.filter(it => [
-            it.title, it.performer, it.style, it.instrument,
-            it.instrumentName, String(it.year || ''),
-          ].join(' ').toLowerCase().includes(q))
-        : allItems;
+    function numOrNull(el) {
+      if (!el) return null;
+      const raw = String(el.value || '').trim();
+      if (!raw) return null;
+      const n = Number(raw);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    // Read the control values into the filter stack. An empty / "all"
+    // selection is no constraint on that dimension.
+    function syncFilters() {
+      filters.q = ((searchInput && searchInput.value) || '').trim().toLowerCase();
+      filters.style = (styleSel && styleSel.value) ? styleSel.value : '';
+      filters.instrument = (instrSel && instrSel.value) ? instrSel.value : '';
+      filters.tempoMin = numOrNull(tempoMin);
+      filters.tempoMax = numOrNull(tempoMax);
+    }
+
+    // Every dimension ANDs with the others and with the free-text query.
+    function itemMatches(it) {
+      if (filters.style && it.style !== filters.style) return false;
+      if (filters.instrument && it.instrumentName !== filters.instrument && it.instrument !== filters.instrument) return false;
+      if (filters.tempoMin !== null && !(it.tempo != null && it.tempo >= filters.tempoMin)) return false;
+      if (filters.tempoMax !== null && !(it.tempo != null && it.tempo <= filters.tempoMax)) return false;
+      if (filters.q) {
+        const hay = [
+          it.title, it.performer, it.style, it.instrument,
+          it.instrumentName, String(it.year || ''),
+        ].join(' ').toLowerCase();
+        if (!hay.includes(filters.q)) return false;
+      }
+      return true;
+    }
+
+    function renderFacets() {
+      if (styleSel) {
+        styleSel.innerHTML = '';
+        const all = document.createElement('option');
+        all.value = '';
+        all.textContent = 'All styles';
+        styleSel.appendChild(all);
+        for (const s of facets.styles) {
+          const opt = document.createElement('option');
+          opt.value = s.name;
+          opt.textContent = s.name;
+          styleSel.appendChild(opt);
+        }
+      }
+      if (instrSel) {
+        instrSel.innerHTML = '';
+        const all = document.createElement('option');
+        all.value = '';
+        all.textContent = 'All instruments';
+        instrSel.appendChild(all);
+        for (const i of facets.instruments) {
+          const opt = document.createElement('option');
+          opt.value = i.name || i.code;
+          opt.textContent = i.name || i.code;
+          instrSel.appendChild(opt);
+        }
+      }
+    }
+
+    function renderGroups() {
+      syncFilters();
+      const matches = allItems.filter(itemMatches);
 
       const byStyle = new Map();
       for (const it of matches) {
@@ -1572,16 +1742,34 @@
       if (counter) {
         counter.textContent = `${matches.length} match${matches.length === 1 ? '' : 'es'}`;
       }
+      // The "no matches" state is NOT the "corpus not indexed yet" state:
+      // it only appears while the catalog is loaded but the filter stack
+      // (free-text search AND style AND instrument AND tempo bounds)
+      // leaves nothing behind.
+      if (noMatch) noMatch.hidden = matches.length !== 0;
     }
 
-    function wireSearch() {
-      const input = document.querySelector('[data-jz-search]');
-      if (!input) return;
+    function wireFilters() {
       let t;
-      input.addEventListener('input', () => {
+      const schedule = () => {
         clearTimeout(t);
-        t = setTimeout(() => renderGroups(input.value), 80);
-      });
+        t = setTimeout(() => renderGroups(), 80);
+      };
+      if (searchInput) searchInput.addEventListener('input', schedule);
+      if (styleSel) styleSel.addEventListener('change', schedule);
+      if (instrSel) instrSel.addEventListener('change', schedule);
+      if (tempoMin) tempoMin.addEventListener('input', schedule);
+      if (tempoMax) tempoMax.addEventListener('input', schedule);
+      if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+          if (searchInput) searchInput.value = '';
+          if (styleSel) styleSel.value = '';
+          if (instrSel) instrSel.value = '';
+          if (tempoMin) tempoMin.value = '';
+          if (tempoMax) tempoMax.value = '';
+          renderGroups();
+        });
+      }
     }
 
     fetch(CATALOG_URL + '?_=' + Date.now(), { cache: 'no-store' })
@@ -1602,9 +1790,10 @@
           return;
         }
         renderMeta();
-        renderGroups('');
+        renderFacets();
+        renderGroups();
         show(catalog);
-        wireSearch();
+        wireFilters();
       })
       .catch(err => {
         const detail = document.querySelector('[data-jz-empty-detail]');
