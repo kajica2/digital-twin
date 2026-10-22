@@ -131,6 +131,11 @@ test. It asserts:
   is a prefix of its own clause;
 - the twelve task ids are distinct, and every tile's URL embeds its own
   task id;
+- every tile's URL names the **same cell of the 4-up** the manifest
+  records as its `slot` — the manifest and the URL are written by
+  different parts of the builder, so they can drift apart, and a
+  manifest claiming "slot 2" over a slot-1 tile misreports the
+  comparison the sheet exists to make;
 - every tile ships as a **local real webp with real pixels**, and **no
   two tiles are the same image**;
 - the sheet PNG is a real PNG, large enough for its grid.
@@ -210,7 +215,7 @@ pack header).
 ## Tests
 
 ```bash
-npm run test:mj-contact-sheet   # 48 checks, no browser, no network
+npm run test:mj-contact-sheet   # 49 checks, no browser, no network
 ```
 
 Covers the caption derivation (including the word-boundary truncation),
