@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en" data-theme="system">
+<head>
+    <link rel="stylesheet" href="../assets/skins/house.css" data-skin-stylesheet>
+    <script src="../lib/skin.js"></script>
+    <script src="../lib/theme.js" data-theme-key="ft-theme"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="color-scheme" content="dark">
+    <title>— viral</title>
+    <meta name="description" content="A one-beat Hyperspace shot: outward, collapse, resolve. Spatial motion only — no opacity fades.">
+
+    <style>
+      :root {
+        /* The whole piece is one beat. Total length governs everything.
+           data-duration on <body> would let the HyperFrames runtime seek
+           the timeline; we keep one offline here. */
+        --duration: 5800ms;
+      }
+
+      html, body { margin: 0; padding: 0; height: 100%; }
+      body {
+        background:
+          radial-gradient(ellipse at center,
+                          color-mix(in srgb, var(--bg) 65%, #000) 0%,
+                          color-mix(in srgb, var(--bg) 30%, #000) 75%,
+                          color-mix(in srgb, var(--bg) 15%, #000) 100%);
+        color: var(--ink);
+        font-family: var(--font-display);
+        overflow: hidden;
+        cursor: default;
+      }
+
+      #fx {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+      }
+
+      /* The text node — revealed by translateY only, never by opacity.
+         The hyperlink / hook lands at the very end so the reveal is a
+         beat-by-itself, not a tooltip nicked onto the moving canvas. */
+      #tagline {
+        position: fixed;
+        left: 50%;
+        bottom: 24vh;
+        transform: translate(-50%, 32px);
+        font-family: var(--font-display);
+        font-size: clamp(1.6rem, 4.6vw, 3.2rem);
+        font-weight: 400;
+        letter-spacing: -0.01em;
+        color: var(--ink);
+        white-space: nowrap;
+        pointer-events: none;
+        /* No opacity transition. Pure spatial.
+           `visibility: hidden` is a non-property-tween state at
+           composition setup, then visible on the reveal frame. No
+           display changes mid-flight. */
+        visibility: hidden;
+        transition: transform 480ms var(--ease-out-expo);
+      }
+      #tagline.in {
+        transform: translate(-50%, 0);
+      }
+      /* A second layer of text — the hyperlink / hook — slides in
+         from below the tagline 220 ms later, on a more subtle ease.
+         Still no opacity. */
+      #hook {
+        position: fixed;
+        left: 50%;
+        bottom: 17vh;
+        transform: translate(-50%, 24px);
+        font-family: var(--font-mono);
+        font-size: var(--fs-sm);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--primary);
+        pointer-events: auto;
+        text-decoration: none;
+        white-space: nowrap;
+        visibility: hidden;
+        transition: transform 520ms var(--ease-out-expo);
+      }
+      #hook.in {
+        transform: translate(-50%, 0);
+      }
+      #hook:hover {
+        text-decoration: underline;
+        text-underline-offset: 6px;
+      }
+
+      /* Replay: revealed by scale, never by opacity. */
+      #replay {
+        position: fixed;
+        right: 28px;
+        bottom: 28px;
+        appearance: none;
+        background: transparent;
+        border: 1px solid var(--line);
+        color: var(--ink);
+        padding: 8px 14px;
+        border-radius: var(--radius-pill);
+        font-family: var(--font-mono);
+        font-size: var(--fs-xs);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transform: scale(0);
+        transform-origin: 100% 100%;
+        transition: transform 420ms var(--ease-out-expo),
+                    border-color var(--dur-fast) var(--ease-out-expo),
+                    color var(--dur-fast) var(--ease-out-expo);
+      }
+      #replay.in { transform: scale(1); }
+      #replay:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+      #replay .kbd {
+        margin-left: 8px;
+        color: var(--ink-muted);
+      }
+
+      /* Frame counter: slides in from the left edge, never fades. */
+      #counter {
+        position: fixed;
+        left: 28px;
+        bottom: 28px;
+        font-family: var(--font-mono);
+        font-size: var(--fs-xs);
+        letter-spacing: 0.1em;
+        color: var(--ink-muted);
+        text-transform: uppercase;
+        transform: translateX(-12px);
+        visibility: hidden;
+        transition: transform 360ms var(--ease-out-expo);
+      }
+      #counter.in { transform: translateX(0); }
+
+      /* Reduced-motion: snap to the resolve frame without animation. */
+      @media (prefers-reduced-motion: reduce) {
+        body { background: color-mix(in srgb, var(--bg) 8%, #000); }
+        #fx { display: none; }
+        #tagline, #hook, #replay, #counter {
+          visibility: visible;
+          transform: none;
+        }
+      }
+    </style>
+</head>
+<body data-duration="5800">
+
+  <canvas id="fx" aria-label="Hyperspace animation: outward streaks collapse to a single point."></canvas>
+
+  <div id="tagline" aria-hidden="true">shipped.</div>
+  <a id="hook" href="../pages/from-nothing-to-tools.html" aria-hidden="true">from nothing → your own tools · play</a>
+  <div id="counter" aria-live="polite">↺  replay</div>
+  <button id="replay" type="button">
+    Again <span class="kbd">space</span>
+  </button>
+
+  <script>
+    'use strict';
+
+    // One-beat, shareable Hyperspace shot.
+    //
+    // The piece is one shot, not five scenes. Phase timing lives in
+    // a single timeline of `{start, end}` labels relative to the
+    // composition start, the same shape as HyperFrames'
+    // `timeline` adapter expects; we just don't load the runtime here.
+    //
+    // Phase A  (0 .. 0.42)  — burst outward.  radial streaks fly
+    //                        from the center to the screen edge.
+    // Phase B  (0.42 .. 0.7) — flip. the radial speed goes negative
+    //                          in one frame and the streaks visibly
+    //                          hurtle back toward the center.
+    //                          The brief stillness at the start of
+    //                          phase B (one-eighth of the phase)
+    //                          softens the visual impact so the
+    //                          reversal reads as a *decision*, not a
+    //                          bounce.
+    // Phase C  (0.7 .. 1.0)  — collapse. the streaks gather on a
+    //                        single bright spot at center; the
+    //                        "tagline" then translates up from
+    //                        below, and the hyperlink two beats
+    //                        later. Spatial reveals only.
+
+    const TOTAL_MS = 5800;
+    const FLIP_AT = 0.42;     // share of TOTAL_MS when streaks reverse
+    const SETTLE_AT = 0.7;    // share of TOTAL_MS when tagline arrives
+    const TAU = Math.PI * 2;
+    const STAR_COUNT_BASE = 460;
+
+    /** @type {HTMLCanvasElement} */
+    const canvas = document.getElementById('fx');
+    const ctx = canvas.getContext('2d');
+    const taglineEl = document.getElementById('tagline');
+    const hookEl = document.getElementById('hook');
+    const counterEl = document.getElementById('counter');
+    const replayBtn = document.getElementById('replay');
+
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let w = 0, h = 0;
+    let INK = '#14171e';
+    let PRIMARY = '#c97b3f';
+
+    function skinColor(v, fb) {
+      const got = getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+      return got || fb;
+    }
+    function withAlpha(hex, a) {
+      const m = /^#?([0-9a-f]{6})$/i.exec((hex || '').trim());
+      if (!m) return `rgba(255,255,255,${a})`;
+      const n = parseInt(m[1], 16);
+      const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+      return `rgba(${r},${g},${b},${a})`;
+    }
+    function refreshPalette() {
+      INK = skinColor('--ink', INK);
+      PRIMARY = skinColor('--primary', PRIMARY);
+    }
+
+    function makeStar(maxRadius) {
+      const angle = Math.random() * TAU;
+      const speed = 0.6 + Math.random() * 0.7;
+      return {
+        angle,
+        speed,
+        radius: Math.random() * maxRadius,
+        thickness: 0.7 + Math.random() * 1.0,
+      };
+    }
+
+    let stars = [];
+    function size() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = window.innerWidth;
+      h = window.innerHeight;
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    function resetField() {
+      stars = [];
+      const maxRadius = Math.hypot(w, h) * 0.55;
+      for (let i = 0; i < STAR_COUNT_BASE; i++) stars.push(makeStar(maxRadius));
+    }
+
+    let compStart = 0;
+    let running = false;
+
+    // Per-frame: speed direction comes from the composition phase.
+    // Phase A => +1 (outward), Phase B / C => -1 (inward).
+    function currentDirection(progress) {
+      return progress < FLIP_AT ? +1 : -1;
+    }
+
+    // The "soft settling" at the start of phase B keeps the reversal
+    // from looking like a physics glitch: for the first 1/8 of the
+    // post-flip phase, the radial speed eases in from 0 to its full
+    // inward magnitude instead of jumping.
+    function radialGain(progress) {
+      if (progress < FLIP_AT) return 1;
+      const t = (progress - FLIP_AT) / (SETTLE_AT - FLIP_AT);
+      return Math.min(1, t * 4 - 3); // ease from 0 to 1 fast
+    }
+
+    function draw(now) {
+      const elapsed = now - compStart;
+      const p = Math.min(1, elapsed / TOTAL_MS);
+      const dir = currentDirection(p);
+      const gain = radialGain(p);
+
+      ctx.clearRect(0, 0, w, h);
+
+      const cx = w / 2;
+      const cy = h / 2;
+      const maxRadius = Math.hypot(w, h) * 0.55;
+
+      // Per-frame advance at 60fps reference; the engine paces the
+      // rAF cadence so the wall-clock speed stays the same at 30/
+      // 120 fps.
+      const baseAdvance = 0.022 * 60;
+
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.lineCap = 'round';
+
+      for (const star of stars) {
+        star.radius += dir * star.speed * baseAdvance * gain;
+        if (dir > 0 && star.radius > maxRadius) {
+          star.angle = Math.random() * TAU;
+          star.radius = 0;
+          star.speed = 0.6 + Math.random() * 0.7;
+          star.thickness = 0.7 + Math.random() * 1.0;
+        } else if (dir < 0 && star.radius < 4) {
+          // Inward mode: when the streak joins the center, bury
+          // it past the inner boundary so the respawn is invisible
+          // and the center stays clean for the resolve beat.
+          star.angle = Math.random() * TAU;
+          star.radius = maxRadius * (0.7 + Math.random() * 0.3);
+          star.speed = 0.6 + Math.random() * 0.7;
+          star.thickness = 0.7 + Math.random() * 1.0;
+        }
+        const headX = cx + Math.cos(star.angle) * star.radius;
+        const headY = cy + Math.sin(star.angle) * star.radius;
+        const len = star.radius * star.speed * 0.13;
+        const tailX = headX - Math.cos(star.angle) * len;
+        const tailY = headY - Math.sin(star.angle) * len;
+        const progress = star.radius / maxRadius;
+        // Phase A's "lighter"-composited streaks glow more where the
+        // speeds are higher; phase C darkens the streaks so the
+        // center spot can pop.
+        const alpha = Math.sin(progress * Math.PI) *
+                      (0.4 + star.speed * 0.35) *
+                      (dir > 0 ? 1 : Math.max(0.25, 1 - (p - FLIP_AT) * 1.4));
+        ctx.strokeStyle = withAlpha(starColor(dir), alpha);
+        ctx.lineWidth = star.thickness * (0.4 + progress * 1.4);
+        ctx.beginPath();
+        ctx.moveTo(headX, headY);
+        ctx.lineTo(tailX, tailY);
+        ctx.stroke();
+      }
+
+      // Phase C: a single bright dot at the center. The streaks
+      // are dimming by this point, so this lands as the single
+      // focal point of the resolve beat.
+      if (p >= SETTLE_AT) {
+        const t = (p - SETTLE_AT) / (1 - SETTLE_AT);
+        const dotR = 1.2 + t * 4.5;
+        const intensity = 0.25 + t * 0.55;
+        ctx.fillStyle = withAlpha(PRIMARY, intensity);
+        ctx.beginPath();
+        ctx.arc(cx, cy, dotR, 0, TAU);
+        ctx.fill();
+      }
+
+      if (p < 1 && running) requestAnimationFrame(draw);
+      else if (running) finish();
+    }
+
+    // Late in the timeline the streaks fade to copper as they
+    // collapse inward — the visual answer to "shipped.".
+    function starColor(dir) {
+      return dir > 0 ? INK : PRIMARY;
+    }
+
+    // Anything past the timeline is rendered once, then we unlock
+    // the replay button. The tagline arrives at SETTLE_AT; the
+    // hyperlink 220 ms later; both via translateY, no opacity.
+    function finish() {
+      running = false;
+      counterEl.classList.add('in');
+      replayBtn.classList.add('in');
+      replayBtn.dataset.ready = 'true';
+    }
+
+    function start() {
+      running = true;
+      size();
+      refreshPalette();
+      resetField();
+      compStart = performance.now();
+
+      // Reset spatial state — remove classes, re-hide via visibility.
+      taglineEl.classList.remove('in');
+      hookEl.classList.remove('in');
+      counterEl.classList.remove('in');
+      replayBtn.classList.remove('in');
+      replayBtn.dataset.ready = '';
+      taglineEl.style.visibility = 'hidden';
+      hookEl.style.visibility = 'hidden';
+      counterEl.style.visibility = 'hidden';
+      replayBtn.style.visibility = '';
+
+      // Stage the reveal frames *just before* they fire in the
+      // composition so the spatial translation has a starting
+      // value to ease from.
+      setTimeout(() => {
+        taglineEl.style.visibility = 'visible';
+        taglineEl.classList.add('in');
+      }, SETTLE_AT * TOTAL_MS);
+
+      setTimeout(() => {
+        hookEl.style.visibility = 'visible';
+        hookEl.classList.add('in');
+      }, SETTLE_AT * TOTAL_MS + 220);
+
+      requestAnimationFrame(draw);
+    }
+
+    function replay() {
+      // Cancel any in-flight completion timer cleanly.
+      running = false;
+      setTimeout(start, 16);
+    }
+
+    window.addEventListener('resize', () => { size(); refreshPalette(); });
+    document.addEventListener('skinchange', refreshPalette);
+
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && !e.repeat) {
+        e.preventDefault();
+        replay();
+      }
+    });
+    replayBtn.addEventListener('click', replay);
+
+    start();
+  </script>
+</body>
+</html>
