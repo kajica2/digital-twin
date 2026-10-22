@@ -22,9 +22,11 @@ you open the IG app and tap Upload. AGENTS.md §11 hygiene + the
 video files. For each new file:
 
 1. `ffprobe` the source (duration, dimensions, has-audio).
-2. Look for a sibling audio file (same basename, `.mp3` / `.wav`
-   / `.aif` / `.aiff` / `.m4a` / `.flac`). If found, read its ID3 /
-   RIFF / metadata via `ffprobe`.
+2. Look for a sibling audio file — **same basename**, `.mp3` /
+   `.wav` / `.aif` / `.aiff` / `.m4a` / `.flac`. If found, read its
+   ID3 / RIFF / metadata via `ffprobe`. Nothing else in the inbox
+   is ever treated as a sibling: an audio file with a different
+   basename is left strictly alone.
 3. Build a caption from the audio tags (`Title — Artist (Album)
    [Genre] 🎺 Reel from the twin.`) + hashtag block.
 4. `ffmpeg` re-encode the source to 1080×1920 (9:16) H.264 high-
@@ -36,7 +38,62 @@ video files. For each new file:
    JPG (1080×1920 mjpeg).
 6. Write `<basename>_POST.md` with the caption, file list, source
    metadata, and the next-step instructions.
-7. Move the dropped video to `reel-inbox/processed/`.
+7. Move the dropped video to `reel-inbox/processed/` **and** move
+   the consumed sibling audio out of the inbox too, parked under
+   `<basename>_audio<audioExt>`.
+
+### The inbox contract
+
+The inbox is a queue, and a queue only works if it drains.
+
+| Situation | Video | Sibling audio | Unrelated files |
+|-----------|-------|---------------|-----------------|
+| Successful run | moved to `processed/<base>_source<videoExt>` | moved to `processed/<base>_audio<audioExt>` | untouched |
+| Failed run (ffmpeg/ffprobe error) | stays in the inbox | stays in the inbox | untouched |
+| No same-basename audio present | moved to `processed/<base>_source<videoExt>` | — | untouched |
+
+- **A failed run leaves the inbox exactly as it found it.** Both
+  moves happen only *after* ffmpeg + ffprobe succeed, so a file the
+  watcher could not decode is still there — with its audio — for the
+  next attempt or for manual inspection.
+- **Only the sibling that was actually consumed may be moved.** A
+  file with a different basename is never paired, never read for
+  tags, and never moved.
+- **Why the sibling must leave the inbox.** A leftover audio file
+  sits there indefinitely, and a later drop with the same basename
+  silently pairs itself with that stale audio — the wrong caption,
+  the wrong tags, with no signal that anything was stale.
+
+### File-naming rules
+
+Every name the run writes into `reel-inbox/processed/` is derived
+from the dropped file's basename, and no two of them can ever
+collide.
+
+| File | Content |
+|------|---------|
+| `<base>.mp4` | Re-encoded 9:16 H.264/AAC ready to upload to Instagram. |
+| `<base>_cover.jpg` | mjpeg cover image, 1080×1920, midpoint frame. |
+| `<base>_POST.md` | caption + hashtags + file list + IG upload steps. |
+| `<base>_source<videoExt>` | the original dropped video, kept for re-runs. |
+| `<base>_audio<audioExt>` | the original sibling audio, kept for re-runs. |
+
+The `_audio` infix is what makes the parked sibling safe:
+
+- The reel is `<base>.mp4`, the cover is `<base>_cover.jpg`, the
+  caption sheet is `<base>_POST.md` and the parked source is
+  `<base>_source<videoExt>`. The `_audio` infix is used by nothing
+  else, so `<base>_audio<audioExt>` can never equal any of them.
+- The audio extension can never be `.mp4`, `.jpg` or `.md`, so it
+  cannot land on the reel, the cover or the caption sheet either.
+- It also stays clear of the `_source` family — which is exactly
+  the case that needs care: a `.mov` video with a `.mp3` sibling, or
+  a `.mp4` video with a `.m4a` sibling, where the source video and
+  the sibling audio would otherwise want neighbouring names.
+
+The older `<base><ext>` park name is gone for good: for an `.mp4`
+drop it *was* the reel output path, so parking the source there
+overwrote the transcoded reel with the original.
 
 Same proven pattern as the chart-watcher / songs-watcher: poll
 loop, lockfile-based concurrency guard (namespace-prefixed
@@ -49,7 +106,7 @@ stale-lock detection by mtime, retry-once on transient failure
 | Path | Purpose |
 |------|---------|
 | `lib/reel-watcher.js` | the watcher itself. Pure-Node, no deps. |
-| `lib/reel-watcher.test.js` | 18-assertion lockfile + listPending test harness. |
+| `lib/reel-watcher.test.js` | 98-assertion lockfile + listPending + inbox-contract test harness. |
 | `bin/reel-watcher.sh` | LaunchAgent wrapper. Multi-candidate Node resolution, sets PATH for ffmpeg. |
 | `reel-inbox/` | drop zone for new video files. `.gitkeep` keeps the dir in the repo. |
 | `reel-inbox/processed/` | outputs land here (`.gitignore`d). |
@@ -73,15 +130,19 @@ codec. If `ffmpeg` can read it, the watcher can ship it.
 
 ## Output contract
 
-For a dropped `modal-sketch-demo.mp4`, `reel-inbox/processed/`
-will contain:
+For a dropped `modal-sketch-demo.mp4` with a sibling
+`modal-sketch-demo.mp3`, `reel-inbox/processed/` will contain:
 
 | File | Content |
 |------|---------|
 | `modal-sketch-demo.mp4` | Re-encoded 9:16 H.264/AAC ready to upload to Instagram. |
 | `modal-sketch-demo_cover.jpg` | mjpeg cover image, 1080×1920, midpoint frame. |
 | `modal-sketch-demo_POST.md` | caption + hashtags + file list + IG upload steps. |
-| `modal-sketch-demo.mp4` (copy) | the original input, kept for re-runs. |
+| `modal-sketch-demo_source.mp4` | the original input, kept for re-runs. |
+| `modal-sketch-demo_audio.mp3` | the original sibling audio, kept for re-runs. |
+
+The generic form of those names, and why none of them can collide,
+is under **File-naming rules** above.
 
 ## Install + activate
 
@@ -131,13 +192,26 @@ bash bin/reel-watcher.sh --once                # same, via the LaunchAgent wrapp
 npm run test:reel-watcher
 ```
 
-Runs `lib/reel-watcher.test.js` — 18 assertions covering: empty
+Runs `lib/reel-watcher.test.js` — 98 assertions covering: empty
 inbox, supported-extension filtering, case-insensitive matching
 (`.MP4` / `.MoV` / `.MKV`), active lockfile skip, stale-by-age
 lockfile unblock, stale-by-mtime lockfile unblock, mixed states,
 deterministic ordering, lockFor hash stability (incl. cross-
-watcher namespace isolation from the songs-watcher), and full
-SUPPORTED_EXTS coverage.
+watcher namespace isolation from the songs-watcher), full
+SUPPORTED_EXTS coverage, the transcode output surviving the input
+move, and the inbox contract:
+
+- the consumed sibling audio leaves the inbox on a successful run
+  and is parked as `<base>_audio<ext>`, under a name distinct
+  from every other output of the run;
+- an unrelated audio file in the inbox is left untouched — not
+  read for tags, not moved;
+- only a same-basename file counts as a sibling;
+- a failed export leaves both the video and the sibling audio in
+  the inbox, and parks nothing;
+- moving the sibling does not disturb the lockfile / stale-mtime
+  logic, and the parked file stays inert for the `processed/`
+  sweep (flat file, not a reel directory).
 
 The integration smoke test (real ffmpeg + ffprobe against a
 synthetic `.mp4` + sibling `.mp3` with ID3 tags) is documented in
@@ -154,7 +228,9 @@ change.
 - **Caption from sibling audio only.** The watcher doesn't pull
   metadata from the video file itself; it expects an audio file
   with ID3/WAV/AIFF tags in the same directory with the same
-  basename. A dropped `.mov` with no sibling audio falls back to
+  basename — and only that basename counts, so an unrelated audio
+  file in the inbox is ignored rather than guessed at. A dropped
+  `.mov` with no sibling audio falls back to
   `basename — 🎺 Reel from the twin.` with default hashtags.
 - **Hardcoded hashtags.** The jazz tag block is built-in. Extend
   `JAZZ_TAGS` in `lib/reel-watcher.js` or pass a JSON file when
