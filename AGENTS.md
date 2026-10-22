@@ -6998,3 +6998,24 @@ afternoon.
   was added through the composer's Edit screen — the same editor,
   the same fix. Republishing from scratch would work now, but the
   edit was less destructive than a delete-and-repost.
+
+**Follow-up — the cookie jar (`lib/ig-cookies.js`):**
+
+- **A `__Host-` cookie was addressed to Instagram.** The
+  `__Host-` branch hardcoded `url: 'https://www.instagram.com'`
+  and the second argument was ignored, so Google's `__Host-GAPS`
+  was addressed to `instagram.com` — a cross-site leak of one
+  cookie to a third party. The URL is now built from the cookie's
+  OWN host, with the caller's origin as the fallback.
+- **A cookie with an empty domain column was silently dropped.**
+  The parser trimmed each line before splitting it on tabs, which
+  ate the leading tab of a `__Host-` cookie — whose domain column
+  is legitimately empty — and the line then had six columns
+  instead of seven. Only the end of a line is whitespace to be
+  ignored now.
+- `lib/ig-cookies.test.js` (7 assertions) covers both; the
+  `__Host-` guard was proved by hardcoding the old URL back and
+  watching two assertions go red.
+- `lib/youtube-poster.js` and `lib/youtube-batch.js` now pass
+  `https://studio.youtube.com` instead of the meaningless
+  `.youtube.com`.
