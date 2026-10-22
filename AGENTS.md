@@ -5552,3 +5552,128 @@ clean.
   the CLIP sample strip; (c) clip CLI `--out <file>`; (d) woody-shaw
   chart variants; (e) a custom domain for the Vercel alias, which
   currently requires a login.
+
+### 2026-10-22 — sprint 0.51 (the sheet's provenance, guarded)
+
+Follows the CI gate fix. The 12-up comparison sheet was shipped, live
+and verified — but the *chain of custody* behind it was guarded by
+nothing.
+
+**What the chain is.** The sheet is trustworthy because of a chain:
+
+```
+pack bullet  ->  variantLabel()  ->  manifest label  ->  page caption
+meta.json    ->  taskId          ->  manifest taskId ->  tile URL
+```
+
+The caption on each tile is read back out of the prompt that produced
+it, so the caption IS the clause — it cannot drift from the image. The
+whole value of a 12-up comparison is that tile 3 says "dutch tilt,
+camera rolled 30 degrees" *and tile 3 is* a dutch tilt. Break the
+chain and the sheet still renders perfectly while telling the reader
+the wrong thing about the picture.
+
+**The gap.** Sections 1-4 of `lib/mj-contact-sheet.test.js` test the
+builder's logic on synthetic input. Nothing asserted the *shipped*
+artifact. Both ends of the chain were tracked and could drift apart
+with no failure: edit one clause in the pack, or regenerate a manifest
+from a different run, and the sheet keeps rendering, now captioned
+with a clause that did not produce the image next to it.
+
+**Shipped — section 5 of `lib/mj-contact-sheet.test.js`** (27 → 48
+checks). Data-driven: it walks every directory under
+`assets/mj-sheets/`, so a newly shipped pack is covered with no edit
+here. It reads **tracked files only** — the pack, the manifest, the
+sheet PNG, the tiles — so it runs in CI, where `mj-output/` (and
+therefore the per-generation `meta.json` files) does not exist.
+
+What it pins:
+
+- the pack still exists, and parses with the **submitter's own**
+  `extractPrompts` — the same parser the watcher uses, so "the pack
+  parses" means "the pack would submit";
+- the pack yields exactly the manifest's variant count, every prompt
+  is `16:9`, and all prompts share a substantial common head and tail
+  and differ only in the middle clause — **one brief, twelve
+  variants**, proved by longest-common-prefix/suffix rather than by
+  hardcoding this pack's markers;
+- **every caption is the clause that produced its tile** (the guard);
+- every caption is the start of its own clause (so a truncated caption
+  is still a prefix of the truth, not a different sentence);
+- 12 distinct task ids, and **every tile URL points at its own
+  recorded job** — the provenance link from the manifest back to the
+  generation;
+- the grid holds exactly the variants;
+- every tile ships as a local file, is a real webp, carries real
+  pixels, and **no two tiles are the same image** — a 12-up comparison
+  with one image copied twelve times is worthless, and nothing caught
+  that;
+- the sheet PNG is a real PNG, wide and tall enough for the grid it
+  claims to hold.
+
+**Verified by making the test fail first.** A throwaway harness
+mutated each artifact and confirmed the matching guard fired — 8 of 8
+caught:
+
+| mutation | guard that fired |
+|---|---|
+| manifest caption drifts from the pack | caption is the clause that produced its tile |
+| manifest task id no longer matches its URL | tile url points at its own recorded job |
+| two variants claim the same job | the task ids are all different |
+| one tile copied over another | no two tiles are the same image |
+| pack clause drifts from the caption | caption is the clause that produced its tile |
+| manifest count no longer matches the pack | pack yields the manifest's variant count |
+| a tile goes missing | every tile ships as a local file |
+| the sheet PNG replaced with a stub | the sheet png is a real png |
+
+The harness restored every file from git afterwards; the tree was
+verified clean.
+
+**Also confirmed — the pack really is the source of the shipped
+sheet.** `assets/mural-prompts/red-coat-underpass-12.md` was restored
+into the tracked prompt library (the watcher had consumed the inbox
+copy). Parsed by the submitter and composed by `buildFullPrompt`, it
+reproduces **12/12** of the shipped generations' prompts exactly —
+the only difference from the stored `meta.json` is that `--ar 16:9`
+sits at the end instead of the middle, which is precisely what
+`buildFullPrompt` does. So the pack is the reproducible source of the
+sheet, and the sheet's captions are that pack's clauses.
+
+**Decisions:**
+
+- **Guard the artifact, not just the code.** A test on synthetic
+  input proves the builder behaves; it does not prove the shipped
+  sheet is the output of that builder. The gap between the two is
+  where drift lives.
+- **Read only tracked files in the guard.** The metas carry the raw
+  provenance but `mj-output/` is gitignored, so a guard that needs
+  them would be skipped in CI — exactly where a broken shipped sheet
+  would be published. The manifest and the pack carry the same
+  relationship in tracked form.
+- **Data-driven over the shipped set, not hardcoded to one pack.** A
+  guard that names one artifact is a guard that stops guarding the
+  moment a second one ships.
+- **Prove the guard can fail.** Eight mutations, eight catches. A
+  guard that never fails is decoration.
+
+**Verified:**
+
+- `npm run test:all` → **exit 0, 1076 assertions**, 0 failures
+  (mj-contact-sheet 27 → 48).
+- `e2e/mj-sheets.spec.mjs` against the deployed URL → **all checks
+  passed**, 0 console errors.
+- The deployed sheet page, `contact-sheet.png` and
+  `sheet-manifest.json` remain byte-identical to the repo.
+
+**Open:**
+
+- **The captions describe the prompt, not the render.** A tile whose
+  *rendering* diverges from its clause still reads as correct,
+  because the caption is derived from the prompt. The angle check was
+  a manual vision pass, not an automated one — and it cannot be fully
+  automated without reading pixels for meaning. The guard here
+  prevents the prompt→caption half of the problem; it cannot prevent
+  the render→caption half.
+- The 12 tiles share one style, so the sheet compares **camera only**.
+- `lib/mj-feed-reconcile.js`'s own file-I/O path still has no test
+  (its matching is covered by `mj-feed.test.js`).
