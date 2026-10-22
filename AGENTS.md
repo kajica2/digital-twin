@@ -6221,3 +6221,105 @@ describe the prompt, not the render (unchanged, not automatable); the
 12 sheet tiles share one style, so the sheet compares camera only;
 woody-shaw chart variants; the `.kai/` durability call; a custom domain
 for the Vercel alias.
+
+### 2026-10-22 — sprint 0.56 (the sheet's worst lie, and the condition its tiles were made under)
+
+**The finding.** The 12-up comparison sheet's variant 09 was captioned
+*overhead mirror reflection, red coat doubled in glass* and rendered a
+frontal shot with the reflection in a mirrored ceiling — the camera was
+never overhead. It survived two audits because a caption that reads
+right is not evidence. Only a look is.
+
+**The pack's own check, done exactly as written.** Render every cell of
+the suspect job and pick the closest one. The job behind tile 09
+(`8fd1fb8d`) has four cells; put all four next to a known-overhead tile
+and ask which is shot from above. The answer was **none of them**.
+
+**Two instruments, two wrong answers.** A red-mass profile (the share of
+red pixels in each third of the frame) called one cell "top-weighted,
+like the known overhead" — it was the wrong cell: in a wet-floor scene
+the red mass is a reflection, and a reflection moves the number without
+moving the camera. CLIP image-to-image similarity ranked an eye-level
+cell closest to the known overhead. Zero-shot CLIP camera-angle
+classification was worse still (~4/12 correct against known ground
+truth). **The sheet's audit is a look, not a measurement** — and that is
+why this entry proposes no automated angle checker: shipping one would
+have put a false confidence in the guard.
+
+**The reword.** `looking down from a high angle, red coat doubled in the
+wet floor` — the new job's cells are genuinely high-angle (verified by
+looking, one cell at a time).
+
+**Then the condition.** The re-render came back **three times darker**
+than the other eleven tiles, and the reason was not the angle. The
+twelve original jobs carried the account's profile **plus four
+moodboards** (`--profile brvazka mhw6dpq xr39csb det21e6 67lkfw3`); a
+job submitted the next day carried `--profile brvazka` only. The
+moodboards are still on the account — the composer's Personalize panel
+no longer expands the profile into them.
+
+A controlled A/B — same prompt, same flags, only the profile codes
+differ:
+
+| job | profile in the command | mean luminance | red pixels |
+|---|---|---|---|
+| the set (11 tiles) | profile + 4 moodboards | 0.23 – 0.39 | 28k – 265k |
+| re-render, composer only | profile | 0.08 – 0.13 | 6k – 14k |
+| re-render, codes typed into the prompt | profile + 4 moodboards | 0.26 – 0.36 | 28k – 265k |
+
+**A typed `--profile` wins cleanly.** The composer still injects its own
+`--profile brvazka`, and the command that reached Midjourney had
+**exactly one** `--profile` — the typed one, with all five codes. No
+duplicate flag, and no need to touch the account's toggle. (`--no-
+personalize` failed to open the panel on this run, and it would have
+left the toggle off; the account was left exactly as found.)
+
+**Decisions:**
+
+- **Ship the re-render (`1f583a22`, cell 3), not the moodboard-less
+  one.** A comparison sheet needs one rendering condition. A tile that is
+  dark because it came from a different account setting is not a
+  comparison — it is a different picture.
+- **The account's style codes stay out of the tracked pack.** They are
+  the account's own identifiers and the pack is tracked. They are
+  readable off any older job's `full_command`; the feed keeps them.
+- **No automated angle checker** — two instruments were tried and both
+  were wrong against known ground truth.
+- **The page's method section now says three, not two.** "Two angles were
+  re-shot" became "Three", with the third case named.
+
+**Also shipped in `106bdc1` (previously unlogged):**
+
+- `docs/MJ-WATCHER.md` — "The account's moodboards apply to every
+  prompt".
+- `e2e/media-set.spec.mjs` — three hardcoded absolute paths (a foreign
+  username's) replaced by a `~/Downloads` glob; the spec now **skips with
+  a reason** instead of failing when fewer than two samples exist.
+- `e2e/repro-vhs.mjs` — resolves its sample from its own location and
+  exits 2 with usage when it is absent.
+
+**Verified:**
+
+- The rebuilt sheet: variant 09 = cell 3 of `1f583a22`, captioned "looking
+  down from a high angle, red coat doubled in the wet floor"; the shipped
+  tile is md5-identical to the cell audited by eye, and its mean
+  luminance (0.309) sits inside the set's band (0.228 – 0.388).
+- The four cells of the final job, one at a time: cell-0 eye level,
+  cell-1 above shoulder height, cell-2 shoulder level, **cell-3 "well
+  above the figure, looking down at them from a high angle"** with the
+  coat "faintly reflected in the wet floor" — both claims of the caption.
+- `node lib/mj-contact-sheet.test.js` — 49/49, including the
+  chain-of-custody guard (caption ↔ clause, task ids, slot ↔ tile URL).
+- `cd e2e && PORT=5180 node mj-sheets.spec.mjs` — every check passes.
+
+**Open:**
+
+- The sheet's tiles were rendered under an account personalization state
+  that new jobs no longer inherit. Re-rendering the pack today needs the
+  codes typed into the prompt (documented in
+  `docs/MJ-CONTACT-SHEET.md`) or the account's panel fixed.
+- MJ captions describe the prompt, not the render. The audit of all
+  twelve tiles found 11 matching; the twelfth is this entry's fix. The
+  audit is a look, not a measurement.
+- Unchanged backlog: woody-shaw chart variants; the `.kai/` durability
+  call; a custom domain for the Vercel alias; the MJ cookie jar expiry.

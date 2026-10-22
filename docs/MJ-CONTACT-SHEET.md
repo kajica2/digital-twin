@@ -184,6 +184,75 @@ Rewording helped both, and the rewrites are what shipped:
 suspect job and pick the closest one; if no cell is close, reword and
 re-render. A job that "succeeded" is not evidence that the angle landed.
 
+### The third case: a caption that lies about the camera
+
+Variant 09 was the shipped sheet's worst lie, and it survived two
+audits before anyone looked. Its caption read *overhead mirror
+reflection, red coat doubled in glass*; the tile was a frontal shot
+with the reflection in a mirrored ceiling. The camera was never
+overhead.
+
+The pack's own check is the first step, and it is worth doing exactly
+as written — render **every** cell of the suspect job and pick the
+closest one:
+
+- the job behind tile 09 (`8fd1fb8d`) has four cells;
+- put all four next to a **known-overhead** tile and ask which one is
+  shot from above;
+- the answer was *none of them*.
+
+Measured geometry is not a substitute for that look. A red-mass
+profile (the share of red pixels in each third of the frame) called
+one cell "top-weighted, like the known overhead" — it was the
+wrong cell. The red mass in a wet-floor scene is a reflection, and a
+reflection moves the number without moving the camera. CLIP
+image-to-image similarity is no better: ranked against the known
+overhead tile it put an eye-level cell first. Two instruments, two
+wrong answers, one lesson — **the sheet's audit is a look, not a
+measurement.**
+
+So: reword, re-render. `looking down from a high angle, red coat
+doubled in the wet floor` delivered high-angle cells (verified by
+looking, one cell at a time).
+
+### The condition the tiles were rendered under
+
+The re-render came back **three times darker** than the other eleven
+tiles, and the reason was not the angle. The twelve original jobs
+carried the account's profile **plus four moodboards**
+(`--profile brvazka mhw6dpq xr39csb det21e6 67lkfw3`); a job
+submitted the next day carried `--profile brvazka` only. The
+moodboards are still on the account — the composer's Personalize
+panel just no longer expands the profile into them, so a new job
+inherits the profile and nothing else.
+
+A controlled A/B settles it: the same reworded prompt, the same
+flags, the profile codes typed into the prompt text instead of
+injected by the composer.
+
+| job | profile in the command | mean luminance | red pixels |
+|---|---|---|---|
+| original set (11 tiles) | profile + 4 moodboards | 0.23 – 0.39 | 28k – 265k |
+| re-render, composer only | profile | 0.08 – 0.13 | 6k – 14k |
+| re-render, codes in the prompt | profile + 4 moodboards | 0.26 – 0.36 | 28k – 265k |
+
+Two things follow.
+
+**A typed `--profile` wins cleanly.** The composer still injects its
+own `--profile brvazka` when the prompt carries one, and the command
+that reached Midjourney had **exactly one** `--profile` — the typed
+one, with all five codes. No duplicate flag, no need to touch the
+account's toggle. (The account's style codes are deliberately **not**
+written into the pack: they are the account's own identifiers, and
+the pack is tracked. Read them off any older job's `full_command`
+instead — the feed keeps them.)
+
+**A comparison sheet needs one rendering condition.** The shipped
+tiles were all rendered under the profile and its moodboards; the
+re-render was matched to them. A tile that is dark because it came
+from a different account setting is not a comparison, it is a
+different picture.
+
 ---
 
 ## The shipped example
@@ -209,6 +278,10 @@ than twelve unrelated pictures.
 The pack lives at `assets/mural-prompts/red-coat-underpass-12.md`
 (12 prompts — an exception to the 5–10-per-file convention, noted in the
 pack header).
+
+Eleven tiles are cell 0 of their job. **Variant 09 is cell 3 of
+`1f583a22`** — the re-render described above; the manifest records the
+slot, and the tile's own URL names the same cell.
 
 ---
 

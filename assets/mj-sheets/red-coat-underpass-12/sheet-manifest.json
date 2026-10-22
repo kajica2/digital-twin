@@ -1,6 +1,6 @@
 {
   "pack": "red_coat_underpass_12",
-  "generatedAt": "2026-10-21T14:10:28.629Z",
+  "generatedAt": "2026-10-22T16:37:13.432Z",
   "sheet": "contact-sheet.png",
   "count": 12,
   "grid": {
@@ -68,10 +68,10 @@
     },
     {
       "index": "09",
-      "label": "overhead mirror reflection, red coat doubled in glass, muted 35mm…",
-      "taskId": "8fd1fb8d-4a1c-479e-bc85-4e242e2c6496",
-      "slot": 0,
-      "imageUrl": "https://cdn.midjourney.com/8fd1fb8d-4a1c-479e-bc85-4e242e2c6496/0_0_640_N.webp?method=shortest"
+      "label": "looking down from a high angle, red coat doubled in the wet floor",
+      "taskId": "1f583a22-862a-4e11-8247-5c6ba58aa175",
+      "slot": 3,
+      "imageUrl": "https://cdn.midjourney.com/1f583a22-862a-4e11-8247-5c6ba58aa175/0_3_640_N.webp?method=shortest"
     },
     {
       "index": "10",
