@@ -80,8 +80,8 @@ For now, what's here:
   `data/songs/catalog.json`.
 - **`lib/social-engine.js`** — the social worker: it discovers the
   catalogue and the reels, tags them, writes the per-platform copy
-  (through `lib/social-shared.js`), prices them and stages a POST.md
-  the poster can publish. Deterministic, no model call.
+  (reusing `lib/persona-social-pack.js`), prices them and stages a
+  POST.md the poster can publish. Deterministic, no model call.
   Reference in `docs/SOCIAL-ENGINE.md`.
 - **`assets/mural-prompts/STYLE-PRESETS.md`** — the 23-entry MJ style
   registry, with its generated style-study pack

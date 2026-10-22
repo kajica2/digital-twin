@@ -2,7 +2,7 @@
   "name": "digital-twin",
   "version": "0.1.0",
   "private": true,
-  "description": "Personal AI twin — sprint 0 landing + sprint 1 PWA shell. Static site, no framework.",
+  "description": "Personal AI twin \u2014 sprint 0 landing + sprint 1 PWA shell. Static site, no framework.",
   "scripts": {
     "setup": "bin/setup.sh",
     "doctor": "node bin/doctor.mjs",
@@ -23,10 +23,12 @@
     "e2e:floating-toolset": "cd e2e && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" PORT=5180 node floating-toolset.spec.mjs",
     "e2e:integrations": "cd e2e && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" PORT=5180 node integrations.spec.mjs",
     "e2e:lvs": "cd e2e && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" PORT=5180 node loopable-video-segmenter.spec.mjs",
+    "mj:revise": "node lib/mj-revise.js",
     "e2e:mj-dashboard": "cd e2e && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" PORT=5180 node mj-dashboard.spec.mjs",
     "e2e:mj-sheets": "cd e2e && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" PORT=5180 node mj-sheets.spec.mjs",
     "e2e:persona-social-pack": "cd e2e && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" PORT=5180 node persona-social-pack.spec.mjs",
     "e2e:skin": "cd e2e && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" PORT=5180 node skin.spec.mjs",
+    "e2e:tools-instagram": "cd e2e && CHROME_PATH=\"${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" PORT=5180 node tools-instagram.spec.mjs",
     "skin:check": "node lib/skin-lint.js",
     "skin:validate": "node lib/skin-tokens.js assets/skins/house.css assets/skins/studio.css",
     "e2e:live": "cd e2e && E2E_URL=https://digitaltwin-ebon.vercel.app node landing.spec.mjs && cd ../e2e && E2E_URL=https://digitaltwin-ebon.vercel.app node twin-os.spec.mjs && cd ../e2e && E2E_URL=https://digitaltwin-ebon.vercel.app node twin-os-songs.spec.mjs && cd ../e2e && E2E_URL=https://digitaltwin-ebon.vercel.app node skin.spec.mjs",
@@ -104,14 +106,17 @@
     "yt:batch:dry": "node lib/youtube-batch.js --dry-run",
     "yt:playlist": "node lib/youtube-batch.js --create-playlist",
     "test-args": "/tmp/test-npm.sh \"$@\"",
+    "social:worker": "node lib/social-engine.js",
+    "social:once": "node lib/social-engine.js --once",
+    "social:dry": "node lib/social-engine.js --dry-run",
+    "test:social": "node lib/social-engine.test.js",
+    "test:social-shared": "node lib/social-shared.test.js",
     "test:x-cookies": "node lib/x-cookies.test.js",
     "test:x-text": "node lib/x-text.test.js",
     "test:x-poster": "node lib/x-poster.test.js",
     "x:capture": "node lib/x-cookie-capture.js",
     "x:check": "node lib/x-cookie-capture.js --check",
-    "x:post": "node lib/x-poster.js",
-    "test:social": "node lib/social-engine.test.js",
-    "test:social-shared": "node lib/social-shared.test.js"
+    "x:post": "node lib/x-poster.js"
   },
   "dependencies": {
     "puppeteer": "^25.15.0"
