@@ -6062,3 +6062,162 @@ Verified by running **every affected spec** against a live
 (f) a custom domain for the Vercel alias; (h) the MJ captions
 describe the prompt, not the render (unchanged, not automatable);
 (i) a live end-to-end run of `mj-revise` against a real edit job.
+
+### 2026-10-22 — sprint 0.55 (the MJ submit path: ENTER, and Midjourney's own answer)
+
+The standing backlog item (i) — *a live end-to-end run of `mj-revise`
+against a real edit job* — turned out to be the thread that pulled the
+whole submit path apart. Three real bugs, one misdiagnosis inherited
+from the repo's own notes, and one silent failure mode that no amount
+of waiting would have revealed.
+
+**Bug 1 — the click never submitted, under any of four mechanisms.**
+
+The old path clicked the composer's send button. Measured live on
+2026-10-22 against `midjourney.com/imagine`, with the prompt typed and
+the coordinates proven right (`elementFromPoint` at the button's centre
+resolves to the button's own SVG path):
+
+| mechanism | `/api/submit-jobs` calls |
+|---|---|
+| `element.click()` | 0 |
+| CDP mouse sequence (`mouseMoved` / `mousePressed` / `mouseReleased`, `buttons:1`) | 0 |
+| pointer + mouse + click event sequence | 0 |
+| the CDP sequence with `document.hasFocus() === true` confirmed at click time | 0 |
+
+**Zero** — including with an EMPTY job queue, which rules out the
+queue-refusal explanation. The click path was dead.
+
+And it was clicking the wrong button anyway: MJ renders *parameters*
+and *send* as two **unlabelled** icon buttons, and the old predicate
+took the first unlabelled one — *parameters*. It opened a panel and
+never submitted; the "submitted via send-button" log line was a lie.
+
+**Fix, and a correction to the repo's own note.** ENTER **does**
+submit (verified 3/3 consecutive live: jobs `c4531a2a…`, `5e1e976a…`,
+`3aa57de7…`). The 2026-09-30 note *"Enter degrades after the first
+submission of a session"* was a **FOCUS** bug, not an ENTER bug — after
+the composer re-renders it takes the focus with it, and an ENTER that
+lands on the page body does nothing. The backend now refocuses the
+textarea before every ENTER.
+
+**Deleted, not kept as a shim** (clean cutover): `findSendButton`,
+`COMPOSER_BUTTONS`, `COMPOSER_SCOPE_FN`, `clickSendButton`,
+`composerLength`, `composerCleared` — 191 lines. Two guards pin that
+they cannot come back.
+
+**Bug 2 — Midjourney refuses a prompt SILENTLY when the job queue is
+full.** The composer logs the prompt (`/api/prompt-session-log`), never
+asks for a submission, and shows no error. A tool watching only for the
+submit response reads that as "nothing happened" — which is exactly how
+it first presented (the earlier live run exited 1 after eight blind
+retries with `error: "not submitted"`). The backend now reads
+Midjourney's own queue readout ("N queued jobs") and waits for room.
+
+**Bug 3 — an invalid parameter is refused the same silent way, and the
+two need OPPOSITE responses.** A full queue is transient → wait. A
+refusal with room in the queue is about the PROMPT → waiting is
+pointless, and the artist needs to be told which parameter is wrong.
+
+Measured live, one prompt each, with an EMPTY queue:
+
+| parameter | result |
+|---|---|
+| `--style raw` | accepted |
+| `--style niji` | **refused** (0 submissions) |
+| `--style fire` | **refused** |
+| `--style neon` | **refused** |
+| no style | accepted |
+
+Midjourney's own
+[parameter list](https://docs.midjourney.com/hc/en-us/articles/32859204029709-Parameter-List)
+says why: **v8 has no `--style` parameter at all.** The only style
+control is `--raw` (Raw Mode), and `--niji` is a *model* switch, not a
+style. The repo's shipped packs use `--raw`, so only the live probe pack
+was affected — it asked for `--style niji`.
+
+The decision is a pure function (`refusalAction(readout)` → `'fail'` |
+`'wait'`), so it is unit-testable, and a structural assertion pins that
+the submit path actually consults it (the first version tested the pure
+function but not its USE — the mutation did not bite).
+
+**The acceptance signal is now Midjourney's own answer.** The
+`POST /api/submit-jobs` response carries the new job id, the job type,
+the event type, the FULL command the job was created with, and
+`meta.batch_size/width/height`. `parseSubmitResponse(body)` is pure and
+unit-tested. Not "the composer cleared", not "the click was dispatched" —
+the job id.
+
+**Flag ownership across spellings.** `--style`/`--raw` are one concept,
+and `--s`/`--stylize` are another; a prompt that names the style slot
+must also drop the source's *coupled* stylize, or the source's
+`--raw`/`--stylize 21` rides along behind the prompt's own `--style`.
+`FLAG_GROUPS` + a pure `namesFlag(text, names)`.
+
+**`--ar` was doubled in `mj-revise`.** The pack convention puts
+`--ar 16:9` on every bullet, so composing without care emitted the
+ratio twice — the PM-2026-09-24-dup-flags class, where MJ silently
+takes the LAST one. The prompt's own ratio now wins, is emitted exactly
+once, and goes last. The ratio resolution was pulled into two pure
+helpers (`resolveRatio`, `stripOwnAr`) so the composed prompt and the
+`carriedFlags` record in `meta.json` cannot disagree — the record was
+reporting the SOURCE's ratio while the prompt carried its own.
+
+**Two more honesty fixes found by running it.**
+
+- The grid files were named `0_0.png` while Midjourney's CDN serves
+  **WebP** — the artifact lied about its own format (`file` reported
+  WebP, the extension claimed PNG). The extension now follows the URL
+  (`gridFileName`), and `meta.json` records `gridFiles` and the job's
+  `nativeSize` separately from the previews actually written.
+- `mj-revise.js` had its own copy of the submit path — and that copy
+  was the buggy one. It is cut over to the shared `submitViaComposer`;
+  a guard asserts `mj-revise.js` must not dispatch its own key events
+  or search for buttons.
+
+**Verified end-to-end (live, real jobs, headed Chrome on :9444).**
+
+- `mj-revise` against source job `cd0a08b1…` — exit 0, new **edit**
+  job `f0c7a663-3f28-467d-8ca0-d62dafa14fb9`
+  (`v8-2_edit_diffusion` / `edit_ref_diffusion`, 2944×1648), 4 real
+  images written. Midjourney's own recorded command is the proof of the
+  ownership rule: `--ar 16:9 --raw --sref … --profile … --edit … --hd
+  --v 8.2` — the prompt's style **once**, the source's `--raw` and
+  `--stylize 21` **gone**, the ratio **once**.
+- The **web backend** re-verified after the `submitComposed` change
+  (its submit mechanism changed from click to ENTER): job
+  `15991d38-3a51-4866-8a20-312a0a16bb49` (`v8-2_hd_diffusion`), 4
+  images, exit 0.
+
+**The synthetic-fixture lesson.** The contact sheet's e2e ran on
+synthetic tiles and was green while the live submit path was dead.
+A fixture proves the SHAPE of an artifact; it never exercises the
+MECHANISM. The live run is what caught all three bugs.
+
+**Concurrency triage.** A concurrent session was working in the same
+checkout and had written a separate `--no-personalize` feature into
+`lib/mj-web.js`. Only my hunks were staged — the diff was split by hunk
+and the non-mine hunks dropped — so their in-flight work stayed in the
+working tree untouched. The STAGED tree was then materialised
+independently (`git checkout-index --all --prefix=…`) and re-tested, so
+the commit was verified as it would land and not as the working tree
+happens to look.
+
+**Guards proven to bite** (mutate → red → restore → green):
+`queueHasRoom` `<=`→`<`; `MJ_QUEUE_ROOM` 1→2; the `waitForQueueRoom`
+call removed; `parseSubmitResponse` drops the `job_id` guard; `ownAr =
+null` in `composePrompt`; `refusalAction` always `'wait'`; the
+fail-fast branch removed; `resolveRatio` → the source ratio in the
+record; `gridFileName`'s extension always `.png`.
+
+**Verified:** `lib/mj-web.test.js` 56 checks, `lib/mj-revise.test.js`
+52 checks, `npm run test:all` — **910 assertions across 19 suites, 0
+failures**. The staged snapshot re-tested green on its own.
+
+**Open:** the MJ cookie jar expires (re-export to
+`~/.midjourney-cookies.txt` when the feed returns the login page;
+`node lib/mj-web.js --preflight` is the cheap check); MJ captions
+describe the prompt, not the render (unchanged, not automatable); the
+12 sheet tiles share one style, so the sheet compares camera only;
+woody-shaw chart variants; the `.kai/` durability call; a custom domain
+for the Vercel alias.

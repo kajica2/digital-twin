@@ -216,10 +216,74 @@ this.
 ### How success is judged
 
 A cleared prompt box is **not** proof of acceptance — the UI clears it either
-way. The backend snapshots the task ids already in the feed, submits, then
-waits for a **new** `cdn.midjourney.com/<uuid>/...` task to appear. That uuid
-becomes the acceptance signal, and its image URLs are written to
-`meta.json`, so a run leaves machine-checkable evidence rather than a claim.
+way. The acceptance signal is **Midjourney's own answer**: the response to
+`POST /api/submit-jobs` carries the new job id, the job type and the full
+command the job was created with. That response is captured in the page and
+read back, so a run leaves machine-checkable evidence rather than a claim.
+
+The feed is only consulted afterwards, for the finished images — it lags the
+submission by 9–15 seconds and longer when the queue is busy.
+
+### The composer is driven with ENTER, not the send button
+
+Measured against the live page (2026-10-22), clicking the composer's send
+button **does not submit**, however the click is delivered: `element.click()`,
+a full CDP mouse sequence (`mouseMoved` / `mousePressed` / `mouseReleased`
+with `buttons:1`), a pointer+mouse+click event sequence, and the same with
+`document.hasFocus()` confirmed true at click time. `elementFromPoint` at the
+button's centre resolves to the button's own SVG path, so the coordinates are
+right — and no `/api/submit-jobs` request is made either way.
+
+Pressing **ENTER** in the composer does submit. The focus matters: after the
+composer re-renders it takes the focus with it, and an ENTER that lands on
+the page body does nothing. The backend refocuses the textarea before every
+ENTER, which is what makes consecutive submissions land.
+
+This is also why the older note "Enter degrades after the first submission of
+a session" was wrong: the cause was lost focus, not ENTER.
+
+### The account's job queue can refuse a prompt — silently
+
+Midjourney's relaxed mode holds a couple of jobs at a time. When the queue is
+full, a submission is **turned away without a word**: the composer logs the
+prompt (`/api/prompt-session-log`), never asks for a submission
+(`/api/submit-jobs`), and shows no error. The prompt just stays in the
+composer.
+
+A tool that only watches for the submit response reads that refusal as
+"nothing happened" — which is exactly how it first presented. The backend
+reads Midjourney's own queue readout ("2 queued jobs"), waits for room, and
+retries. A submission is accepted with one job queued and refused with two.
+
+### A bad parameter is refused the same silent way
+
+The refusal above has a second cause, and it needs the **opposite** response:
+the queue is fine, and the **prompt** is what Midjourney turned down. Waiting
+will not help — the prompt has to change.
+
+Measured live on 2026-10-22 with an empty queue, one prompt each:
+
+| parameter | result |
+|---|---|
+| `--style raw` | accepted |
+| `--style niji` | **refused** — 0 submissions |
+| `--style fire` | **refused** |
+| `--style neon` | **refused** |
+| no style | accepted |
+
+Midjourney's own
+[parameter list](https://docs.midjourney.com/hc/en-us/articles/32859204029709-Parameter-List)
+confirms why: **v8 has no `--style` parameter at all.** The only style
+control is `--raw` (Raw Mode), and `--niji` is a *model* switch, not a
+style. A style value that v8 does not know is dropped along with the whole
+submission, with no error anywhere.
+
+The backend distinguishes the two cases with Midjourney's own queue readout:
+room in the queue means the prompt was refused, so the run **fails fast**
+with a message naming the likely parameter, instead of burning eight
+retries on a prompt that can never land. The refusal is recorded per prompt
+and the pack continues.
+
 
 ## Chrome profile setup (one-time) — Discord backend only
 
