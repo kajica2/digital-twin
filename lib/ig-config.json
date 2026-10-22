@@ -1,26 +1,33 @@
 {
-    "_note": "Instagram automation configuration. Uses a headed browser + cookie jar to post via instagram.com.",
+  "_note": "Instagram automation configuration. Uses a headed browser + cookie jar to post via instagram.com.",
 
-    "cookiesFile": "/Users/kaidejuricmasscmbook/Downloads/d1925cb8-c34b-4805-aaa9-56eda9fc7f10.txt",
-    "_note_cookiesFile": "Cookie jar exported from a browser logged into Instagram. Netscape format. The provided file has sessionid for ds_user_id 290900224.",
+  "cookiesFile": "~/.instagram-cookies.txt",
+  "_note_cookiesFile": "Cookie jar exported from a browser logged into Instagram. Netscape format. Export it with a 'Get cookies.txt' extension, or from DevTools. The jar MUST be fresh: an Instagram session is revoked server-side, and a stale jar lands on a password wall rather than failing loudly.",
 
-    "userDataDir": "/tmp/ig-profile",
-    "_note_userDataDir": "Browser profile for Instagram. Separate from other automations.",
+  "userDataDir": "/tmp/ig-profile",
+  "_note_userDataDir": "Browser profile for Instagram. Separate from other automations.",
 
-    "browserBin": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-    "_note_browserBin": "Browser binary. MUST run headed — Instagram blocks headless.",
+  "browserBin": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "_note_browserBin": "Browser binary. MUST run headed — Instagram blocks headless.",
 
-    "chrome": {
-        "debugPort": 9445,
-        "_note_debugPort": "CDP port for Instagram poster. Must differ from MJ's 9444."
-    },
+  "chrome": {
+    "debugPort": 9446,
+    "_note_debugPort": "CDP port for Instagram. Must differ from MJ's 9444 and 9445."
+  },
 
-    "post": {
-        "outputDir": "reel-inbox/posted",
-        "_note_outputDir": "Where to move successfully posted reels.",
-        "uploadTimeoutMs": 180000,
-        "_note_uploadTimeoutMs": "How long to wait for video upload to complete.",
-        "captionFromPostMd": true,
-        "_note_captionFromPostMd": "Extract caption from POST.md in the same directory as the reel."
-    }
+  "post": {
+    "outputDir": "reel-inbox/posted",
+    "_note_outputDir": "Where to move successfully posted reels.",
+    "uploadTimeoutMs": 180000,
+    "_note_uploadTimeoutMs": "How long to wait for video upload to complete.",
+    "captionFromPostMd": true,
+    "_note_captionFromPostMd": "Extract caption from POST.md in the same directory as the reel."
+  },
+
+  "story": {
+    "size": "1080x1920",
+    "_note_size": "A story is 9:16. A still of another shape goes on a 1080x1920 canvas: the frame centred, the rest a blurred fill of itself.",
+    "noCaption": true,
+    "_note_noCaption": "A story carries no caption. That is the point of it for artwork with nothing to say in words."
+  }
 }

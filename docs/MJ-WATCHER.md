@@ -581,3 +581,45 @@ shot, tenement stoop mouth") — losing exactly the measurable details a
 plate check asks for. 922 characters came back verbatim; 1,006 did not.
 A marker word does not help: it is part of the prose, and Midjourney
 renders prose.
+
+---
+
+## Instagram: posting a still as a story
+
+`lib/ig-poster.js` posts a reel with a caption. A **story** is the
+format that needs no caption, which is the right target for artwork
+that has nothing to say in words:
+
+```bash
+npm run ig:story -- reel-inbox/stories/<image>.jpg
+```
+
+A story is 1080×1920. A still of another shape goes on that canvas: the
+frame centred, the rest a blurred fill of itself.
+
+### The cookie jar is the gate
+
+Instagram revokes sessions **server-side**, so a jar can be perfectly
+well-formed and still dead:
+
+| The jar | What Instagram does |
+|---|---|
+| Expired (the one that shipped, from 2026-10-09) | Redirects to `/accounts/password/reset/` |
+| Copied from a live browser profile | Shows the account picker, then asks for the password |
+
+Neither failure is loud, which is why the tool checks explicitly and
+names the cause:
+
+```
+Error: not logged in — no Create button at instagram.com.
+```
+
+`npm run ig:check-cookies` reports the jar's shape and its age. The jar
+now lives at `~/.instagram-cookies.txt` (see `lib/ig-config.json`).
+
+### A bug this found
+
+`lib/ig-poster.js` called `cdpConnect(PORT)`, but `cdpConnect` takes a
+**debug URL** — the poster's reel path had been failing with
+`Error: Invalid URL` before it ever reached Instagram. Fixed to
+`cdpConnect(\`http://127.0.0.1:${PORT}\`)`.
