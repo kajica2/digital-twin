@@ -5907,3 +5907,24 @@ them all green. A guard that never fails is decoration.
 - `mj-revise` still has no live end-to-end run against a real edit job
   since the fix — the composition is proven by unit test, but the tool
   has not been driven through a real submission in this state.
+
+### 2026-10-22 — sprint 0.53.b (sheet guard: the slot invariant)
+
+One more invariant for the shipped sheet's provenance guard.
+
+The manifest records **which cell of the 4-up** each tile came from
+(`slot`), and the tile's own URL names that cell (`…/0_<slot>_…`).
+They are written by different parts of the builder, so they can drift
+apart — and a manifest that says "slot 2" over a slot-1 tile
+misreports the comparison the sheet exists to make.
+
+**Added:** the URL's cell must be the manifest's cell.
+
+**Proven by making it fail:** mutating one variant's slot turns the
+check red; restoring the manifest turns it green. (The shipped sheet
+uses slot 0 for every variant — the 4-up's first cell — so the
+invariant holds trivially today. The point is that it will *keep*
+holding if the slot map ever changes.)
+
+`npm run test:all` → **exit 0, 1145 assertions**, 0 failures
+(1144 → 1145).
