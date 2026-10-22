@@ -89,6 +89,10 @@ For now, what's here:
   the MJ watcher).
 - **`docs/DESIGN-RATIONALE.md`** — why the page looks the way it does.
 - **`docs/COMPONENT-CATALOGUE.md`** — what each Web Component does.
+- **`lib/prompt-lint.js`** — the guard on prompt packs: no prompt may
+  name the subject's race or ethnicity, because a reference photo is
+  supposed to govern who appears in the frame. Reference in
+  `docs/PROMPT-LINT.md`.
 - **`DESIGN.md`** — the skin contract, in prose. What a token is, how a
   skin is written, how to adopt the contract in a sibling repo.
 - **`lib/skin-contract.js`** — the contract as code: 81 themed tokens,

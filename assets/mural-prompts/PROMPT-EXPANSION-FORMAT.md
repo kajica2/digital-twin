@@ -85,7 +85,7 @@ directly modifying a person noun ("a black man", "an Asian woman",
 "African-American saxophonist") is a finding. It reads packs through
 the submitter's own parser, so it checks exactly what the watcher
 would send, and it ignores frontmatter, blockquotes and code fences
-just as the watcher does.
+just as the watcher does. Full reference: `docs/PROMPT-LINT.md`.
 
 It deliberately does **not** fire on photographic treatments or
 clothing — "black and white", "a black-and-white portrait", "a woman
