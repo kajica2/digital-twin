@@ -6647,3 +6647,100 @@ missing half, and corrected the renderer: **Midjourney**, not FLUX.2.
 - Run the reel-inbox pipeline end to end with one of these plates as
   the source — the distribution side is still the unproven half.
 - Extend the social engine's catalogue discovery to the daily bundle.
+
+### 2026-10-22 — sprint 0.46 (the distribution half — daily plate → reel → package)
+
+The daily run publishes plates. A plate on a page is not
+distribution. This sprint closes the gap between the two halves of the
+media pipeline: what the twin makes, and what the twin can actually
+hand to a poster.
+
+**The finding — two pipelines that never met.** The reel-watcher writes
+its output **flat** into `reel-inbox/processed/`: `<base>.mp4`,
+`<base>_cover.jpg`, `<base>_POST.md` and the parked `<base>_source.mp4`
+in one directory. The social engine's reel discovery looked for a
+**directory per reel**. So the watcher's output was never picked up —
+not a bug in either, a disagreement about where a reel lives. The daily
+bundle was not in the catalogue at all: the discovery was hardcoded to
+`covers/lettering-manifest.json` and `system-error/plates.json`.
+
+**Shipped.**
+
+- **The social engine reads the daily bundle.** One product per plate
+  (the same rule as the System Error plates: every plate is its own
+  prompt, so every plate is its own product), carrying the day's
+  collection, the badge, the teaser, the prompt, the alt text, the
+  Midjourney task id and the dimensions.
+- **The social engine reads the flat reel layout** — and still reads the
+  older directory layout, because both exist on disk. The parked
+  `<base>_source.mp4` is explicitly not a reel.
+- **The reel's caption is trimmed** before it becomes the description:
+  the watcher's caption carries its own `Hashtags:` tail, and the engine
+  derives its own, so the tail was being shipped twice and mined as a
+  tag called `#hashtags`.
+- **`lib/social-engine.test.js`** — six new assertions on the flat
+  layout (121 total), and seven on the daily bundle.
+- **`docs/SOCIAL-ENGINE.md` + `lib/social-config.json`** — the source
+  notes now describe what is actually read.
+
+**Verified end-to-end, with the live services.**
+
+- A daily plate (`frame-02.jpg`, *switchboard · lamp*) became a real
+  vertical reel: 1080×1920 H.264/AAC, 6 s, 30 fps — a sharp horizontal
+  band over a blurred, darkened extension of itself, drifting slowly
+  right. Built locally with ffmpeg, dropped into `reel-inbox/`, and
+  picked up by the **running** reel-watcher in 23.5 s:
+  `[done] relay-switchboard-lamp.mp4 → mp4 + cover + POST.md written`.
+- The POST sheet's caption came from the sibling audio's ID3:
+  *switchboard · lamp — Digital Twin (Relay) [cyberpunk / hk] 🎺 Reel
+  from the twin.* — the plate's own caption, carried through the
+  pipeline.
+- The social worker then packaged it — `relay-switchboard-lamp · 6 EUR ·
+  not marked for publish — staged` — together with the three daily
+  plates. **Nothing was posted**: `posting.autoPublish` is false and
+  every item is staged, which is the gate.
+- `npm run test:social` — 121 assertions, 0 failures.
+
+**The bug worth keeping.** The first social run wrote the four new
+packages and they were **gone a minute later**. The running
+social-worker was still on the old code: it did not know the daily
+bundle or the flat reel layout, so the items were not in its catalogue,
+and the worker prunes any package whose source is gone. The fix was a
+`launchctl kickstart -k` — the worker had to be restarted to read the
+new code. Worth remembering: a service that prunes what it does not
+recognise will eat the output of whatever else just ran.
+
+**Decisions.**
+
+- **The reel source is built vertical, not letterboxed.** The watcher
+  pads rather than crops (by design, so nothing is lost), but feeding it
+  a 16:9 source would put a 35 mm still in a black band. The source
+  video is 1080×1920 to begin with — the still centred over a blurred,
+  darkened extension of itself, drifting right — so the watcher's
+  letterbox has nothing to do.
+- **The reel is silent.** Instagram reels are posted silent and the
+  music is added in the app; the audio track exists so the watcher's
+  fade in/out and AAC path run. The sibling MP3 carries the plate's ID3,
+  which is where the caption comes from.
+- **Both reel layouts are read.** The watcher is the truth; the older
+  directory layout is still on disk, and a discovery that only understands
+  one of them loses assets silently.
+
+**Open.**
+
+- Nothing in this chain posts on its own. The Instagram poster is
+  gated behind `publish: true` per item, and X is not armed at all.
+- The reel is silent and has no music bed; a real track has to be added
+  in the app, or the twin needs a library it can license.
+- The reel's hashtags are the jazz house set — right for the audience,
+  but the daily collection's own badge (*cyberpunk / hk*) is not in them.
+- The social engine's `tagText` for a daily plate is the whole prompt,
+  so the tag list is long. It works; it is not curated.
+
+**Next.**
+
+- Let a daily plate become a reel automatically, instead of a person
+  dropping the source into the inbox: the daily run could hand its
+  published plate to the reel pipeline in one step.
+- Give the reels their own pricing tier and a cover frame on the
+  marketplace page.

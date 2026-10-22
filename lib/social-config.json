@@ -12,12 +12,12 @@
         "reels": {
             "enabled": true,
             "dir": "reel-inbox/processed",
-            "_note": "Reels the reel-watcher already produced (mp4 + cover.jpg + POST.md)."
+            "_note": "Reels the reel-watcher already produced, in the flat layout it writes: <base>.mp4, <base>_cover.jpg and <base>_POST.md in one directory (the parked <base>_source.mp4 is not a reel)."
         },
         "catalogue": {
             "enabled": true,
             "dir": "assets/marketplace",
-            "_note": "The store's catalogue: cover studies and System Error plates. Metadata comes from lettering-manifest.json / plates.json."
+            "_note": "The store's catalogue: cover studies, System Error plates and the daily bundle the daily run publishes (assets/marketplace/daily/<date>/plates.json). Metadata comes from lettering-manifest.json / plates.json."
         }
     },
     "posting": {

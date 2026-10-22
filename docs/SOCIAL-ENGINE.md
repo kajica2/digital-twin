@@ -12,8 +12,9 @@ the inputs changed and nothing else.
 
 ```
 assets/marketplace/covers/          ┐
-assets/marketplace/system-error/    ├─► discovery ─► package ─► stage ─► (gated) post
-reel-inbox/processed/<reel>/        │                  │
+assets/marketplace/system-error/    │
+assets/marketplace/daily/<date>/    ├─► discovery ─► package ─► stage ─► (gated) post
+reel-inbox/processed/               │                  │
 social-inbox/<item>/                ┘                  └─ data/social/<id>/
                                                             post.json
                                                             POST.md      ← what the poster reads
@@ -137,7 +138,7 @@ adds it to the price plan.
 | `lib/social-engine.js` | the worker and every pure function in it |
 | `lib/social-shared.js` | the shared rules: one tag alphabet, one tier contract, one POST.md shape |
 | `lib/social-config.json` | the config: sources, tag pools, caps, price table, posting gate |
-| `lib/social-engine.test.js` | the unit suite (83 assertions) |
+| `lib/social-engine.test.js` | the unit suite (121 assertions) |
 | `lib/social-shared.test.js` | the rules suite (36 assertions) |
 | `data/social/` | the generated packages and the price plan (gitignored) |
 | `social-inbox/` | the drop zone (gitignored, `.gitkeep` kept) |
@@ -146,7 +147,11 @@ adds it to the price plan.
 ## The limits
 
 - The catalogue and the reels are discovered; anything else has to be
-  dropped into `social-inbox/`.
+  dropped into `social-inbox/`. The catalogue is the covers, the System
+  Error plates and the daily bundle the daily run publishes; the reels
+  are the reel-watcher's output, in the flat layout it writes
+  (`<base>.mp4`, `<base>_cover.jpg`, `<base>_POST.md` in one
+  directory).
 - The price plan is a plan. Nothing writes to Gumroad.
 - The copy is template-driven. It is serviceable, not a campaign.
 - A stale package (its source is gone) is pruned, with a log line.
