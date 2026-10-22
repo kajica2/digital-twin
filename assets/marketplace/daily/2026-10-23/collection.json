@@ -1,0 +1,14 @@
+{
+  "id": "frost-window",
+  "date": "2026-10-23",
+  "title": "Frost Window",
+  "badge": "soundhealing",
+  "teaser": "Winter writes on the glass and the room reads it slowly.",
+  "aspect": "16:9",
+  "source": "midjourney",
+  "plates": [
+    "frame-01.jpg",
+    "frame-02.jpg",
+    "frame-03.jpg"
+  ]
+}
