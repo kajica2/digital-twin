@@ -46,6 +46,10 @@ try {
   page.on('pageerror', e => lvsErrors.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error') lvsErrors.push('console.error: ' + m.text()); });
   page.on('requestfailed', r => lvsErrors.push('reqfail: ' + r.url() + ' ' + (r.failure()?.errorText || '')));
+  // The bench must not call /api/* on load — a doc page has no business
+  // provoking an error from a host that has no API.
+  const lvsApiRequests = [];
+  page.on('request', r => { if (/\/api\//.test(r.url())) lvsApiRequests.push(r.url()); });
   await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: 'light' }]);
   try {
     await page.goto(LVS_URL, { waitUntil: 'networkidle0', timeout: 20000 });
@@ -129,9 +133,8 @@ try {
   check('lvs: the bench controls carry the API\'s parameters', await page.evaluate(() =>
     ['cStart', 'cEnd', 'cVideo', 'cToken', 'cRender'].every(id => !!document.getElementById(id))));
 
-  check('lvs: the bench probes the API', await page.evaluate(() =>
-    document.querySelector('#apiBadge').dataset.state === 'ok'),
-    await page.evaluate(() => document.querySelector('#apiBadge').textContent));
+  check('lvs: the bench makes no API request until it is asked to', lvsApiRequests.length === 0,
+    lvsApiRequests.slice(0, 3).join(' | '));
 
   check('lvs: startSec/endSec mirror the selected segment', await page.evaluate(() => {
     const start = parseFloat(document.querySelector('#cStart').value);
