@@ -46,6 +46,10 @@ try {
   page.on('pageerror', e => lvsErrors.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error') lvsErrors.push('console.error: ' + m.text()); });
   page.on('requestfailed', r => lvsErrors.push('reqfail: ' + r.url() + ' ' + (r.failure()?.errorText || '')));
+  // The bench must not call /api/* on load — a doc page has no business
+  // provoking an error from a host that has no API.
+  const lvsApiRequests = [];
+  page.on('request', r => { if (/\/api\//.test(r.url())) lvsApiRequests.push(r.url()); });
   await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: 'light' }]);
   try {
     await page.goto(LVS_URL, { waitUntil: 'networkidle0', timeout: 20000 });
@@ -89,6 +93,57 @@ try {
     const btns = document.querySelectorAll('.copy-btn[data-copy]').length;
     return `blocks=${blocks} copyBtns=${btns}`;
   }));
+
+  // The mirror bench — the page's one piece of behaviour. It illustrates the
+  // documented algorithm (beat grid in, N windows out, forward + reversed);
+  // it never decodes a video. The controls must drive the readouts.
+  check('lvs: the bench scope is present and sized', await page.evaluate(() => {
+    const c = document.querySelector('#benchCanvas');
+    return !!c && c.width > 0 && c.getBoundingClientRect().height > 0;
+  }));
+
+  check('lvs: the segments control re-divides the windows', await page.evaluate(() => {
+    const s = document.querySelector('#cSeg');
+    s.value = 12;
+    s.dispatchEvent(new Event('input', { bubbles: true }));
+    const rows = document.querySelectorAll('#benchTableBody tr').length;
+    const seg = document.querySelector('#roSeg').textContent.trim();
+    s.value = 4;
+    s.dispatchEvent(new Event('input', { bubbles: true }));
+    return rows === 12 && seg === '01 / 12';
+  }));
+
+  check('lvs: a silent source switches to the equal-time fallback', await page.evaluate(() => {
+    document.querySelector('#cSilent').click();
+    const path = document.querySelector('#roPath').textContent.trim();
+    document.querySelector('#cAudio').click();
+    return path === 'equal-time fallback';
+  }));
+
+  check('lvs: --no-loopable drops the mirror half', await page.evaluate(() => {
+    const cb = document.querySelector('#cLoop');
+    cb.click();
+    const loop = document.querySelector('#roLoop').textContent.trim();
+    cb.click();
+    return /plain cut/.test(loop);
+  }));
+
+  // The control surface is shaped by the repo's own HTTP API — the window
+  // the scope draws is the window POST /api/render/clip would take.
+  check('lvs: the bench controls carry the API\'s parameters', await page.evaluate(() =>
+    ['cStart', 'cEnd', 'cVideo', 'cToken', 'cRender'].every(id => !!document.getElementById(id))));
+
+  check('lvs: the bench makes no API request until it is asked to', lvsApiRequests.length === 0,
+    lvsApiRequests.slice(0, 3).join(' | '));
+
+  check('lvs: startSec/endSec mirror the selected segment', await page.evaluate(() => {
+    const start = parseFloat(document.querySelector('#cStart').value);
+    const end = parseFloat(document.querySelector('#cEnd').value);
+    return start === 0 && end > 0;
+  }));
+
+  check('lvs: the render control waits for a token', await page.evaluate(() =>
+    document.querySelector('#cRender').disabled));
 
   await page.screenshot({ path: path.join(ARTIFACTS, 'lvs-light.png'), fullPage: true });
   console.log('wrote artifacts/lvs-light.png');

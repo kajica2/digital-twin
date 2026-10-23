@@ -107,6 +107,70 @@ structural addition: `compute_segments()` is split out so CLI and UI
 share the same boundary-detection pipeline, and the status message
 reports which path was actually used.
 
+## The page
+
+`pages/loopable-video-segmenter.html` (and its root twin
+`loopable-video-segmenter.html`) is the tool page: house-style, skinned,
+light/dark under `localStorage["lvs-theme"]`, with a scroll-spy, a
+progress rail, a mobile drawer and copy buttons on every code block.
+
+It carries one piece of behaviour, **the mirror bench** — a canvas
+scope that shows what the CLI does: a beat grid in, N contiguous
+windows out, each window built as `[forward, reverse]` with the
+playhead sweeping out and back. The controls (segments 1–20, loopable
+on/off, audio/silent, beat grid) drive the segmentation for real, and
+the silent source takes the equal-time fallback path.
+
+It is an **illustration of the documented algorithm, not a video
+render** — nothing in the page decodes an MP4, and the page says so.
+
+The bench runtime lives in `lib/lvs-bench.js` (a classic script, not a
+module, so the relative path survives the root copy). The palette it
+draws with comes from the page's `.bench-wrap` scope and from the
+skin, so a skin swap re-tints the whole scope.
+
+### The controls are shaped by the API
+
+The bench's control surface is not invented — it is the repo's own
+HTTP surface (`lib/api/router.mjs`), so the window the scope draws is
+the window the server can actually render:
+
+| Control | Endpoint it fits |
+| --- | --- |
+| `startSec` / `endSec` | the body of `POST /api/render/clip` |
+| `video` (file) | `video: { name, dataBase64 }` in the same body |
+| `bearer token` | `Authorization: Bearer …` on every call |
+| the balance readout | `GET /api/credits` → `{ userId, balance }` |
+| the API badge | `GET /api/health` → `{ ok, ffmpeg, credits, vendor }` |
+| the render button | `POST /api/render/clip` → `202 { jobId }`, then `GET /api/jobs/:id` → `GET /api/jobs/:id/output` |
+
+The render writes a real clip into the scope: the endpoint's bytes
+are fetched with the bearer header, turned into a blob URL and handed
+to a `<video>` (a `<video src>` cannot send an `Authorization`
+header, so the fetch has to happen first).
+
+Three things it deliberately does **not** do:
+
+- **It never carries the admin key.** The key that mints a token
+  (`POST /api/credits/grant`, `x-admin-key`) is a server secret; the
+  page asks the operator to paste a token and keeps it in
+  `localStorage["lvs-token"]`, in that browser only.
+- **It does not fake the mirror.** `/api/render/clip` renders the
+  window as a plain cut. The forward + reverse build is the CLI's
+  job (`--no-loopable` drops it); the scope still shows it.
+- **It does not break on a static host.** The API is mounted on
+  `lib/serve.js`; a host that rewrites every path to the landing
+  page (Vercel) has no `/api/*` at all, so the badge reads *no api on
+  this host*, the render control explains why, and the scope keeps
+  working.
+- **It calls `/api/*` only when the operator asks it to.** The badge
+  starts at *api · not checked* and the page makes no API request on
+  load: a doc page has no business provoking an error from a host
+  that has no API (and CI runs Node 20, where `node:sqlite` — and so
+  the whole API — does not exist yet). Pasting a token probes
+  `/api/health` and reads the balance; **Render window** probes first
+  if it has not been probed yet.
+
 ## npm scripts
 
 | Script          | Command                                                          |
@@ -125,9 +189,14 @@ args are ergonomic: `npm run lvs:segment -- video.mp4 --segments 4`.
 `e2e/loopable-video-segmenter.spec.mjs` is a static-contract Puppeteer
 spec: hero, theme toggle + reload persistence, how-to-run contains
 `npm run lvs:ui`, params table rows, how-it-works steps, notes
-callouts, attribution links, Twin OS `data-tool-lvs` card, every
-internal link resolves, **0 console errors** on both pages, light +
-dark screenshots. Runs from the repo root
+callouts, attribution links, the mirror bench (scope sized, segments
+control re-divides the windows, silent source takes the fallback
+path, `--no-loopable` drops the mirror half), Twin OS
+`data-tool-lvs` card, the bench's endpoint-shaped controls (the
+API's parameters, the `/api/health` probe, `startSec`/`endSec`
+mirroring the selected segment, the render control waiting for a
+token), every internal link resolves, **0 console errors** on both
+pages, light + dark screenshots. Runs from the repo root
 
 ```bash
 node lib/serve.js --port 5180                 # in one terminal

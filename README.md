@@ -43,7 +43,10 @@ For now, what's here:
   (offline MP3→MP4 with mood-keyword auto-covers; single/custom/batch),
   docs and sibling link from the Twin OS Songs panel.
 - **`pages/loopable-video-segmenter.html`** — the Loopable Video
-  Segmenter port (MP4→N beat-aligned mirror-loopable clips), docs and
+  Segmenter port (MP4→N beat-aligned mirror-loopable clips) with the
+  mirror bench — a live scope showing the segmentation and the
+  forward+reverse build, whose controls are shaped by the repo's own
+  HTTP API (`POST /api/render/clip`, `GET /api/jobs/:id`) — docs and
   sibling link from the Twin OS Songs panel.
 - **`lib/loopable-video-segmenter/`** — Python package (uv-managed
   venv) that powers the Loopable Video Segmenter. Gradio UI + CLI +
@@ -597,6 +600,7 @@ digital_twin/
 │   ├── mj-feed.js            # the Midjourney feed gate (attribution ground truth)
 │   ├── mj-feed-reconcile.js  # re-derive every slot's task id from the live feed
 │   ├── mj-contact-sheet.js   # a rendered pack → a captioned comparison sheet
+│   ├── lvs-bench.js          # the mirror bench: the scope + the /api/render/clip client
 │   ├── clip-interrogator/    # Python package (uv-managed venv)
 │   └── loopable-video-segmenter/ # Python package (uv-managed venv)
 ├── data/                     # generated catalogs (gitignored)
