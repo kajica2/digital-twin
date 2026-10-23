@@ -7020,6 +7020,277 @@ afternoon.
   `https://studio.youtube.com` instead of the meaningless
   `.youtube.com`.
 
+**Follow-up — the YouTube path, driven against the live Studio:**
+
+The four "blockers fixed" above were not enough: the upload still
+never ran, because the fixes had only been reasoned about. Driving
+the real browser found three more, each one a distinct way for a
+publish to look like it worked and do nothing.
+
+- **`cdpConnect()` resolves to a WebSocket URL, not to a client.**
+  The poster used it as the client, so the first send died with
+  `client.send is not a function`. `makeClient()` now builds and
+  connects a `CDPClient`.
+- **The channel dashboard has no file input.** The uploader lives
+  behind the Create menu's "Upload videos" entry, and the input
+  (`Filedata`) only exists once that dialog is open. The poster
+  navigated to `studio.youtube.com` and looked for an input that was
+  never there — and created a hidden one that nothing was listening
+  to.
+- **`DOM.setFileInputFiles` fires no event.** YouTube's uploader
+  starts on the input's `change` event, which is why Puppeteer's
+  `uploadFile()` dispatches it. Without the event the file sits in
+  the input and nothing starts.
+- **Node ids go stale.** `DOM.getDocument` → `DOM.querySelector`
+  asks the browser twice, and Studio's dialog re-renders between the
+  two calls: "No node with given id found". A remote object handle
+  survives the re-render, so the input is now found through
+  JavaScript and handed over by `objectId`.
+
+**The seam is the lesson.** `uploadToYouTube()` had no way to be
+tested, so only its pure metadata logic was covered — and the
+plumbing underneath it went unverified for as long as it existed. It
+now takes an injected `client` and `sleep`, so the whole path runs
+against a fake that implements only the CDP client's real surface
+(`send()` and `js()`). A call to a method the client does not have
+now fails the suite instead of failing at runtime: every one of the
+bugs above was proved by reintroducing it and watching an assertion
+go red. One of those assertions was itself vacuous — the login check
+also mentions 'Upload videos', so the dialog assertion matched the
+wrong call and passed while the click was broken.
+
+**Two more things the live run taught:**
+
+- **The upload budget was five minutes.** A 150 MB master does not
+  upload in five minutes on every connection, and a timeout there
+  loses the file rather than the run. The budget is now 15 minutes
+  (`YT_UPLOAD_TIMEOUT_MS`).
+- **A cookie jar is a snapshot, not a session.** The jar worked, then
+  stopped working mid-session — YouTube's own pages showed "Sign in"
+  while the cookies were still in the jar, because Google had
+  invalidated the session server-side. The fix was to lift a live
+  signed-in profile's auth cookies into the jar. The lesson for the
+  tool: a failed publish should say "the session is dead", not "no
+  entry found" — the two failures look identical from the outside
+  and have opposite fixes.
+
+### 2026-10-23 — sprint 0.49 (the "seemingly so" release, part two — YouTube)
+
+The release that sprint 0.48 could only get halfway: the reel is
+live on Instagram, and **"seemingly so" is now published on YouTube**
+— https://www.youtube.com/watch?v=pg1a94SI2rY (title *"Sainted Word -
+seemingly so"*, description with the hashtags, eight keywords,
+**Public**). Verified on the live watch page and in Studio's content
+list.
+
+**Shipped:**
+
+- **`lib/youtube-poster.js` — the details phase, rewritten around
+  the working recipe.** The flow is now upload → wait → resolve the
+  video's id from the channel list → open **that video's edit page**
+  → set title, description, tags and visibility → save. The old
+  inline walk (title/description/tags/visibility/publish/scrape-the-
+  URL) is gone: clean cutover, no shims.
+- **Three new exports:** `applyVideoDetails(client, CDP, metadata,
+  opts)`, `resolveVideoId(client, CDP, opts)` and
+  `currentChannelId(client)`.
+- **`--resume <videoId>`** sets the details of a video that is
+  already uploaded — no file, no second upload, and the input is left
+  where it is. It is how the details phase is verified against a live
+  video without littering the channel with duplicates.
+- **The tool is idempotent.** A tag that is already a chip is
+  skipped, so re-running it does not double the tags.
+- **`docs/YOUTUBE-POSTER.md`** — the "what the poster does" section
+  and a new table of what each Studio field really is.
+- **`lib/youtube-poster.test.js` — 24 assertions** (was 22), with
+  the fake browser taught to model the chip editor.
+
+**Five findings, all measured on the live page:**
+
+1. **The details are not in the upload dialog.** The dialog holds
+   `ytcp-video-metadata-editor#details`, but its fields sit behind
+   closed shadow roots: `DOM.getDocument({pierce: true})` does not
+   reveal them and the AX tree gives no `backendDOMNodeId`. The
+   **edit page** exposes the same components in the light DOM, which
+   is where the details are written now.
+2. **Title and description are `contenteditable` divs**, found by
+   their aria-labels (*"…describes your video"*, *"…Tell viewers
+   about your video"*). They are **typed** — focus, select the
+   contents, `Input.insertText` — because a contenteditable bound to
+   a model ignores a value that was never typed into.
+3. **The tag box is a chip editor.** It lives behind a "Show more"
+   button and typed text sits in the input until **Enter** turns it
+   into a chip. Typing a comma-joined list and saving loses every
+   tag — which is what the earlier hand-driven run did, and the
+   reason the video still carried the tags Studio had suggested
+   `kai`, `djuric`, `performance`, `trumpet`) instead of the four
+   that were asked for. The chip list, not the input, is the
+   evidence.
+4. **The visibility menu trigger is `#select-button`** (not
+   `#icon-and-type`), and the honest signal is the **container's own
+   class**: `ytcp-video-metadata-visibility #container` carries
+   `privacy-public-icon` when the video is public. A click is not
+   proof; the class is.
+5. **The video's id comes from the content list**, from
+   `a#video-title[href^="/video/<id>/edit"]` matched by title. The
+   old scraper read a watch link off the page and reported
+   `8tdyC3YEkis` — a *different* video on the channel. A Studio page
+   is full of watch links and only one of them is the upload.
+
+**Two smaller ones:**
+
+- **The save toast takes seconds, and does not appear at all when
+  there was nothing to save.** The poster now polls for "All changes
+  saved." for 12 s and treats a **disabled save button** as the
+  second signal.
+- **`DOM.getDocument` on the upload dialog cannot see the file
+  input** in a way that survives the dialog's re-render; the input
+  is handed over by `objectId`, which does.
+
+**Decisions:**
+
+- **Set the details on the video's edit page, not in the upload
+  dialog.** The dialog's fields are not reachable; the edit page
+  holds the same components and is.
+- **Type, then read back.** Every field is typed and then read from
+  the page — the value in the input is not the tag, and a write that
+  looks like it worked is not proof.
+- **`--resume` instead of a test upload.** A full end-to-end upload
+  would have put a duplicate video in the user's channel. The resume
+  path exercises the same code against the real page.
+- **The fake browser models the chip editor.** It now tracks which
+  field was focused and turns text into a chip on Enter, so the test
+  fails if the commit is ever dropped.
+- **Prove the guard bites.** Four guards were proved this way: the
+  id resolution (the URL assertion goes red), the title typing, the
+  visibility pick, and the tag commit. Each was broken on purpose,
+  watched red, and restored.
+
+**Verified end-to-end (the real browser, the real video):**
+
+- `node lib/youtube-poster.js --resume pg1a94SI2rY --title …` →
+  `title set · description set · tags set (4) · visibility is
+  public · details saved`.
+- The published watch page carries the title, the description and
+  the keywords `kai, djuric, performance, trumpet,
+  SaintedWordRecords, AIArt, GenerativeMusic, Ambient`, and reports
+  `isPrivate: false` / `isUnlisted: false` — **Public**.
+- `npm run test:youtube-poster` — 24/24.
+
+**Open:**
+
+- **The Instagram caption is still wrong.** The reel's caption reads
+  *"seemingly so — Sainted Word Records 🎺 muyic from my heart"* —
+  "muyic from my heart" is the Suno track title Instagram auto-fills
+  into the composer. Whether the second line survives the publish is
+  unverified. The fix is an Edit on the reel (the same editor, the
+  same blur rule), not a repost. **→ fixed in sprint 0.49.b below.**
+- **`lib/youtube-batch.js` is still a stub** — its `uploadVideo()`
+  returns `{ success: true, url: 'manual' }` before any real work.
+- **The Suno session token was pasted in chat** and lives in commit
+  `cd434e4`; it should be rotated.
+
+### 2026-10-23 — sprint 0.49.b (the Instagram caption, repaired)
+
+Sprint 0.49 left one line of work: the reel's caption still read
+*"seemingly so — Sainted Word Records 🎺 muyic from my heart"* —
+"muyic from my heart" is the Suno track title Instagram auto-fills
+into the composer, and the reel went up with it.
+
+**Shipped:**
+
+- **`lib/ig-poster.js` — a reel-editor path.** `openReelEditor()`,
+  `replaceEditorCaption()`, `saveEditor()`, `readPublishedCaption()`
+  and `editReelCaption()`, driven by a new CLI flag:
+
+  ```bash
+  node lib/ig-poster.js --edit-caption "https://www.instagram.com/<user>/reel/<id>/" \
+    --reel-dir reel-inbox/posted/ig --port 9446 \
+    --cookies ~/.instagram-cookies.txt --user-data-dir /tmp/ig-profile
+  ```
+
+  The reel keeps its URL, its view count and its timestamp — no
+  delete-and-repost.
+- **`readCaption()` fixed.** It used to swallow every section after
+  `## Caption`, so the caption it read carried the reel's file list
+  and its published URL. It now parses the file into sections and
+  takes the `## Caption` body only. `"## Hashtags: #a #b"` is read
+  as the hashtags section (content on the heading line), and a
+  caption that already carries its hashtags inline does not get a
+  second set appended.
+- **`lib/ig-poster.test.js` — 26 assertions** (was 15): the editor
+  path, the section parser, the read-back.
+
+**Five findings — the first three cost the run:**
+
+1. **The editor does not close when the save lands.** Instagram keeps
+   the "Edit info" panel open after "Done", and the reel page behind
+   it keeps showing the old caption. "The panel closed" was the
+   original success signal and it was wrong: the first live run
+   reported *"the caption was NOT set (the editor did not close)"*
+   while the caption had in fact been saved. The signal is now the
+   published caption, not the panel.
+2. **`og:description` carries the whole caption** — newlines and
+   hashtags included:
+
+   ```
+   0 likes, 0 comments - kaidjuric on October 22, 2026: "seemingly so — Sainted Word Records 🎺 Reel from the twin.
+
+   #reel #digitaltwin #SaintedWordRecords #Ambient #GenerativeMusic".
+   ```
+
+   The tool reloads the reel after the save and compares that text
+   with the caption it typed. A mismatch exits 2.
+3. **The caption commits on blur** here too, exactly as in the
+   composer: the editor holds the typed text in a local state, so the
+   field is blurred before "Done" is pressed.
+4. **The "Done" control is a leaf `div[role=button]`** — the click
+   target is the element itself, not a wrapper.
+5. **The reel editor offers "Add AI label"** ("This label is required
+   for realistic photos and videos made with AI"). The tool does not
+   touch it — whether a given reel carries the label is the author's
+   call.
+
+**Decisions:**
+
+- **Read the post back, never trust the write.** The caption is
+  verified against the reel's own `og:description` after a reload.
+- **Repair, never repost.** Deleting the reel would have thrown away
+  the URL, the views and the timestamp.
+- **The caption comes from the POST.md, but only its caption
+  section.** The notes in that file are about the reel, not part of
+  it.
+
+**Verified end-to-end:**
+
+- The live repair against https://www.instagram.com/kaidjuric/reel/DezwGpcsOBe/
+  → *"the reel currently reads: …"* → *"The caption now reads: …"*
+  → *"The published reel reads: …"* → exit 0. The published caption
+  is now:
+
+  ```
+  seemingly so — Sainted Word Records 🎺 Reel from the twin.
+
+  #reel #digitaltwin #SaintedWordRecords #Ambient #GenerativeMusic
+  ```
+
+  The stray "muyic from my heart" is gone. Confirmed on a fresh page
+  load, not on the editor's own field.
+- **The guard bites.** With `readPublishedCaption()` rigged to return
+  a different caption, the run printed *"the caption was NOT set (the
+  published caption does not match)"* and exited 2. Restored, and
+  green again.
+- `npm run test:ig-poster` — 26/26.
+
+**Open:**
+
+- **The Suno session token was pasted in chat** and lives in commit
+  `cd434e4`; it should be rotated.
+- **The reel LaunchAgent is installed but not bootstrapped** — the
+  bootstrap is a service-state change and waits for the user's word.
+- **Instagram's "Add AI label"** on the reel editor is still the
+  author's call.
+
 ### 2026-10-23 — sprint 0.49 (the LVS page becomes an instrument)
 
 - **Shipped:**
