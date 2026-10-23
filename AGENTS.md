@@ -7019,3 +7019,57 @@ afternoon.
 - `lib/youtube-poster.js` and `lib/youtube-batch.js` now pass
   `https://studio.youtube.com` instead of the meaningless
   `.youtube.com`.
+
+**Follow-up — the YouTube path, driven against the live Studio:**
+
+The four "blockers fixed" above were not enough: the upload still
+never ran, because the fixes had only been reasoned about. Driving
+the real browser found three more, each one a distinct way for a
+publish to look like it worked and do nothing.
+
+- **`cdpConnect()` resolves to a WebSocket URL, not to a client.**
+  The poster used it as the client, so the first send died with
+  `client.send is not a function`. `makeClient()` now builds and
+  connects a `CDPClient`.
+- **The channel dashboard has no file input.** The uploader lives
+  behind the Create menu's "Upload videos" entry, and the input
+  (`Filedata`) only exists once that dialog is open. The poster
+  navigated to `studio.youtube.com` and looked for an input that was
+  never there — and created a hidden one that nothing was listening
+  to.
+- **`DOM.setFileInputFiles` fires no event.** YouTube's uploader
+  starts on the input's `change` event, which is why Puppeteer's
+  `uploadFile()` dispatches it. Without the event the file sits in
+  the input and nothing starts.
+- **Node ids go stale.** `DOM.getDocument` → `DOM.querySelector`
+  asks the browser twice, and Studio's dialog re-renders between the
+  two calls: "No node with given id found". A remote object handle
+  survives the re-render, so the input is now found through
+  JavaScript and handed over by `objectId`.
+
+**The seam is the lesson.** `uploadToYouTube()` had no way to be
+tested, so only its pure metadata logic was covered — and the
+plumbing underneath it went unverified for as long as it existed. It
+now takes an injected `client` and `sleep`, so the whole path runs
+against a fake that implements only the CDP client's real surface
+(`send()` and `js()`). A call to a method the client does not have
+now fails the suite instead of failing at runtime: every one of the
+bugs above was proved by reintroducing it and watching an assertion
+go red. One of those assertions was itself vacuous — the login check
+also mentions 'Upload videos', so the dialog assertion matched the
+wrong call and passed while the click was broken.
+
+**Two more things the live run taught:**
+
+- **The upload budget was five minutes.** A 150 MB master does not
+  upload in five minutes on every connection, and a timeout there
+  loses the file rather than the run. The budget is now 15 minutes
+  (`YT_UPLOAD_TIMEOUT_MS`).
+- **A cookie jar is a snapshot, not a session.** The jar worked, then
+  stopped working mid-session — YouTube's own pages showed "Sign in"
+  while the cookies were still in the jar, because Google had
+  invalidated the session server-side. The fix was to lift a live
+  signed-in profile's auth cookies into the jar. The lesson for the
+  tool: a failed publish should say "the session is dead", not "no
+  entry found" — the two failures look identical from the outside
+  and have opposite fixes.

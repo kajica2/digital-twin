@@ -50,16 +50,24 @@ until Google decides otherwise.
 ## What the poster does
 
 1. Connects to Chrome over CDP and sets the cookies.
-2. Opens `studio.youtube.com/upload` and hands the file to the upload
-   input through the DOM domain (`DOM.setFileInputFiles`).
-3. Fills title, description and tags. Studio's inputs are React
+2. Opens `studio.youtube.com` and — this is the part that is easy to
+   get wrong — clicks **Create → Upload videos**. The channel
+   dashboard has **no file input at all**; the input (`Filedata`)
+   only exists once that dialog is open. A file handed to an input
+   nobody is listening to starts nothing.
+3. Hands the file over through the DOM domain
+   (`DOM.setFileInputFiles`) and then **dispatches the input's
+   `change` event**. `DOM.setFileInputFiles` sets the file but fires
+   no event, and YouTube's uploader starts on that event — which is
+   why Puppeteer's `uploadFile()` dispatches it.
+4. Fills title, description and tags. Studio's inputs are React
    controlled, so a plain `.value` write is swallowed — the value is
    set through the native setter and then read back, because a write
    that looks like it worked is not proof.
-4. Walks the visibility control and logs whether it actually applied.
+5. Walks the visibility control and logs whether it actually applied.
    Studio's default is Private, so an unset visibility is a warning,
    not a detail.
-5. Clicks Publish, waits, and reads the watch URL back from the page.
+6. Clicks Publish, waits, and reads the watch URL back from the page.
 
 ## Limits
 
