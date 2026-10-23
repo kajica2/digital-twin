@@ -7290,3 +7290,99 @@ into the composer, and the reel went up with it.
   bootstrap is a service-state change and waits for the user's word.
 - **Instagram's "Add AI label"** on the reel editor is still the
   author's call.
+
+### 2026-10-23 — sprint 0.50 (the LVS page becomes an instrument)
+
+- **Shipped:**
+  - **`pages/loopable-video-segmenter.html`** — redesigned as a *signal
+    bench*: a technical instrument manual rather than a doc page. The
+    skin still owns every colour; the page owns its voice (DM Serif
+    Display + Outfit + JetBrains Mono, the house skin's declared
+    faces), its rhythm and its one piece of hardware.
+  - **The mirror bench** — a canvas scope inset in the page: a beat
+    grid in, N contiguous windows out, each window built as
+    `[forward, reverse]` with the playhead sweeping out and back. It is
+    an **illustration of the documented algorithm, not a video render** —
+    the page says so, and the bench never decodes an MP4.
+  - **The controls are shaped by the repo's own endpoints.** The
+    control surface is `lib/api/router.mjs`, so the window the scope
+    draws is the window the server can actually render:
+    `startSec` / `endSec` / `video` are the body of
+    `POST /api/render/clip`; the balance readout is `GET /api/credits`;
+    the badge is `GET /api/health`; **Render window** posts, polls
+    `GET /api/jobs/:id` and puts the bytes in the scope as a blob URL
+    (a `<video src>` cannot send an `Authorization` header, so the
+    fetch has to happen first).
+  - **`lib/lvs-bench.js`** — the bench runtime, as a classic script
+    (not a module: `import()` gets its specifier rewritten on the way
+    to the root copy, where a bare `lib/x.mjs` resolves as an npm
+    package in the browser). The palette it draws with comes from the
+    page's `.bench-wrap` scope and from the skin, so a skin swap
+    re-tints the whole scope.
+  - **Both copies** — `pages/loopable-video-segmenter.html` (source of
+    truth) and the root twin, regenerated with the repo's own rewrite
+    rule (`(["'(=])\.\.\/` → `$1`), which still reproduces the current
+    root copy byte-for-byte from the pre-change `pages/` copy.
+  - **`e2e/loopable-video-segmenter.spec.mjs`** — eight new checks:
+    the scope is present and sized, the segments control re-divides the
+    windows, a silent source switches to the equal-time fallback,
+    `--no-loopable` drops the mirror half, the controls carry the
+    API's parameters, the bench probes the API, `startSec`/`endSec`
+    mirror the selected segment, the render control waits for a token.
+  - **README + `docs/LOOPABLE-VIDEO-SEGMENTER.md`** — the bench, the
+    runtime, the API mapping and the new e2e checks are documented.
+
+- **Decisions:**
+  - **The contract won over the design, and the design won inside
+    it.** The e2e spec is the page's contract, so the redesign is
+    built to satisfy it: `.code-block` (not `.term`), a real
+    `<table>` with one header + three rows in `#params`, a real
+    `<ol>` with five `<li>` in `#how`, and `#themeToggle` as a plain
+    light/dark flip (it was a three-state auto→light→dark cycle,
+    which the contract's "click flips data-theme to dark" check
+    cannot pass).
+  - **The page defines no token of its own** (DESIGN.md §10). Every
+    colour is a skin token; the hairlines are `--line` / `--line-soft`
+    and the measure is `--container-narrow`. The one local palette is
+    the bench's — a device, dark in both themes — and it is declared
+    once on `.bench-wrap`, not on `:root`.
+  - **The bench never carries the admin key.** The key that mints a
+    token (`POST /api/credits/grant`, `x-admin-key`) is a server
+    secret; the page asks the operator to paste a token and keeps it
+    in `localStorage["lvs-token"]`, in that browser only.
+  - **The bench does not fake the mirror.** `/api/render/clip` renders
+    the window as a plain cut; the forward + reverse build is the
+    CLI's job, and the scope is the thing that shows it.
+  - **The bench does not break on a static host.** The API is mounted
+    on `lib/serve.js`; a host that rewrites every path to the landing
+    page (Vercel) has no `/api/*`, so the badge reads *no api on this
+    host*, the render control is disabled with the reason, and the
+    scope keeps working.
+  - **The bench runtime is a separate file** so each pushed file stays
+    inside the GitHub connector's payload ceiling, and so the CSS —
+    which is the design — stays inline with the page, where the repo
+    expects it.
+
+- **Fixed along the way (both copies):**
+  - **The hairlines were rendering as text colour.** The page used
+    `--border-light` / `--border-medium`, which `house.css` does not
+    define — every `var()` fell back to `currentColor`, so the rules
+    drew at full ink weight. Now `--line` / `--line-soft`.
+  - **The page gutter was being wiped.** A later `padding` shorthand
+    in the page's own `<style>` outranked `.shell`'s `padding-inline`,
+    so the content sat flush to the viewport edge.
+  - **The mobile drawer stretched the phone layout.** The off-canvas
+    panel parked at `translateX(100%)` — a fixed element past the
+    right edge widens the layout viewport, and the page zoomed out to
+    654px on a 390px phone. It is clipped now, not translated.
+  - **The screen-reader data table forced the page wide** on mobile,
+    and a long GitHub URL could not wrap at 360px.
+
+- **Verified:** `e2e/loopable-video-segmenter.spec.mjs` — 25/25 of the
+  page's own checks pass, including a real round trip against the
+  local server (probe → credits → POST → job poll → the rendered bytes
+  in the scope). `npm run skin:check` — 0 errors.
+  `npm run skin:validate` — valid. `node bin/doctor.mjs` — the only
+  failure is the vendored ffmpeg module graph, which is gitignored and
+  missing on a fresh clone (`node bin/install-vendor.mjs`), unrelated
+  to the page.
