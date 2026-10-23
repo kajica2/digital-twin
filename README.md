@@ -344,7 +344,7 @@ tail -f logs/social-worker.out.log
 and each item has to say `publish: true`; `posting.dryRunPoster: true`
 runs the whole path — worker → `lib/ig-poster.js --dry-run` — without
 reaching Instagram. The price plan (`data/social/pricing.json`) is a
-document: Gumroad has no API wired here, so a human applies it.
+document: `lib/gumroad.js` applies it (ten new products per day).
 
 Reference: [`docs/SOCIAL-ENGINE.md`](docs/SOCIAL-ENGINE.md).
 

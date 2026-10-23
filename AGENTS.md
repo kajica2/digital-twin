@@ -7386,3 +7386,130 @@ into the composer, and the reel went up with it.
   failure is the vendored ffmpeg module graph, which is gitignored and
   missing on a fresh clone (`node bin/install-vendor.mjs`), unrelated
   to the page.
+
+### 2026-10-23 — sprint 0.50 (the Gumroad store, applied — and the wall that said so)
+
+The catalogue had ten products on the storefront and a plan of
+twenty-six. The tool could not say why the other sixteen would not
+appear: it reported `create did not return a product permalink
+(Location: https://gumroad.com/products/new)` for every one of them.
+
+**Root cause, found by reading the refusal instead of guessing:**
+
+```
+FLASH: "Sorry, you can only create 10 products per day."
+```
+
+Gumroad allows **ten NEW products per day**. The ten on the store were
+created today at 12:49 UTC, so the day's window was spent; every
+*create* was refused and every *update* worked. Not a bug in the
+transport — a cap, in Gumroad's own words, in a flash the client was
+discarding.
+
+**Shipped:**
+
+- **`lib/gumroad.js` — a refused create says why.** `parseRefusal()`
+  reads the flash (and `errors['link.base']`) off the page the refusal
+  redirected to, and the thrown error carries the server's own reason.
+  `err.dailyCreateLimit` is set when the wall is the daily ceiling.
+- **The run stops at the wall instead of walking into it.** The first
+  refusal ends the create loop; the rest of the plan is marked
+  `deferred` with the reason, not retried and not reported as errors.
+- **The bundle waits for its members.** The bundle IS the whole
+  catalogue, so it is only touched once every member is on the
+  storefront. A bundle missing members sells a discount on a catalogue
+  that is not there.
+- **`plan` reports what is already live** — `10/26 product(s) already
+  on the storefront`.
+- **The product list is fetched once per run**, not once per planned
+  product, and is invalidated when this client creates or deletes.
+- **`lib/gumroad.test.js` — 102 assertions** (was 82): the refusal
+  reader, the daily limit, the deferral, the bundle gate.
+- **`bin/gumroad-sync.sh`** + the LaunchAgent wrapper: a daily run, so
+  the catalogue fills in ten at a time across days.
+- **`docs/SOCIAL-ENGINE.md`** — the store section now describes the
+  sync instead of saying *"Nothing writes to Gumroad"*, which stopped
+  being true.
+- **`package.json`** — `test:gumroad`, `gumroad:check`, `gumroad:plan`,
+  `gumroad:sync`; the suite joined `test:all`.
+
+**Two pre-existing failures fixed on the way — both were the same bug.**
+
+`npm run test:all` was red before this sprint touched anything, with 5
+assertions failing across two suites. Both had the same shape: a test
+that reads **one** day's data and compares it against **all** of it.
+
+- **`lib/social-engine.test.js`** compared every daily product against
+  the newest day's `plates.json`. The daily-content agent published
+  2026-10-23 tonight, so the catalogue held two days and the count
+  stopped matching. The days are now ordered newest-first (the order
+  `listDateDirs()` already returns) and the products are filtered to the
+  day under test. 116 → 122 assertions, 0 failed.
+- **`lib/daily-reels.test.js`** hardcoded `relay-pylon-line.mp4` as the
+  "already processed" reel — a name from the 2026-10-22 collection. The
+  day under test is now 2026-10-23 (`frost-window`), so the file matched
+  nothing and the check quietly stopped testing anything. The name is
+  now derived from the day under test, so the check keeps testing the
+  real thing every night. 36 → 38 assertions, 0 failed.
+
+Neither was caused by this sprint, and neither would have shown up
+again until the next daily run — which is exactly the point: the daily
+agent produces a new day every night, so a test hardcoded to one
+collection breaks silently and then suddenly.
+
+**The store, verified live:**
+
+- 11 products, read back from the dashboard: 10 catalogue products with
+  their covers and their files attached, plus the author's own
+  "set od svg backgrounds". Every one of the ten carries a square
+  thumbnail, its files, and its price.
+- `https://kaidjuric.gumroad.com/l/crt-test-pattern-plate` renders
+  **EUR 9.00** — the plan's currency is honoured, and Gumroad converts
+  to USD for display.
+- The stray **"Crt · test pattern — art plate (copy)"** — debris from a
+  create the client mis-read — was deleted. The dashboard now lists 11
+  products, not 12.
+
+**Decisions:**
+
+- **Read the refusal, do not infer it.** A cap, a taken slug and a
+  validation error all used to arrive as the same useless Location
+  line. Now they arrive as three different messages, and the tool knows
+  which one it hit.
+- **Defer, do not fail.** A product the window refused is not an
+  error; it is a product for tomorrow. The run says so and stops.
+- **The bundle is the last thing, not the first.** It is the promise
+  about the whole catalogue, so it waits for the catalogue.
+- **The daily run is a calendar job, not a watch.** The window is
+  measured by Gumroad's day, not by the file system's.
+
+**Verified end-to-end:**
+
+- `node lib/gumroad.js sync --apply` against the live store →
+  `0 created · 10 updated · 16 deferred · 0 errored`, and the wall
+  named in the output with the re-run instruction.
+- The launcher was invoked directly — the same path launchd uses — and
+  produced the same result.
+- `npm run test:gumroad` — 102/102.
+
+**Open:**
+
+- **The LaunchAgent is installed but NOT bootstrapped.** The plist
+  (`com.kaidjuric.digital-twin.gumroad-sync.plist`, daily at 04:12) and
+  the launcher are in place; `launchctl bootstrap` was refused from
+  inside the gateway, and bootstrapping a service is a service-state
+  change that waits for the user's word. One command from a normal
+  shell finishes it:
+
+  ```bash
+  launchctl bootstrap gui/$UID \
+    ~/Library/LaunchAgents/com.kaidjuric.digital-twin.gumroad-sync.plist
+  ```
+
+- **Publishing is blocked on the account** — `no_payout_method`.
+  Gumroad will not publish until a payout method is set. Every package
+  also carries `publish: false`, so publishing is the author's call
+  regardless.
+- **The session cookie has a shelf life.** `~/.gumroad-cookies.txt`
+  expires; `node lib/gumroad-login.js` mints a new one.
+
