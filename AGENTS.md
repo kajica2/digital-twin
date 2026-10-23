@@ -7999,3 +7999,141 @@ file*); the root copy now uses `assets/…`, `lib/…`, `docs/…` and
   the pose has. The contact sheet's *"overhead crane shot straight
   down, bird's eye view"* remains the only phrasing in this repo's
   history that verifiably moved the camera.
+
+### 2026-10-23 — sprint 0.54 (THE ONE SCREEN — 12 stills, one character)
+
+Brief: a **12-still cinematic series** for a deep-house music video, and
+a **character-continuity test** — the same man ("The Maker") in every
+frame. The character anchor is the user's own photo
+(`--edit https://s.mj.run/usV0f2WYXrE`); the brief carried his
+identity verbatim in every bullet (early thirties, lean, slight forward
+lean, close-cropped dark hair, light stubble, tired focused eyes, faded
+black hoodie over a grey tee, dark jeans, silver over-ear headphones,
+thin silver ring on the right hand, no watch, small scar through the
+left eyebrow, always on screen).
+
+**Shipped:**
+
+- **`assets/mural-prompts/one-screen-stills-12.md`** — 12 bullets, one
+  still per bullet, concrete lens/angle/lighting language, and **no
+  `--ar`** (the source job's 4:3 rules apply). `npm run prompt:check` →
+  47 packs, 477 prompts, 0 violations.
+- **The run** — `node lib/mj-revise.js --source
+  f8459ce4-ebaf-4c14-a88d-e243163b2e66 --prompt-file
+  assets/mural-prompts/one-screen-stills-12.md --output
+  /tmp/mj-test/one-screen --port 9445 --user-data-dir
+  /tmp/mj-plate-profile --replace-flag p=m7507137468043532712` →
+  **12/12 edit jobs** (`v8-2_edit_diffusion`, 2544×1904), 35 min wall.
+- **`mj-output/one-screen-stills-12/`** (gitignored working product) —
+  48 cells (`.webp` + `.png`), every prompt's `meta.json`, the
+  12-up `contact-sheet.png` and the 12 local tiles.
+
+|still|task id|
+|---|---|
+|01|`897df8a3-fde0-435b-83b2-227963458edf` (reused from the killed attempt)|
+|02|`555719d1-1c49-48b9-b039-cdb89444de2c`|
+|03|`1d3a463a-0d3d-4212-963e-3c0a459532a1`|
+|04|`c23e7afe-c57c-4cb8-9237-8e8b0e1ecb26`|
+|05|`535e35c9-df2a-4e8f-83a6-5a54a148e1a6`|
+|06|`d5ce8e1a-7ac5-46e6-bf0c-4a7365a676ee`|
+|07|`f17f540b-f97c-45fd-ae7e-eb833f082cd6`|
+|08|`7125d634-66f7-4b01-9fea-d7838eefb0ff`|
+|09|`9e44c39c-bbcf-400e-9a9b-828f96b19af5`|
+|10|`fc975e16-fcc9-4730-8094-d88effa004d6`|
+|11|`e256942c-bc2e-4520-ba8e-efbc53e4f6dc`|
+|12|`59c01565-515d-46db-88e7-39a277ccf842`|
+
+**The per-still assessment — every cell read, not assumed.** Cell 0 of
+each still, plus every cell of 01, 02 and 06 where the camera clearly
+had not landed.
+
+|#|camera asked|camera landed|character|
+|---|---|---|---|
+|01|wide static 35mm, hunched before a monitor|**✗** — all four cells are tight close-ups (the room is invisible)|✓ headphones, stubble, greying temples; a dark jacket over a grey tee|
+|02|macro on the hand, silver ring|**✗** — all four cells are medium close-ups with the man in frame; the ringed hand is foreground but never the subject|✓ ring, stubble, hoodie sleeve|
+|03|tight over-the-shoulder at the DAW|**✓** — over the right shoulder, monitor framed|✓ hoodie, cyan light; the screen shows a **video/face-analysis UI, not a DAW session**|
+|04|straight down onto the desk|**✓** — near-vertical overhead; phone, spiral notebook, keys, receipts all present|✗ the wardrobe came back as **grey denim**; the face is visible where only shoulders were asked for|
+|05|50mm beside the stacked gear|partial — the gear is there, but it reads wide (28–35mm feel) and slightly low, not eye-level 50mm|✓✓ the **best continuity frame**: hoodie over grey tee, headphones round the neck, silver ring, and the **scar through the left eyebrow reads here for the first time**|
+|06|low angle looking up, kneeling by the case|**✓ in cell 2** (cell 0 is slightly high — the ask is in the grid, but not in the default slot)|✓ hoodie, cropped greying hair, stubble; the headphones became an in-ear|
+|07|85mm on the hands at the interface|**✓** — tight close-up, shallow DOF, knobs and faders lit cyan|✓ silver band on the foreground ring finger, dark gathered cuff|
+|08|wide anamorphic, figure small|**✗** — the man fills the frame; heavy wide-angle/360 distortion instead of a clean anamorphic wide|✗ **light blue denim jeans** and a leather jacket — the reference photo's wardrobe again|
+|09|extreme close-up on the finger|**✓** — tight close-up of the index finger pressing a control, cyan wash, red indicator|✓ silver ring on the finger; ✗ the sleeve is **denim**, not the hoodie cuff|
+|10|locked-off black studio, one red lamp|**✓ for the light** — pure black ground with a single red accent behind the ear; ✗ it is a medium close-up, not a locked-off wide|✗ the clearest override: **denim jacket + the reference photo's thin cord necklace**|
+|11|symmetrical wide, standing upright|partial — he **is** upright and roughly centred, but the camera is a high-angle fisheye and the frame is not symmetrical|✓ black hoodie over grey tee ✓, headphones held up in frame|
+|12|dawn push-in through venetian blinds|partial — the **blind light landed** (daylight through white horizontals, striped on the wall and monitor); it is a static eye-level medium shot, and "dawn" is not readable|✓ hoodie over grey tee, hand behind head|
+
+**The three findings worth keeping:**
+
+1. **The reference photo's wardrobe overrides the prompt.** The brief's
+   *faded black hoodie over a grey tee* landed in 03, 05, 06, 11 and
+   12 — and in 04, 08, 09 and 10 the **reference photo's own** denim
+   jacket, its leather-jacket variant, its blue jeans and its thin cord
+   necklace came back instead. The reference image is the anchor; prose
+   re-describing the wardrobe loses to it.
+2. **The reference dictates the framing distance.** Three asks died in
+   every cell: the wide static (01), the macro (02) and the wide
+   anamorphic (08). What prose *can* move is **camera position** (03's
+   over-the-shoulder, 04's overhead, 06's low angle, 07's close-up) and
+   **light** (05, 09, 10, 12). This is the same edit-mode boundary
+   sprint 0.53 measured for natural skin — only now with the camera.
+3. **The `--p` code never reached the renderer.** We composed and typed
+   `… --raw --stylize 0 --v 8.2 --p m7507137468043532712 --edit <url>
+   --ar 4:3`; **Midjourney's own recorded command** for all twelve jobs
+   is `… --ar 4:3 --raw --profile mhw6dpq --edit <url> --stylize 0
+   --hd --v 8.2`. MJ's parameter list does document `--p code` ("use a
+   specific code --p code from a previous prompt"), so the flag was
+   accepted — and then **replaced by the account's ambient `--profile
+   `**. The series therefore carries the account's personalization
+   (`mhw6dpq`), **not** the code that was asked for. The
+   `--replace-flag` path did its job — the code was typed, and MJ
+   swapped it.
+
+**A fourth, smaller one:** **slot 0 is not the whole 4-up.** STILL 06's
+cell 0 is a slightly *high* angle and cell 2 is the *low* angle the
+brief asked for. A sheet that always shows slot 0 would have reported
+the ask as failed. This is sprint 0.45's per-variant slot lesson again,
+and it is why 01, 02 and 06 were read cell by cell.
+
+**Verified end-to-end:**
+
+- 12/12 jobs submitted and confirmed as edit jobs; 48 cells on disk.
+- Every cell read with the vision tool and **looked at** — 17 reads
+  (12 × cell 0, plus cell 3 of 01, cells 1–3 of 02, cell 2 of 06),
+  not inferred from the prompt.
+- The contact sheet built by the repo's own tool
+  (`lib/mj-contact-sheet.js`, headed Chrome, CDN fetched in-page) and
+  read back: 12 tiles, 12 captions, the same man in every frame that
+  shows him.
+- `npm run test:all` → **exit 0**; `npm run skin:check` → **0 errors**.
+
+**Decisions:**
+
+- **The character anchor is the photo, not a rendered cell.** The
+  source job's own cell had drifted into a different-looking man, so
+  the attachment — the user's photo — is what carries the face. The
+  identity descriptors in the prose are what carry the wardrobe, and
+  that is exactly where they lose to the photo.
+- **Repeat the identity verbatim in every bullet.** Continuity in a
+  12-frame series is a per-frame problem, not a series-level one.
+- **Read the cells, then judge the ask.** Three of the twelve camera
+  asks are "successful jobs that did not land" — and one ask landed in
+  a slot nobody would have looked at by default.
+
+**Open:**
+
+- The wardrobe override is unsolved in edit mode. The next lever is a
+  **plate** (the wardrobe rendered without the reference) plus the
+  reference only for the face, or `--no-personalize` with the codes
+  typed in — the same lesson as sprint 0.56's profile codes.
+- The `--p` behaviour is unexplained: accepted by the composer,
+  replaced in MJ's own record. Whether the code was applied and then
+  overridden, or dropped outright, is not visible from the record.
+- The series is a **4:3** set because the source job's ratio was
+  inherited. A music video wants 16:9; that needs the ratio to be set
+  on the prompt rather than carried from the source.
+
+**Next:**
+
+- Re-run the series at 16:9 with the wardrobe carried by the prompt
+  and the face by the reference only — the one experiment that would
+  settle both open items.
