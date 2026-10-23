@@ -1,0 +1,38 @@
+{
+  "pack": "hand-cast",
+  "date": "2026-10-24",
+  "title": "Hand Cast",
+  "badge": "collective",
+  "teaser": "A thing made once, by hand, for one person.",
+  "aspect": "16:9",
+  "source": "midjourney",
+  "plates": [
+    {
+      "file": "frame-01.jpg",
+      "caption": "press · screw",
+      "alt": "A screw press in a workshop with a fresh impression in the metal, hand tools on the bench.",
+      "prompt": "a heavy screw press in a workshop with a fresh impression in the metal, hand tools scattered on the bench, one work lamp, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "c377368b-cad7-4113-88cc-e83c6eba5ea4",
+      "width": 1280,
+      "height": 716
+    },
+    {
+      "file": "frame-02.jpg",
+      "caption": "strings · tuning",
+      "alt": "Hands tuning a small stringed instrument on a workbench, the headstock filling the frame.",
+      "prompt": "hands tuning a small stringed instrument on a workbench, the headstock filling the frame, shallow depth of field, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "31596abd-45b5-45db-a1c7-77b29d6539c4",
+      "width": 1280,
+      "height": 716
+    },
+    {
+      "file": "frame-03.jpg",
+      "caption": "kiln · shelf",
+      "alt": "A cooling kiln with its door ajar, one shelf of unglazed pots visible inside, dim workshop.",
+      "prompt": "a cooling kiln with its door ajar, one shelf of unglazed pots visible inside, dim workshop, warm glow from the chamber, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "82fe8b1c-e925-4706-925b-86b4a1b8ae23",
+      "width": 1280,
+      "height": 716
+    }
+  ]
+}
