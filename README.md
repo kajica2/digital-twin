@@ -559,6 +559,36 @@ npm run e2e:mj-sheets
 / MJ), the skin contract + lint, the prompt lint, the agent loop, and
 the python suites.
 
+> **`test:unit` vs `test:all`.** `npm run test:unit` is the portable
+> suite — everything that runs on any machine, no macOS fonts, no
+> local venv, no LaunchAgent. It is what CI runs, on every push and
+> every PR. `npm run test:all` is that suite plus `test:lettering`,
+> which needs the flux2 venv (`npm run flux2:setup`) and the macOS
+> cover fonts, so it only runs on the machine that has them.
+
+## The two-URL convention
+
+Every page in `pages/` also exists at the repo root, so a link can
+say `how-to.html` or `pages/how-to.html` and land on the same thing.
+**The root copy is generated** — `pages/` is the source of truth, and
+the root file is the same file with the paths rewritten one level up
+(`../assets/x` → `assets/x`).
+
+```bash
+npm run pages:sync    # regenerate the root copies from pages/
+npm run pages:check   # fail if any root copy is out of date
+```
+
+> **Why they are generated and not hand-maintained.** They used to be
+> two copies of every page, and they drifted. Four root pages kept the
+> `pages/` paths, which at the deployment root point off the site: 36
+> dead images on the marketplace page, the clip-interrogator's samples
+> fetch never resolving, and two dead scripts on the temple page. The
+> e2e never saw any of it, because the e2e only loads the `pages/`
+> copies — the ones that were always correct.
+>
+> `npm run pages:check` runs in CI, so the copies cannot diverge again.
+
 > **Prompt lint.** `npm run prompt:check` fails if any prompt pack
 > names the subject's race or ethnicity. These prompts exist so a
 > reference photo can be attached and the model returns what the photo

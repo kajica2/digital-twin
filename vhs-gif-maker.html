@@ -71,6 +71,11 @@
         <p style="color:var(--fg-muted);margin-bottom:1rem">Output: 5s loop, 480px, GIF</p>
         <button class="btn" id="generateBtn" disabled onclick="generateGif()">✨ Generate</button>
         <div class="status" id="status"></div>
+        <div class="control-group" style="margin-top:1rem">
+            <label>API webhook (optional)</label>
+            <input type="text" id="apiUrl" placeholder="https://api.example.com/webhook">
+        </div>
+        <button class="btn btn-secondary" onclick="runApi()">🔌 Send to API</button>
     </section>
     <section class="section output-section" id="result"><h2>Your GIF</h2>
         <img id="outputGif"><div class="output-actions">
@@ -82,9 +87,145 @@
 </main>
 <footer><p>Built with FFmpeg • Digital Twin</p></footer>
 <script src="https://unpkg.com/gif.js@0.2.0/dist/gif.js"></script>
-<script>let file=null;
-function handleFile(f){file=f;document.getElementById('previewVideo').src=URL.createObjectURL(f);document.getElementById('previewVideo').style.display='block';document.getElementById('generateBtn').disabled=false}
-async function generateGif(){if(!file)return;const s=document.getElementById('status');s.className='status visible processing';s.textContent='⏳ Processing frames...';document.getElementById('generateBtn').disabled=true;try{const video=document.getElementById('previewVideo');video.currentTime=0;await new Promise(r=>video.oncanplay=r);const canvas=document.createElement('canvas');const ctx=canvas.getContext('2d');const w=480,h=Math.round(480*video.videoHeight/video.videoWidth);canvas.width=w;canvas.height=h;const gif=new GIF({workers:2,quality:10,width:w,height:h,workerScript:'https://unpkg.com/gif.js@0.2.0/dist/gif.worker.js'});gif.on('finished',blob=>{document.getElementById('outputGif').src=URL.createObjectURL(blob);document.getElementById('downloadLink').href=document.getElementById('outputGif').src;document.getElementById('result').classList.add('visible');s.className='status visible success';s.textContent='✅ Done!';document.getElementById('generateBtn').disabled=false});const duration=5,fps=12,frames=duration*fps;let frame=0;const processFrame=()=>{if(frame>=frames){s.textContent='💾 Encoding GIF...';gif.render();return}video.currentTime=frame*(video.duration/frames);ctx.drawImage(video,0,0,w,h);applyVHS(ctx,w,h);gif.addFrame(ctx,{copy:true,delay:1000/fps});frame++;s.textContent=`⏳ Frame ${frame}/${frames}`;setTimeout(processFrame,30)};video.currentTime=0;processFrame()}catch(e){s.className='status visible error';s.textContent='❌ Error: '+e.message;document.getElementById('generateBtn').disabled=false}}
-function applyVHS(ctx,w,h){const noise=parseInt(document.getElementById('noise').value)/100;const scanlines=parseInt(document.getElementById('scanlines').value)/100;const rgb=parseInt(document.getElementById('rgb').value);const tracking=parseInt(document.getElementById('tracking').value)/100;const idata=ctx.getImageData(0,0,w,h),data=idata.data;if(rgb>0){for(let i=0;i<data.length;i+=4){if(Math.random()<0.1){data[i]=data[i+4]||data[i];data[i+2]=data[i-4]||data[i+2]}}}if(noise>0){for(let i=0;i<data.length;i+=4){const n=(Math.random()-0.5)*noise*100;data[i]+=n;data[i+1]+=n;data[i+2]+=n}}ctx.putImageData(idata,0,0);if(scanlines>0){ctx.fillStyle=`rgba(0,0,0,${scanlines*0.3})`;for(let y=0;y<h;y+=2)ctx.fillRect(0,y,w,1)}if(tracking>0&&Math.random()<tracking){ctx.fillStyle='rgba(255,255,255,0.1)';ctx.fillRect(0,Math.random()*h,w,Math.random()*20+5)}ctx.fillStyle='rgba(0,0,0,0.3)';ctx.beginPath();ctx.ellipse(w/2,h/2,w*0.7,h*0.7,0,0,Math.PI*2);ctx.fill()}
+<script>
+let file = null;
+function handleFile(f) {
+    if (!f) return;
+    file = f;
+    const video = document.getElementById('previewVideo');
+    video.src = URL.createObjectURL(f);
+    video.style.display = 'block';
+    document.getElementById('generateBtn').disabled = false;
+}
+// gif.js renders its frames in a Web Worker, and a Worker cannot be
+// constructed from a cross-origin script URL ("Failed to construct 'Worker'").
+// Fetch the worker once and hand gif.js a same-origin blob: URL instead.
+let gifWorkerURL = null;
+async function getGifWorkerURL() {
+    if (gifWorkerURL) return gifWorkerURL;
+    const src = await (await fetch('https://unpkg.com/gif.js@0.2.0/dist/gif.worker.js')).text();
+    gifWorkerURL = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
+    return gifWorkerURL;
+}
+
+async function generateGif() {
+    if (!file) return alert('Upload a video first');
+    const status = document.getElementById('status');
+    const btn = document.getElementById('generateBtn');
+    status.className = 'status visible processing';
+    status.textContent = '⏳ Loading video...';
+    btn.disabled = true;
+    try {
+        const video = document.getElementById('previewVideo');
+        video.currentTime = 0;
+        // The metadata event has usually ALREADY fired by the time the user
+        // clicks Generate — attaching a listener then waits for an event that
+        // will never come again, which left the tool stuck. Check the current
+        // state first, and only wait when the video is genuinely not ready.
+        await new Promise((resolve, reject) => {
+            if (video.readyState >= 1) return resolve();
+            video.onloadedmetadata = resolve;
+            video.onerror = reject;
+            setTimeout(() => reject(new Error('Video load timeout')), 10000);
+        });
+        if (!video.videoWidth) throw new Error('Cannot read video');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const w = 480;
+        const h = Math.round(480 * video.videoHeight / video.videoWidth);
+        canvas.width = w;
+        canvas.height = h;
+        const gif = new GIF({ workers: 2, quality: 10, width: w, height: h, workerScript: await getGifWorkerURL() });
+        gif.on('finished', function(blob) {
+            document.getElementById('outputGif').src = URL.createObjectURL(blob);
+            document.getElementById('downloadLink').href = document.getElementById('outputGif').src;
+            document.getElementById('result').classList.add('visible');
+            status.className = 'status visible success';
+            status.textContent = '✅ Done!';
+            btn.disabled = false;
+        });
+        gif.on('error', function(e) {
+            status.className = 'status visible error';
+            status.textContent = '❌ GIF Error: ' + e.message;
+            btn.disabled = false;
+        });
+        const duration = 5, fps = 10, frames = Math.min(duration * fps, 50);
+        let frame = 0;
+        const processFrame = function() {
+            if (frame >= frames) {
+                status.textContent = '💾 Encoding...';
+                gif.render();
+                return;
+            }
+            video.currentTime = frame * video.duration / frames || 0;
+            ctx.drawImage(video, 0, 0, w, h);
+            applyVHS(ctx, w, h);
+            gif.addFrame(ctx, { copy: true, delay: 1000 / fps });
+            frame++;
+            status.textContent = `⏳ Frame ${frame}/${frames}`;
+            setTimeout(processFrame, 50);
+        };
+        video.currentTime = 0;
+        video.pause();
+        processFrame();
+    } catch (e) {
+        status.className = 'status visible error';
+        status.textContent = '❌ Error: ' + e.message;
+        btn.disabled = false;
+    }
+}
+function applyVHS(ctx, w, h) {
+    const noise = parseInt(document.getElementById('noise').value) / 100;
+    const scanlines = parseInt(document.getElementById('scanlines').value) / 100;
+    const rgb = parseInt(document.getElementById('rgb').value);
+    const tracking = parseInt(document.getElementById('tracking').value) / 100;
+    const imgData = ctx.getImageData(0, 0, w, h);
+    const data = imgData.data;
+    if (rgb > 0) {
+        for (let i = 0; i < data.length; i += 4) {
+            if (Math.random() < 0.1) {
+                data[i] = data[i + 4] || data[i];
+                data[i + 2] = data[i - 4] || data[i + 2];
+            }
+        }
+    }
+    if (noise > 0) {
+        for (let i = 0; i < data.length; i += 4) {
+            const n = (Math.random() - 0.5) * noise * 80;
+            data[i] += n; data[i + 1] += n; data[i + 2] += n;
+        }
+    }
+    ctx.putImageData(imgData, 0, 0);
+    if (scanlines > 0) {
+        ctx.fillStyle = `rgba(0,0,0,${scanlines * 0.3})`;
+        for (let y = 0; y < h; y += 2) ctx.fillRect(0, y, w, 1);
+    }
+    if (tracking > 0 && Math.random() < tracking) {
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.fillRect(0, Math.random() * h, w, Math.random() * 10 + 5);
+    }
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(w / 2, h / 2, w * 0.7, h * 0.7, 0, 0, Math.PI * 2);
+    ctx.fill();
+}
+function runApi() {
+    const apiUrl = document.getElementById('apiUrl').value.trim();
+    if (!apiUrl) return alert('Enter API URL');
+    if (!file) return alert('Upload a video first');
+    const status = document.getElementById('status');
+    status.className = 'status visible processing';
+    status.textContent = '⏳ Sending to API...';
+    const fd = new FormData();
+    fd.append('video', file);
+    fd.append('noise', document.getElementById('noise').value);
+    fd.append('scanlines', document.getElementById('scanlines').value);
+    fd.append('rgb', document.getElementById('rgb').value);
+    fd.append('tracking', document.getElementById('tracking').value);
+    fetch(apiUrl, { method: 'POST', body: fd })
+        .then(r => { status.className = 'status visible success'; status.textContent = '✅ Sent to API!'; })
+        .catch(e => { status.className = 'status visible error'; status.textContent = '❌ Error: ' + e.message; });
+}
+</script>
 </body>
 </html>
