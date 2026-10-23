@@ -401,6 +401,26 @@
             padding-bottom: 26px;
             border-bottom: 1px solid var(--bench-line);
         }
+        .bench-side { display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
+        .api-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-family: var(--page-mono);
+            font-size: .62rem; letter-spacing: .14em; text-transform: uppercase;
+            color: var(--bench-dim);
+            border: 1px solid var(--bench-line-2);
+            border-radius: 3px;
+            padding: 6px 10px;
+        }
+        .api-badge::before {
+            content: ''; width: 6px; height: 6px; border-radius: 50%;
+            background: var(--bench-faint); flex: none;
+        }
+        .api-badge[data-state="ok"] { color: var(--bench-ok); border-color: color-mix(in srgb, var(--bench-ok) 45%, transparent); }
+        .api-badge[data-state="ok"]::before { background: var(--bench-ok); }
+        .api-badge[data-state="down"] { color: var(--bench-warn); border-color: color-mix(in srgb, var(--bench-warn) 45%, transparent); }
+        .api-badge[data-state="down"]::before { background: var(--bench-warn); }
+        .api-badge[data-state="probing"]::before { animation: pulse 1.4s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
         .bench-kicker {
             display: block;
             font-family: var(--page-mono);
@@ -428,13 +448,74 @@
 
         .bench-grid {
             display: grid;
-            grid-template-columns: 244px minmax(0, 1fr);
+            grid-template-columns: 278px minmax(0, 1fr);
             gap: 0;
             border-bottom: 1px solid var(--bench-line);
         }
 
         /* controls */
         .controls { border-right: 1px solid var(--bench-line); padding: 24px 26px 26px 0; }
+        .ctl-group { padding-bottom: 20px; margin-bottom: 20px; border-bottom: 1px solid var(--bench-line); }
+        .ctl-group:last-child { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
+        .ctl-group-h {
+            display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+        .ctl-group-t {
+            font-family: var(--page-mono);
+            font-size: .66rem; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;
+            color: var(--bench-ink);
+        }
+        .ctl-group-s {
+            font-family: var(--page-mono);
+            font-size: .58rem; letter-spacing: .08em;
+            color: var(--bench-faint);
+        }
+        .ctl-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .ctl-field { display: flex; flex-direction: column; gap: 6px; }
+        .ctl-num, .ctl-file {
+            width: 100%;
+            font-family: var(--page-mono);
+            font-size: .74rem;
+            color: var(--bench-ink);
+            background: rgba(0, 0, 0, .3);
+            border: 1px solid var(--bench-line-2);
+            border-radius: 3px;
+            padding: 8px 9px;
+        }
+        .ctl-num:focus, .ctl-file:focus { outline: 2px solid var(--signal); outline-offset: 2px; }
+        .ctl-token { letter-spacing: .06em; }
+        .ctl-file { padding: 6px 8px; font-size: .66rem; cursor: pointer; }
+        .ctl-file::file-selector-button {
+            font-family: var(--page-mono); font-size: .6rem; letter-spacing: .1em; text-transform: uppercase;
+            color: var(--bench-bg); background: var(--signal);
+            border: 0; border-radius: 2px; padding: 5px 8px; margin-right: 9px; cursor: pointer;
+        }
+        .ctl-hint {
+            font-family: var(--page-mono);
+            font-size: .58rem; line-height: 1.6;
+            color: var(--bench-faint);
+            margin-top: 8px;
+        }
+        .ctl-hint code { color: var(--bench-dim); }
+        .ctl-job {
+            font-family: var(--page-mono);
+            font-size: .62rem; letter-spacing: .06em;
+            color: var(--bench-faint);
+            margin-top: 10px;
+            min-height: 1.4em;
+        }
+        .ctl-job[data-state="working"] { color: var(--bench-dim); }
+        .ctl-job[data-state="done"] { color: var(--bench-ok); }
+        .ctl-job[data-state="error"] { color: var(--bench-warn); }
+        .ico-render {
+            width: 0; height: 0;
+            border-left: 7px solid currentColor;
+            border-top: 4.5px solid transparent;
+            border-bottom: 4.5px solid transparent;
+        }
+        .play-btn:disabled { opacity: .4; cursor: not-allowed; }
+        .play-btn:disabled:hover { border-color: var(--bench-line-2); color: var(--bench-ink); }
         .ctl { padding-bottom: 20px; margin-bottom: 20px; border-bottom: 1px solid var(--bench-line); }
         .ctl:last-child { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
         .ctl-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
@@ -537,6 +618,25 @@
             border-radius: 3px;
             padding: 14px 16px 10px;
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, .03);
+        }
+        .out {
+            margin-top: 12px;
+            border-top: 1px solid var(--bench-line);
+            padding-top: 12px;
+        }
+        .out video {
+            display: block;
+            width: 100%;
+            max-height: 260px;
+            background: #000;
+            border: 1px solid var(--bench-line-2);
+            border-radius: 2px;
+        }
+        .out-meta {
+            font-family: var(--page-mono);
+            font-size: .6rem; letter-spacing: .06em;
+            color: var(--bench-dim);
+            margin-top: 8px;
         }
         .screen canvas { display: block; width: 100%; height: auto; }
         .readout {
@@ -967,64 +1067,127 @@
                     <span class="bench-kicker">Fig. 01 — the mirror bench</span>
                     <h2 id="bench-h">Watch the loop form itself.</h2>
                 </div>
-                <p class="bench-note">
-                    A live illustration of what the CLI does: beat grid in, N windows out,
-                    each window built as <b>forward + reversed</b>. Move the controls and the
-                    segmentation re-divides. <b>Illustrative</b> — this is a simulation of the
-                    documented algorithm, not a video render.
-                </p>
+                <div class="bench-side">
+                    <span class="api-badge" id="apiBadge" data-state="probing">checking the api…</span>
+                    <p class="bench-note">
+                        A live illustration of what the CLI does: beat grid in, N windows out,
+                        each window built as <b>forward + reversed</b>. Move the controls and the
+                        segmentation re-divides. <b>Illustrative</b> — this is a simulation of the
+                        documented algorithm, not a video render.
+                    </p>
+                </div>
             </div>
 
             <div class="bench-grid">
                 <aside class="controls" aria-label="Bench controls">
-                    <div class="ctl">
-                        <div class="ctl-row">
-                            <label class="ctl-label" for="cSeg">Segments</label>
-                            <output class="ctl-value" id="cSegOut" for="cSeg">4</output>
+
+                    <div class="ctl-group">
+                        <div class="ctl-group-h">
+                            <span class="ctl-group-t">Segmentation</span>
+                            <span class="ctl-group-s">the CLI's flags</span>
                         </div>
-                        <input type="range" id="cSeg" min="1" max="20" step="1" value="4" aria-describedby="cSegOut">
-                        <div class="ctl-scale"><span>1</span><span>20</span></div>
+
+                        <div class="ctl">
+                            <div class="ctl-row">
+                                <label class="ctl-label" for="cSeg">Segments</label>
+                                <output class="ctl-value" id="cSegOut" for="cSeg">4</output>
+                            </div>
+                            <input type="range" id="cSeg" min="1" max="20" step="1" value="4" aria-describedby="cSegOut">
+                            <div class="ctl-scale"><span>1</span><span>20</span></div>
+                        </div>
+
+                        <div class="ctl">
+                            <div class="ctl-row">
+                                <span class="ctl-label">Loopable</span>
+                                <span class="ctl-state" id="cLoopState">on</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="cLoop" checked>
+                                <span class="switch-track" aria-hidden="true"></span>
+                                <span class="sr-only">Build each segment forward plus reversed</span>
+                            </label>
+                        </div>
+
+                        <div class="ctl">
+                            <div class="ctl-row">
+                                <span class="ctl-label">Source audio</span>
+                                <span class="ctl-value" id="cBeats">— beats</span>
+                            </div>
+                            <div class="seg" role="group" aria-label="Source audio">
+                                <button type="button" id="cAudio" aria-pressed="true">Audio</button>
+                                <button type="button" id="cSilent" aria-pressed="false">Silent</button>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="ctl">
-                        <div class="ctl-row">
-                            <span class="ctl-label">Loopable</span>
-                            <span class="ctl-state" id="cLoopState">on</span>
+                    <div class="ctl-group">
+                        <div class="ctl-group-h">
+                            <span class="ctl-group-t">Window</span>
+                            <span class="ctl-group-s">the API's parameters</span>
                         </div>
-                        <label class="switch">
-                            <input type="checkbox" id="cLoop" checked>
-                            <span class="switch-track" aria-hidden="true"></span>
-                            <span class="sr-only">Build each segment forward plus reversed</span>
-                        </label>
+
+                        <div class="ctl ctl-pair">
+                            <div class="ctl-field">
+                                <label class="ctl-label" for="cStart">startSec</label>
+                                <input class="ctl-num" type="number" id="cStart" min="0" step="0.001" value="0.000" inputmode="decimal">
+                            </div>
+                            <div class="ctl-field">
+                                <label class="ctl-label" for="cEnd">endSec</label>
+                                <input class="ctl-num" type="number" id="cEnd" min="0" step="0.001" value="23.782" inputmode="decimal">
+                            </div>
+                        </div>
+                        <p class="ctl-hint">The window <code>POST /api/render/clip</code> renders. Click a segment on the scope, or drag the bracket.</p>
                     </div>
 
-                    <div class="ctl">
-                        <div class="ctl-row"><span class="ctl-label">Source audio</span></div>
-                        <div class="seg" role="group" aria-label="Source audio">
-                            <button type="button" id="cAudio" aria-pressed="true">Audio</button>
-                            <button type="button" id="cSilent" aria-pressed="false">Silent</button>
+                    <div class="ctl-group">
+                        <div class="ctl-group-h">
+                            <span class="ctl-group-t">Render</span>
+                            <span class="ctl-group-s">POST /api/render/clip</span>
+                        </div>
+
+                        <div class="ctl">
+                            <div class="ctl-row"><label class="ctl-label" for="cVideo">video</label></div>
+                            <input class="ctl-file" type="file" id="cVideo" accept="video/mp4,video/*">
+                            <p class="ctl-hint" id="cVideoHint">No file chosen.</p>
+                        </div>
+
+                        <div class="ctl">
+                            <div class="ctl-row">
+                                <label class="ctl-label" for="cToken">bearer token</label>
+                                <span class="ctl-value" id="cBalance">—</span>
+                            </div>
+                            <input class="ctl-num ctl-token" type="password" id="cToken" placeholder="paste a token" autocomplete="off" spellcheck="false">
+                            <p class="ctl-hint">From <code>POST /api/credits/grant</code> (admin key). Stored in this browser only.</p>
+                        </div>
+
+                        <div class="ctl">
+                            <button class="play-btn" id="cRender" disabled>
+                                <span class="ico ico-render" aria-hidden="true"></span><span id="cRenderText">Render window</span>
+                            </button>
+                            <p class="ctl-job" id="cJob" data-state="idle">idle</p>
                         </div>
                     </div>
 
-                    <div class="ctl">
-                        <div class="ctl-row">
-                            <label class="ctl-label" for="cBpm">Beat grid</label>
-                            <output class="ctl-value" id="cBpmOut" for="cBpm">124</output>
+                    <div class="ctl-group">
+                        <div class="ctl-group-h">
+                            <span class="ctl-group-t">Scope</span>
+                            <span class="ctl-group-s">the illustration</span>
                         </div>
-                        <input type="range" id="cBpm" min="60" max="180" step="2" value="124">
-                        <div class="ctl-scale"><span>60 bpm</span><span>180 bpm</span></div>
-                    </div>
-
-                    <div class="ctl">
-                        <button class="play-btn" id="cPlay" data-playing="true" aria-label="Pause the bench animation">
-                            <span class="ico" aria-hidden="true"></span><span id="cPlayText">Pause</span>
-                        </button>
+                        <div class="ctl">
+                            <button class="play-btn" id="cPlay" data-playing="true" aria-label="Pause the bench animation">
+                                <span class="ico" aria-hidden="true"></span><span id="cPlayText">Pause</span>
+                            </button>
+                        </div>
                     </div>
                 </aside>
 
                 <div class="screen">
                     <div class="scope">
                     <canvas id="benchCanvas" role="img" aria-label="Scope showing the source timeline, the segmented windows and the forward-plus-reversed clip build."></canvas>
+                    <div class="out" id="benchOutput" hidden>
+                        <video id="benchVideo" controls loop muted playsinline preload="metadata"></video>
+                        <div class="out-meta" id="benchOutMeta"></div>
+                    </div>
                     </div>
 
                     <div class="readout">
