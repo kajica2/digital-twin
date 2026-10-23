@@ -161,8 +161,15 @@ Three things it deliberately does **not** do:
 - **It does not break on a static host.** The API is mounted on
   `lib/serve.js`; a host that rewrites every path to the landing
   page (Vercel) has no `/api/*` at all, so the badge reads *no api on
-  this host*, the render control is disabled with the reason, and the
-  scope keeps working.
+  this host*, the render control explains why, and the scope keeps
+  working.
+- **It calls `/api/*` only when the operator asks it to.** The badge
+  starts at *api · not checked* and the page makes no API request on
+  load: a doc page has no business provoking an error from a host
+  that has no API (and CI runs Node 20, where `node:sqlite` — and so
+  the whole API — does not exist yet). Pasting a token probes
+  `/api/health` and reads the balance; **Render window** probes first
+  if it has not been probed yet.
 
 ## npm scripts
 
