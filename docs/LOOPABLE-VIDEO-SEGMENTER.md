@@ -129,6 +129,41 @@ module, so the relative path survives the root copy). The palette it
 draws with comes from the page's `.bench-wrap` scope and from the
 skin, so a skin swap re-tints the whole scope.
 
+### The controls are shaped by the API
+
+The bench's control surface is not invented — it is the repo's own
+HTTP surface (`lib/api/router.mjs`), so the window the scope draws is
+the window the server can actually render:
+
+| Control | Endpoint it fits |
+| --- | --- |
+| `startSec` / `endSec` | the body of `POST /api/render/clip` |
+| `video` (file) | `video: { name, dataBase64 }` in the same body |
+| `bearer token` | `Authorization: Bearer …` on every call |
+| the balance readout | `GET /api/credits` → `{ userId, balance }` |
+| the API badge | `GET /api/health` → `{ ok, ffmpeg, credits, vendor }` |
+| the render button | `POST /api/render/clip` → `202 { jobId }`, then `GET /api/jobs/:id` → `GET /api/jobs/:id/output` |
+
+The render writes a real clip into the scope: the endpoint's bytes
+are fetched with the bearer header, turned into a blob URL and handed
+to a `<video>` (a `<video src>` cannot send an `Authorization`
+header, so the fetch has to happen first).
+
+Three things it deliberately does **not** do:
+
+- **It never carries the admin key.** The key that mints a token
+  (`POST /api/credits/grant`, `x-admin-key`) is a server secret; the
+  page asks the operator to paste a token and keeps it in
+  `localStorage["lvs-token"]`, in that browser only.
+- **It does not fake the mirror.** `/api/render/clip` renders the
+  window as a plain cut. The forward + reverse build is the CLI's
+  job (`--no-loopable` drops it); the scope still shows it.
+- **It does not break on a static host.** The API is mounted on
+  `lib/serve.js`; a host that rewrites every path to the landing
+  page (Vercel) has no `/api/*` at all, so the badge reads *no api on
+  this host*, the render control is disabled with the reason, and the
+  scope keeps working.
+
 ## npm scripts
 
 | Script          | Command                                                          |
@@ -150,8 +185,11 @@ spec: hero, theme toggle + reload persistence, how-to-run contains
 callouts, attribution links, the mirror bench (scope sized, segments
 control re-divides the windows, silent source takes the fallback
 path, `--no-loopable` drops the mirror half), Twin OS
-`data-tool-lvs` card, every internal link resolves, **0 console
-errors** on both pages, light + dark screenshots. Runs from the repo root
+`data-tool-lvs` card, the bench's endpoint-shaped controls (the
+API's parameters, the `/api/health` probe, `startSec`/`endSec`
+mirroring the selected segment, the render control waiting for a
+token), every internal link resolves, **0 console errors** on both
+pages, light + dark screenshots. Runs from the repo root
 
 ```bash
 node lib/serve.js --port 5180                 # in one terminal
