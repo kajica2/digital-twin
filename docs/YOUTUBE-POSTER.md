@@ -12,6 +12,10 @@ node lib/youtube-poster.js <video-file> \
     [--visibility public|unlisted|private] \
     [--cookies <file>] [--port <port>] [--user-data-dir <dir>] \
     [--output <dir>] [--dry-run]
+
+# Set the details of a video that is already uploaded — no file, no
+# second upload, and the input is left where it is:
+node lib/youtube-poster.js --resume <videoId> --title "..." --tags "a,b"
 ```
 
 Exit codes: `0` uploaded · `1` fatal · `2` uploaded but the claim
@@ -60,26 +64,52 @@ until Google decides otherwise.
    `change` event**. `DOM.setFileInputFiles` sets the file but fires
    no event, and YouTube's uploader starts on that event — which is
    why Puppeteer's `uploadFile()` dispatches it.
-4. Fills title, description and tags. Studio's inputs are React
-   controlled, so a plain `.value` write is swallowed — the value is
-   set through the native setter and then read back, because a write
-   that looks like it worked is not proof.
-5. Walks the visibility control and logs whether it actually applied.
-   Studio's default is Private, so an unset visibility is a warning,
-   not a detail.
-6. Clicks Publish, waits, and reads the watch URL back from the page.
+4. Waits for the upload to finish, then **finds the video in the
+   channel's content list** and opens its own edit page. The URL is
+   built from that id. Reading a watch link off the page does not
+   work: a Studio page is full of watch links, and only one of them
+   is the upload.
+5. Fills in the details **on the edit page**, where the fields are
+   reachable — in the upload dialog they sit behind closed shadow
+   roots.
+6. Clicks Save and waits for Studio to say it saved.
+
+## The details are typed, not assigned
+
+Three things about Studio's edit page cost a session each, and all
+three are the same lesson: **a write that looks like it worked is not
+proof.**
+
+| field | what it really is | what works |
+|---|---|---|
+| title | a `contenteditable` div, aria-label *"…describes your video"* | focus → select the contents → `Input.insertText` |
+| description | a `contenteditable` div, aria-label *"…Tell viewers about your video"* | the same |
+| tags | a **chip editor** behind a "Show more" button | type each tag → **Enter** commits it as a chip |
+| visibility | a dropdown whose container carries `privacy-public-icon` | read the class, open `#select-button` only if it is not the wanted one |
+
+The title and description are typed because a contenteditable bound
+to a model ignores a value that was never typed into. The tags are
+typed **and committed with Enter** because the input is a chip
+editor: typed text sits in the input until Enter turns it into a
+chip, and saving without that loses every tag. (An earlier version
+of this tool typed a comma-joined list and saved — and the video
+quietly kept the tags it already had.)
+
+The visibility is verified by **reading the control's own class**,
+not by trusting a click. Studio's default is Private, so an unset
+visibility is a warning, not a detail.
 
 ## Limits
 
 - **Headed Chrome only.** Studio signs you out of headless sessions.
 - **One upload at a time.** Studio's upload UI has no queue.
-- **The visibility step is a walk, not a setting.** If the control
-  cannot be found the poster says so loudly and the video may be left
-  on Studio's default.
 - **`lib/youtube-batch.js` is a stub.** Its `uploadVideo()` returns
   `{ success: true, url: 'manual' }` before any of the real upload
   code; the 64 videos on the channel were uploaded by hand. Do not
   use it.
+- **The save confirmation is a toast.** It takes a few seconds and
+  it does not appear when there was nothing to save, so the poster
+  also treats a disabled save button as confirmation.
 
 ## Tests
 

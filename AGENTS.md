@@ -7073,3 +7073,119 @@ wrong call and passed while the click was broken.
   tool: a failed publish should say "the session is dead", not "no
   entry found" — the two failures look identical from the outside
   and have opposite fixes.
+
+### 2026-10-23 — sprint 0.49 (the "seemingly so" release, part two — YouTube)
+
+The release that sprint 0.48 could only get halfway: the reel is
+live on Instagram, and **"seemingly so" is now published on YouTube**
+— https://www.youtube.com/watch?v=pg1a94SI2rY (title *"Sainted Word -
+seemingly so"*, description with the hashtags, eight keywords,
+**Public**). Verified on the live watch page and in Studio's content
+list.
+
+**Shipped:**
+
+- **`lib/youtube-poster.js` — the details phase, rewritten around
+  the working recipe.** The flow is now upload → wait → resolve the
+  video's id from the channel list → open **that video's edit page**
+  → set title, description, tags and visibility → save. The old
+  inline walk (title/description/tags/visibility/publish/scrape-the-
+  URL) is gone: clean cutover, no shims.
+- **Three new exports:** `applyVideoDetails(client, CDP, metadata,
+  opts)`, `resolveVideoId(client, CDP, opts)` and
+  `currentChannelId(client)`.
+- **`--resume <videoId>`** sets the details of a video that is
+  already uploaded — no file, no second upload, and the input is left
+  where it is. It is how the details phase is verified against a live
+  video without littering the channel with duplicates.
+- **The tool is idempotent.** A tag that is already a chip is
+  skipped, so re-running it does not double the tags.
+- **`docs/YOUTUBE-POSTER.md`** — the "what the poster does" section
+  and a new table of what each Studio field really is.
+- **`lib/youtube-poster.test.js` — 24 assertions** (was 22), with
+  the fake browser taught to model the chip editor.
+
+**Five findings, all measured on the live page:**
+
+1. **The details are not in the upload dialog.** The dialog holds
+   `ytcp-video-metadata-editor#details`, but its fields sit behind
+   closed shadow roots: `DOM.getDocument({pierce: true})` does not
+   reveal them and the AX tree gives no `backendDOMNodeId`. The
+   **edit page** exposes the same components in the light DOM, which
+   is where the details are written now.
+2. **Title and description are `contenteditable` divs**, found by
+   their aria-labels (*"…describes your video"*, *"…Tell viewers
+   about your video"*). They are **typed** — focus, select the
+   contents, `Input.insertText` — because a contenteditable bound to
+   a model ignores a value that was never typed into.
+3. **The tag box is a chip editor.** It lives behind a "Show more"
+   button and typed text sits in the input until **Enter** turns it
+   into a chip. Typing a comma-joined list and saving loses every
+   tag — which is what the earlier hand-driven run did, and the
+   reason the video still carried the tags Studio had suggested
+   `kai`, `djuric`, `performance`, `trumpet`) instead of the four
+   that were asked for. The chip list, not the input, is the
+   evidence.
+4. **The visibility menu trigger is `#select-button`** (not
+   `#icon-and-type`), and the honest signal is the **container's own
+   class**: `ytcp-video-metadata-visibility #container` carries
+   `privacy-public-icon` when the video is public. A click is not
+   proof; the class is.
+5. **The video's id comes from the content list**, from
+   `a#video-title[href^="/video/<id>/edit"]` matched by title. The
+   old scraper read a watch link off the page and reported
+   `8tdyC3YEkis` — a *different* video on the channel. A Studio page
+   is full of watch links and only one of them is the upload.
+
+**Two smaller ones:**
+
+- **The save toast takes seconds, and does not appear at all when
+  there was nothing to save.** The poster now polls for "All changes
+  saved." for 12 s and treats a **disabled save button** as the
+  second signal.
+- **`DOM.getDocument` on the upload dialog cannot see the file
+  input** in a way that survives the dialog's re-render; the input
+  is handed over by `objectId`, which does.
+
+**Decisions:**
+
+- **Set the details on the video's edit page, not in the upload
+  dialog.** The dialog's fields are not reachable; the edit page
+  holds the same components and is.
+- **Type, then read back.** Every field is typed and then read from
+  the page — the value in the input is not the tag, and a write that
+  looks like it worked is not proof.
+- **`--resume` instead of a test upload.** A full end-to-end upload
+  would have put a duplicate video in the user's channel. The resume
+  path exercises the same code against the real page.
+- **The fake browser models the chip editor.** It now tracks which
+  field was focused and turns text into a chip on Enter, so the test
+  fails if the commit is ever dropped.
+- **Prove the guard bites.** Four guards were proved this way: the
+  id resolution (the URL assertion goes red), the title typing, the
+  visibility pick, and the tag commit. Each was broken on purpose,
+  watched red, and restored.
+
+**Verified end-to-end (the real browser, the real video):**
+
+- `node lib/youtube-poster.js --resume pg1a94SI2rY --title …` →
+  `title set · description set · tags set (4) · visibility is
+  public · details saved`.
+- The published watch page carries the title, the description and
+  the keywords `kai, djuric, performance, trumpet,
+  SaintedWordRecords, AIArt, GenerativeMusic, Ambient`, and reports
+  `isPrivate: false` / `isUnlisted: false` — **Public**.
+- `npm run test:youtube-poster` — 24/24.
+
+**Open:**
+
+- **The Instagram caption is still wrong.** The reel's caption reads
+  *"seemingly so — Sainted Word Records 🎺 muyic from my heart"* —
+  "muyic from my heart" is the Suno track title Instagram auto-fills
+  into the composer. Whether the second line survives the publish is
+  unverified. The fix is an Edit on the reel (the same editor, the
+  same blur rule), not a repost.
+- **`lib/youtube-batch.js` is still a stub** — its `uploadVideo()`
+  returns `{ success: true, url: 'manual' }` before any real work.
+- **The Suno session token was pasted in chat** and lives in commit
+  `cd434e4`; it should be rotated.
