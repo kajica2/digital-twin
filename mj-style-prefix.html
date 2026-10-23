@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="system" data-variant="1">
+<html lang="en">
 <head>
     <!-- Design tokens live in the skin, not in this page. See DESIGN.md. -->
     <link rel="stylesheet" href="assets/skins/house.css" data-skin-stylesheet>
@@ -8,114 +8,114 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎨 MJ Prompt Studio — Digital Twin</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='16,4 28,11 28,21 16,28 4,21 4,11' fill='none' stroke='%23c97b3f' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23c97b3f'/%3E%3C/svg%3E">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
-    <script>
-    (function(){try{var s=localStorage.getItem('dt-theme-pref')||'system';var r=s==='system'?(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):s;document.documentElement.setAttribute('data-theme',r)}catch(e){}})();
-    </script>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%A4%8D%3C/text%3E%3C/svg%3E">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         *{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:var(--font-body);background:var(--bg);color:var(--ink);line-height:1.5;min-height:100vh}
+        body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--fg);line-height:1.5;min-height:100vh}
+        a{color:inherit;text-decoration:none}
         
         /* Header */
-        .header{background:linear-gradient(135deg,var(--primary),var(--primary-2));padding:1.5rem 2rem;color:#fff;position:relative}
-        .header::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='m0 0h20v20h-20zm20 20h20v20h-20z'/%3E%3C/g%3E%3C/svg%3E")}
+        .header{background:linear-gradient(135deg,var(--c1),var(--c2));padding:1.5rem 2rem;color:#fff;position:relative;overflow:hidden}
+        .header::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
         .header-content{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1}
-        .logo{font-family:var(--font-display);font-size:1.5rem;display:flex;align-items:center;gap:0.5rem}
-        .logo-icon{width:36px;height:36px;background:rgba(255,255,255,0.2);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center}
-        .header-nav{display:flex;gap:0.75rem}
-        .header-nav a{padding:0.5rem 1rem;border-radius:var(--radius-md);background:rgba(255,255,255,0.15);color:#fff;font-weight:500;font-size:0.9rem;transition:background 0.2s}
-        .header-nav a:hover{background:rgba(255,255,255,0.25)}
+        .logo{display:flex;align-items:center;gap:0.75rem;font-weight:700;font-size:1.5rem}
+        .logo-icon{width:40px;height:40px;background:rgba(255,255,255,0.2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.25rem}
+        .header-nav{display:flex;gap:1rem}
+        .header-nav a{padding:0.5rem 1rem;border-radius:8px;background:rgba(255,255,255,0.1);transition:background 0.2s}
+        .header-nav a:hover{background:rgba(255,255,255,0.2)}
         
         /* Main */
-        main{max-width:1200px;margin:0 auto;padding:var(--space-5)}
+        main{max-width:1200px;margin:0 auto;padding:2rem}
         
         /* Tabs */
-        .tabs{display:flex;gap:var(--space-2);margin-bottom:var(--space-5);background:var(--surface);padding:var(--space-2);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm)}
-        .tab{flex:1;padding:0.75rem 1.25rem;border:none;background:none;border-radius:var(--radius-md);font-weight:600;font-size:0.9rem;color:var(--ink-muted);cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:0.5rem}
-        .tab:hover{color:var(--ink);background:var(--line-soft)}
-        .tab.active{background:var(--primary);color:#fff}
+        .tabs{display:flex;gap:0.5rem;margin-bottom:1.5rem;background:var(--surface);padding:0.5rem;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
+        .tab{flex:1;padding:0.75rem 1.5rem;border:none;background:none;border-radius:8px;font-weight:600;font-size:0.9rem;color:var(--fg-muted);cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:0.5rem}
+        .tab:hover{color:var(--fg);background:var(--muted)}
+        .tab.active{background:var(--accent);color:#fff}
+        
+        /* Panels */
+        .panel{display:none}
+        .panel.active{display:block}
         
         /* Cards */
-        .card{background:var(--surface);border-radius:var(--radius-lg);padding:var(--space-5);margin-bottom:var(--space-5);box-shadow:var(--shadow-sm);border:1px solid var(--line)}
-        .card-title{font-weight:700;font-size:1.1rem;margin-bottom:var(--space-4);display:flex;align-items:center;gap:0.5rem;font-family:var(--font-display)}
+        .card{background:var(--surface);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.05);border:1px solid var(--border)}
+        .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+        .card-title{font-weight:700;font-size:1.1rem;display:flex;align-items:center;gap:0.5rem}
         
-        /* Grid */
-        .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-5)}
-        .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-3)}
-        @media(max-width:768px){.grid-2,.grid-4{grid-template-columns:1fr}}
-        
-        /* Layout */
-        .col-main{flex:1}
-        .col-sidebar{width:340px}
-        .layout{display:flex;gap:var(--space-5)}
-        @media(max-width:1024px){.layout{flex-direction:column}.col-sidebar{width:100%}}
+        /* Grid layouts */
+        .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+        .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+        .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+        @media(max-width:768px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
         
         /* Buttons */
-        .btn{display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;padding:0.75rem 1.5rem;font-size:0.9rem;font-weight:600;border:none;border-radius:var(--radius-md);cursor:pointer;transition:all 0.2s;white-space:nowrap}
-        .btn-primary{background:var(--primary);color:#fff}
-        .btn-primary:hover{background:var(--primary-2)}
-        .btn-secondary{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
-        .btn-secondary:hover{background:var(--line-soft)}
-        .btn-stripe{background:#635bff;color:#fff}
-        .btn-stripe:hover{background:#4b44d4}
+        .btn{display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;padding:0.75rem 1.5rem;font-size:0.9rem;font-weight:600;border:none;border-radius:10px;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+        .btn-primary{background:var(--accent);color:#fff}
+        .btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px)}
+        .btn-secondary{background:var(--muted);color:var(--fg);border:1px solid var(--border)}
+        .btn-secondary:hover{background:var(--border)}
         .btn-sm{padding:0.5rem 1rem;font-size:0.8rem}
+        .btn-icon{width:36px;height:36px;padding:0;border-radius:10px}
         
         /* Preset buttons */
-        .preset-btn{display:flex;flex-direction:column;align-items:center;gap:0.25rem;padding:1rem;border:2px solid var(--line);background:var(--surface);border-radius:var(--radius-lg);cursor:pointer;transition:all 0.2s}
-        .preset-btn:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:var(--shadow-md)}
-        .preset-btn.active{border-color:var(--primary);background:var(--primary-soft,rgba(201,123,63,0.08))}
-        .preset-btn-icon{width:40px;height:40px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:1.25rem}
-        .preset-btn-label{font-size:0.75rem;font-weight:600;color:var(--ink-muted)}
+        .preset-btn{display:flex;flex-direction:column;align-items:center;gap:0.25rem;padding:1rem;border:2px solid var(--border);background:var(--surface);border-radius:12px;cursor:pointer;transition:all 0.2s}
+        .preset-btn:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 12px rgba(99,102,241,0.15)}
+        .preset-btn.active{border-color:var(--accent);background:rgba(99,102,241,0.1)}
+        .preset-btn-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem}
+        .preset-btn-label{font-size:0.75rem;font-weight:600;color:var(--fg-muted)}
         
         /* Inputs */
-        .input{width:100%;padding:0.875rem 1rem;border:2px solid var(--line);border-radius:var(--radius-md);background:var(--bg);color:var(--ink);font-size:0.95rem;transition:border-color 0.2s;font-family:var(--font-body)}
-        .input:focus{outline:none;border-color:var(--primary)}
-        .input::placeholder{color:var(--ink-faint)}
-        textarea.input{min-height:100px;resize:vertical;font-family:var(--font-mono);font-size:0.85rem}
+        .input{width:100%;padding:0.875rem 1rem;border:2px solid var(--border);border-radius:10px;background:var(--bg);color:var(--fg);font-size:0.95rem;transition:border-color 0.2s}
+        .input:focus{outline:none;border-color:var(--accent)}
+        .input::placeholder{color:var(--fg-muted)}
+        textarea.input{min-height:100px;resize:vertical;font-family:'JetBrains Mono',monospace;font-size:0.85rem}
         
-        /* Output */
-        .output{background:linear-gradient(135deg,#1a1812,#25221a);color:#f4efe2;padding:1.25rem;border-radius:var(--radius-md);font-family:var(--font-mono);font-size:0.9rem;word-break:break-all;min-height:80px;position:relative}
-        .output-copy{position:absolute;top:0.75rem;right:0.75rem;background:rgba(255,255,255,0.1);border:none;color:#f4efe2;padding:0.5rem;border-radius:var(--radius-sm);cursor:pointer;font-size:0.8rem}
+        /* Output box */
+        .output{background:linear-gradient(135deg,#1e1b4b,#312e81);color:#e0e7ff;padding:1.25rem;border-radius:12px;font-family:'JetBrains Mono',monospace;font-size:0.9rem;word-break:break-all;min-height:80px;position:relative}
+        .output-copy{position:absolute;top:0.75rem;right:0.75rem;background:rgba(255,255,255,0.1);border:none;color:#e0e7ff;padding:0.5rem;border-radius:8px;cursor:pointer;font-size:0.8rem;transition:background 0.2s}
         .output-copy:hover{background:rgba(255,255,255,0.2)}
         
-        /* Upload */
-        .upload-zone{border:2px dashed var(--line);border-radius:var(--radius-lg);padding:2rem;text-align:center;cursor:pointer;transition:all 0.2s}
-        .upload-zone:hover{border-color:var(--primary);background:rgba(201,123,63,0.05)}
+        /* Upload zone */
+        .upload-zone{border:2px dashed var(--border);border-radius:12px;padding:2rem;text-align:center;cursor:pointer;transition:all 0.2s}
+        .upload-zone:hover{border-color:var(--accent);background:rgba(99,102,241,0.05)}
+        .upload-zone-icon{font-size:2.5rem;margin-bottom:0.5rem}
         
-        /* Previews */
-        .preview-grid{display:flex;flex-wrap:wrap;gap:0.75rem;margin-top:var(--space-4)}
-        .preview-item{position:relative;width:100px;height:100px;border-radius:var(--radius-md);overflow:hidden}
+        /* Image previews */
+        .preview-grid{display:flex;flex-wrap:wrap;gap:0.75rem;margin-top:1rem}
+        .preview-item{position:relative;width:100px;height:100px;border-radius:10px;overflow:hidden}
         .preview-item img{width:100%;height:100%;object-fit:cover}
         .preview-item-remove{position:absolute;top:4px;right:4px;width:24px;height:24px;background:rgba(239,68,68,0.9);color:#fff;border:none;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
         .preview-item-num{position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,0.7);color:#fff;font-size:10px;padding:2px 6px;border-radius:4px}
         
         /* Preset list */
         .preset-list{max-height:300px;overflow-y:auto}
-        .preset-item{display:flex;align-items:center;gap:0.75rem;padding:0.875rem;background:var(--line-soft);border-radius:var(--radius-md);margin-bottom:0.5rem;cursor:pointer;transition:all 0.2s;border:2px solid transparent}
-        .preset-item:hover{background:var(--line)}
-        .preset-item.active{border-color:var(--primary);background:rgba(201,123,63,0.08)}
-        .preset-item-icon{width:36px;height:36px;background:var(--primary);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center}
+        .preset-item{display:flex;align-items:center;gap:0.75rem;padding:0.875rem;background:var(--muted);border-radius:10px;margin-bottom:0.5rem;cursor:pointer;transition:all 0.2s;border:2px solid transparent}
+        .preset-item:hover{background:var(--border)}
+        .preset-item.active{border-color:var(--accent);background:rgba(99,102,241,0.1)}
+        .preset-item-icon{width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center}
         .preset-item-name{flex:1;font-weight:600}
-        .preset-item-prefix{font-size:0.75rem;color:var(--ink-faint);font-family:var(--font-mono)}
+        .preset-item-prefix{font-size:0.75rem;color:var(--fg-muted);font-family:'JetBrains Mono',monospace}
         
-        /* Badge */
+        /* Status badge */
         .badge{display:inline-flex;align-items:center;gap:0.25rem;padding:0.25rem 0.75rem;font-size:0.75rem;font-weight:600;border-radius:20px}
-        .badge-success{background:rgba(47,111,94,0.1);color:var(--accent)}
+        .badge-success{background:rgba(16,185,129,0.1);color:var(--success)}
         
-        /* Panel */
-        .panel{display:none}
-        .panel.active{display:block}
+        /* Two column layout */
+        .col-main{flex:1}
+        .col-sidebar{width:320px}
+        .layout{display:flex;gap:1.5rem}
+        @media(max-width:1024px){.layout{flex-direction:column}.col-sidebar{width:100%}}
         
-        /* Footer */
-        footer{text-align:center;padding:var(--space-5);color:var(--ink-faint);font-size:0.85rem;border-top:1px solid var(--line);margin-top:var(--space-6)}
+        /* Empty state */
+        .empty{text-align:center;padding:2rem;color:var(--fg-muted)}
         
+        /* Animations */
         @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
         .animate{animation:fadeIn 0.3s ease}
         
-        .empty{text-align:center;padding:var(--space-5);color:var(--ink-faint)}
+        /* Footer */
+        footer{text-align:center;padding:2rem;color:var(--fg-muted);font-size:0.85rem;border-top:1px solid var(--border);margin-top:2rem}
     </style>
 </head>
 <body>
@@ -133,7 +133,7 @@
     </header>
 
     <main>
-        <!-- Tabs -->
+        <!-- Tab Navigation -->
         <div class="tabs">
             <button class="tab active" onclick="switchTab('create')">✨ Create</button>
             <button class="tab" onclick="switchTab('batch')">📋 Batch</button>
@@ -141,7 +141,7 @@
             <button class="tab" onclick="switchTab('presets')">💾 Presets</button>
         </div>
 
-        <!-- CREATE -->
+        <!-- CREATE TAB -->
         <div id="panel-create" class="panel active animate">
             <div class="layout">
                 <div class="col-main">
@@ -149,36 +149,36 @@
                     <div class="card">
                         <div class="card-title">⚡ Quick Presets</div>
                         <div class="grid-4" style="margin-top:1rem">
-                            <button class="preset-btn" onclick="applyPreset('--ar 21:9, --v 6, --style cinematic')">
-                                <div class="preset-btn-icon" style="background:linear-gradient(135deg,#c97b3f,#a85f28)">🎬</div>
+                            <button class="preset-btn" onclick="applyPreset('--ar 21:9, --v 6, --style cinematic', 'Cinematic')">
+                                <div class="preset-btn-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">🎬</div>
                                 <span class="preset-btn-label">Cinematic</span>
                             </button>
-                            <button class="preset-btn" onclick="applyPreset('--ar 3:4, --v 6, --style portrait')">
-                                <div class="preset-btn-icon" style="background:linear-gradient(135deg,#c97b3f,#a85f28)">👤</div>
+                            <button class="preset-btn" onclick="applyPreset('--ar 3:4, --v 6, --style portrait', 'Portrait')">
+                                <div class="preset-btn-icon" style="background:linear-gradient(135deg,#ec4899,#f472b6)">👤</div>
                                 <span class="preset-btn-label">Portrait</span>
                             </button>
-                            <button class="preset-btn" onclick="applyPreset('--ar 16:9, --v 6')">
-                                <div class="preset-btn-icon" style="background:linear-gradient(135deg,#c97b3f,#a85f28)">🏔️</div>
+                            <button class="preset-btn" onclick="applyPreset('--ar 16:9, --v 6', 'Landscape')">
+                                <div class="preset-btn-icon" style="background:linear-gradient(135deg,#06b6d4,#22d3ee)">🏔️</div>
                                 <span class="preset-btn-label">Landscape</span>
                             </button>
-                            <button class="preset-btn" onclick="applyPreset('--ar 1:1, --v 6, --q 2')">
-                                <div class="preset-btn-icon" style="background:linear-gradient(135deg,#c97b3f,#a85f28)">📦</div>
+                            <button class="preset-btn" onclick="applyPreset('--ar 1:1, --v 6, --q 2', 'Product')">
+                                <div class="preset-btn-icon" style="background:linear-gradient(135deg,#10b981,#34d399)">📦</div>
                                 <span class="preset-btn-label">Product</span>
                             </button>
-                            <button class="preset-btn" onclick="applyPreset('--v 6, --nijis 5')">
-                                <div class="preset-btn-icon" style="background:linear-gradient(135deg,#c97b3f,#a85f28)">🎨</div>
+                            <button class="preset-btn" onclick="applyPreset('--v 6, --nijis 5', 'Anime')">
+                                <div class="preset-btn-icon" style="background:linear-gradient(135deg,#8b5cf6,#a78bfa)">🎨</div>
                                 <span class="preset-btn-label">Anime</span>
                             </button>
-                            <button class="preset-btn" onclick="applyPreset('--v 6, --style raw')">
-                                <div class="preset-btn-icon" style="background:linear-gradient(135deg,#c97b3f,#a85f28)">📸</div>
+                            <button class="preset-btn" onclick="applyPreset('--v 6, --style raw', 'Photoreal')">
+                                <div class="preset-btn-icon" style="background:linear-gradient(135deg,#f59e0b,#fbbf24)">📸</div>
                                 <span class="preset-btn-label">Photoreal</span>
                             </button>
-                            <button class="preset-btn" onclick="applyPreset('--ar 9:16, --v 6')">
-                                <div class="preset-btn-icon" style="background:linear-gradient(135deg,#c97b3f,#a85f28)">📱</div>
+                            <button class="preset-btn" onclick="applyPreset('--ar 9:16, --v 6', 'Story')">
+                                <div class="preset-btn-icon" style="background:linear-gradient(135deg,#ef4444,#f87171)">📱</div>
                                 <span class="preset-btn-label">Story</span>
                             </button>
-                            <button class="preset-btn" onclick="applyPreset('--ar 16:9, --v 6, --style photo')">
-                                <div class="preset-btn-icon" style="background:linear-gradient(135deg,#c97b3f,#a85f28)">🖼️</div>
+                            <button class="preset-btn" onclick="applyPreset('--ar 16:9, --v 6, --style photo', 'Photo')">
+                                <div class="preset-btn-icon" style="background:linear-gradient(135deg,#3b82f6,#60a5fa)">🖼️</div>
                                 <span class="preset-btn-label">Photo</span>
                             </button>
                         </div>
@@ -187,78 +187,94 @@
                     <!-- Generate -->
                     <div class="card">
                         <div class="card-title">✍️ Your Prompt</div>
-                        <textarea class="input" id="basePrompt" placeholder="Describe what you want to generate..." style="margin-top:1rem"></textarea>
                         <div style="margin-top:1rem">
-                            <div class="output" id="output">Your prompt will appear here...<button class="output-copy" onclick="copyOutput()">📋 Copy</button></div>
+                            <textarea class="input" id="basePrompt" placeholder="Describe what you want to generate... e.g., A serene lake at sunset with mountains in the background"></textarea>
                         </div>
-                        <div style="margin-top:1rem;display:flex;gap:0.75rem;flex-wrap:wrap">
+                        <div style="margin-top:1rem">
+                            <div class="output" id="output">
+                                Your prompt will appear here...
+                                <button class="output-copy" onclick="copyOutput()">📋 Copy</button>
+                            </div>
+                        </div>
+                        <div style="margin-top:1rem;display:flex;gap:0.75rem">
                             <button class="btn btn-primary" onclick="generate()">✨ Generate</button>
                             <button class="btn btn-secondary" onclick="copyOutput()">📋 Copy</button>
                             <button class="btn btn-secondary" onclick="clearAll()">🗑️ Clear</button>
-                            <a href="https://buy.stripe.com/test_mj" target="_blank" class="btn btn-stripe">☁️ Upgrade</a>
+                        </div>
+                        <div style="margin-top:0.75rem;display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
+                            <input type="email" class="input" id="emailInput" placeholder="your@email.com" value="kai.djuric@gmail.com" style="width:auto;flex:1;min-width:150px">
+                            <button class="btn" style="background:#635bff;color:#fff" onclick="emailPrompt()">📧 Email Me</button>
+                        </div>
+                        <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--line)">
+                            <div style="font-weight:600;font-size:0.85rem;margin-bottom:0.5rem">🔌 API Control</div>
+                            <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+                                <input type="text" class="input" id="apiUrl" placeholder="https://api.example.com/webhook" style="width:auto;flex:1;min-width:150px">
+                                <button class="btn btn-secondary" onclick="runApi()">▶️ Run API</button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-sidebar">
-                    <!-- Attach Image -->
+                    <!-- Image Attachment -->
                     <div class="card">
                         <div class="card-title">🖼️ Attach Image</div>
                         <div class="upload-zone" onclick="document.getElementById('attachInput').click()" style="margin-top:1rem">
                             <input type="file" id="attachInput" accept="image/*" style="display:none" onchange="handleAttach(this.files[0])">
-                            <div style="font-size:2rem">📎</div>
+                            <div class="upload-zone-icon">📎</div>
                             <div>Click to upload</div>
-                            <div style="font-size:0.8rem;color:var(--ink-faint)">for MJ reference</div>
+                            <div style="font-size:0.8rem;color:var(--fg-muted)">for MJ reference</div>
                         </div>
                         <div id="attachPreview" class="preview-grid" style="display:none"></div>
                         <div id="attachStatus" class="badge badge-success" style="margin-top:0.75rem;display:none">✅ Image attached</div>
                         
-                        <div style="margin-top:1rem;border-top:1px solid var(--line);padding-top:1rem">
+                        <div style="margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem">
                             <label style="font-size:0.85rem;font-weight:600">Or --cref URL:</label>
-                            <input type="text" class="input" id="crefUrl" placeholder="https://..." style="margin-top:0.5rem" oninput="manualcref(this.value)">
+                            <input type="text" class="input" id="crefUrl" placeholder="https://..." style="margin-top:0.5rem" oninput="manualCref(this.value)">
                         </div>
                     </div>
 
                     <!-- Current Prefix -->
                     <div class="card">
                         <div class="card-title">📝 Current Prefix</div>
-                        <textarea class="input" id="prefixText" placeholder="--ar 16:9, --v 6" style="margin-top:1rem;min-height:60px"></textarea>
+                        <textarea class="input" id="prefixText" placeholder="--ar 16:9, --v 6, --style cinematic" style="margin-top:1rem;min-height:60px"></textarea>
                         <button class="btn btn-sm btn-secondary" style="margin-top:0.75rem" onclick="saveCurrentAsPreset()">💾 Save as Preset</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- BATCH -->
+        <!-- BATCH TAB -->
         <div id="panel-batch" class="panel animate">
             <div class="card">
                 <div class="card-title">📋 Batch Prompt Generator</div>
-                <p style="color:var(--ink-faint);margin-bottom:1rem">Enter multiple prompts (one per line).</p>
+                <p style="color:var(--fg-muted);margin-bottom:1rem">Enter multiple prompts (one per line) to generate them all at once.</p>
                 <div class="grid-2" style="gap:1.5rem">
                     <div>
-                        <label style="font-weight:600;display:block;margin-bottom:0.5rem">Your Prompts</label>
-                        <textarea class="input" id="batchPrompts" placeholder="a cat&#10;a dog&#10;a bird" style="min-height:200px"></textarea>
+                        <label style="font-weight:600;display:block;margin-bottom:0.5rem">Your Prompts (one per line)</label>
+                        <textarea class="input" id="batchPrompts" placeholder="a cat sitting&#10;a dog running&#10;a bird flying" style="min-height:200px"></textarea>
                     </div>
                     <div>
-                        <label style="font-weight:600;display:block;margin-bottom:0.5rem">Generated</label>
+                        <label style="font-weight:600;display:block;margin-bottom:0.5rem">Generated Prompts</label>
                         <div class="output" id="batchOutput" style="min-height:200px">Generated prompts will appear here...</div>
-                        <button class="btn btn-primary" style="margin-top:1rem" onclick="batchRun()">⚡ Generate</button>
-                        <button class="btn btn-secondary" style="margin-top:1rem" onclick="copyBatch()">📋 Copy</button>
+                        <button class="btn btn-primary" style="margin-top:1rem" onclick="batchRun()">⚡ Generate All</button>
+                        <button class="btn btn-secondary" style="margin-top:1rem" onclick="copyBatch()">📋 Copy All</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- IMAGES -->
+        <!-- IMAGES TAB -->
         <div id="panel-images" class="panel animate">
             <div class="card">
                 <div class="card-title">🖼️ Multi-Image Batch</div>
-                <p style="color:var(--ink-faint);margin-bottom:1rem">Upload multiple reference images.</p>
+                <p style="color:var(--fg-muted);margin-bottom:1rem">Upload multiple reference images to generate variation prompts for each.</p>
                 
                 <div class="upload-zone" onclick="document.getElementById('multiInput').click()" style="margin-bottom:1rem">
                     <input type="file" id="multiInput" accept="image/*" multiple style="display:none" onchange="handleMultiUpload(this.files)">
-                    <div style="font-size:2rem">🖼️</div>
+                    <div class="upload-zone-icon">🖼️</div>
                     <div>Click to select multiple images</div>
+                    <div style="font-size:0.8rem;color:var(--fg-muted)">PNG, JPG, WebP</div>
                 </div>
                 
                 <div id="multiPreviewGrid" class="preview-grid"></div>
@@ -267,6 +283,7 @@
                     <div>
                         <label style="font-weight:600;display:block;margin-bottom:0.5rem">Prompt Template</label>
                         <input type="text" class="input" id="multiTemplate" placeholder="variation {i}" value="variation {i}">
+                        <p style="font-size:0.75rem;color:var(--fg-muted);margin-top:0.25rem">Use {i} for image number</p>
                     </div>
                     <div>
                         <label style="font-weight:600;display:block;margin-bottom:0.5rem">Style Prefix</label>
@@ -285,7 +302,7 @@
             </div>
         </div>
 
-        <!-- PRESETS -->
+        <!-- PRESETS TAB -->
         <div id="panel-presets" class="panel animate">
             <div class="layout">
                 <div class="col-main">
@@ -299,11 +316,11 @@
                         <div class="card-title">➕ Create New Preset</div>
                         <div style="margin-top:1rem">
                             <label style="font-weight:600;display:block;margin-bottom:0.5rem">Name</label>
-                            <input type="text" class="input" id="presetName" placeholder="e.g., My Style">
+                            <input type="text" class="input" id="presetName" placeholder="e.g., My Cinematic Style">
                         </div>
                         <div style="margin-top:1rem">
                             <label style="font-weight:600;display:block;margin-bottom:0.5rem">Prefix</label>
-                            <textarea class="input" id="newPresetPrefix" placeholder="--ar 16:9, --v 6" style="min-height:80px"></textarea>
+                            <textarea class="input" id="newPresetPrefix" placeholder="--ar 16:9, --v 6, --style cinematic" style="min-height:80px"></textarea>
                         </div>
                         <button class="btn btn-primary" style="margin-top:1rem;width:100%" onclick="saveNewPreset()">💾 Save Preset</button>
                     </div>
@@ -315,6 +332,7 @@
     <footer>MJ Prompt Studio • Digital Twin</footer>
 
 <script>
+// Data
 const DEFAULT_PRESETS=[
     {name:'Cinematic',prefix:'--ar 21:9, --v 6, --style cinematic',icon:'🎬'},
     {name:'Portrait',prefix:'--ar 3:4, --v 6, --style portrait',icon:'👤'},
@@ -326,6 +344,7 @@ const DEFAULT_PRESETS=[
     {name:'Photo',prefix:'--ar 16:9, --v 6, --style photo',icon:'🖼️'}
 ];
 
+// State
 let savedPresets=JSON.parse(localStorage.getItem('mj-presets')||'null');
 let presets=savedPresets&&savedPresets.length>0?savedPresets:DEFAULT_PRESETS;
 if(!savedPresets){localStorage.setItem('mj-presets',JSON.stringify(presets))}
@@ -334,8 +353,10 @@ let attachedImageFile=null;
 let attachedImageUrl=null;
 let multiImages=[];
 
+// Initialize
 renderPresets();
 
+// Tab switching
 function switchTab(tab){
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -343,9 +364,13 @@ function switchTab(tab){
     document.getElementById(`panel-${tab}`).classList.add('active');
 }
 
+// Preset functions
 function renderPresets(){
     const list=document.getElementById('presetList');
-    if(presets.length===0){list.innerHTML='<div class="empty">No presets yet.</div>';return}
+    if(presets.length===0){
+        list.innerHTML='<div class="empty">No presets yet. Create one below!</div>';
+        return;
+    }
     list.innerHTML=presets.map((p,i)=>`
         <div class="preset-item ${activePresetIdx===i?'active':''}" onclick="selectPreset(${i})">
             <div class="preset-item-icon">${p.icon||'📝'}</div>
@@ -353,7 +378,7 @@ function renderPresets(){
                 <div class="preset-item-name">${p.name}</div>
                 <div class="preset-item-prefix">${p.prefix}</div>
             </div>
-            <button class="btn btn-sm btn-secondary" onclick="deletePreset(${i},event)">🗑️</button>
+            <button class="btn btn-icon btn-secondary" onclick="deletePreset(${i},event)">🗑️</button>
         </div>
     `).join('');
 }
@@ -367,9 +392,12 @@ function selectPreset(i){
     generate();
 }
 
-function applyPreset(prefix){
+function applyPreset(prefix,name){
     document.getElementById('prefixText').value=prefix;
     generate();
+    // Visual feedback
+    event.target.closest('.preset-btn')?.classList.add('active');
+    setTimeout(()=>event.target.closest('.preset-btn')?.classList.remove('active'),200);
 }
 
 function deletePreset(i,e){
@@ -399,28 +427,65 @@ function saveNewPreset(){
 function saveCurrentAsPreset(){
     const name=document.getElementById('presetName').value.trim();
     const prefix=document.getElementById('prefixText').value.trim();
-    if(!name||!prefix)return alert('Enter a name and prefix');
+    if(!name||!prefix)return alert('Enter a name and make sure prefix is set');
     presets.push({name,prefix,icon:'📝'});
     savePresets();
 }
 
+// Generate functions
 function generate(){
     const base=document.getElementById('basePrompt').value.trim();
     const prefix=document.getElementById('prefixText').value.trim();
     let output='';
-    if(base&&prefix){output=prefix.replace(/,/g,' ')+' '+base;}
-    else if(base){output=base;}
-    else if(prefix){output=prefix.replace(/,/g,' ')+' [your prompt]';}
-    else{output='Enter a prompt above...';}
-    if(attachedImageUrl){output+=' --cref '+attachedImageUrl;}
-    else if(attachedImageFile){output+=' [📎 image attached]';}
+    
+    if(base&&prefix){
+        output=prefix.replace(/,/g,' ')+' '+base;
+    }else if(base){
+        output=base;
+    }else if(prefix){
+        output=prefix.replace(/,/g,' ')+' [your prompt here]';
+    }else{
+        output='Enter a prompt above...';
+    }
+    
+    // Add --cref URL if uploaded
+    if(attachedImageUrl){
+        output+=' --cref '+attachedImageUrl;
+    }
+    
     document.getElementById('output').innerHTML=output.replace(/</g,'&lt;')+'<button class="output-copy" onclick="copyOutput()">📋 Copy</button>';
 }
 
 function copyOutput(){
     const output=document.getElementById('output').textContent.replace('📋 Copy','').trim();
     navigator.clipboard.writeText(output);
-    showToast('Copied!');
+    showToast('Copied to clipboard!');
+}
+
+function emailPrompt(){
+    const email=document.getElementById('emailInput').value.trim();
+    if(!email)return alert('Enter your email address');
+    const output=document.getElementById('output').textContent.replace('📋 Copy','').trim();
+    if(output==='Enter a prompt above...')return alert('Generate a prompt first');
+    const subject=encodeURIComponent('My MJ Prompt');
+    const body=encodeURIComponent('Here is my Midjourney prompt:\n\n'+output);
+    window.location.href='mailto:'+email+'?subject='+subject+'&body='+body;
+}
+
+function runApi(){
+    const apiUrl=document.getElementById('apiUrl').value.trim();
+    if(!apiUrl)return alert('Enter API URL');
+    const output=document.getElementById('output').textContent.replace('📋 Copy','').trim();
+    if(output==='Enter a prompt above...')return alert('Generate a prompt first');
+    const btn=event.target;
+    btn.textContent='⏳ Sending...';
+    btn.disabled=true;
+    fetch(apiUrl,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({prompt:output,type:'midjourney'})
+    }).then(r=>{btn.textContent='✅ Sent!';setTimeout(()=>{btn.textContent='▶️ Run API';btn.disabled=false},2000)})
+    .catch(e=>{btn.textContent='❌ Error';btn.disabled=false;alert('API Error: '+e.message)});
 }
 
 function clearAll(){
@@ -434,47 +499,81 @@ function clearAll(){
     generate();
 }
 
+// Batch functions
 function batchRun(){
     const prompts=document.getElementById('batchPrompts').value.trim().split('\n').filter(p=>p.trim());
     const prefix=document.getElementById('prefixText').value.trim().replace(/,/g,' ');
-    if(!prompts.length)return alert('Enter prompts!');
+    if(!prompts.length)return alert('Enter some prompts first!');
+    
     const output=prompts.map(p=>prefix?prefix+' '+p.trim():p.trim()).join('\n\n');
     document.getElementById('batchOutput').innerHTML=output.replace(/</g,'&lt;');
 }
 
 function copyBatch(){
-    navigator.clipboard.writeText(document.getElementById('batchOutput').textContent);
-    showToast('Copied!');
+    const output=document.getElementById('batchOutput').textContent;
+    navigator.clipboard.writeText(output);
+    showToast('Copied to clipboard!');
 }
 
-function handleAttach(f){
+// Image functions
+async function handleAttach(f){
     if(!f)return;
     attachedImageFile=f;
-    const url=URL.createObjectURL(f);
     const preview=document.getElementById('attachPreview');
-    preview.innerHTML=`<div class="preview-item"><img src="${url}"><button class="preview-item-remove" onclick="removeAttach()">×</button></div>`;
+    const status=document.getElementById('attachStatus');
+    preview.innerHTML=`<div class="preview-item"><img src="${URL.createObjectURL(f)}"><button class="preview-item-remove" onclick="removeAttach()">×</button></div>`;
     preview.style.display='flex';
-    document.getElementById('attachStatus').style.display='inline-flex';
+    status.textContent='⏳ Uploading...';
+    status.style.display='inline-flex';
+    
+    // Upload to CDN
+    try {
+        const formData = new FormData();
+        formData.append('image', f);
+        const response = await fetch('https://api.imgbb.com/1/upload?key=d36eb6591370ae7f9089d85875571358', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+        if(data.success && data.data && data.data.url) {
+            attachedImageUrl = data.data.url;
+            status.textContent='✅ Uploaded!';
+            status.style.background='rgba(47,111,94,0.1)';
+            status.style.color='var(--accent)';
+        } else {
+            status.textContent='⚠️ Using local - paste to MJ manually';
+        }
+    } catch(e) {
+        status.textContent='⚠️ Upload failed - use 📎 in MJ';
+    }
     generate();
 }
 
 function removeAttach(){
     attachedImageFile=null;
+    attachedImageUrl=null;
     document.getElementById('attachPreview').innerHTML='';
     document.getElementById('attachPreview').style.display='none';
     document.getElementById('attachStatus').style.display='none';
     generate();
 }
 
-function manualcref(url){
+function manualCref(url){
     attachedImageUrl=url;
     generate();
 }
 
+// Multi-upload functions
 function handleMultiUpload(files){
     multiImages=Array.from(files);
     const grid=document.getElementById('multiPreviewGrid');
-    grid.innerHTML=multiImages.map((f,i)=>`<div class="preview-item"><img src="${URL.createObjectURL(f)}"><button class="preview-item-remove" onclick="removeMultiImage(${i})">×</button><span class="preview-item-num">${i+1}</span></div>`).join('');
+    grid.innerHTML=multiImages.map((f,i)=>`
+        <div class="preview-item">
+            <img src="${URL.createObjectURL(f)}">
+            <button class="preview-item-remove" onclick="removeMultiImage(${i})">×</button>
+            <span class="preview-item-num">${i+1}</span>
+        </div>
+    `).join('');
 }
 
 function removeMultiImage(i){
@@ -483,19 +582,21 @@ function removeMultiImage(i){
 }
 
 function generateMultiPrompts(){
-    if(!multiImages.length)return alert('Upload images first!');
+    if(!multiImages.length)return alert('Upload some images first!');
     const template=document.getElementById('multiTemplate').value||'variation {i}';
     const style=document.getElementById('multiStyle').value||'';
     const prompts=multiImages.map((f,i)=>{
-        const t=template.replace('{i}',i+1);
+        const num=i+1;
+        const t=template.replace('{i}',num);
         return style?t+' '+style:t;
     });
     document.getElementById('multiOutput').innerHTML=prompts.join('\n\n').replace(/</g,'&lt;');
 }
 
 function copyMulti(){
-    navigator.clipboard.writeText(document.getElementById('multiOutput').textContent);
-    showToast('Copied!');
+    const output=document.getElementById('multiOutput').textContent;
+    navigator.clipboard.writeText(output);
+    showToast('Copied to clipboard!');
 }
 
 function clearMulti(){
@@ -504,14 +605,18 @@ function clearMulti(){
     document.getElementById('multiOutput').innerHTML='Generated prompts will appear here...';
 }
 
-['basePrompt','prefixText'].forEach(id=>{document.getElementById(id).addEventListener('input',generate);});
+// Event listeners
+['basePrompt','prefixText'].forEach(id=>{
+    document.getElementById(id).addEventListener('input',generate);
+});
 
+// Toast notification
 function showToast(msg){
     const toast=document.createElement('div');
-    toast.style.cssText='position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;padding:0.75rem 1.5rem;border-radius:var(--radius-md);font-weight:600;z-index:1000';
+    toast.style.cssText='position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--success);color:#fff;padding:0.75rem 1.5rem;border-radius:10px;font-weight:600;z-index:1000;animation:fadeIn 0.3s';
     toast.textContent=msg;
     document.body.appendChild(toast);
-    setTimeout(()=>toast.remove(),2000);
+    setTimeout(()=>{toast.remove()},2000);
 }
 </script>
 </body>
