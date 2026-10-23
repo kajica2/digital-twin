@@ -8137,3 +8137,158 @@ and it is why 01, 02 and 06 were read cell by cell.
 - Re-run the series at 16:9 with the wardrobe carried by the prompt
   and the face by the reference only — the one experiment that would
   settle both open items.
+
+### 2026-10-23 — sprint 0.55 (THE ONE SCREEN at 16:9 — and three tool defects that were lying)
+
+Sprint 0.54's open item was the ratio: *"The series is a 4:3 set because
+the source job's ratio was inherited. A music video wants 16:9."* This
+sprint re-ran the series at 16:9 — and the ratio was still 4:3 for the
+first three attempts, because **the tool was the reason**. Three real
+defects sat between the pack and the renderer, and each one had to be
+found and fixed before a single 16:9 frame existed.
+
+**Shipped:**
+
+- **`assets/mural-prompts/one-screen-stills-12-16x9.md`** — the 16:9
+  pack. Same twelve stills, three changes, each answering a finding
+  from the 4:3 series: **the ratio** on every bullet, the **wardrobe
+  clause leading** every bullet and explicitly negated (`no denim
+  jacket and no leather jacket and no necklace`), and the **camera
+  distance stated as a literal amount of visible room** and as what is
+  NOT in frame — the only phrasing that has ever moved a camera in
+  this repo's history (the overhead crane shot). `npm run
+  prompt:check` → 48 packs, 489 prompts, 0 violations.
+- **The run** — `node lib/mj-revise.js --source
+  f8459ce4-ebaf-4c14-a88d-e243163b2e66 --prompt-file
+  assets/mural-prompts/one-screen-stills-12-16x9.md --output
+  /tmp/mj-test/one-screen-16x9b --port 9445 --user-data-dir
+  /tmp/mj-plate-profile --replace-flag p=m7507137468043532712` →
+  **12/12 edit jobs** (`v8-2_edit_diffusion`), every one
+  **2944×1648** (true 16:9), 35 min wall. Eleven new jobs; still 05
+  correctly **reused** the earlier probe job `6d3170d1` — same prose,
+  same ratio — rather than burning a twelfth generation.
+- **`mj-output/one-screen-stills-12-16x9/`** (gitignored working
+  product) — 48 cells, every `meta.json`, the 12-up
+  `contact-sheet.png`, the 12 local tiles and `sheet-manifest.json`.
+
+|still|task id|camera|wardrobe|
+|---|---|---|---|
+|01|`fdececd5`|medium ✗ (wanted very wide)|hoodie ✓|
+|02|`06c7cba4`|macro ✓ (slot 2)|hoodie cuff ✓|
+|03|`eeaca18c`|over-the-shoulder ✓ (slot 1)|hoodie ✓ (slot 1)|
+|04|`491686c8`|high angle ✗ (wanted straight down)|hoodie ✓ (slot 1)|
+|05|`6d3170d1`|medium, eye level ✓|hoodie ✓|
+|06|`419ff6fa`|low from the floor ✓|hoodie ✓|
+|07|`541e976e`|close on the hands ✓ (slot 1)|hoodie cuff ✓ (slot 1)|
+|08|`9dbf2f20`|very wide ✓ (slot 1)|hoodie ✓ (slot 1)|
+|09|`94ff7ec4`|extreme close ✓ (slot 1)|sweatshirt cuff ✓ (slot 1)|
+|10|`64e15be9`|close, red lamp ✓|hoodie ✓|
+|11|`41a19844`|wide, rising ✓ (slot 1)|hoodie ✓ (slot 1)|
+|12|`bf8dd3ac`|medium, warm dawn ✓ (slot 2)|hoodie ✓|
+
+**Six of the twelve picks are not slot 0.** A sheet that always shows
+the first cell would have shown the wrong frame for half the series —
+the wide studio shot is cell 1 of its 4-up, the clean macro is cell 2,
+the warm dawn is cell 2. Sprint 0.54's lesson, repeated at double the
+scale.
+
+**Defect 1 — the reuse key was a prefix, so the tool re-served the
+old jobs.** `sameJob` compared the first 60 characters of the prose.
+Every prompt in the new pack shares a long wardrobe preamble, so
+60 characters was the same string for all twelve — the tool found the
+4:3 jobs "identical" and reused them. The key is now the **whole
+prose plus the ratio**, both folded. Five checks in
+`lib/mj-revise.test.js` §9; proven to bite (2 red → green).
+
+**Defect 2 — "Midjourney refused the prompt" was never about the
+prompt.** Six of the twelve prompts were refused with a message that
+blamed `--style` / `--sref` / `--profile` / `--edit`. Four probe
+variants (ratio, negation) were refused too. The clue was that a
+*known-good* 4:3 command was refused as well.
+
+- Probe v1 (no focus emulation) **failed its own known-good control** —
+  which proved the probe's mechanics were broken, not that MJ was
+  refusing anything.
+- Probe v2 (with `Emulation.setFocusEmulationEnabled`) submitted
+  **both** the known-good command (job `f9020375`) and the "refused"
+  16:9 command (job `6d3170d1`).
+- The isolation run settled it: the same known-good command with
+  `FOCUS=0` produced **no `/api/` call at all** and left 472 characters
+  sitting in the composer.
+
+Cause: `lib/mj-revise.js`'s CDP setup never enabled focus emulation
+(`lib/mj-web.js` and `lib/mj-submitter.js` did, in their own setups),
+so a backgrounded renderer swallowed the ENTER — and the tool read
+"no submission" as "Midjourney refused". **The fix is in the shared
+path**: `lib/mj-web.js`'s `submitViaComposer` now enables focus
+emulation before typing, so no caller can forget it. The test is
+behavioural (a fake CDP client): the job comes back, focus emulation is
+enabled, and it is enabled **before** `Input.insertText`. Suite 68 →
+**72**. Proven to bite: the block removed → 3 checks red.
+
+The refusal message was made honest at the same time: it now says to
+look at the parameters first, and then says plainly that **if the
+prompt is fine, the submission never reached Midjourney**.
+
+**Defect 3 — the pack's ratio was ignored.** The tool read a
+pack-level `ar` from the **source job's** command and never read
+`extractPrompts`' per-prompt `p.ar` — and the shared parser strips
+`--ar` out of the prose and surfaces it as `ar`. So a 16:9 pack
+rendered at the source's 4:3, every time. Measured proof: the
+single-still validation submitted job `da5c225d` and its meta recorded
+`carriedFlags: "--raw --stylize 0 --v 8.2 --ar 4:3"` at 2544×1904.
+
+The fix is a pure helper — `promptRatio(prompt, sourceAr)`: the prose's
+own `--ar` wins, then the pack's `ar`, then the source's ratio as the
+fallback. The meta now records `--ar ${wantRatio}`. Four checks in
+`lib/mj-revise.test.js` §10; proven to bite (3 red → green).
+
+**And a test that was pinning the bug.** The old check asserted the
+literal source string `--ar ${resolveRatio(text, ar)}` — which is
+exactly the defective line. A pin on the wrong line is a test that
+guards the defect. It was rewritten behaviourally. Suite 80 → **84**.
+
+**Decisions:**
+
+- **The pack owns the ratio; the source is the canvas.** The pack is
+  the instruction; the source supplies the face.
+- **The reuse key must be the whole job, not a prefix.** A 60-char
+  prefix is not an identity — and for a series whose prompts share a
+  wardrobe preamble it is not even unique.
+- **One owner for focus emulation, in the shared path.** Two of the
+  three CDP setups enabled it and one did not; the shared path was
+  assuming a thing its callers were supposed to remember.
+- **A refused submission is not a fact about the prompt until the
+  submission mechanism is proven.** A known-good control distinguishes
+  "MJ refused it" from "the tool never sent it", and the first probe
+  could not tell them apart because it had no control that worked.
+- **The ratio is proven by MJ's own recorded command**, not by our
+  meta: each of the twelve jobs records `--ar 16:9`.
+
+**Still open (carried forward, honestly):**
+
+- **The wardrobe override is unsolved.** The reference photo's denim
+  jacket still wins in some cells (still 04 cells 0 and 2, still 08
+  cell 0, still 12). The leading-and-negated clause fixed most
+  frames, not all of them.
+- **The `--p` code still never reaches the renderer.** MJ's recorded
+  command for every job is `--profile mhw6dpq` — the account's
+  ambient personalization. The typed `--p m7507137468043532712` is
+  accepted by the composer and replaced in MJ's own record. Sprint
+  0.54's open item is now **confirmed**, not solved.
+- **Two cameras never moved.** The very wide static (01) and the
+  straight-down overhead (04) landed as medium and high-angle in
+  every cell of their 4-ups.
+- The 12-up sheet is a working product in gitignored `mj-output/`;
+  no page points at it, so nothing can 404 on the deploy.
+
+**Next:**
+
+- The wardrobe problem needs the **plate** approach 0.54 proposed:
+  render the wardrobe without the reference, then use the reference
+  only for the face. Or `--no-personalize` with the moodboard codes
+  typed in, which is the sprint-0.56 lesson.
+- Two cameras (very wide, straight down) may need an angle the
+  reference's tight selfie cannot anchor — the same "one angle moved
+  when it was phrased as room" experiment again, or a different
+  attachment.
