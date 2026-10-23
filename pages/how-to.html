@@ -11,7 +11,7 @@
     <title>How To — Digital Twin</title>
     <meta name="description" content="How to run everything in the digital-twin repo: Twin OS, the CLIP Interrogator, the Refael MP4 Maker, the chart pipeline, the song indexer, the e2e tests, and the LaunchAgents.">
     <meta property="og:title" content="How To — Digital Twin">
-    <meta property="og:description" content="One repo, twelve pages, four live watchers, zero frameworks. Here's how to run all of it.">
+    <meta property="og:description" content="One repo, fifteen pages, four live watchers, zero frameworks. Here's how to run all of it.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://kajica2.github.io/digital-twin/pages/how-to.html">
     <link rel="canonical" href="https://kajica2.github.io/digital-twin/pages/how-to.html">
@@ -281,7 +281,7 @@
         <div class="hero-badge">User Guide · sprint 0.20</div>
         <h1>How to run <em>everything</em>.</h1>
         <p class="hero-desc">
-            One repo, twelve pages, four live watchers, zero frameworks. This page is the
+            One repo, fifteen pages, four live watchers, zero frameworks. This page is the
             operator's manual: how to serve the site, use the Twin OS, run the CLIP
             Interrogator and Refael, drive the chart pipeline and song indexer, run the
             tests, and understand what the LaunchAgents are doing on this machine.
@@ -312,7 +312,7 @@
         <h3>Serve the site</h3>
         <div class="code-block"><button class="copy-btn" data-copy>copy</button><pre><code>git clone https://github.com/kajica2/digital-twin.git
 cd digital-twin
-python3 -m http.server 5180 --directory .
+node lib/serve.js --port 5180
 # open http://127.0.0.1:5180/pages/landing.html</code></pre></div>
         <p>Repo-root serving is the one true convention — it matches GitHub Pages, the launchd
         dev server, and CI's PR-mode server. If a page 404s, you're serving the wrong root.</p>
@@ -334,6 +334,7 @@ python3 -m http.server 5180 --directory .
                 <tr><td><code>pages/temple-of-control.html</code></td><td>Three temperature sliders (heat / breath / glow) driving a meditation visual; MIDI-driven, pluggable on any page via <code>lib/meditate-temperature.js</code>.</td></tr>
                 <tr><td><code>pages/floating-toolset.html</code></td><td>The floating toolset — a draggable TODAY / NOW PLAYING / CODE / PATTERNS panel; drop-in on any page via <code>lib/floating-toolset.js</code>. Reference: <a href="../docs/FLOATING-TOOLSET.md">docs/FLOATING-TOOLSET.md</a>.</td></tr>
                 <tr><td><code>pages/integrations.html</code></td><td>Connect external services — enter API keys and cookies for Midjourney, Instagram, YouTube. Styled like Desktop Commander's welcome page.</td></tr>
+                <tr><td><code>pages/treblo.html</code></td><td>Treblo — a prompt becomes a song (Melodia v3). The client <code>lib/treblo.js</code> polls the task and downloads the audio before the link expires; the key lives outside the repo. Reference: <a href="../docs/TREBLO.md">docs/TREBLO.md</a>.</td></tr>
                 <tr><td><code>pages/persona-social-pack.html</code></td><td>Persona Social Pack — a URL of persona descriptions in, three hashtag tiers + YouTube metadata + four social posts per persona out. Built by <code>lib/persona-social-pack.js</code>; reference: <a href="../docs/PERSONA-SOCIAL-PACK.md">docs/PERSONA-SOCIAL-PACK.md</a>.</td></tr>
             </table>
         </div>
@@ -449,7 +450,7 @@ npm run index-songs          # writes data/songs/catalog.json
         <p class="lede">Puppeteer specs for pages, unit tests for the watchers and the agent loop. Every sprint ships green.</p>
 
         <div class="code-block"><button class="copy-btn" data-copy>copy</button><pre><code>cd e2e && npm install
-python3 -m http.server 5180 --directory . &    # repo-root server, one true convention
+node lib/serve.js --port 5180 &    # repo-root server, one true convention
 npm run verify               # landing + twin-os + twin-os-songs
 npm run e2e:ct               # 8 cognitive-twin specs (needs Chrome)
 npm run e2e:clip             # CLIP page contract (no Python deps)
@@ -470,7 +471,7 @@ npm run test:all             # 19 unit suites: watchers, MJ, jazz-solos, agent-l
         <div class="table-wrap">
             <table>
                 <tr><th>Agent</th><th>Job</th><th>State</th></tr>
-                <tr><td><code>digital-twin.server</code></td><td>Keeps the repo served on <code>:5173</code> (<code>python3 -m http.server 0.0.0.0</code>)</td><td><span class="pill live">live</span></td></tr>
+                <tr><td><code>digital-twin.server</code></td><td>Keeps the repo served on <code>:5173</code> (<code>node lib/serve.js</code>)</td><td><span class="pill live">live</span></td></tr>
                 <tr><td><code>digital-twin.chart-watcher</code></td><td>Auto-exports anything dropped in <code>chart-inbox/</code></td><td><span class="pill live">live</span></td></tr>
                 <tr><td><code>digital-twin.songs-watcher</code></td><td>Auto-rebuilds the catalog from <code>audio-inbox/</code></td><td><span class="pill live">live</span></td></tr>
                 <tr><td><code>digital-twin.mj-watcher</code></td><td>Submits Midjourney prompts dropped in the MJ inbox</td><td><span class="pill live">live</span></td></tr>

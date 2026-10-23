@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+    <!-- Design tokens live in the skin, not in this page. See DESIGN.md. -->
+    <link rel="stylesheet" href="assets/skins/house.css" data-skin-stylesheet>
+    <script src="lib/skin.js"></script>
+    <script src="lib/theme.js" data-theme-key="treblo-theme"></script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Treblo (Melodia v3) wired into the twin: a prompt becomes a song, the audio is downloaded before the URL expires, and the result is a file on disk the rest of the pipeline can use.">
+<title>Treblo — songs from a prompt</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2314120e'/%3E%3Ctext x='16' y='22' font-family='Georgia' font-size='16' fill='%23d9913f' text-anchor='middle'%3E%E2%99%AA%3C/text%3E%3C/svg%3E">
+<script>
+  // no-flash theme bootstrap
+  (function () {
+    var t = localStorage.getItem("treblo-theme");
+    if (t === "dark" || (!t && matchMedia("(prefers-color-scheme: dark)").matches)) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  })();
+</script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font-family: var(--sans); line-height: 1.55; }
+  a { color: var(--accent); }
+  code { font-family: var(--mono); font-size: .9em; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 28px; }
+  header { padding: 34px 0 10px; }
+  .kicker { font-family: var(--mono); font-size: 12px; letter-spacing: .12em;
+            text-transform: uppercase; color: var(--ink-2); }
+  h1 { font-family: var(--serif); font-size: 42px; margin: 8px 0 4px;
+       letter-spacing: -0.01em; }
+  .lede { color: var(--ink-2); max-width: 68ch; margin-top: 10px; }
+  .facts { font-family: var(--mono); font-size: 13px; color: var(--ink-2); margin-top: 14px; }
+  section { margin: 44px 0; }
+  h2 { font-family: var(--serif); font-size: 26px; border-bottom: 1px solid var(--line);
+       padding-bottom: 10px; }
+  h3 { font-family: var(--serif); font-size: 19px; margin: 24px 0 6px; }
+  .theme-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+  .tt { border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+        border-radius: 8px; padding: 10px 14px; cursor: pointer;
+        font-family: var(--mono); font-size: 13px; }
+  .tt.on { border-color: var(--accent); color: var(--accent); }
+
+  pre { background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+        padding: 14px 16px; overflow-x: auto; font-family: var(--mono); font-size: 13px;
+        line-height: 1.5; }
+  .code { position: relative; margin: 14px 0; }
+  .copy { position: absolute; top: 8px; right: 8px; border: 1px solid var(--line);
+          background: var(--bg); color: var(--ink-2); border-radius: 6px; padding: 4px 9px;
+          font-family: var(--mono); font-size: 11px; cursor: pointer; }
+  .copy.copied { border-color: var(--accent); color: var(--accent); }
+
+  table { border-collapse: collapse; width: 100%; margin-top: 12px; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line);
+           vertical-align: top; }
+  th { font-family: var(--mono); font-size: 12px; letter-spacing: .06em;
+       text-transform: uppercase; color: var(--ink-2); }
+
+  .pack { list-style: none; padding: 0; margin: 14px 0 0; }
+  .pack li { border: 1px solid var(--line); background: var(--surface); border-radius: 10px;
+             padding: 14px 16px; margin-bottom: 10px; display: flex; gap: 14px; }
+  .pack .n { font-family: var(--mono); font-size: 12px; color: var(--accent);
+             min-width: 22px; padding-top: 2px; }
+  .pack .t { font-size: 14px; }
+  .pack .meta { font-family: var(--mono); font-size: 12px; color: var(--ink-2); margin-top: 6px; }
+
+  .note { border-left: 3px solid var(--accent); background: var(--surface);
+          border-radius: 0 10px 10px 0; padding: 14px 18px; margin-top: 16px; }
+  .note p { margin: 0 0 10px; }
+  .note p:last-child { margin-bottom: 0; }
+  .note strong { color: var(--ink); }
+
+  .flow { font-family: var(--mono); font-size: 13px; color: var(--ink-2);
+          border: 1px dashed var(--line); border-radius: 10px; padding: 14px 16px; margin-top: 14px; }
+  footer { margin: 56px 0 70px; padding-top: 18px; border-top: 1px solid var(--line);
+           color: var(--ink-2); font-size: 14px; }
+  .footer-links { margin: 10px 0 0; }
+  .footer-links a { color: var(--accent); text-decoration: none; border-bottom: 1px solid
+                    color-mix(in srgb, var(--accent) 35%, transparent); }
+  .footer-links a:hover { border-bottom-color: var(--accent); }
+  @media (max-width: 640px) {
+    h1 { font-size: 32px; }
+    .wrap { padding: 0 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="kicker">Music generation · Treblo Melodia v3</p>
+    <h1>Five songs from five prompts.</h1>
+    <p class="lede">Treblo turns a written prompt into a finished instrumental. The twin's
+      client submits the prompt, waits for Treblo's own answer, and <strong>downloads the
+      audio before the link expires</strong> — so what lands on disk is a file, not a URL
+      that dies in a week.</p>
+    <p class="facts">100 credits a generation · v3 songs run 2:00–4:45 · mp3 by default ·
+      the key never touches the repo</p>
+    <div class="theme-row">
+      <button class="tt" data-theme-btn="light" type="button">light</button>
+      <button class="tt" data-theme-btn="auto" type="button">auto</button>
+      <button class="tt" data-theme-btn="dark" type="button">dark</button>
+    </div>
+  </header>
+
+  <section id="what">
+    <h2>What it is</h2>
+    <p>Treblo is a hosted music model with a public API. You send a prompt — a description
+      of the piece you want — and it returns a task id; the task becomes a song. The model
+      infers the style tags and the tuning from your words, so the recommended call is
+      <em>prompt only</em>: hand-writing tags tends to make the result worse, not better.</p>
+    <p>For an instrumental, the API takes one extra switch — <code>instrumental: true</code> —
+      and no lyrics at all. Sending lyrics with it is contradictory, so the client drops them
+      rather than sending both.</p>
+    <div class="note">
+      <p><strong>One v3 generation costs 100 credits.</strong> Five prompts cost 500. A
+        failed generation is not charged: Treblo says so, and the client's own run record
+        keeps the task id either way so the attempt is auditable.</p>
+    </div>
+  </section>
+
+  <section id="key">
+    <h2>Put the key where the repo can't see it</h2>
+    <p>The key lives outside the project — in the environment, or in a file in your home
+      directory. The client reads either, and never writes the key into the tree.</p>
+    <div class="code">
+      <button class="copy" type="button" data-copy>copy</button>
+      <pre><code>export TREBLO_API_KEY='your-key-here'</code></pre>
+    </div>
+    <div class="code">
+      <button class="copy" type="button" data-copy>copy</button>
+      <pre><code>printf '%s' 'your-key-here' &gt; ~/.treblo-api-key &amp;&amp; chmod 600 ~/.treblo-api-key</code></pre>
+    </div>
+    <p style="color:var(--ink-2); font-size:14px">A key in the environment wins over the file.
+      The file is the one to use when the twin runs as a service, because a launchd agent
+      inherits a thin environment.</p>
+  </section>
+
+  <section id="run">
+    <h2>Run it</h2>
+    <p>A pack is one top-level bullet per prompt — the same convention the Midjourney packs
+      use, so one file can feed both pipelines. The client reads the bullets, submits each
+      one, polls Treblo's status endpoint, downloads the audio and writes a catalogue.</p>
+    <div class="code">
+      <button class="copy" type="button" data-copy>copy</button>
+      <pre><code>npm run treblo:generate -- --prompt-file assets/treblo-prompts/kai-djuric-5.md \
+  --out data/treblo/kai-djuric-5 --instrumental</code></pre>
+    </div>
+    <p>Nothing is spent until you ask for it: <code>--dry-run</code> prints the plan and the
+      credit cost and stops.</p>
+    <div class="code">
+      <button class="copy" type="button" data-copy>copy</button>
+      <pre><code>npm run treblo:generate -- --prompt-file assets/treblo-prompts/kai-djuric-5.md --dry-run</code></pre>
+    </div>
+  </section>
+
+  <section id="pack">
+    <h2>The five prompts</h2>
+    <p>Instrumentals, one per piece. The pack is the source of truth
+      (<code>assets/treblo-prompts/kai-djuric-5.md</code>); this is the same text.</p>
+    <ol class="pack" data-pack>
+      <li><span class="n">01</span><span>
+        <span class="t">Melancholic flugelhorn soliloquy with intimate breath detail and warm tape saturation, floating over sparse Rhodes chords.</span>
+        <span class="meta">flugelhorn · tape saturation · Rhodes</span>
+      </span></li>
+      <li><span class="n">02</span><span>
+        <span class="t">Smoky muted trumpet improvisation with heavy tape saturation and amp reamping, layered over a slow walking bass.</span>
+        <span class="meta">muted trumpet · amp reamp · walking bass</span>
+      </span></li>
+      <li><span class="n">03</span><span>
+        <span class="t">Percussive trumpet staccato phrases using Ethiopian pentatonic scales, doubled with EWI in a hypnotic layered groove.</span>
+        <span class="meta">trumpet · Ethiopian pentatonic · EWI</span>
+      </span></li>
+      <li><span class="n">04</span><span>
+        <span class="t">Floating flugelhorn fragments captured through tape loop systems with degrading repeats and washed-out ambience.</span>
+        <span class="meta">flugelhorn · tape loops · washed ambience</span>
+      </span></li>
+      <li><span class="n">05</span><span>
+        <span class="t">Triumphant trumpet lead with gospel-inflected hard bop phrasing and bright, open tone, layered with horns and a driving groove.</span>
+        <span class="meta">trumpet lead · gospel hard bop · horns</span>
+      </span></li>
+    </ol>
+  </section>
+
+  <section id="where">
+    <h2>Where the songs land</h2>
+    <p>Each generation writes an audio file and one catalogue entry. The catalogue holds the
+      prompt, the task id, the file and the size — the trail from a sentence to a file.</p>
+    <div class="flow">prompt → POST /generations/v3 → task_id → poll /generations/status → song_paths → download → data/treblo/&lt;pack&gt;/NN-slug.mp3 + catalog.json</div>
+    <p style="margin-top:16px">From there a song is a normal file in the twin: the reel
+      pipeline can cut a vertical clip from it, the social worker can package it, and the
+      song indexer can catalogue its metadata.</p>
+  </section>
+
+  <section id="limits">
+    <h2>What to know</h2>
+    <div class="note">
+      <p><strong>The song URLs expire.</strong> Treblo's own documentation says so: the links
+        are unlisted, not access-controlled, and they do not last. A run that records a URL
+        and never downloads the audio has produced nothing — so the client always downloads,
+        and a generation without audio is an error rather than a quiet success.</p>
+      <p><strong>Out of credits is a 402.</strong> When the account runs out, the API answers
+        <code>402 Out of credits</code> and nothing is charged. The client's error names the
+        page that fixes it — <a href="https://treblo.com/developers/account">treblo.com/developers/account</a>,
+        where a free trial can be activated (verify a card, 3,000 free credits, no charge).</p>
+      <p><strong>Prompt only is the documented best practice.</strong> Tags and lyrics left
+        to the model produce better songs; hand-written tags usually produce worse ones. The
+        client sends the prompt and, for an instrumental, the one flag.</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>Treblo (formerly Sonauto) — Melodia v3. The client lives at
+      <code>lib/treblo.js</code>, the reference at <code>docs/TREBLO.md</code>. The key is
+      read from the environment or from <code>~/.treblo-api-key</code>; it is never in this
+      repository.</p>
+    <p class="footer-links">
+      <a href="docs/TREBLO.md">the full reference</a> ·
+      <a href="assets/treblo-prompts/kai-djuric-5.md">the five-prompt pack</a> ·
+      <a href="twin-os/index.html">the twin</a>
+    </p>
+  </footer>
+</div>
+
+<script>
+  // theme toggle — the preference lives in lib/theme.js; this only
+  // reflects the current choice onto the buttons.
+  (function () {
+    var btns = Array.from(document.querySelectorAll("[data-theme-btn]"));
+    function apply(mode) {
+      btns.forEach(b => b.classList.toggle("on", b.getAttribute("data-theme-btn") === mode));
+    }
+    var stored = (document.documentElement.getAttribute("data-theme-pref") || "system");
+    apply(stored === "system" ? "auto" : stored);
+    btns.forEach(b => b.addEventListener("click", function () {
+      var m = b.getAttribute("data-theme-btn");
+      DTTheme.set(m);
+      apply(m);
+    }));
+  })();
+
+  // copy buttons — the clipboard write is fire-and-forget behind a
+  // synchronous label flip, and the execCommand fallback guarantees a
+  // click never throws in a non-secure context.
+  (function () {
+    document.querySelectorAll("[data-copy]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var pre = btn.parentElement.querySelector("pre");
+        var text = pre ? pre.innerText : "";
+        var label = btn.textContent;
+        btn.textContent = "copied";
+        btn.classList.add("copied");
+        setTimeout(function () {
+          btn.textContent = label;
+          btn.classList.remove("copied");
+        }, 1600);
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).catch(function () { fallback(text); });
+          } else {
+            fallback(text);
+          }
+        } catch (e) { fallback(text); }
+      });
+    });
+    function fallback(text) {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); } catch (e) { /* nothing to do */ }
+      document.body.removeChild(ta);
+    }
+  })();
+</script>
+</body>
+</html>

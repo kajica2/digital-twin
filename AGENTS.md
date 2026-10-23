@@ -7715,3 +7715,180 @@ does not download image files.
   overwritten — reset it with the hub stopped.
 - **The MJ cookie jar expires.** `node lib/mj-web.js --preflight` is the
   cheap check.
+
+### 2026-10-23 — sprint 0.52 (the MJ re-take, Treblo, and the film's own language)
+
+Four briefs, one session: redo the last Midjourney generation with a
+new pose and a new camera angle (keeping the reference image, dropping
+the style reference); create five instrumental songs; wire Treblo into
+the twin; and save the Treblo key.
+
+**MJ — `--drop-flag`, and the three re-takes.**
+
+The source job `8fd88955-991e-4267-bbc4-267c82f38677` (an edit of
+`9feae947-…`) carried `--sref https://s.mj.run/R23NDDPH-5Q` and
+`--edit https://s.mj.run/lmu98W7RiTU`. "Delete the reference style,
+keep the reference image" is a flag-removal job, so it became a
+**first-class CLI flag** rather than an edit of the source's command:
+`--drop-flag sref`. The drop set joins the existing `omit` set inside
+`carriedFor` — one path, not two.
+
+- **`parseDropFlags(argv)` is a pure exported function, and it exists
+  because the first implementation was wrong.** It parsed argv with
+  `filter` + `flatMap`, where the callback's index is the index in the
+  **filtered** array — so `--drop-flag sref` picked up the *script
+  path* (`--/Users/…/lib/mj-revise.js`) and the sref was **not**
+  dropped, while the log cheerfully printed `dropped : --sref`. The
+  run that followed silently re-applied the style the user asked to
+  remove. The replacement is a single forward loop over argv;
+  `lib/mj-revise.test.js` grew 52 → 66 assertions (5 of them argv
+  parsing), and the old parser was reinstated to prove the guard bites
+  (**3 red** → restored → 66/66).
+- **The dropped flag is now verifiable in the log.** Every run prints
+  `source flags : …` and `dropped : --sref`; the accepted job's own
+  `full_command` is the second witness.
+
+**Three re-takes, and what each one taught.**
+
+|run|ask|outcome|
+|---|---|---|
+|1|`low camera angle at hip height`|job `8c91db76-30a6-46fb-b179-f018123b6ed2` — **the pose landed** (man behind her, arm round her waist, her head turned away in profile) and the frame widened; **all four cells read as eye-level**. The angle did not land.|
+|2|`camera on the floor, lens almost touching the ground, looking up steeply from below`|**refused** — MJ's moderator: `banned_prompt_detected`.|
+|3|`floor-level camera deep inside the club, the doorway in the middle distance`|job `766f939e-003b-4d2e-b2d2-f648d4832a09` — accepted; the pose held; the camera came back at chest/eye level in a close doorway. The *room* did not happen either.|
+
+- **A successful job is not evidence that the angle landed.** The
+  repo's contact-sheet lesson, re-learned at the cost of three
+  generations. The angle clause is worth rewriting until it lands, and
+  the check is a **look**, not a count.
+- **The moderator's objection was to the WORDING, not the request.**
+  "a camera on the floor … looking up steeply from below at a man and
+  woman" reads to MJ's moderator as something it is not. The accepted
+  re-frame keeps the floor but aims the camera **across the room**.
+- **The tool threw away MJ's own answer.** The refusal arrived as
+  *"Midjourney answered the submission but the response could not be
+  read"* — a sentence about the **tool**. The body was captured and
+  discarded. `refusalMessage(body, status)` now surfaces it (the
+  reason, the message, the HTTP status), it is exported and pure, and
+  `lib/mj-web.test.js` grew a section 7 (62 → 68 assertions) that
+  pins it: the reason is named, the message is quoted, the status is
+  reported, an empty body still reads as a sentence, a null body does
+  not throw, and the body is truncated. **The operator can only act on
+  what the tool tells them.**
+
+**The film's own language replaces "analog style".**
+
+A MOOD ("cinematic 35mm film still, fine grain, muted warm palette")
+renders as a polished digital frame with plastic skin. A film
+**stock**, a **format**, a **lighting** and a set of **artifacts** are
+objects, and they push the render toward a photographed image with an
+imperfect, unretouched surface. The re-take therefore names a stock
+(Kodak Portra 400 / Fuji Superia 400 / Ilford HP5), a camera (35mm
+point-and-shoot), a light (on-camera flash / direct harsh flash /
+available tungsten indoor light) and the artifacts (visible film
+grain, halation around highlights, light leaks, dust and scratches,
+vignetting, date stamp, film border) plus the anti-digital cues (no
+retouching, natural skin texture, imperfect exposure, low contrast,
+lifted blacks, muted colors, slightly out of focus). Three variants,
+one scene, one pose — the treatment is the only variable, so the
+comparison is a comparison.
+
+**Treblo — the key, the client, the page, and the wall.**
+
+- **The key is saved and authentic**: `~/.treblo-api-key` (0600, 58
+  bytes, no trailing newline). An auth probe answers **402 Out of
+  credits** — which proves the key works; 401 would have proved the
+  opposite.
+- **`lib/treblo.js`** — the client. `apiKey()` reads
+  `TREBLO_API_KEY` then `~/.treblo-api-key` (and strips a literal
+  `\n`); `readPrompts()` reads the repo's own pack convention (one
+  top-level bullet per prompt); the `Treblo` class submits to
+  `POST /v1/generations/v3`, walks the status ladder
+  (`GET /v1/generations/status/:id` → `GET /v1/generations/:id`),
+  and **downloads the audio before the song URL expires**. 402 is
+  `OUT_OF_CREDITS` with the fix in the message. The transport is
+  injectable, so the suite needs no credentials.
+- **`lib/treblo.test.js` — 25/25.** It found two real bugs: the 402
+  guidance lived in `err.detail` while the CLI prints `err.message`
+  (the operator never saw it), and the test harness's `check()` was
+  synchronous while nine checks were async — a failing assertion
+  inside an async body did not throw synchronously, the check printed
+  **"ok"**, the rejection escaped as an unhandled rejection, and the
+  process died before the summary. **The suite was green by luck.**
+  Fixed, and the 402 guidance was proved to bite (24/1 → 25/25).
+- **`pages/treblo.html`** (house skin, `treblo-theme` key, no-flash
+  bootstrap, four copy-able code blocks) + a root copy so the Twin OS
+  card's relative href resolves. `e2e/treblo.spec.mjs` — **30/30**,
+  including 0 console errors on both pages and three internal links
+  that resolve. `docs/TREBLO.md`, a README section, npm scripts
+  (`treblo:generate` / `treblo:dry` / `test:treblo` / `e2e:treblo`),
+  CI lines (push + PR), and a Twin OS Songs-panel card
+  (`data-tool-treblo`) in **both** copies of the app.
+- **The five songs are blocked on the account, not on the code.**
+  `POST /generations/v3` → **402 Out of credits**; the account has
+  **0 credits** and 100 credits a generation. The Developer Account
+  page offers *Activate Free Trial* — "Verify a card to add 3,000 free
+  credits (about 30 songs). Your card won't be charged" — which is
+  **the user's one click**. The pack
+  (`assets/treblo-prompts/kai-djuric-5.md`, the user's five prompts,
+  verbatim) is ready; the command is
+  `node lib/treblo.js --prompt-file assets/treblo-prompts/kai-djuric-5.md --out data/treblo/kai-djuric-5 --instrumental`.
+
+**The marketplace CI failure was a spec defect, and the page was right.**
+
+`e2e/marketplace.spec.mjs` keyed the daily-catalogue comparison on the
+**filename alone**. With two collections in play (2026-10-23 "Frost
+Window" and 2026-10-22 "Relay", both using `frame-01..03.jpg`) the
+older collection's figures were compared against the newest
+collection's plates → three false mismatches. The lookup is now keyed
+on **(collection dir, file)**, via a `plateFor(src, file)` helper that
+matches `c.dir + '/'` inside the image's own `src`, plus a count
+assertion. Proven to bite: mutating the page so every collection
+borrowed the newest one's caption → **5 mismatches**; restored → green.
+(A *catalogue* mutation cannot break this check — both sides derive
+from the same source — so the page is the only place with teeth.)
+
+**The how-to page count had decayed silently, so it is asserted now.**
+
+The hero said "twelve pages" while the map had grown to fourteen
+rows. Two parallel sessions added map rows without touching the hero.
+The how-to spec now reads the hero's number and the map's row count
+and fails when they disagree — **proved to bite** (hero set back to
+"twelve" → red; restored → green).
+
+**Decisions:**
+
+- **`--drop-flag` is a flag, not an edit of the source job.** The
+  source's command is the source's; the redo names what it drops.
+- **Name the film, not the mood.** Stock, format, light, artifacts.
+- **The refusals are not the tool's business to swallow.** Surface
+  what MJ said.
+- **A carried-forward count is a hypothesis.** The hero's page count
+  is now checked against the map, because two sprints proved a
+  hand-bumped number decays.
+- **Credentials never enter the repo.** `~/.treblo-api-key` (0600)
+  and `~/.treblo-cookies.txt` (0600); `.gitignore` is the second line
+  of defence.
+
+**Verified:**
+
+- `npm run test:all` → **exit 0**, every suite green (treblo 25,
+  mj-web 68, mj-revise 66, and the rest).
+- `npm run verify` (landing / twin-os / twin-os-songs) → green.
+- `npm run skin:check` → 48 skinned, 8 opted out, 1 plain, **0 errors**.
+- `e2e/treblo` **30/30** · `e2e/marketplace` all green ·
+  `e2e/how-to` all green (with the new count assertion) — all on the
+  repo-root `:5180` server.
+- MJ: three real generations, one refusal, and every cell of every
+  accepted job fetched through the headed browser and **looked at**.
+
+**Open:**
+
+- **The five songs need a card.** 0 credits; *Activate Free Trial* at
+  `treblo.com/developers/account` (verify a card, 3,000 free credits,
+  no charge). Everything else is built.
+- **The camera angle has not landed in any of the accepted jobs.** The
+  pose has. MJ's angle obedience is the weak point, and the contact
+  sheet's "overhead crane shot straight down, bird's eye view" is the
+  only phrasing in this repo's history that verifiably moved the
+  camera.
+- **The Treblo cookie jar expires** like every other one.

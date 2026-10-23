@@ -68,6 +68,23 @@ try {
   check('nav has 9 section links', navHrefs.length === 9, 'found ' + navHrefs.length);
   check('nav links match expected set', NAV_LINKS.every(h => navHrefs.includes(h)) && navHrefs.every(h => NAV_LINKS.includes(h)));
 
+  // The hero counts the pages the page map lists. That count had already
+  // drifted once — the map grew from 12 rows to 14 and the hero still said
+  // "twelve" — so the number is now checked against the map itself rather
+  // than trusted.
+  const pageCount = await page.evaluate(() => {
+    const rows = document.querySelectorAll('#quickstart table tr td code');
+    const rows2 = document.querySelectorAll('table tr td code');
+    const mapRows = Array.from(rows2).filter(c => /^\s*pages\//.test(c.textContent || '')).length;
+    const hero = document.querySelector('.hero-desc')?.innerText || '';
+    const m = hero.match(/One repo, (\w+) pages/);
+    return { rows: mapRows, hero: m ? m[1] : null, tables: rows.length };
+  });
+  const WORDS = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19, twenty: 20 };
+  const heroNum = WORDS[String(pageCount.hero || '').toLowerCase()];
+  check('the hero page count matches the page map', heroNum === pageCount.rows,
+    `hero says "${pageCount.hero}" (=${heroNum}), the map lists ${pageCount.rows}`);
+
   const sections = await page.evaluate(() => Array.from(document.querySelectorAll('section[id]')).map(s => s.id));
   check('all 9 sections present', SECTIONS.every(id => sections.includes(id)), sections.join(', '));
 

@@ -125,6 +125,13 @@ lib/agent-hub/memory/
 *.midjourney-cookies.txt
 mj-cookies*.txt
 *-cookies.txt
+# API keys — SECRET. The real ones live outside the repo (e.g.
+# ~/.treblo-api-key). These rules are the second line of defence, in case
+# a key file is ever created inside the tree.
+*-api-key
+*.api-key
+.api-key
+treblo-api-key
 # Kai project memory (local-only by choice — contains absolute paths)
 .kai/
 

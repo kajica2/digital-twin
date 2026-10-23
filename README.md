@@ -12,7 +12,8 @@ themselves.
 
 > **Sprint 2 status:** Landing page live, Twin OS shell live, song
 > indexer live, chart pipeline live, CLIP Interrogator port live,
-> Refael MP4 Maker port live, Loopable Video Segmenter port live.
+> Refael MP4 Maker port live, Loopable Video Segmenter port live,
+> Treblo song generation live.
 > The landing's CTA opens the Twin OS; the Twin OS's Songs panel
 > surfaces the audio catalog plus pairing tools.
 >
@@ -51,6 +52,14 @@ For now, what's here:
 - **`lib/loopable-video-segmenter/`** — Python package (uv-managed
   venv) that powers the Loopable Video Segmenter. Gradio UI + CLI +
   self-check.
+- **`pages/treblo.html`** — the Treblo port: a prompt becomes a song
+  (Melodia v3), with docs and a sibling link from the Twin OS Songs
+  panel. The client (`lib/treblo.js`) polls Treblo's own status ladder
+  and **downloads the audio before the link expires**; the key lives
+  outside the repo (`~/.treblo-api-key`).
+- **`assets/treblo-prompts/kai-djuric-5.md`** — the five-prompt pack
+  (one top-level bullet per prompt, the same convention the Midjourney
+  packs use, so one file can feed both pipelines).
 - **`pages/agent-dashboard.html`** — live view of the persistent agent
   loop (`agents/persistent-agent-loop.py`), embedded in the
   cognitive-twin page. The loop rewrites it itself on pause/exit and
@@ -322,6 +331,34 @@ functional (close / collapse / widen), and the position is remembered.
 It renders in a shadow root, so it cannot fight the host page's CSS, and
 it picks up the skin tokens for free. Reference:
 [`docs/FLOATING-TOOLSET.md`](docs/FLOATING-TOOLSET.md).
+
+## Run Treblo
+
+A prompt becomes a song. Treblo (formerly Sonauto) has a public API —
+Melodia v3, 100 credits a generation, 2–4:45 instrumental tracks. The
+twin's client submits, polls, **downloads the audio before the link
+expires**, and writes a catalogue next to the files.
+
+The key never enters the repository:
+
+```bash
+printf '%s' 'your-key-here' > ~/.treblo-api-key
+chmod 600 ~/.treblo-api-key
+```
+
+```bash
+# the plan and the credit cost — nothing spent
+npm run treblo:dry -- --prompt-file assets/treblo-prompts/kai-djuric-5.md
+
+# the run — five instrumentals, 500 credits
+npm run treblo:generate -- --prompt-file assets/treblo-prompts/kai-djuric-5.md \
+  --out data/treblo/kai-djuric-5 --instrumental
+```
+
+Out of credits is a `402`, and the client's error says where to fix it
+(`treblo.com/developers/account` → *Activate Free Trial*). Reference:
+[`docs/TREBLO.md`](docs/TREBLO.md). The page:
+`http://127.0.0.1:5173/pages/treblo.html`.
 
 ## Run the social worker
 

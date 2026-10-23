@@ -245,17 +245,32 @@ function check(name, ok, detail = '') {
     }));
 
     const dailyCheck = await page.evaluate((idx) => {
-      const newest = (idx.collections || [])[0];
-      if (!newest) return { ok: false, why: 'no collections in the index' };
-      const byFile = {};
-      for (const p of (newest.plates || [])) byFile[p.file] = p;
+      const collections = idx.collections || [];
+      if (!collections.length) return { ok: false, why: 'no collections in the index' };
+      // The page renders the three newest collections, and every collection
+      // names its plates frame-01.jpg, frame-02.jpg, frame-03.jpg. A lookup
+      // keyed on the FILENAME alone therefore matched an older collection's
+      // plate to a newer collection's figure — the captions could not agree
+      // and the check failed on a page that was telling the truth. The
+      // catalogue key is (collection dir, file); the dir is in the image's
+      // own src.
+      function plateFor(src, file) {
+        for (const c of collections) {
+          if (src.includes(c.dir + '/')) {
+            const p = (c.plates || []).find(x => x.file === file);
+            if (p) return p;
+          }
+        }
+        return null;
+      }
       const figs = Array.from(document.querySelectorAll('#daily figure'));
       const bad = [];
       for (const f of figs) {
         const img = f.querySelector('img');
         const cap = f.querySelector('figcaption');
-        const file = (img?.getAttribute('src') || '').split('/').pop();
-        const src = byFile[file];
+        const raw = img?.getAttribute('src') || '';
+        const file = raw.split('/').pop();
+        const src = plateFor(raw, file);
         const got = (cap?.textContent || '').replace(/\s+/g, ' ').trim();
         if (!src) bad.push(`${file}: not in the catalogue`);
         else if (got !== src.caption) bad.push(`${file}: caption ${JSON.stringify(got)} != ${JSON.stringify(src.caption)}`);
@@ -263,7 +278,18 @@ function check(name, ok, detail = '') {
         else if (img.getAttribute('width') !== String(src.width)) bad.push(`${file}: declared width != the catalogue`);
         else if (img.getAttribute('height') !== String(src.height)) bad.push(`${file}: declared height != the catalogue`);
       }
-      return { ok: bad.length === 0, why: bad.join(' | '), n: figs.length, listed: Object.keys(byFile).length };
+      // Every rendered plate must belong to a collection the page renders,
+      // and nothing in the rendered collections may be missing from the page.
+      const rendered = collections.slice(0, 3);
+      const expected = rendered.reduce((n, c) => n + (c.plates || []).length, 0);
+      if (figs.length !== expected) bad.push(`${figs.length} figures rendered vs ${expected} plates in the rendered collections`);
+      return {
+        ok: bad.length === 0,
+        why: bad.join(' | '),
+        n: figs.length,
+        listed: expected,
+        collections: rendered.length,
+      };
     }, daily.index);
     check('market: every daily plate matches the catalogue',
           dailyCheck.ok,
