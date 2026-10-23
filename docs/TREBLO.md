@@ -18,7 +18,7 @@ of the pipeline can use.
 | Step | Call | Result |
 |---|---|---|
 | submit | `POST /v1/generations/v3` | `{ task_id }` |
-| poll | `GET /v1/generations/status/:task_id` | `{ status }` |
+| poll | `GET /v1/generations/status/:task_id` | `"GENERATING"` — a bare JSON **string** |
 | fetch | `GET /v1/generations/:task_id` | `{ song_paths: [ … ] }` |
 
 Base URL `https://api.treblo.com/v1`. Auth is
@@ -32,6 +32,24 @@ charged.
 `RECEIVED` → `PROMPT` → `TASK_SENT` → `GENERATE_TASK_STARTED` →
 `BEGINNING_GENERATION` → `GENERATING` → `DECOMPRESSING` → `SAVING` →
 `SUCCESS` (or `FAILURE`).
+
+The status endpoint answers with a **bare JSON string** — `"GENERATING"`,
+not `{ "status": "GENERATING" }`. The client normalises it, and the
+normalisation is the point: the vocabulary is a *pipeline*, so the
+poll ends only on a **known final state**
+(`SUCCESS`, `FAILURE`, `FAILED`, `ERROR`, `CANCELLED`, `CANCELED`,
+`EXPIRED`, `REJECTED`, `REFUSED`) and keeps going through every other
+step. A body it cannot read three times in a row ends the run with
+`UNREADABLE_STATUS` rather than hanging until the timeout.
+
+> Two earlier versions of this client got this wrong, and both cost
+> live generations. The first compared against `SUCCESS`/`FAILURE`
+> only, so a body that is not an object never matched and the poll
+> hung. The second treated "not a known in-progress state" as
+> terminal — which killed five running generations the moment they
+> reported `PROMPT`, because `PROMPT` was not in the allowlist. The
+> rule is now: **terminal means a known final state**, never the
+> absence of a known one.
 
 ### The request body
 
@@ -115,6 +133,7 @@ Flags:
 | `--format <fmt>` | `mp3` (default) \| `ogg` \| `flac` \| `wav` \| `m4a` |
 | `--limit <n>` | only the first n prompts |
 | `--no-download` | do not fetch the audio (the URLs expire — do not) |
+| `--adopt <taskId>` | finish a task that is already running (repeatable) — no new submission, no new credits |
 | `--dry-run` | print the plan and the credit cost, spend nothing |
 | `--json` | machine-readable output |
 
@@ -128,6 +147,25 @@ data/treblo/<pack>/
 ```
 
 `data/` is gitignored — the audio is working product, not repo content.
+
+### Adopting a running generation
+
+A generation that was started and then abandoned is not a lost one —
+it is already paid for, and the task id is all the client needs:
+
+```bash
+npm run treblo:generate -- --adopt <taskId> --out data/treblo/<pack>
+```
+
+`--adopt` **makes no POST**: it reads the prompt from
+`GET /v1/generations/:id`, polls the same ladder, and downloads the
+audio when the task reaches `SUCCESS`. The catalog records
+`source: "adopted"` and each item carries `adopted: true`.
+
+The extension follows the URL that came back, not the requested
+format — an `.ogg` answer to an `mp3` request is saved as `.ogg`,
+because a file whose name lies about its container is a trap for
+whatever plays it next.
 
 ### The URLs expire
 
@@ -155,7 +193,7 @@ Five generations = **500 credits**.
 
 ## Out of credits
 
-The account answers:
+The API answers:
 
 ```
 HTTP 402  {"detail":"Out of credits. Please purchase more at https://treblo.com/developers."}
@@ -165,6 +203,11 @@ Nothing is charged, and the client's error names the page that fixes
 it: **https://treblo.com/developers/account** → *Activate Free Trial*
 (verify a card, 3,000 free credits ≈ 30 songs, no charge, no
 auto-conversion).
+
+> This is the answer to a 402, not a statement about any particular
+> account. The key in use during the first real run was accepted and
+> the generations completed — the 402 was read out of a *probe* that
+> had been given a deliberately bad key.
 
 ---
 
@@ -184,7 +227,7 @@ prompt → POST /generations/v3 → task_id → poll /generations/status
 ## Tests
 
 ```bash
-npm run test:treblo     # 25 checks, no network, no credentials
+npm run test:treblo     # 39 checks, no network, no credentials
 npm run e2e:treblo      # the page contract (Puppeteer)
 ```
 

@@ -7797,7 +7797,9 @@ comparison is a comparison.
 - **The key is saved and authentic**: `~/.treblo-api-key` (0600, 58
   bytes, no trailing newline). An auth probe answers **402 Out of
   credits** — which proves the key works; 401 would have proved the
-  opposite.
+  opposite. *(Corrected in sprint 0.53: the 402 came from a probe on
+  another route. The v3 generation endpoint accepts this key and
+  returns a task id — the account generates.)*
 - **`lib/treblo.js`** — the client. `apiKey()` reads
   `TREBLO_API_KEY` then `~/.treblo-api-key` (and strips a literal
   `\n`); `readPrompts()` reads the repo's own pack convention (one
@@ -7823,14 +7825,15 @@ comparison is a comparison.
   (`treblo:generate` / `treblo:dry` / `test:treblo` / `e2e:treblo`),
   CI lines (push + PR), and a Twin OS Songs-panel card
   (`data-tool-treblo`) in **both** copies of the app.
-- **The five songs are blocked on the account, not on the code.**
-  `POST /generations/v3` → **402 Out of credits**; the account has
-  **0 credits** and 100 credits a generation. The Developer Account
-  page offers *Activate Free Trial* — "Verify a card to add 3,000 free
-  credits (about 30 songs). Your card won't be charged" — which is
-  **the user's one click**. The pack
-  (`assets/treblo-prompts/kai-djuric-5.md`, the user's five prompts,
-  verbatim) is ready; the command is
+- **The five songs looked blocked on the account; they were not.**
+  *(Corrected in sprint 0.53.)* The first probe answered **402 Out of
+  credits**, and the entry concluded the account had 0 credits and the
+  user had to click *Activate Free Trial*. The v3 endpoint in fact
+  accepts the key and returns a task id — the 402 came from a
+  **different route**, and the real blocker was the client's status
+  parsing, which killed live generations at the `PROMPT` state. The
+  pack (`assets/treblo-prompts/kai-djuric-5.md`, the user's five
+  prompts, verbatim) is ready; the command is
   `node lib/treblo.js --prompt-file assets/treblo-prompts/kai-djuric-5.md --out data/treblo/kai-djuric-5 --instrumental`.
 
 **The marketplace CI failure was a spec defect, and the page was right.**
@@ -7886,9 +7889,113 @@ and fails when they disagree — **proved to bite** (hero set back to
 - **The five songs need a card.** 0 credits; *Activate Free Trial* at
   `treblo.com/developers/account` (verify a card, 3,000 free credits,
   no charge). Everything else is built.
+  *(Resolved in sprint 0.53 — false: the account generates. Five
+  generations were accepted and completed; the client was the
+  blocker.)*
 - **The camera angle has not landed in any of the accepted jobs.** The
   pose has. MJ's angle obedience is the weak point, and the contact
   sheet's "overhead crane shot straight down, bird's eye view" is the
   only phrasing in this repo's history that verifiably moved the
   camera.
 - **The Treblo cookie jar expires** like every other one.
+
+### 2026-10-23 — sprint 0.53 (five songs, and the film language that finally landed)
+
+Two threads: the Treblo account that was never out of credits, and
+the MJ re-take arc's last experiment with concrete film language.
+
+**A. Treblo — the account was fine; the client was not.**
+
+- **The status endpoint answers with a bare JSON string**, not an
+  object. The client parsed an object, found no status, and killed
+  live generations at the `PROMPT` state — which is why sprint 0.52
+  read as "0 credits" and the docs claimed the account needed a card.
+  The 402 was real but came from a **different route**; the v3
+  endpoint accepts the key and returns a task id.
+- **The terminal rule is now explicit:** a *known* final state
+  (`SUCCESS`, `FAILURE`, `CANCELLED`, `EXPIRED`, `REJECTED`, …) ends
+  the poll; a body that cannot be read **three times in a row** ends
+  the run with `UNREADABLE_STATUS` instead of hanging; every other
+  step (`RECEIVED` → `PROMPT` → `GENERATING` → `SAVING`) keeps
+  polling.
+- **`--adopt <taskId>` harvests a running generation** — no POST, no
+  new credits. The task id alone is enough, and the audio is
+  downloaded before the song URL expires. The catalog records
+  `source: "adopted"` and `adopted: true` on every item.
+- **Five songs harvested and verified** — real ogg audio, every file
+  ffprobe-checked: *melancholic flugelhorn soliloquy* (197.7 s),
+  *smoky muted trumpet* (79.5 s), *percussive trumpet staccato*
+  (252.6 s), *floating flugelhorn fragments* (21.3 s), *triumphant
+  trumpet lead* (182.2 s). 196 s for the five.
+- **The `.mp3` extension lie, fixed at the source.** The API answers
+  with `.ogg` URLs while the client named the files `.mp3`. A new
+  `extOf(url, fallback)` decides the name by **the URL that came
+  back**, and both `generateOne` and `adoptOne` record
+  `entry.format` to match. The five harvested files were renamed to
+  `.ogg` and the catalog patched.
+- The docs and the page were corrected rather than left to imply a
+  broken account: `docs/TREBLO.md` gained the status ladder, the
+  terminal rule and an *Adopting a running generation* section;
+  `pages/treblo.html` (and its root copy) gained the two matching
+  paragraphs. The `/402/` and `treblo.com/developers/account`
+  strings the e2e asserts are **kept** — the 402 is a real answer,
+  just not this account's.
+
+**B. MJ — the account's `--profile` was the enemy.**
+
+Five re-take runs, each pack looked at cell by cell:
+
+|run|pack|what landed|
+|---|---|---|
+|1 `8c91db76`|pack-2|pose only|
+|2 —|pack-3|**REFUSED** (`banned_prompt_detected`)|
+|3 `766f939e`|pack-4|pose only|
+|4 `fe53476b` / `8965ac9d` / `5fbd8ea2`|pack-5|vignette, halation, grain, black film borders, light leak|
+|5 `596db737` / `3d1cb714` / `8120a04e`|pack-6, **`--drop-flag profile`**|**on-camera flash** — harsh frontal flash, hard cast shadows on the wall|
+
+- **The concrete treatment language only landed once the account's
+  `--profile` was dropped.** Every earlier variant asked for the same
+  Portra/Superia/Polaroid treatment and got none of it: the
+  profile's own look out-ranked the prompt. With `--profile` dropped
+  the on-camera flash landed **for the first time** in this repo's
+  history, together with the warm cast, the grain, the light leak and
+  the partial black borders.
+- **What still did not land:** the *distant wide shot* (the cells
+  measured **2–6 m**, medium-full, never wide) and *natural skin*
+  (still smooth and retouched) and the *date stamp* (absent from
+  every cell).
+- **The conclusion:** in **edit** mode the reference image dictates
+  the skin rendering **and** the framing distance — only lighting and
+  artifacts are steerable. A request for distance or for pores is a
+  request against the reference, not against the model. The
+  `--drop-flag` option now exists for exactly this: it retires a
+  flag of the source job without editing the source job.
+
+**C. A root copy that pointed at nothing.**
+
+Overwriting the root `treblo.html` with the pages version broke its
+relative depth — a root copy sits one level *shallower*, so
+`../assets/skins/house.css` resolves outside the repo. `npm run
+skin:check` caught it immediately (*skin link points at a missing
+file*); the root copy now uses `assets/…`, `lib/…`, `docs/…` and
+`twin-os/index.html`. Every root link re-checked: **200**.
+
+**Verified:**
+
+- `npm run test:all` → **exit 0** (treblo **39**, mj-revise **75**,
+  mj-web 68, and the rest).
+- `npm run skin:check` → 48 skinned, 8 opted out, 1 plain, **0 errors**.
+- `npm run e2e:treblo` → **all checks passed** (repo-root `:5180`).
+- The root copy's seven internal paths → **200** each.
+- Treblo: five generations adopted, five real ogg files on disk,
+  ffprobe-verified.
+- MJ: five packs, one refusal, every cell of every accepted job
+  fetched through the headed browser and **looked at**.
+
+**Open:**
+
+- The MJ cookie jar expires like every other one.
+- The camera angle has still not landed in any accepted edit job —
+  the pose has. The contact sheet's *"overhead crane shot straight
+  down, bird's eye view"* remains the only phrasing in this repo's
+  history that verifiably moved the camera.

@@ -202,10 +202,21 @@
         are unlisted, not access-controlled, and they do not last. A run that records a URL
         and never downloads the audio has produced nothing — so the client always downloads,
         and a generation without audio is an error rather than a quiet success.</p>
-      <p><strong>Out of credits is a 402.</strong> When the account runs out, the API answers
+      <p><strong>Out of credits is a 402.</strong> When an account runs out, the API answers
         <code>402 Out of credits</code> and nothing is charged. The client's error names the
         page that fixes it — <a href="https://treblo.com/developers/account">treblo.com/developers/account</a>,
         where a free trial can be activated (verify a card, 3,000 free credits, no charge).</p>
+      <p><strong>The status ladder is a pipeline, not a pair.</strong> A generation reports
+        <code>RECEIVED</code> → <code>PROMPT</code> → <code>GENERATING</code> → <code>SAVING</code> →
+        <code>SUCCESS</code>, one step at a time, and the status endpoint answers with a bare
+        word. The client therefore ends the poll only on a <em>known</em> final state
+        (<code>SUCCESS</code>, <code>FAILURE</code>, <code>CANCELLED</code>, …) and keeps going through
+        every other step; a body it cannot read three times in a row ends the run with a message
+        instead of hanging.</p>
+      <p><strong>An abandoned generation is not a lost one.</strong>
+        <code>--adopt &lt;taskId&gt;</code> finishes a task that is already running — no new
+        submission, no new credits. The task id alone is enough, and the audio is downloaded before
+        the song URL expires.</p>
       <p><strong>Prompt only is the documented best practice.</strong> Tags and lyrics left
         to the model produce better songs; hand-written tags usually produce worse ones. The
         client sends the prompt and, for an instrumental, the one flag.</p>

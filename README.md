@@ -355,6 +355,17 @@ npm run treblo:generate -- --prompt-file assets/treblo-prompts/kai-djuric-5.md \
   --out data/treblo/kai-djuric-5 --instrumental
 ```
 
+The status endpoint answers with a bare word, and the vocabulary is a
+pipeline (`RECEIVED` → `PROMPT` → `GENERATING` → `SAVING` →
+`SUCCESS`): the client ends the poll only on a **known final state**
+and keeps going through every other step. A generation that was
+started and then abandoned is not lost — `--adopt <taskId>` finishes
+it, spending no new credits:
+
+```bash
+npm run treblo:generate -- --adopt <taskId> --out data/treblo/kai-djuric-5
+```
+
 Out of credits is a `402`, and the client's error says where to fix it
 (`treblo.com/developers/account` → *Activate Free Trial*). Reference:
 [`docs/TREBLO.md`](docs/TREBLO.md). The page:
