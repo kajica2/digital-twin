@@ -7184,8 +7184,109 @@ list.
   "muyic from my heart" is the Suno track title Instagram auto-fills
   into the composer. Whether the second line survives the publish is
   unverified. The fix is an Edit on the reel (the same editor, the
-  same blur rule), not a repost.
+  same blur rule), not a repost. **→ fixed in sprint 0.49.b below.**
 - **`lib/youtube-batch.js` is still a stub** — its `uploadVideo()`
   returns `{ success: true, url: 'manual' }` before any real work.
 - **The Suno session token was pasted in chat** and lives in commit
   `cd434e4`; it should be rotated.
+
+### 2026-10-23 — sprint 0.49.b (the Instagram caption, repaired)
+
+Sprint 0.49 left one line of work: the reel's caption still read
+*"seemingly so — Sainted Word Records 🎺 muyic from my heart"* —
+"muyic from my heart" is the Suno track title Instagram auto-fills
+into the composer, and the reel went up with it.
+
+**Shipped:**
+
+- **`lib/ig-poster.js` — a reel-editor path.** `openReelEditor()`,
+  `replaceEditorCaption()`, `saveEditor()`, `readPublishedCaption()`
+  and `editReelCaption()`, driven by a new CLI flag:
+
+  ```bash
+  node lib/ig-poster.js --edit-caption "https://www.instagram.com/<user>/reel/<id>/" \
+    --reel-dir reel-inbox/posted/ig --port 9446 \
+    --cookies ~/.instagram-cookies.txt --user-data-dir /tmp/ig-profile
+  ```
+
+  The reel keeps its URL, its view count and its timestamp — no
+  delete-and-repost.
+- **`readCaption()` fixed.** It used to swallow every section after
+  `## Caption`, so the caption it read carried the reel's file list
+  and its published URL. It now parses the file into sections and
+  takes the `## Caption` body only. `"## Hashtags: #a #b"` is read
+  as the hashtags section (content on the heading line), and a
+  caption that already carries its hashtags inline does not get a
+  second set appended.
+- **`lib/ig-poster.test.js` — 26 assertions** (was 15): the editor
+  path, the section parser, the read-back.
+
+**Five findings — the first three cost the run:**
+
+1. **The editor does not close when the save lands.** Instagram keeps
+   the "Edit info" panel open after "Done", and the reel page behind
+   it keeps showing the old caption. "The panel closed" was the
+   original success signal and it was wrong: the first live run
+   reported *"the caption was NOT set (the editor did not close)"*
+   while the caption had in fact been saved. The signal is now the
+   published caption, not the panel.
+2. **`og:description` carries the whole caption** — newlines and
+   hashtags included:
+
+   ```
+   0 likes, 0 comments - kaidjuric on October 22, 2026: "seemingly so — Sainted Word Records 🎺 Reel from the twin.
+
+   #reel #digitaltwin #SaintedWordRecords #Ambient #GenerativeMusic".
+   ```
+
+   The tool reloads the reel after the save and compares that text
+   with the caption it typed. A mismatch exits 2.
+3. **The caption commits on blur** here too, exactly as in the
+   composer: the editor holds the typed text in a local state, so the
+   field is blurred before "Done" is pressed.
+4. **The "Done" control is a leaf `div[role=button]`** — the click
+   target is the element itself, not a wrapper.
+5. **The reel editor offers "Add AI label"** ("This label is required
+   for realistic photos and videos made with AI"). The tool does not
+   touch it — whether a given reel carries the label is the author's
+   call.
+
+**Decisions:**
+
+- **Read the post back, never trust the write.** The caption is
+  verified against the reel's own `og:description` after a reload.
+- **Repair, never repost.** Deleting the reel would have thrown away
+  the URL, the views and the timestamp.
+- **The caption comes from the POST.md, but only its caption
+  section.** The notes in that file are about the reel, not part of
+  it.
+
+**Verified end-to-end:**
+
+- The live repair against https://www.instagram.com/kaidjuric/reel/DezwGpcsOBe/
+  → *"the reel currently reads: …"* → *"The caption now reads: …"*
+  → *"The published reel reads: …"* → exit 0. The published caption
+  is now:
+
+  ```
+  seemingly so — Sainted Word Records 🎺 Reel from the twin.
+
+  #reel #digitaltwin #SaintedWordRecords #Ambient #GenerativeMusic
+  ```
+
+  The stray "muyic from my heart" is gone. Confirmed on a fresh page
+  load, not on the editor's own field.
+- **The guard bites.** With `readPublishedCaption()` rigged to return
+  a different caption, the run printed *"the caption was NOT set (the
+  published caption does not match)"* and exited 2. Restored, and
+  green again.
+- `npm run test:ig-poster` — 26/26.
+
+**Open:**
+
+- **The Suno session token was pasted in chat** and lives in commit
+  `cd434e4`; it should be rotated.
+- **The reel LaunchAgent is installed but not bootstrapped** — the
+  bootstrap is a service-state change and waits for the user's word.
+- **Instagram's "Add AI label"** on the reel editor is still the
+  author's call.

@@ -83,6 +83,60 @@ npm run ig:watch      # Run the watcher
 npm run ig:check-cookies  # Verify cookie validity
 ```
 
+The poster also repairs a published reel's caption — see
+[Repairing a published reel's caption](#repairing-a-published-reels-caption).
+
+## Repairing a published reel's caption
+
+A reel that is already up can have its caption repaired without
+deleting it and posting it again — the reel keeps its URL, its view
+count and its timestamp.
+
+```bash
+node lib/ig-poster.js \
+  --edit-caption "https://www.instagram.com/<user>/reel/<id>/" \
+  --reel-dir reel-inbox/posted/<name> \
+  --port 9446 --cookies ~/.instagram-cookies.txt \
+  --user-data-dir /tmp/ig-profile
+```
+
+`--reel-dir` points at the posted reel's folder, whose `POST.md`
+carries the intended caption; `--caption "..."` overrides it. The
+caption is read out of the `## Caption` section of that file — and
+only that section, because the notes after it (the file list, the
+published URL) are not the caption. A caption that already carries
+its hashtags inline does not get a second set appended.
+
+The edit path has its own three behaviours:
+
+**The caption commits on blur, like the composer.** The editor keeps
+the typed text in a local state and commits it when the field loses
+focus, so the field is blurred before "Done" is pressed.
+
+**The editor does not close when the save lands.** Instagram keeps
+the "Edit info" panel open after "Done", and the reel page behind it
+keeps showing the old caption. "The panel closed" is therefore not a
+save signal — the published caption is.
+
+**The published caption is read from `og:description`.** The reel's
+`meta[property="og:description"]` carries the whole caption, newlines
+and hashtags included:
+
+```
+0 likes, 0 comments - kaidjuric on October 22, 2026: "seemingly so — Sainted Word Records 🎺 Reel from the twin.
+
+#reel #digitaltwin #SaintedWordRecords #Ambient #GenerativeMusic".
+```
+
+The tool reloads the reel after the save and compares that text with
+the caption it typed. A mismatch exits 2 — a write that looks like it
+worked is not proof.
+
+The reel editor also offers **"Add AI label"** ("This label is
+required for realistic photos and videos made with AI"). The tool
+does not touch it; whether a given reel carries the label is the
+author's call.
+
 ## Limitations
 
 - **Browser must be headed** - Instagram blocks headless Chrome
