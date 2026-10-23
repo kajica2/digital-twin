@@ -80,4 +80,15 @@ npm run test:youtube-poster
 ```
 
 The pure logic — filename parsing, title/description/tag generation —
-is covered. The browser part is verified by a real run, not by a fake.
+is covered, and so is the CDP plumbing. `uploadToYouTube()` takes an
+injected `client` and `sleep`, so the whole path runs against a fake
+browser that implements only the CDP client's real surface (`send()`
+and `js()`). A call to a method the client does not have — which is
+how `client.getDOMain()` survived in the committed code, since nothing
+could reach the path — now fails the suite instead of failing at
+runtime.
+
+The fake is not a browser: it asserts the command sequence and the
+values carried into the page, not that YouTube accepted them. The
+last mile is still verified by a real run.
+
