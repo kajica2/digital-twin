@@ -421,6 +421,7 @@
         .api-badge[data-state="down"]::before { background: var(--bench-warn); }
         .api-badge[data-state="probing"]::before { animation: pulse 1.4s ease-in-out infinite; }
         @keyframes pulse { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+        .api-badge[data-state="idle"] { color: var(--bench-faint); }
         .bench-kicker {
             display: block;
             font-family: var(--page-mono);
@@ -1068,7 +1069,7 @@
                     <h2 id="bench-h">Watch the loop form itself.</h2>
                 </div>
                 <div class="bench-side">
-                    <span class="api-badge" id="apiBadge" data-state="probing">checking the api…</span>
+                    <span class="api-badge" id="apiBadge" data-state="idle">api · not checked</span>
                     <p class="bench-note">
                         A live illustration of what the CLI does: beat grid in, N windows out,
                         each window built as <b>forward + reversed</b>. Move the controls and the
