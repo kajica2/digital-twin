@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Design tokens live in the skin, not in this page. See DESIGN.md. -->
+    <link rel="stylesheet" href="assets/skins/house.css" data-skin-stylesheet>
+    <script src="lib/skin.js"></script>
+    <script src="lib/theme.js" data-theme-key="lvs-theme"></script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loopable Video Segmenter — Tools</title>
+    <meta name="description" content="Split a long MP4 into beat-aligned mirror-loopable clips with the Loopable Video Segmenter — a local gradio + CLI tool in the digital-twin.">
+    <meta property="og:title" content="Loopable Video Segmenter — Tools">
+    <meta property="og:description" content="MP4 → N loopable clips, aligned to musical beats (librosa), forward + reverse mirror. Local, no uploads.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://kajica2.github.io/digital-twin/pages/loopable-video-segmenter.html">
+    <link rel="canonical" href="https://kajica2.github.io/digital-twin/pages/loopable-video-segmenter.html">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%E2%9B%AF%3C/text%3E%3C/svg%3E">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* ═══════════════════════════════════════════════════════════════════
+           LOOPABLE VIDEO SEGMENTER — page design
+           ─────────────────────────────────────────────────────────────────
+           Direction: "signal bench". A technical instrument manual — cream
+           paper, copper signal, hairline rules, tabular numerals, and one
+           piece of hardware: the mirror bench, an inset near-black panel
+           that shows the forward+reverse loop actually forming.
+
+           The skin owns colour and ground. This layer owns voice, rhythm
+           and the instrument. It reads house and studio equally well
+           because it only ever asks the skin for semantic tokens.
+           ═══════════════════════════════════════════════════════════════════ */
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            /* Derived aliases only — every value here comes from a skin
+               token, so a skin swap re-tints the page (DESIGN.md §10). The
+               page defines no colour and no token of its own.
+
+               Type: the house skin's declared faces, loaded by this page.
+               The skin may name its own (studio names Space Grotesk); this
+               page keeps one voice, so the manual and the bench read as the
+               same object in either skin. */
+            --page-display: 'DM Serif Display', Georgia, 'Times New Roman', serif;
+            --page-body: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+            --page-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+            --hair: var(--line);
+            --hair-soft: var(--line-soft);
+            --hair-2: color-mix(in srgb, var(--line) 180%, transparent);
+            --signal: var(--primary);
+            --signal-soft: var(--primary-soft);
+            --signal-mid: var(--primary-mid);
+
+            --measure: var(--container-narrow);
+            --gutter: clamp(var(--space-5), 4.6vw, var(--space-8));
+            --shell: var(--container);
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 92px;
+            /* The nav drawer parks off-screen to the right; clip at the root
+               so it can never stretch the layout viewport on a phone. */
+            overflow-x: clip;
+        }
+        body {
+            font-family: var(--page-body);
+            background: var(--bg);
+            color: var(--text-primary);
+            line-height: 1.65;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        ::selection { background: var(--signal-mid); color: var(--text-primary); }
+
+        a { color: inherit; }
+
+        :focus-visible {
+            outline: 2px solid var(--signal);
+            outline-offset: 3px;
+            border-radius: 2px;
+        }
+
+        /* ── film grain: the paper this manual is printed on ───────────── */
+        .grain {
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            pointer-events: none;
+            opacity: .5;
+            mix-blend-mode: soft-light;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
+        }
+        :root[data-theme="light"] .grain { opacity: .85; mix-blend-mode: multiply; }
+
+        .shell { max-width: var(--shell); margin-inline: auto; padding-inline: var(--gutter); }
+        .measure { max-width: var(--measure); }
+
+        /* ── read-out rail ─────────────────────────────────────────────── */
+        .rail {
+            position: fixed;
+            top: 0; left: 0;
+            height: 2px;
+            width: 0%;
+            background: linear-gradient(90deg, var(--signal), var(--accent));
+            z-index: 120;
+            transition: width .12s linear;
+        }
+
+        /* ── nav ───────────────────────────────────────────────────────── */
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: color-mix(in srgb, var(--bg) 86%, transparent);
+            backdrop-filter: blur(14px) saturate(1.4);
+            -webkit-backdrop-filter: blur(14px) saturate(1.4);
+            border-bottom: 1px solid var(--hair);
+        }
+        .nav-inner {
+            max-width: var(--shell);
+            margin-inline: auto;
+            padding: 0 var(--gutter);
+            height: 60px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .brand-mark { width: 18px; height: 18px; color: var(--signal); flex: none; }
+        .brand-mark path { transition: transform .5s var(--ease-out-expo); transform-origin: 50% 50%; }
+        .brand:hover .brand-mark path { transform: rotate(180deg); }
+        .brand-txt {
+            font-family: var(--page-mono);
+            font-size: .68rem;
+            font-weight: 500;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+        .brand-txt b { color: var(--text-primary); font-weight: 600; }
+
+        .nav-links { display: flex; gap: 2px; margin-left: auto; align-items: center; }
+        .nav-link {
+            position: relative;
+            font-family: var(--page-mono);
+            font-size: .66rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            text-decoration: none;
+            padding: 8px 11px;
+            transition: color .2s;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            left: 11px; right: 11px; bottom: 3px;
+            height: 1px;
+            background: currentColor;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform .35s var(--ease-out-expo);
+        }
+        .nav-link:hover { color: var(--text-primary); }
+        .nav-link:hover::after { transform: scaleX(1); }
+        .nav-link.active { color: var(--signal); }
+        .nav-link.active::after { transform: scaleX(1); }
+
+        .nav-actions { display: flex; align-items: center; gap: 8px; }
+        .theme-toggle {
+            font-family: var(--page-mono);
+            font-size: .62rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            background: transparent;
+            border: 1px solid var(--hair);
+            border-radius: 3px;
+            height: 30px;
+            padding: 0 10px;
+            cursor: pointer;
+            transition: color .2s, border-color .2s, background .2s;
+        }
+        .theme-toggle:hover { color: var(--text-primary); border-color: var(--hair-2); background: var(--hair-soft); }
+        .nav-toggle {
+            display: none;
+            width: 32px; height: 30px;
+            border: 1px solid var(--hair);
+            background: transparent;
+            color: var(--text-secondary);
+            border-radius: 3px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-toggle span { display: block; width: 14px; height: 1px; background: currentColor; position: relative; }
+        .nav-toggle span::before, .nav-toggle span::after {
+            content: ''; position: absolute; left: 0; width: 14px; height: 1px; background: currentColor;
+            transition: transform .3s var(--ease-out-expo);
+        }
+        .nav-toggle span::before { top: -4px; }
+        .nav-toggle span::after { top: 4px; }
+        .nav-toggle[aria-expanded="true"] span { background: transparent; }
+        .nav-toggle[aria-expanded="true"] span::before { transform: translateY(4px) rotate(45deg); }
+        .nav-toggle[aria-expanded="true"] span::after { transform: translateY(-4px) rotate(-45deg); }
+
+        .nav-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / .45); z-index: 98; backdrop-filter: blur(2px); }
+        body.no-scroll { overflow: hidden; }
+
+        @media (max-width: 940px) {
+            /* The drawer is clipped, not translated: parking a fixed panel
+               off-screen to the right would stretch the layout viewport on
+               a phone and shrink the whole page. */
+            .nav-links {
+                position: fixed;
+                top: 0; right: 0; bottom: 0;
+                width: min(264px, 82vw);
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0;
+                background: var(--bg-card);
+                border-left: 1px solid var(--hair);
+                padding: 76px 18px 28px;
+                z-index: 99;
+                clip-path: inset(0 0 0 100%);
+                opacity: 0;
+                pointer-events: none;
+                transition: clip-path .4s var(--ease-out-expo), opacity .3s ease;
+            }
+            .nav-links.open { clip-path: inset(0); opacity: 1; pointer-events: auto; }
+            .nav-link { padding: 13px 8px; font-size: .72rem; border-bottom: 1px solid var(--hair-soft); }
+            .nav-link::after { display: none; }
+            .nav-toggle { display: inline-flex; }
+            .brand-txt span { display: none; }
+        }
+
+        /* ── hero ──────────────────────────────────────────────────────── */
+        .hero { padding-block: clamp(56px, 9vw, 108px) 0; }
+        .kicker {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-family: var(--page-mono);
+            font-size: .66rem;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            padding-bottom: 18px;
+            border-bottom: 1px solid var(--hair);
+        }
+        .kicker .dot { width: 5px; height: 5px; background: var(--signal); border-radius: 50%; flex: none; }
+        .kicker .k-right { margin-left: auto; color: var(--text-secondary); }
+        @media (max-width: 640px) { .kicker .k-right { display: none; } }
+
+        .hero-title {
+            font-family: var(--page-display);
+            font-weight: 400;
+            font-size: clamp(3.1rem, 10.4vw, 8.2rem);
+            line-height: .92;
+            letter-spacing: -.025em;
+            margin: 34px 0 0;
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 0 .1em;
+        }
+        .hero-title .ht-mono {
+            font-family: var(--page-mono);
+            font-weight: 500;
+            font-size: .3em;
+            letter-spacing: .04em;
+            color: var(--text-tertiary);
+            transform: translateY(-.12em);
+        }
+        .hero-title .ht-arrow { height: .42em; width: auto; color: var(--signal); flex: none; align-self: center; margin-inline: .06em; overflow: visible; }
+        .hero-title .ht-arrow path { stroke-dasharray: 200; stroke-dashoffset: 200; animation: draw .9s var(--ease-out-expo) .35s forwards; }
+        @keyframes draw { to { stroke-dashoffset: 0; } }
+        .hero-title em { font-style: italic; color: var(--signal); }
+        .hero-title .ht-tail { color: var(--text-primary); }
+
+        .hero-lede {
+            margin-top: 30px;
+            max-width: 60ch;
+            font-size: clamp(1rem, .55vw + .86rem, 1.18rem);
+            font-weight: 300;
+            line-height: 1.72;
+            color: var(--text-secondary);
+        }
+        .hero-lede strong { font-weight: 600; color: var(--text-primary); }
+
+        .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-family: var(--page-mono);
+            font-size: .66rem;
+            letter-spacing: .05em;
+            color: var(--text-secondary);
+            border: 1px solid var(--hair);
+            border-radius: 3px;
+            padding: 6px 11px;
+            transition: border-color .25s, color .25s, transform .25s var(--ease-out-expo);
+        }
+        .chip::before {
+            content: '';
+            width: 4px; height: 4px;
+            background: var(--signal);
+            border-radius: 1px;
+            transform: rotate(45deg);
+            opacity: .75;
+        }
+        .chip:hover { border-color: var(--hair-2); color: var(--text-primary); transform: translateY(-2px); }
+
+        /* nameplate — the instrument's spec strip */
+        .nameplate {
+            margin-top: clamp(40px, 6vw, 68px);
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            border-top: 1px solid var(--hair-2);
+            border-bottom: 1px solid var(--hair);
+        }
+        .np-cell { padding: 18px 20px 18px 0; border-left: 1px solid var(--hair-soft); padding-left: 20px; }
+        .np-cell:first-child { border-left: 0; padding-left: 0; }
+        .np-k {
+            display: block;
+            font-family: var(--page-mono);
+            font-size: .6rem;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            margin-bottom: 7px;
+        }
+        .np-v {
+            display: block;
+            font-family: var(--page-display);
+            font-size: clamp(1.25rem, 2.1vw, 1.75rem);
+            line-height: 1.1;
+            color: var(--text-primary);
+        }
+        .np-v small { font-family: var(--page-mono); font-size: .44em; letter-spacing: .04em; color: var(--text-tertiary); display: block; margin-top: 6px; }
+        @media (max-width: 720px) {
+            .nameplate { grid-template-columns: repeat(2, 1fr); }
+            .np-cell:nth-child(3) { border-left: 0; padding-left: 0; }
+            .np-cell:nth-child(n+3) { border-top: 1px solid var(--hair-soft); }
+        }
+
+        /* ── the bench (hero hardware) ─────────────────────────────────── */
+        .bench-wrap {
+            /* The bench is a device, not a document surface: a dark
+               instrument inset in the page, in both themes. Its neutrals are
+               declared once, here; the signal and the status colours still
+               come from the skin, so a skin swap re-tints the whole bench. */
+            --bench-bg: #100e0a;
+            --bench-ink: #ece5d6;
+            --bench-dim: #9b9280;
+            --bench-faint: #5f5849;
+            --bench-line: rgba(236, 229, 214, 0.13);
+            --bench-line-2: rgba(236, 229, 214, 0.26);
+            --bench-ok: color-mix(in srgb, var(--ok) 42%, #cdeedb);
+            --bench-warn: color-mix(in srgb, var(--warn) 42%, #f6e2bd);
+
+            margin-top: clamp(52px, 8vw, 96px);
+            background: var(--bench-bg);
+            color: var(--bench-ink);
+            border-block: 1px solid color-mix(in srgb, var(--signal) 28%, transparent);
+            position: relative;
+            overflow: hidden;
+        }
+        .bench-wrap::before,
+        .bench-wrap::after {
+            content: '';
+            position: absolute;
+            width: 18px; height: 18px;
+            border: 1px solid var(--signal);
+            opacity: .55;
+            pointer-events: none;
+        }
+        .bench-wrap::before { top: 16px; left: 16px; border-right: 0; border-bottom: 0; }
+        .bench-wrap::after { bottom: 16px; right: 16px; border-left: 0; border-top: 0; }
+
+        .bench { padding-block: clamp(30px, 5vw, 54px) clamp(30px, 5vw, 48px); }
+        .bench-head {
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
+            gap: 24px 40px;
+            align-items: end;
+            padding-bottom: 26px;
+            border-bottom: 1px solid var(--bench-line);
+        }
+        .bench-kicker {
+            display: block;
+            font-family: var(--page-mono);
+            font-size: .62rem;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            color: var(--signal);
+            margin-bottom: 12px;
+        }
+        .bench-head h2 {
+            font-family: var(--page-display);
+            font-weight: 400;
+            font-size: clamp(1.9rem, 4.2vw, 3.1rem);
+            line-height: 1.02;
+            letter-spacing: -.02em;
+        }
+        .bench-note {
+            font-size: .93rem;
+            font-weight: 300;
+            line-height: 1.68;
+            color: var(--bench-dim);
+            max-width: 46ch;
+        }
+        .bench-note b { color: var(--bench-ink); font-weight: 500; }
+
+        .bench-grid {
+            display: grid;
+            grid-template-columns: 244px minmax(0, 1fr);
+            gap: 0;
+            border-bottom: 1px solid var(--bench-line);
+        }
+
+        /* controls */
+        .controls { border-right: 1px solid var(--bench-line); padding: 24px 26px 26px 0; }
+        .ctl { padding-bottom: 20px; margin-bottom: 20px; border-bottom: 1px solid var(--bench-line); }
+        .ctl:last-child { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
+        .ctl-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+        .ctl-label {
+            font-family: var(--page-mono);
+            font-size: .62rem;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            color: var(--bench-dim);
+        }
+        .ctl-value { font-family: var(--page-mono); font-size: 1.1rem; font-weight: 500; color: var(--bench-ink); font-variant-numeric: tabular-nums; }
+
+        input[type="range"] {
+            -webkit-appearance: none; appearance: none;
+            width: 100%; height: 18px; background: transparent; cursor: pointer; display: block;
+        }
+        input[type="range"]::-webkit-slider-runnable-track { height: 2px; background: var(--bench-line-2); }
+        input[type="range"]::-moz-range-track { height: 2px; background: var(--bench-line-2); }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 13px; height: 13px; margin-top: -5.5px;
+            background: var(--signal); border: 0; border-radius: 1px;
+            transform: rotate(45deg);
+            transition: box-shadow .2s;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 13px; height: 13px; background: var(--signal); border: 0; border-radius: 1px;
+        }
+        input[type="range"]:hover::-webkit-slider-thumb { box-shadow: 0 0 0 5px color-mix(in srgb, var(--signal) 22%, transparent); }
+        input[type="range"]:focus-visible { outline-offset: 6px; }
+        input[type="range"]:disabled { opacity: .35; cursor: not-allowed; }
+        .ctl-scale { display: flex; justify-content: space-between; font-family: var(--page-mono); font-size: .58rem; color: var(--bench-faint); margin-top: 6px; }
+
+        .switch { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; }
+        /* the input sits over the track as a real 42×20 hit target */
+        .switch input { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 42px; height: 20px; margin: 0; opacity: 0; cursor: pointer; }
+        .switch-track {
+            width: 42px; height: 20px; flex: none;
+            border: 1px solid var(--bench-line-2);
+            border-radius: 999px;
+            position: relative;
+            transition: background .25s, border-color .25s;
+        }
+        .switch-track::after {
+            content: '';
+            position: absolute; top: 3px; left: 3px;
+            width: 12px; height: 12px; border-radius: 50%;
+            background: var(--bench-faint);
+            transition: transform .3s var(--ease-out-expo), background .25s;
+        }
+        .switch input:checked + .switch-track { background: color-mix(in srgb, var(--signal) 26%, transparent); border-color: var(--signal); }
+        .switch input:checked + .switch-track::after { transform: translateX(22px); background: var(--signal); }
+        .switch input:focus-visible + .switch-track { outline: 2px solid var(--signal); outline-offset: 3px; }
+        .switch-state { font-family: var(--page-mono); font-size: .68rem; letter-spacing: .1em; color: var(--bench-dim); }
+        .switch input:checked ~ .switch-state { color: var(--signal); }
+
+        .seg { display: flex; border: 1px solid var(--bench-line-2); border-radius: 3px; overflow: hidden; }
+        .seg button {
+            flex: 1;
+            font-family: var(--page-mono);
+            font-size: .6rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--bench-dim);
+            background: transparent;
+            border: 0;
+            padding: 9px 4px;
+            cursor: pointer;
+            transition: background .22s, color .22s;
+        }
+        .seg button + button { border-left: 1px solid var(--bench-line-2); }
+        .seg button:hover { color: var(--bench-ink); }
+        .seg button[aria-pressed="true"] { background: var(--signal); color: var(--bench-bg); font-weight: 600; }
+
+        .play-btn {
+            width: 100%;
+            display: flex; align-items: center; justify-content: center; gap: 9px;
+            font-family: var(--page-mono);
+            font-size: .64rem; letter-spacing: .14em; text-transform: uppercase;
+            color: var(--bench-ink);
+            background: transparent;
+            border: 1px solid var(--bench-line-2);
+            border-radius: 3px;
+            padding: 10px;
+            cursor: pointer;
+            transition: background .2s, border-color .2s, color .2s;
+        }
+        .play-btn:hover { border-color: var(--signal); color: var(--signal); }
+        .play-btn .ico { width: 0; height: 0; border-left: 7px solid currentColor; border-top: 4.5px solid transparent; border-bottom: 4.5px solid transparent; }
+        .play-btn[data-playing="true"] .ico {
+            width: 16px; height: 10px; border: 0; border-radius: 0;
+            background: linear-gradient(90deg, currentColor 0 6px, transparent 6px 10px, currentColor 10px 16px);
+        }
+
+        /* screen */
+        .screen { padding: 24px 0 0 26px; min-width: 0; }
+        .scope {
+            background: rgba(0, 0, 0, .34);
+            border: 1px solid var(--bench-line);
+            border-radius: 3px;
+            padding: 14px 16px 10px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .03);
+        }
+        .screen canvas { display: block; width: 100%; height: auto; }
+        .readout {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            border-top: 1px solid var(--bench-line);
+            margin-top: 18px;
+        }
+        .ro-cell { padding: 14px 18px 16px 0; border-left: 1px solid var(--bench-line); padding-left: 18px; }
+        .ro-cell:first-child { border-left: 0; padding-left: 0; }
+        .ro-k {
+            display: block;
+            font-family: var(--page-mono);
+            font-size: .58rem; letter-spacing: .16em; text-transform: uppercase;
+            color: var(--bench-faint);
+            margin-bottom: 7px;
+        }
+        .ro-v {
+            display: block;
+            font-family: var(--page-mono);
+            font-size: .72rem;
+            color: var(--bench-ink);
+            font-variant-numeric: tabular-nums;
+            overflow-wrap: anywhere;
+        }
+        .ro-v.ok { color: var(--bench-ok); }
+        .ro-v.warn { color: var(--bench-warn); }
+
+        @media (max-width: 900px) {
+            .bench-head { grid-template-columns: 1fr; align-items: start; }
+            .bench-grid { grid-template-columns: 1fr; }
+            .controls { border-right: 0; border-bottom: 1px solid var(--bench-line); padding: 22px 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
+            .ctl { border-bottom: 0; }
+            .screen { padding: 22px 0 0; }
+            .readout { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .ro-cell:nth-child(3) { border-left: 0; padding-left: 0; }
+            .ro-cell:nth-child(n+3) { border-top: 1px solid var(--bench-line); }
+        }
+        @media (max-width: 560px) {
+            .controls { grid-template-columns: 1fr; }
+            .readout { grid-template-columns: 1fr; }
+            .ro-cell { border-left: 0; padding-left: 0; border-top: 1px solid var(--bench-line); }
+            .ro-cell:first-child { border-top: 0; }
+        }
+
+        .sr-only {
+            position: absolute; width: 1px; height: 1px;
+            padding: 0; margin: -1px; overflow: hidden;
+            clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
+        }
+        .sr-only table { width: 1px; }
+
+        /* ── sections ──────────────────────────────────────────────────── */
+        .section { padding-block: clamp(64px, 9vw, 116px) 0; }
+        .sec-head {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            align-items: end;
+            gap: 0 22px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--hair-2);
+            margin-bottom: 34px;
+        }
+        .sec-num {
+            font-family: var(--page-display);
+            font-size: clamp(2.4rem, 5.4vw, 4rem);
+            line-height: .78;
+            color: var(--signal);
+            opacity: .3;
+            font-variant-numeric: lining-nums;
+        }
+        .sec-title {
+            font-family: var(--page-display);
+            font-weight: 400;
+            font-size: clamp(1.85rem, 4.2vw, 3rem);
+            line-height: 1;
+            letter-spacing: -.02em;
+        }
+        .sec-title em { font-style: italic; color: var(--signal); }
+        .sec-idx {
+            font-family: var(--page-mono);
+            font-size: .62rem;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            margin-left: auto;
+            align-self: end;
+            padding-bottom: 6px;
+            white-space: nowrap;
+        }
+        @media (max-width: 640px) { .sec-idx { display: none; } }
+
+        .lede { color: var(--text-secondary); font-weight: 300; max-width: 62ch; margin-bottom: 30px; }
+        .sec-body p { color: var(--text-secondary); max-width: 66ch; margin-bottom: 16px; font-weight: 300; }
+        .sec-body strong { color: var(--text-primary); font-weight: 600; }
+
+        .inline-code {
+            font-family: var(--page-mono);
+            font-size: .82em;
+            background: var(--code-bg);
+            color: var(--code-text);
+            border-radius: 3px;
+            padding: 2px 6px;
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+        .sec-body a { color: var(--signal); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+        .sec-body a:hover { color: var(--text-primary); }
+
+        /* 01 — plates */
+        .plates { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--hair); border: 1px solid var(--hair); }
+        .plate { background: var(--bg); padding: 28px 26px 30px; position: relative; transition: background .3s; }
+        .plate:hover { background: var(--bg-card); }
+        .plate-n {
+            font-family: var(--page-mono);
+            font-size: .6rem;
+            letter-spacing: .16em;
+            color: var(--signal);
+            display: block;
+            margin-bottom: 14px;
+        }
+        .plate h3 { font-size: 1.08rem; font-weight: 600; letter-spacing: -.01em; margin-bottom: 10px; }
+        .plate p { color: var(--text-secondary); font-weight: 300; font-size: .93rem; margin: 0; max-width: 42ch; }
+        @media (max-width: 700px) { .plates { grid-template-columns: 1fr; } }
+
+        /* 02 — terminals */
+        .code-block { border: 1px solid var(--hair); border-radius: 4px; overflow: hidden; margin: 0 0 22px; background: var(--bg-card); }
+        .code-block__bar {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 12px;
+            border-bottom: 1px solid var(--hair);
+            background: color-mix(in srgb, var(--ink) 3.5%, transparent);
+        }
+        .code-block__title { font-family: var(--page-mono); font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: var(--text-tertiary); }
+        .code-block__dots { display: flex; gap: 5px; }
+        .code-block__dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--hair-2); display: block; }
+        .code-block__dots i:first-child { background: var(--signal); }
+        .copy-btn {
+            margin-left: auto;
+            font-family: var(--page-mono);
+            font-size: .6rem; letter-spacing: .12em; text-transform: uppercase;
+            color: var(--text-tertiary);
+            background: transparent;
+            border: 1px solid var(--hair);
+            border-radius: 3px;
+            padding: 4px 9px;
+            cursor: pointer;
+            transition: color .2s, border-color .2s, background .2s;
+        }
+        .copy-btn:hover { color: var(--text-primary); border-color: var(--hair-2); background: var(--hair-soft); }
+        .copy-btn.copied { color: var(--ok); border-color: var(--ok); }
+        .code-block__body { padding: 16px 18px; overflow-x: auto; }
+        .code-block__body pre { font-family: var(--page-mono); font-size: .82rem; line-height: 1.85; color: var(--text-primary); white-space: pre; }
+        .code-block__body .pr { color: var(--signal); margin-right: 4px; user-select: none; }
+        .code-block__body .fl { color: var(--accent-text); }
+        .code-block__body .cm { color: var(--text-tertiary); font-style: italic; }
+        .code-block__body .st { color: var(--text-secondary); }
+
+        .note-under { font-size: .88rem; color: var(--text-tertiary); font-weight: 300; max-width: 66ch; }
+        .note-under code { font-family: var(--page-mono); font-size: .88em; color: var(--text-secondary); }
+
+        /* 03 — spec table */
+        .spec { border: 1px solid var(--hair); border-radius: 4px; overflow: hidden; }
+        .spec table { width: 100%; border-collapse: collapse; }
+        .spec th, .spec td { text-align: left; padding: 16px 20px; vertical-align: top; border-bottom: 1px solid var(--hair-soft); }
+        .spec thead th {
+            font-family: var(--page-mono);
+            font-size: .6rem; letter-spacing: .16em; text-transform: uppercase;
+            color: var(--text-tertiary); font-weight: 500;
+            background: color-mix(in srgb, var(--ink) 3.5%, transparent);
+        }
+        .spec tbody tr:last-child td { border-bottom: none; }
+        .spec tbody tr:hover { background: var(--bg-card); }
+        .spec-name { font-weight: 600; font-size: .95rem; color: var(--text-primary); }
+        .spec-range { font-family: var(--page-mono); font-size: .8rem; color: var(--signal); }
+        .spec-range .dim { color: var(--text-tertiary); white-space: nowrap; }
+        .spec-meaning { color: var(--text-secondary); font-weight: 300; font-size: .92rem; }
+        @media (max-width: 760px) {
+            .spec thead { display: none; }
+            .spec tbody tr { display: block; border-bottom: 1px solid var(--hair); }
+            .spec tbody tr:last-child { border-bottom: 0; }
+            .spec tbody tr:hover { background: transparent; }
+            .spec td { display: block; padding: 12px 20px; border-bottom: 0; }
+            .spec td.spec-name { padding-bottom: 4px; }
+        }
+
+        .bench-link {
+            display: inline-flex; align-items: center; gap: 9px;
+            margin-top: 22px;
+            font-family: var(--page-mono);
+            font-size: .64rem; letter-spacing: .14em; text-transform: uppercase;
+            color: var(--signal);
+            text-decoration: none;
+            border-bottom: 1px solid var(--signal-mid);
+            padding-bottom: 5px;
+            transition: border-color .25s, gap .25s var(--ease-out-expo);
+        }
+        .bench-link:hover { gap: 15px; border-color: var(--signal); }
+
+        /* 04 — pipeline */
+        .strip { position: relative; padding-top: 16px; margin-bottom: 40px; }
+        .strip::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 12px;
+            background:
+                repeating-linear-gradient(90deg, var(--hair-2) 0 8px, transparent 8px 22px);
+            opacity: .8;
+        }
+        .stations { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 18px; }
+        .station { position: relative; }
+        .station-n {
+            font-family: var(--page-mono);
+            font-size: .6rem; letter-spacing: .16em;
+            color: var(--signal);
+            display: block; margin-bottom: 10px;
+        }
+        .station h4 { font-size: .95rem; font-weight: 600; margin-bottom: 8px; }
+        .station p { font-size: .86rem; color: var(--text-secondary); font-weight: 300; margin: 0; }
+        .station code { display: block; font-family: var(--page-mono); font-size: .7rem; color: var(--text-tertiary); margin-top: 10px; word-break: break-word; }
+        @media (max-width: 980px) { .stations { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (max-width: 560px) { .stations { grid-template-columns: 1fr; } }
+
+        /* seam diagram */
+        .diagram { border: 1px solid var(--hair); border-radius: 4px; padding: 30px 24px; margin: 8px 0 30px; background: var(--bg-card); }
+        .diagram svg { display: block; width: 100%; height: auto; }
+        .diagram .dg-stroke { stroke: var(--signal); stroke-width: 1.6; fill: none; stroke-linecap: round; }
+        .diagram .dg-line { stroke: var(--hair-2); stroke-width: 1; fill: none; }
+        .diagram .dg-label { font-family: var(--page-mono); font-size: 9.5px; letter-spacing: .14em; fill: var(--text-tertiary); text-transform: uppercase; }
+        .diagram .dg-hot { font-family: var(--page-mono); font-size: 9.5px; letter-spacing: .14em; fill: var(--signal); text-transform: uppercase; }
+        .diagram .dg-run { stroke-dasharray: 5 7; animation: flow 1.6s linear infinite; }
+        @keyframes flow { to { stroke-dashoffset: -24; } }
+
+        /* callouts */
+        .callout {
+            position: relative;
+            border: 1px solid var(--hair);
+            border-left: 2px solid var(--signal);
+            border-radius: 3px;
+            padding: 20px 22px 20px 24px;
+            margin: 0 0 26px;
+            background: color-mix(in srgb, var(--ink) 3%, transparent);
+            max-width: 68ch;
+        }
+        .callout .co-k {
+            display: block;
+            font-family: var(--page-mono);
+            font-size: .6rem; letter-spacing: .2em; text-transform: uppercase;
+            color: var(--signal);
+            margin-bottom: 10px;
+        }
+        .callout.warn { border-left-color: var(--warn); }
+        .callout.warn .co-k { color: var(--warn); }
+        .callout p { color: var(--text-secondary); font-weight: 300; margin: 0; font-size: .93rem; }
+        .callout p + p { margin-top: 10px; }
+        .callout strong { color: var(--text-primary); font-weight: 600; }
+
+        /* hairline rows */
+        .rows { border-top: 1px solid var(--hair); }
+        .row-item {
+            display: grid;
+            grid-template-columns: 12px minmax(0, 1fr);
+            gap: 0 16px;
+            padding: 18px 4px;
+            border-bottom: 1px solid var(--hair-soft);
+            align-items: start;
+        }
+        .row-item .bullet { width: 5px; height: 5px; background: var(--signal); transform: rotate(45deg); margin-top: 9px; }
+        .row-item p { color: var(--text-secondary); font-weight: 300; font-size: .93rem; margin: 0; max-width: 70ch; }
+        .row-item strong { color: var(--text-primary); font-weight: 600; }
+
+        /* 06 — credits */
+        .credits { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--hair); border: 1px solid var(--hair); }
+        .credit { background: var(--bg); padding: 24px 24px 26px; }
+        .credit-k { font-family: var(--page-mono); font-size: .6rem; letter-spacing: .18em; text-transform: uppercase; color: var(--text-tertiary); display: block; margin-bottom: 10px; }
+        .credit-v { font-size: .95rem; color: var(--text-secondary); font-weight: 300; }
+        .credit-v a { color: var(--signal); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+        .credit-v a:hover { color: var(--text-primary); }
+        @media (max-width: 700px) { .credits { grid-template-columns: 1fr; } }
+
+        /* ── colophon ──────────────────────────────────────────────────── */
+        .colophon { margin-top: clamp(70px, 10vw, 130px); border-top: 1px solid var(--hair-2); }
+        .colophon-inner { display: flex; flex-wrap: wrap; gap: 18px 34px; align-items: center; padding-block: 28px 40px; }
+        .colophon-meta { font-family: var(--page-mono); font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; color: var(--text-tertiary); }
+        .colophon-links { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+        .colophon-links a {
+            font-family: var(--page-mono);
+            font-size: .64rem; letter-spacing: .1em; text-transform: uppercase;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border: 1px solid var(--hair);
+            border-radius: 3px;
+            padding: 7px 11px;
+            transition: color .2s, border-color .2s, transform .25s var(--ease-out-expo);
+        }
+        .colophon-links a:hover { color: var(--signal); border-color: var(--signal-mid); transform: translateY(-2px); }
+
+        /* ── motion ────────────────────────────────────────────────────── */
+        .reveal { opacity: 0; transform: translateY(20px); }
+        .reveal.in {
+            opacity: 1;
+            transform: none;
+            transition: opacity .8s var(--ease-out-expo), transform .8s var(--ease-out-expo);
+            transition-delay: var(--d, 0ms);
+        }
+        .hero .kicker, .hero .hero-title, .hero .hero-lede, .hero .chips, .hero .nameplate {
+            animation: rise .9s var(--ease-out-expo) backwards;
+        }
+        .hero .kicker { animation-delay: .05s; }
+        .hero .hero-title { animation-delay: .15s; }
+        .hero .hero-lede { animation-delay: .28s; }
+        .hero .chips { animation-delay: .38s; }
+        .hero .nameplate { animation-delay: .48s; }
+        @keyframes rise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            *, *::before, *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+            .reveal { opacity: 1; transform: none; }
+            .hero .kicker, .hero .hero-title, .hero .hero-lede, .hero .chips, .hero .nameplate { animation: none; }
+        }
+    </style>
+
+    <script>
+        /* No-flash theme bootstrap — key: lvs-theme */
+        (function () {
+            try {
+                var saved = localStorage.getItem('lvs-theme');
+                var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (_) { document.documentElement.setAttribute('data-theme', 'light'); }
+        })();
+    </script>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<div class="rail" id="rail" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Page scroll progress"></div>
+
+<nav class="nav" aria-label="Page sections">
+    <div class="nav-inner">
+        <a href="./how-to.html" class="brand">
+            <svg class="brand-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 12a8 8 0 0 1 16 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                <path d="M20 12a8 8 0 0 1-16 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity=".45"/>
+                <path d="M18 6.5 20.5 8 18 9.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
+            <span class="brand-txt">LVS <span>· loopable video segmenter</span></span>
+        </a>
+        <div class="nav-links" id="navLinks">
+            <a href="#bench" class="nav-link">Bench</a>
+            <a href="#what" class="nav-link">What</a>
+            <a href="#run" class="nav-link">Run</a>
+            <a href="#params" class="nav-link">Params</a>
+            <a href="#how" class="nav-link">How it works</a>
+            <a href="#notes" class="nav-link">Notes</a>
+            <a href="#attribution" class="nav-link">Attribution</a>
+        </div>
+        <div class="nav-actions">
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark theme" aria-pressed="false">◐</button>
+            <button class="nav-toggle" id="navToggle" aria-label="Open navigation menu" aria-controls="navLinks" aria-expanded="false"><span></span></button>
+        </div>
+    </div>
+</nav>
+<div class="nav-backdrop" id="navBackdrop" hidden></div>
+
+<main>
+    <!-- ══ HERO ══════════════════════════════════════════════════════════ -->
+    <header class="hero shell">
+        <div class="kicker">
+            <span class="dot"></span>
+            <span>Local tool · sprint 0.21</span>
+            <span class="k-right">Tools / video / segmentation</span>
+        </div>
+
+        <h1 class="hero-title">
+            <span class="ht-mono">MP4</span>
+            <span class="sr-only">to</span>
+            <svg class="ht-arrow" viewBox="0 0 120 24" fill="none" aria-hidden="true">
+                <path d="M2 13C26 4 62 20 96 11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M96 11 84 5.5M96 11l-12 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="ht-tail"><em>loopable</em> clips.</span>
+        </h1>
+
+        <p class="hero-lede">
+            Split a long video into N segments whose boundaries land on musical beats —
+            each clip plays forward then mirrors back, so dropped into a loop slot it cycles
+            without a visible seam. Beat detection via <strong>librosa</strong>; rendering via
+            <strong>MoviePy</strong>. Falls back to equal-time slices when the video has no
+            usable audio. Everything runs locally.
+        </p>
+
+        <div class="chips">
+            <span class="chip">gradio 5 + MoviePy + librosa</span>
+            <span class="chip">CLI + UI</span>
+            <span class="chip">local-first · no uploads</span>
+            <span class="chip">MIT</span>
+        </div>
+
+        <div class="nameplate">
+            <div class="np-cell">
+                <span class="np-k">Segments</span>
+                <span class="np-v">1–20<small>default 4</small></span>
+            </div>
+            <div class="np-cell">
+                <span class="np-k">Alignment</span>
+                <span class="np-v">On the beat<small>librosa.beat.beat_track</small></span>
+            </div>
+            <div class="np-cell">
+                <span class="np-k">Loop build</span>
+                <span class="np-v">Fwd + rev<small>vfx.time_mirror</small></span>
+            </div>
+            <div class="np-cell">
+                <span class="np-k">Runtime</span>
+                <span class="np-v">100% local<small>no uploads, ever</small></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ══ THE BENCH ═════════════════════════════════════════════════════ -->
+    <section class="bench-wrap" id="bench" aria-labelledby="bench-h">
+        <div class="bench shell">
+            <div class="bench-head">
+                <div>
+                    <span class="bench-kicker">Fig. 01 — the mirror bench</span>
+                    <h2 id="bench-h">Watch the loop form itself.</h2>
+                </div>
+                <p class="bench-note">
+                    A live illustration of what the CLI does: beat grid in, N windows out,
+                    each window built as <b>forward + reversed</b>. Move the controls and the
+                    segmentation re-divides. <b>Illustrative</b> — this is a simulation of the
+                    documented algorithm, not a video render.
+                </p>
+            </div>
+
+            <div class="bench-grid">
+                <aside class="controls" aria-label="Bench controls">
+                    <div class="ctl">
+                        <div class="ctl-row">
+                            <label class="ctl-label" for="cSeg">Segments</label>
+                            <output class="ctl-value" id="cSegOut" for="cSeg">4</output>
+                        </div>
+                        <input type="range" id="cSeg" min="1" max="20" step="1" value="4" aria-describedby="cSegOut">
+                        <div class="ctl-scale"><span>1</span><span>20</span></div>
+                    </div>
+
+                    <div class="ctl">
+                        <div class="ctl-row">
+                            <span class="ctl-label">Loopable</span>
+                            <span class="ctl-state" id="cLoopState">on</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="cLoop" checked>
+                            <span class="switch-track" aria-hidden="true"></span>
+                            <span class="sr-only">Build each segment forward plus reversed</span>
+                        </label>
+                    </div>
+
+                    <div class="ctl">
+                        <div class="ctl-row"><span class="ctl-label">Source audio</span></div>
+                        <div class="seg" role="group" aria-label="Source audio">
+                            <button type="button" id="cAudio" aria-pressed="true">Audio</button>
+                            <button type="button" id="cSilent" aria-pressed="false">Silent</button>
+                        </div>
+                    </div>
+
+                    <div class="ctl">
+                        <div class="ctl-row">
+                            <label class="ctl-label" for="cBpm">Beat grid</label>
+                            <output class="ctl-value" id="cBpmOut" for="cBpm">124</output>
+                        </div>
+                        <input type="range" id="cBpm" min="60" max="180" step="2" value="124">
+                        <div class="ctl-scale"><span>60 bpm</span><span>180 bpm</span></div>
+                    </div>
+
+                    <div class="ctl">
+                        <button class="play-btn" id="cPlay" data-playing="true" aria-label="Pause the bench animation">
+                            <span class="ico" aria-hidden="true"></span><span id="cPlayText">Pause</span>
+                        </button>
+                    </div>
+                </aside>
+
+                <div class="screen">
+                    <div class="scope">
+                    <canvas id="benchCanvas" role="img" aria-label="Scope showing the source timeline, the segmented windows and the forward-plus-reversed clip build."></canvas>
+                    </div>
+
+                    <div class="readout">
+                        <div class="ro-cell">
+                            <span class="ro-k">Path</span>
+                            <span class="ro-v" id="roPath">beat detection</span>
+                        </div>
+                        <div class="ro-cell">
+                            <span class="ro-k">Segment</span>
+                            <span class="ro-v" id="roSeg">01 / 04</span>
+                        </div>
+                        <div class="ro-cell">
+                            <span class="ro-k">Window</span>
+                            <span class="ro-v" id="roWin">0:00.000 → 0:00.000</span>
+                        </div>
+                        <div class="ro-cell">
+                            <span class="ro-k">Loop</span>
+                            <span class="ro-v ok" id="roLoop">seamless</span>
+                        </div>
+                    </div>
+
+                    <p class="sr-only" id="benchSummary" aria-live="polite"></p>
+                    <div class="sr-only">
+                        <table id="benchTable">
+                            <caption>Segment windows produced by the current bench settings</caption>
+                            <thead><tr><th>Segment</th><th>Start</th><th>End</th><th>Built</th></tr></thead>
+                            <tbody id="benchTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ 01 WHAT ═══════════════════════════════════════════════════════ -->
+    <section class="section shell" id="what" aria-labelledby="what-h">
+        <div class="sec-head reveal">
+            <span class="sec-num" aria-hidden="true">01</span>
+            <h2 class="sec-title" id="what-h">What it does</h2>
+            <span class="sec-idx">01 / 06</span>
+        </div>
+        <div class="sec-body">
+            <div class="plates">
+                <article class="plate reveal" style="--d:0ms">
+                    <span class="plate-n">A — beat-aligned cuts</span>
+                    <h3>Every cut lands on a downbeat</h3>
+                    <p>Audio is extracted (22.05 kHz mono), beats are detected with
+                       <span class="inline-code">librosa.beat.beat_track</span>, and the beat list is
+                       split into N contiguous groups — so every segment starts and ends on a
+                       musical downbeat.</p>
+                </article>
+                <article class="plate reveal" style="--d:80ms">
+                    <span class="plate-n">B — seamless loops</span>
+                    <h3>Forward, then back</h3>
+                    <p>Each segment is built as <span class="inline-code">[forward, reverse]</span>
+                       (<span class="inline-code">vfx.time_mirror</span>) — the tail mirrors back to
+                       the head, no visible seam.</p>
+                </article>
+                <article class="plate reveal" style="--d:160ms">
+                    <span class="plate-n">C — never refuses</span>
+                    <h3>Always produces output</h3>
+                    <p>No audio or too few beats? Equal-duration fallback kicks in instead of
+                       failing. The pipeline does not return empty-handed.</p>
+                </article>
+                <article class="plate reveal" style="--d:240ms">
+                    <span class="plate-n">D — one archive</span>
+                    <h3>ZIP download</h3>
+                    <p><span class="inline-code">segment_01.mp4 … segment_NN.mp4</span> in one
+                       archive, handed back through the UI file widget or written by
+                       <span class="inline-code">--out</span>.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ 02 RUN ════════════════════════════════════════════════════════ -->
+    <section class="section shell" id="run" aria-labelledby="run-h">
+        <div class="sec-head reveal">
+            <span class="sec-num" aria-hidden="true">02</span>
+            <h2 class="sec-title" id="run-h">How to run it</h2>
+            <span class="sec-idx">02 / 06</span>
+        </div>
+        <div class="sec-body">
+            <p class="lede">Setup is a one-time <span class="inline-code">uv sync</span> (same pattern
+               as the CLIP Interrogator). ffmpeg must be on PATH — MoviePy shells out to it for
+               encode/decode.</p>
+
+            <div class="code-block reveal">
+                <div class="code-block__bar">
+                    <span class="code-block__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                    <span class="code-block__title">bash · setup (once)</span>
+                    <button class="copy-btn" data-copy type="button">copy</button>
+                </div>
+                <div class="code-block__body"><pre><code><span class="pr">$ </span>brew install ffmpeg        <span class="cm"># if not already installed</span>
+<span class="pr">$ </span>npm run lvs:setup           <span class="cm"># uv sync --project lib/loopable-video-segmenter</span>
+<span class="pr">$ </span>npm run lvs:check           <span class="cm"># imports + deps + ffmpeg presence, no model downloads</span></code></pre></div>
+            </div>
+
+            <div class="code-block reveal">
+                <div class="code-block__bar">
+                    <span class="code-block__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                    <span class="code-block__title">bash · ui</span>
+                    <button class="copy-btn" data-copy type="button">copy</button>
+                </div>
+                <div class="code-block__body"><pre><code><span class="pr">$ </span>npm run lvs:ui
+<span class="st"># gradio app on</span> http://127.0.0.1:7861  <span class="cm">(7860 is the CLIP Interrogator's port)</span></code></pre></div>
+            </div>
+
+            <div class="code-block reveal">
+                <div class="code-block__bar">
+                    <span class="code-block__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                    <span class="code-block__title">bash · cli</span>
+                    <button class="copy-btn" data-copy type="button">copy</button>
+                </div>
+                <div class="code-block__body"><pre><code><span class="pr">$ </span>npm run lvs:segment -- video.mp4 --segments <span class="fl">4</span>
+<span class="pr">$ </span>npm run lvs:segment -- video.mp4 --segments <span class="fl">8</span> --no-loopable --json
+<span class="pr">$ </span>npm run lvs:segment -- video.mp4 --segments <span class="fl">2</span> --out /path/to/out.zip</code></pre></div>
+            </div>
+
+            <p class="note-under">
+                <code>--json</code> emits the zip path, segment count and which segmentation path ran
+                (<em>beat detection</em> or <em>equal-time fallback</em>). Exit codes: 0 ok,
+                2 bad input, 3 runtime failure.
+            </p>
+        </div>
+    </section>
+
+    <!-- ══ 03 PARAMS ══════════════════════════════════════════════════════ -->
+    <section class="section shell" id="params" aria-labelledby="params-h">
+        <div class="sec-head reveal">
+            <span class="sec-num" aria-hidden="true">03</span>
+            <h2 class="sec-title" id="params-h">Parameters</h2>
+            <span class="sec-idx">03 / 06</span>
+        </div>
+        <div class="sec-body">
+            <div class="spec reveal">
+                <table>
+                    <thead>
+                        <tr><th scope="col">Parameter</th><th scope="col">Range / default</th><th scope="col">Meaning</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="spec-name">Number of segments</td>
+                            <td class="spec-range">1–20 · <span class="dim">--segments</span>, default 4</td>
+                            <td class="spec-meaning">How many loopable clips to produce from the source. Make each segment loopable</td>
+                        </tr>
+                        <tr>
+                            <td class="spec-name">Make each segment loopable</td>
+                            <td class="spec-range">on by default · <span class="dim">--no-loopable</span></td>
+                            <td class="spec-meaning">Forward + reverse mirror build; off = plain cuts.</td>
+                        </tr>
+                        <tr>
+                            <td class="spec-name">Input</td>
+                            <td class="spec-range">MP4 (h264 + aac works best)</td>
+                            <td class="spec-meaning">Audio is extracted for beat tracking; silent video falls back to equal time.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <a class="bench-link" href="#bench">Try these on the bench ↑</a>
+        </div>
+    </section>
+
+    <!-- ══ 04 HOW ════════════════════════════════════════════════════════ -->
+    <section class="section shell" id="how" aria-labelledby="how-h">
+        <div class="sec-head reveal">
+            <span class="sec-num" aria-hidden="true">04</span>
+            <h2 class="sec-title" id="how-h">How it <em>works</em></h2>
+            <span class="sec-idx">04 / 06</span>
+        </div>
+        <div class="sec-body">
+            <div class="strip">
+                <ol class="stations">
+                    <li class="station reveal" style="--d:0ms">
+                        <span class="station-n">01 — Extract</span>
+                        <h4>Audio to temp WAV</h4>
+                        <p>22.05 kHz mono, written to a temp file via MoviePy.</p>
+                        <code>moviepy · wav</code>
+                    </li>
+                    <li class="station reveal" style="--d:80ms">
+                        <span class="station-n">02 — Detect</span>
+                        <h4>Beat list</h4>
+                        <p>Beats detected with librosa; only times inside the video duration are kept.</p>
+                        <code>librosa.beat.beat_track</code>
+                    </li>
+                    <li class="station reveal" style="--d:160ms">
+                        <span class="station-n">03 — Divide</span>
+                        <h4>N contiguous groups</h4>
+                        <p>The beat list is split into N groups → N (start, end) windows that begin and end on downbeats.</p>
+                        <code>beats → (start, end)</code>
+                    </li>
+                    <li class="station reveal" style="--d:240ms">
+                        <span class="station-n">04 — Build</span>
+                        <h4>Forward + mirror</h4>
+                        <p>Each clip is subclip(start, end) concatenated with its own time mirror, encoded h264 + aac.</p>
+                        <code>concatenate([sub, sub.fx(time_mirror)])</code>
+                    </li>
+                    <li class="station reveal" style="--d:320ms">
+                        <span class="station-n">05 — Zip</span>
+                        <h4>One archive</h4>
+                        <p>Segments are zipped and handed back — UI file widget, or written by --out.</p>
+                        <code>segment_01…NN.zip</code>
+                    </li>
+                </ol>
+            </div>
+
+            <div class="diagram reveal" role="img" aria-label="Diagram: a clip plays forward from its start to its end, then plays back in reverse to the start, and the cycle repeats without a visible seam.">
+                <svg viewBox="0 26 720 120" fill="none" aria-hidden="true">
+                    <line x1="40" y1="70" x2="620" y2="70" class="dg-line"/>
+                    <path d="M40 70 H330" class="dg-stroke"/>
+                    <path d="M330 70 H620" class="dg-stroke" opacity=".45"/>
+                    <path d="M330 70 l12 -7M330 70 l12 7" class="dg-stroke" opacity=".45" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M620 70 H330" class="dg-stroke dg-run" opacity=".85"/>
+                    <path d="M330 70 l12 -7M330 70 l12 7" class="dg-stroke dg-run" opacity=".85" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M330 96 V122 H40 V70" class="dg-line"/>
+                    <path d="M330 122 H40" class="dg-stroke dg-run" opacity=".5"/>
+                    <text x="40" y="46" class="dg-hot">forward · subclip(start, end)</text>
+                    <text x="330" y="46" class="dg-label">reverse · vfx.time_mirror</text>
+                    <text x="40" y="142" class="dg-label">loop · no visible seam</text>
+                    <circle cx="40" cy="70" r="3.4" fill="var(--signal)"/>
+                    <circle cx="330" cy="70" r="3.4" fill="var(--signal)"/>
+                    <circle cx="620" cy="70" r="3.4" fill="var(--text-tertiary)"/>
+                </svg>
+            </div>
+
+            <div class="callout">
+                <span class="co-k">Note</span>
+                <p><strong>Quality depends on the audio.</strong> Live or percussive music gives the
+                   cleanest splits. Spoken word and ambient tracks fall through to the equal-time
+                   fallback — the pipeline never refuses to produce output.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ 05 NOTES ═══════════════════════════════════════════════════════ -->
+    <section class="section shell" id="notes" aria-labelledby="notes-h">
+        <div class="sec-head reveal">
+            <span class="sec-num" aria-hidden="true">05</span>
+            <h2 class="sec-title" id="notes-h">Notes</h2>
+            <span class="sec-idx">05 / 06</span>
+        </div>
+        <div class="sec-body">
+            <div class="callout warn reveal">
+                <span class="co-k">Caution</span>
+                <p><strong>The mirrored half plays audio backwards.</strong> The
+                   <span class="inline-code">time_mirror</span> trick makes visuals loop seamlessly,
+                   but the second half of each clip's audio is reversed. Fine for visual loops; for
+                   music-video work, mute the second half in your DAW or cross-fade.</p>
+            </div>
+
+            <div class="rows">
+                <div class="row-item reveal" style="--d:0ms">
+                    <span class="bullet" aria-hidden="true"></span>
+                    <p><strong>Source code:</strong> <span class="inline-code">lib/loopable-video-segmenter/</span>
+                       (uv-managed, <span class="inline-code">src/loopable_video_segmenter/</span>).</p>
+                </div>
+                <div class="row-item reveal" style="--d:80ms">
+                    <span class="bullet" aria-hidden="true"></span>
+                    <p><strong>MoviePy is pinned to 1.x</strong> — the code uses the 1.x API
+                       (<span class="inline-code">moviepy.editor</span>,
+                       <span class="inline-code">subclip</span>,
+                       <span class="inline-code">vfx.time_mirror</span>).</p>
+                </div>
+                <div class="row-item reveal" style="--d:160ms">
+                    <span class="bullet" aria-hidden="true"></span>
+                    <p><strong>Docs:</strong> <span class="inline-code">docs/LOOPABLE-VIDEO-SEGMENTER.md</span>.
+                       Source repo: <span class="inline-code">github.com/kajica2/loopable-video-segmenter</span>.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ 06 ATTRIBUTION ═════════════════════════════════════════════════ -->
+    <section class="section shell" id="attribution" aria-labelledby="attribution-h">
+        <div class="sec-head reveal">
+            <span class="sec-num" aria-hidden="true">06</span>
+            <h2 class="sec-title" id="attribution-h">Attribution</h2>
+            <span class="sec-idx">06 / 06</span>
+        </div>
+        <div class="sec-body">
+            <div class="credits reveal">
+                <div class="credit">
+                    <span class="credit-k">Port of</span>
+                    <span class="credit-v">
+                        <a href="https://github.com/kajica2/loopable-video-segmenter" target="_blank" rel="noopener">kajica2/loopable-video-segmenter</a><br>
+                        MIT, © 2026 Kai Djuric / kajica2
+                    </span>
+                </div>
+                <div class="credit">
+                    <span class="credit-k">Stack</span>
+                    <span class="credit-v">
+                        <a href="https://www.gradio.app/" target="_blank" rel="noopener">Gradio</a> ·
+                        <a href="https://zulko.github.io/moviepy/" target="_blank" rel="noopener">MoviePy</a> ·
+                        <a href="https://librosa.org/" target="_blank" rel="noopener">librosa</a> ·
+                        <a href="https://python-soundfile.readthedocs.io/" target="_blank" rel="noopener">soundfile</a>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="colophon">
+    <div class="colophon-inner shell">
+        <span class="colophon-meta">digital-twin · tools · lvs</span>
+        <nav class="colophon-links" aria-label="Related pages">
+            <a href="./how-to.html">📖 How to</a>
+            <a href="./cognitive-twin.html">🧠 Cognitive Twin</a>
+            <a href="https://github.com/kajica2/digital-twin" target="_blank" rel="noopener">⚡ Source</a>
+            <a href="https://github.com/kajica2/loopable-video-segmenter" target="_blank" rel="noopener">⛯ Original repo</a>
+        </nav>
+    </div>
+</footer>
+
+<script src="lib/lvs-bench.js"></script>
+<script>
+(function () {
+    'use strict';
+
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* ── theme: a plain light/dark flip, persisted in lvs-theme ─────── */
+    (function () {
+        var btn = document.getElementById('themeToggle');
+        function stored() {
+            try { return localStorage.getItem('lvs-theme'); } catch (_) { return null; }
+        }
+        function resolved() {
+            var p = stored();
+            if (p === 'light' || p === 'dark') return p;
+            return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        function render() {
+            var t = resolved();
+            btn.setAttribute('aria-pressed', t === 'dark' ? 'true' : 'false');
+            btn.setAttribute('aria-label', 'Theme: ' + t + '. Click to switch.');
+        }
+        render();
+        btn.addEventListener('click', function () {
+            var next = resolved() === 'dark' ? 'light' : 'dark';
+            if (window.DTTheme) {
+                DTTheme.set(next);
+            } else {
+                document.documentElement.setAttribute('data-theme', next);
+                try { localStorage.setItem('lvs-theme', next); } catch (_) {}
+            }
+            render();
+        });
+    })();
+
+    /* ── rail + active nav ──────────────────────────────────────────── */
+    (function () {
+        var rail = document.getElementById('rail');
+        var sections = Array.prototype.slice.call(document.querySelectorAll('section[id]'));
+        var links = Array.prototype.slice.call(document.querySelectorAll('.nav-link'));
+        var ticking = false;
+        function onScroll() {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(function () {
+                var y = window.scrollY;
+                var doc = document.documentElement.scrollHeight - window.innerHeight;
+                var pct = doc > 0 ? (y / doc) * 100 : 0;
+                rail.style.width = pct + '%';
+                rail.setAttribute('aria-valuenow', Math.round(pct));
+                var cur = '';
+                for (var i = 0; i < sections.length; i++) {
+                    if (y >= sections[i].offsetTop - 140) cur = sections[i].id;
+                }
+                links.forEach(function (l) {
+                    var on = l.getAttribute('href') === '#' + cur;
+                    l.classList.toggle('active', on);
+                    if (on) l.setAttribute('aria-current', 'true'); else l.removeAttribute('aria-current');
+                });
+                ticking = false;
+            });
+        }
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+    })();
+
+    /* ── mobile nav ─────────────────────────────────────────────────── */
+    (function () {
+        var toggle = document.getElementById('navToggle');
+        var links = document.getElementById('navLinks');
+        var backdrop = document.getElementById('navBackdrop');
+        function close() {
+            links.classList.remove('open');
+            backdrop.hidden = true;
+            document.body.classList.remove('no-scroll');
+            toggle.setAttribute('aria-expanded', 'false');
+        }
+        toggle.addEventListener('click', function () {
+            var open = !links.classList.contains('open');
+            links.classList.toggle('open', open);
+            backdrop.hidden = !open;
+            document.body.classList.toggle('no-scroll', open);
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        links.addEventListener('click', function (e) { if (e.target.tagName === 'A') close(); });
+        backdrop.addEventListener('click', close);
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    })();
+
+    /* ── copy buttons (execCommand fallback so headless never throws) ─ */
+    document.querySelectorAll('.copy-btn[data-copy]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var pre = btn.closest('.code-block').querySelector('pre');
+            var text = pre.innerText;
+            var flash = function () {
+                btn.textContent = 'copied';
+                btn.classList.add('copied');
+                setTimeout(function () { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1400);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(flash).catch(function () { fallbackCopy(flash, text); });
+            } else {
+                fallbackCopy(flash, text);
+            }
+        });
+    });
+    function fallbackCopy(flash, text) {
+        var ta = document.createElement('textarea');
+        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); flash(); } catch (_) {}
+        document.body.removeChild(ta);
+    }
+
+    /* ── reveals ────────────────────────────────────────────────────── */
+    (function () {
+        var items = document.querySelectorAll('.reveal');
+        if (reduceMotion || !('IntersectionObserver' in window)) {
+            items.forEach(function (el) { el.classList.add('in'); });
+            return;
+        }
+        var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('in');
+                    io.unobserve(entry.target);
+                }
+            });
+        }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+        items.forEach(function (el) { io.observe(el); });
+    })();
+
+})();
+</script>
+</body>
+</html>
