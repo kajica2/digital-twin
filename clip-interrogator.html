@@ -16,7 +16,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-
     /* ============================================================
        2. RESET + BASE
        ============================================================ */
@@ -424,7 +423,7 @@ uv run --project lib/clip-interrogator clip-interrogate analyze assets/clip-inte
       (function () {
         var box = document.querySelector('[data-sample-output]');
         if (!box) return;
-        fetch('../data/clip/samples.json', { cache: 'no-store' })
+        fetch('data/clip/samples.json', { cache: 'no-store' })
           .then(function (r) { return r.ok ? r.json() : null; })
           .then(function (cat) {
             if (!cat || !Array.isArray(cat.samples) || !cat.samples.length) return;
