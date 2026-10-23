@@ -107,6 +107,28 @@ structural addition: `compute_segments()` is split out so CLI and UI
 share the same boundary-detection pipeline, and the status message
 reports which path was actually used.
 
+## The page
+
+`pages/loopable-video-segmenter.html` (and its root twin
+`loopable-video-segmenter.html`) is the tool page: house-style, skinned,
+light/dark under `localStorage["lvs-theme"]`, with a scroll-spy, a
+progress rail, a mobile drawer and copy buttons on every code block.
+
+It carries one piece of behaviour, **the mirror bench** — a canvas
+scope that shows what the CLI does: a beat grid in, N contiguous
+windows out, each window built as `[forward, reverse]` with the
+playhead sweeping out and back. The controls (segments 1–20, loopable
+on/off, audio/silent, beat grid) drive the segmentation for real, and
+the silent source takes the equal-time fallback path.
+
+It is an **illustration of the documented algorithm, not a video
+render** — nothing in the page decodes an MP4, and the page says so.
+
+The bench runtime lives in `lib/lvs-bench.js` (a classic script, not a
+module, so the relative path survives the root copy). The palette it
+draws with comes from the page's `.bench-wrap` scope and from the
+skin, so a skin swap re-tints the whole scope.
+
 ## npm scripts
 
 | Script          | Command                                                          |
@@ -125,9 +147,11 @@ args are ergonomic: `npm run lvs:segment -- video.mp4 --segments 4`.
 `e2e/loopable-video-segmenter.spec.mjs` is a static-contract Puppeteer
 spec: hero, theme toggle + reload persistence, how-to-run contains
 `npm run lvs:ui`, params table rows, how-it-works steps, notes
-callouts, attribution links, Twin OS `data-tool-lvs` card, every
-internal link resolves, **0 console errors** on both pages, light +
-dark screenshots. Runs from the repo root
+callouts, attribution links, the mirror bench (scope sized, segments
+control re-divides the windows, silent source takes the fallback
+path, `--no-loopable` drops the mirror half), Twin OS
+`data-tool-lvs` card, every internal link resolves, **0 console
+errors** on both pages, light + dark screenshots. Runs from the repo root
 
 ```bash
 node lib/serve.js --port 5180                 # in one terminal
