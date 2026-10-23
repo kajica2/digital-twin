@@ -124,6 +124,24 @@ try {
     return /plain cut/.test(loop);
   }));
 
+  // The control surface is shaped by the repo's own HTTP API — the window
+  // the scope draws is the window POST /api/render/clip would take.
+  check('lvs: the bench controls carry the API\'s parameters', await page.evaluate(() =>
+    ['cStart', 'cEnd', 'cVideo', 'cToken', 'cRender'].every(id => !!document.getElementById(id))));
+
+  check('lvs: the bench probes the API', await page.evaluate(() =>
+    document.querySelector('#apiBadge').dataset.state === 'ok'),
+    await page.evaluate(() => document.querySelector('#apiBadge').textContent));
+
+  check('lvs: startSec/endSec mirror the selected segment', await page.evaluate(() => {
+    const start = parseFloat(document.querySelector('#cStart').value);
+    const end = parseFloat(document.querySelector('#cEnd').value);
+    return start === 0 && end > 0;
+  }));
+
+  check('lvs: the render control waits for a token', await page.evaluate(() =>
+    document.querySelector('#cRender').disabled));
+
   await page.screenshot({ path: path.join(ARTIFACTS, 'lvs-light.png'), fullPage: true });
   console.log('wrote artifacts/lvs-light.png');
 
