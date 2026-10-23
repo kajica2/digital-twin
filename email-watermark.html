@@ -96,7 +96,8 @@
     </section>
 </main>
 <footer><p>Email Watermarker • Digital Twin</p></footer>
-<script>let imageFile=null,watermarkedBlob=null;
+<script>
+let imageFile=null,watermarkedBlob=null;
 document.getElementById('opacity').oninput=function(){document.getElementById('opacityVal').textContent=this.value+'%'};
 document.getElementById('fontSize').oninput=function(){document.getElementById('fontSizeVal').textContent=this.value+'px'};
 // Load image from URL param
@@ -106,7 +107,78 @@ document.getElementById('fontSize').oninput=function(){document.getElementById('
 })();
 function handleFile(f){if(!f)return;imageFile=f;const r=new FileReader();r.onload=e=>{document.getElementById('previewImg').src=e.target.result;document.getElementById('previewImg').classList.add('visible');document.getElementById('previewWithWatermark').src=e.target.result;document.getElementById('watermarkPreview').style.display='inline-block';document.getElementById('sendBtn').disabled=false;updatePreview()};r.readAsDataURL(f)}
 function updatePreview(){if(!imageFile)return;const txt=document.getElementById('watermarkText').value||'PREVIEW';const pos=document.getElementById('position').value;const op=document.getElementById('opacity').value;const fs=document.getElementById('fontSize').value;const ol=document.getElementById('watermarkOverlay');ol.textContent=txt;ol.style.opacity=op/100;ol.style.fontSize=fs+'px';ol.style.position='absolute';ol.style.padding='4px 8px';ol.style.background='rgba(0,0,0,0.7)';ol.style.color='#fff';ol.style.borderRadius='4px';ol.style.fontFamily='Inter,sans-serif';if(pos==='bottom-right'){ol.style.bottom='10px';ol.style.right='10px';ol.style.left='auto';ol.style.top='auto'}else if(pos==='bottom-left'){ol.style.bottom='10px';ol.style.left='10px';ol.style.right='auto';ol.style.top='auto'}else if(pos==='top-right'){ol.style.top='10px';ol.style.right='10px';ol.style.bottom='auto';ol.style.left='auto'}else if(pos==='top-left'){ol.style.top='10px';ol.style.left='10px';ol.style.bottom='auto';ol.style.right='auto'}else{ol.style.top='50%';ol.style.left='50%';ol.style.transform='translate(-50%,-50%)';ol.style.bottom='auto';ol.style.right='auto'}}
-async function sendEmail(){if(!imageFile)return;const email=document.getElementById('email').value.trim();if(!email)return alert('Please enter your email');const s=document.getElementById('status');s.className='status visible processing';s.textContent='⏳ Creating watermarked image...';document.getElementById('sendBtn').disabled=true;try{const c=document.getElementById('previewWithWatermark');const canvas=document.createElement('canvas');const ctx=canvas.getContext('2d');const img=new Image();img.onload
-function runWatermarkApi(){const apiUrl=document.getElementById('apiUrl').value.trim();if(!apiUrl)return alert('Enter API URL');if(!imageFile)return alert('Upload an image first');const s=document.getElementById('status');s.className='status visible processing';s.textContent='⏳ Sending to API...';const fd=new FormData();fd.append('image',imageFile);fd.append('watermarkText',document.getElementById('watermarkText').value);fd.append('position',document.getElementById('position').value);fd.append('opacity',document.getElementById('opacity').value);fetch(apiUrl,{method:'POST',body:fd}).then(r=>{s.className='status visible success';s.textContent='✅ Sent to API!'}).catch(e=>{s.className='status visible error';s.textContent='❌ Error: '+e.message})}=()=>{canvas.width=img.width;canvas.height=img.height;ctx.drawImage(img,0,0);const txt=document.getElementById('watermarkText').value||'PREVIEW';const pos=document.getElementById('position').value;const op=document.getElementById('opacity').value/100;const fs=Math.max(16,parseInt(document.getElementById('fontSize').value)*img.width/400);ctx.font=`bold ${fs}px Arial, sans-serif`;ctx.fillStyle=`rgba(255,255,255,${op})`;ctx.strokeStyle=`rgba(0,0,0,${op*0.6})`;ctx.lineWidth=Math.max(1,fs/15);const m=ctx.measureText(txt);let x,y,ax='left',ay='bottom';if(pos==='bottom-right'){x=canvas.width-10;y=canvas.height-10;ax='right';ay='top'}else if(pos==='bottom-left'){x=10;y=canvas.height-10}else if(pos==='top-right'){x=canvas.width-10;y=fs+10;ax='right';ay='bottom'}else if(pos==='top-left'){x=10;y=fs+10}else{x=canvas.width/2;y=canvas.height/2;ax='center'}ctx.textAlign=ax;ctx.textBaseline=ay;ctx.strokeText(txt,x,y);ctx.fillText(txt,x,y);const dataUrl=canvas.toDataURL('image/png');s.className='status visible success';s.innerHTML='✅ Watermarked!<br><a href="'+dataUrl+'" download="watermarked.png" class="btn" style="margin-top:0.5rem;display:inline-flex">⬇️ Download Image</a><br><small>Or right-click image to copy & paste into email</small>';document.getElementById('sendBtn').disabled=false};img.src=c.src}catch(e){s.className='status visible error';s.textContent='❌ Error: '+e.message;document.getElementById('sendBtn').disabled=false}}</script>
+
+async function sendEmail(){
+  if(!imageFile)return;
+  const email=document.getElementById('email').value.trim();
+  if(!email)return alert('Please enter your email');
+  const s=document.getElementById('status');
+  s.className='status visible processing';
+  s.textContent='⏳ Creating watermarked image...';
+  document.getElementById('sendBtn').disabled=true;
+  try{
+    const c=document.getElementById('previewWithWatermark');
+    const canvas=document.createElement('canvas');
+    const ctx=canvas.getContext('2d');
+    const img=new Image();
+    img.onload=()=>{
+      canvas.width=img.width;
+      canvas.height=img.height;
+      ctx.drawImage(img,0,0);
+      const txt=document.getElementById('watermarkText').value||'PREVIEW';
+      const pos=document.getElementById('position').value;
+      const op=document.getElementById('opacity').value/100;
+      const fs=Math.max(16,parseInt(document.getElementById('fontSize').value)*img.width/400);
+      ctx.font=`bold ${fs}px Arial, sans-serif`;
+      ctx.fillStyle=`rgba(255,255,255,${op})`;
+      ctx.strokeStyle=`rgba(0,0,0,${op*0.6})`;
+      ctx.lineWidth=Math.max(1,fs/15);
+      const m=ctx.measureText(txt);
+      let x,y,ax='left',ay='bottom';
+      if(pos==='bottom-right'){x=canvas.width-10;y=canvas.height-10;ax='right';ay='top'}
+      else if(pos==='bottom-left'){x=10;y=canvas.height-10}
+      else if(pos==='top-right'){x=canvas.width-10;y=fs+10;ax='right';ay='bottom'}
+      else if(pos==='top-left'){x=10;y=fs+10}
+      else{x=canvas.width/2;y=canvas.height/2;ax='center'}
+      ctx.textAlign=ax;
+      ctx.textBaseline=ay;
+      ctx.strokeText(txt,x,y);
+      ctx.fillText(txt,x,y);
+      const dataUrl=canvas.toDataURL('image/png');
+      s.className='status visible success';
+      s.innerHTML='✅ Watermarked!<br><a href="'+dataUrl+'" download="watermarked.png" class="btn" style="margin-top:0.5rem;display:inline-flex">⬇️ Download Image</a><br><small>Or right-click image to copy & paste into email</small>';
+      document.getElementById('sendBtn').disabled=false;
+    };
+    img.src=c.src;
+  }catch(e){
+    s.className='status visible error';
+    s.textContent='❌ Error: '+e.message;
+    document.getElementById('sendBtn').disabled=false;
+  }
+}
+
+function runWatermarkApi(){
+  const apiUrl=document.getElementById('apiUrl').value.trim();
+  if(!apiUrl)return alert('Enter API URL');
+  if(!imageFile)return alert('Upload an image first');
+  const s=document.getElementById('status');
+  s.className='status visible processing';
+  s.textContent='⏳ Sending to API...';
+  const fd=new FormData();
+  fd.append('image',imageFile);
+  fd.append('watermarkText',document.getElementById('watermarkText').value);
+  fd.append('position',document.getElementById('position').value);
+  fd.append('opacity',document.getElementById('opacity').value);
+  fetch(apiUrl,{method:'POST',body:fd})
+    .then(r=>{
+      s.className='status visible success';
+      s.textContent='✅ Sent to API!';
+    })
+    .catch(e=>{
+      s.className='status visible error';
+      s.textContent='❌ Error: '+e.message;
+    });
+}
+</script>
 </body>
 </html>
