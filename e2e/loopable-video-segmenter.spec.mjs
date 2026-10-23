@@ -90,6 +90,40 @@ try {
     return `blocks=${blocks} copyBtns=${btns}`;
   }));
 
+  // The mirror bench — the page's one piece of behaviour. It illustrates the
+  // documented algorithm (beat grid in, N windows out, forward + reversed);
+  // it never decodes a video. The controls must drive the readouts.
+  check('lvs: the bench scope is present and sized', await page.evaluate(() => {
+    const c = document.querySelector('#benchCanvas');
+    return !!c && c.width > 0 && c.getBoundingClientRect().height > 0;
+  }));
+
+  check('lvs: the segments control re-divides the windows', await page.evaluate(() => {
+    const s = document.querySelector('#cSeg');
+    s.value = 12;
+    s.dispatchEvent(new Event('input', { bubbles: true }));
+    const rows = document.querySelectorAll('#benchTableBody tr').length;
+    const seg = document.querySelector('#roSeg').textContent.trim();
+    s.value = 4;
+    s.dispatchEvent(new Event('input', { bubbles: true }));
+    return rows === 12 && seg === '01 / 12';
+  }));
+
+  check('lvs: a silent source switches to the equal-time fallback', await page.evaluate(() => {
+    document.querySelector('#cSilent').click();
+    const path = document.querySelector('#roPath').textContent.trim();
+    document.querySelector('#cAudio').click();
+    return path === 'equal-time fallback';
+  }));
+
+  check('lvs: --no-loopable drops the mirror half', await page.evaluate(() => {
+    const cb = document.querySelector('#cLoop');
+    cb.click();
+    const loop = document.querySelector('#roLoop').textContent.trim();
+    cb.click();
+    return /plain cut/.test(loop);
+  }));
+
   await page.screenshot({ path: path.join(ARTIFACTS, 'lvs-light.png'), fullPage: true });
   console.log('wrote artifacts/lvs-light.png');
 
