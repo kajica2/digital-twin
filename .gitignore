@@ -105,6 +105,22 @@ node_modules/
 # Agent loop state
 .agent/
 
+# SWR agent hub runtime state — pids, logs, inboxes, the verification
+# ledger. These churn on every agent cycle; the hub's SOURCE (agents,
+# runtime, brains) is tracked, its STATE is not. Same rule as .agent/
+# and data/: generated state is local.
+lib/agent-hub/pids/
+lib/agent-hub/*/logs.txt
+lib/agent-hub/*/inbox.txt
+lib/agent-hub/*/command.txt
+# The inbox and the command queue are one file per message/command —
+# runtime state, never source.
+lib/agent-hub/*/inbox/
+lib/agent-hub/*/commands/
+lib/agent-hub/agents/*/logs.txt
+lib/agent-hub/check/verifications.md
+lib/agent-hub/memory/
+
 # Midjourney cookie jars — SECRET (session tokens). Never commit.
 *.midjourney-cookies.txt
 mj-cookies*.txt

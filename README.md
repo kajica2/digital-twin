@@ -81,6 +81,12 @@ For now, what's here:
   clause that produced it. Built by `lib/mj-contact-sheet.js`.
 - **`lib/songs-indexer.js`** — walks audio dirs, builds
   `data/songs/catalog.json`.
+- **`lib/agent-hub/`** — the SWR harness: three live agents (Ops /
+  Twin / Check) that coordinate through one-file-per-message inboxes
+  and share a task board. Start with `bash lib/agent-hub/agent-hub.sh
+  start`, drive it with `bash lib/agent-hub/agent-cli.sh ops add
+  "<task>"`. `SWR_HUB_ROOT` runs a second instance in its own
+  directory. Reference in `docs/SWR-HARNESS.md`.
 - **`lib/social-engine.js`** — the social worker: it discovers the
   catalogue and the reels, tags them, writes the per-platform copy
   (reusing `lib/persona-social-pack.js`), prices them and stages a
@@ -475,6 +481,37 @@ protocols, influence values, clip ids. A re-run skips what is already
 `ok`, so it only submits what is missing. Reference:
 [`docs/SUNO-STYLES.md`](docs/SUNO-STYLES.md).
 
+## Run the SWR harness
+
+Three agents — **Ops** (orchestrator), **Twin** (voice and focus) and
+**Check** (verifier) — running as live processes that coordinate through
+one-file-per-message inboxes and share a task board.
+
+```bash
+cd ~/Documents/digital_twin
+
+# the repo the check agent verifies against
+export SWR_REPO="$HOME/Documents/sainted-word-records"
+
+bash lib/agent-hub/agent-hub.sh start     # 4 background processes
+bash lib/agent-hub/agent-cli.sh ops add "Write the liner notes in agents/TASKS.md"
+bash lib/agent-hub/agent-cli.sh status
+bash lib/agent-hub/agent-hub.sh stop
+```
+
+The round trip is real: ops puts the task on the board, the twin plans
+it (`proceed` above 0.85, `escalate` below), the check agent verifies a
+file or a claim **with evidence**, and a PASS moves the task to Done.
+A task the twin cannot place is escalated to the human rather than
+pushed through, and a check never reports a PASS it cannot evidence.
+
+`SWR_HUB_ROOT` points a whole instance at a different directory, so a
+second harness runs beside the first without touching its pids, logs,
+inboxes, board or memory. Node is the only requirement — no `claude`
+CLI, no provider key, no network.
+
+Reference: [`docs/SWR-HARNESS.md`](docs/SWR-HARNESS.md).
+
 ## Re-skin the family
 
 Every page in the family is themed from one stylesheet. To see it
@@ -602,7 +639,8 @@ digital_twin/
 │   ├── mj-contact-sheet.js   # a rendered pack → a captioned comparison sheet
 │   ├── lvs-bench.js          # the mirror bench: the scope + the /api/render/clip client
 │   ├── clip-interrogator/    # Python package (uv-managed venv)
-│   └── loopable-video-segmenter/ # Python package (uv-managed venv)
+│   ├── loopable-video-segmenter/ # Python package (uv-managed venv)
+│   └── agent-hub/            # the SWR harness: ops / twin / check, live
 ├── data/                     # generated catalogs (gitignored)
 │   └── songs/
 │       ├── catalog.json              # audio, from `npm run index-songs`
@@ -616,7 +654,8 @@ digital_twin/
 │   ├── CLIP-INTERROGATOR.md
 │   ├── LOOPABLE-VIDEO-SEGMENTER.md
 │   ├── MJ-CONTACT-SHEET.md
-│   └── REFAEL-MP4-MAKER.md
+│   ├── REFAEL-MP4-MAKER.md
+│   └── SWR-HARNESS.md
 ├── assets/                   # brand assets, mural prompts, clip example images
 │   ├── skins/                # the skins: house.css (kai-systems) + studio.css (Suno)
 │   ├── mural-prompts/        # MJ prompt packs (one top-level bullet per prompt)

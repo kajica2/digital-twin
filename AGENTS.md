@@ -7513,3 +7513,205 @@ collection breaks silently and then suddenly.
 - **The session cookie has a shelf life.** `~/.gumroad-cookies.txt`
   expires; `node lib/gumroad-login.js` mints a new one.
 
+
+### 2026-10-23 — sprint 0.51 (the SWR harness — three live agents, and the message they were losing)
+
+Brief: *"start three agent harnesses"*, with a *"generate test mj"*
+interjection served first.
+
+**A note on the word "harness".** Every `harness` string in this repo is
+a *test* harness (`lib/*.test.js`). The brief was read as the other
+kind — a **runtime** that keeps three agents alive and lets them
+coordinate. Two candidates existed: the in-repo `lib/agent-hub/` and the
+sibling repo's `~/Documents/sainted-word-records/agents/start-team.sh`
+(which spawns three `claude` CLI processes). The in-repo hub is the
+deliverable: it needs only `node` — no `claude` CLI, no per-job network,
+no provider key — and it already implements all three roles. `start-team.sh`
+stays the fallback if the real SWR team is ever wanted.
+
+**Shipped — the hub, running as live concurrent processes.**
+
+- **`lib/agent-hub/`** rewritten around a pure core and three thin
+  shells:
+  - `lib/hub-runtime.js` — the protocol: envelope format, the inbox and
+    command channels, the layout, the legacy migration.
+  - `lib/{ops,twin,check}-brain.js` — the three agents' logic, pure and
+    unit-testable without spawning a process.
+  - `lib/claim-search.js` — the single claim-search implementation.
+  - `agents/{ops,twin,check}/swr-*.js` — the shells that run it.
+  - `hub-coordinator.js` — reduced to a **monitor**: it prints each
+    agent's state, inbox depth and the board counts every five seconds.
+  - `agent-hub.sh` — start / stop / status / logs. Agents are launched in
+    their own session (`setsid` where it exists, python3's `os.setsid()`
+    on macOS) so they outlive the terminal.
+  - `agent-cli.sh` — the command channel.
+  - `hub.test.js` — 114 assertions, plain node, no framework, no
+    processes, no network.
+- **`docs/SWR-HARNESS.md`** — the operator's reference. `README.md` gets
+  a bullet, a "Run the SWR harness" section and the file-tree entries.
+  `lib/agent-hub/README.md` was rewritten: it claimed the hub "opens tmux
+  with 4 windows" (tmux is not installed and never was used), pointed at
+  inbox paths that no longer exist, and said "the hub coordinator routes
+  messages automatically" — the router was deleted, not demoted.
+- **`SWR_HUB_ROOT`** — a whole hub instance rooted elsewhere: pids, logs,
+  inboxes, command queues, task board and memory all derive from the
+  root, so two harnesses do not interfere. The one global left is
+  `SWR_REPO` (the repo the check agent verifies against).
+
+**The round trip, observed live** (four processes verified with `pgrep`,
+not with the pid files):
+
+```
+agent-cli.sh ops add "Write the liner notes for the lo-fi hip hop vinyl reissue in agents/TASKS.md"
+  ops    Added: …                                    → board: In Progress
+  twin   Plan for "…": proceed (85%) — lo-fi hip hop  → replies to ops
+  check  File check: agents/TASKS.md → EXISTS
+         file:agents/TASKS.md → PASS                 → replies to ops
+  ops    Completed: Write the liner notes …          → board: Done
+```
+
+Five tasks driven back to back: all five reached the twin, all five
+plans reached ops, three proceeded to a check and three PASSes came
+back — **no message lost, no residue in any inbox**. The other two
+escalated ("outside the twin's focus"), which is the correct outcome,
+not a failure.
+
+**Three real bugs, all found by running it** (a fourth turned up later,
+when the STAGED tree was verified — see below).
+
+1. **A check reported a PASS it could not evidence.** The request was
+   run through `spawn(cmd, args, { shell: true })`, so the claim was
+   word-split and a bare task sentence was grepped for one word — it
+   matched `score-app/node_modules/xcode/RELEASENOTES.md` and **moved a
+   task to Done that was never done**. Fixed at the source: no
+   `shell: true` (argv, not a command line), the search extracted into
+   `lib/claim-search.js`, and `isTaskShaped` / `refuseTask` now reject a
+   task outright — "a task is not a claim — name a file to check it, or
+   a claim to look for". The same task now yields FAIL and stays on the
+   board.
+2. **The inbox lost messages under concurrency.** One shared
+   `inbox.txt` is a read-modify-write: any append landing between the
+   reader's read and its rename was destroyed, silently. A 300-message
+   race lost **23**. The command channel had the same bug twice (the
+   CLI's truncation destroyed a pending command; the agent's
+   read-then-unlink destroyed a new one). Both are now **one file per
+   item** — the same drop-zone pattern the chart / songs / reel watchers
+   use — claimed by an atomic rename, with a legacy `inbox.txt` /
+   `command.txt` migration and an age-aware prune of stale
+   `.claimed-` / `.tmp-` files.
+3. **A completed task kept its board entry and gained a stray one.**
+   `completeTask` matched the board **exactly**, but the check agent
+   reports what it *verified* (`agents/TASKS.md`), not the task it came
+   from — so the task stayed In Progress and a second, wrong entry
+   appeared in Done. The match is now containment-based and the
+   **board's own text** is what moves; the most specific entry wins.
+
+**Two smaller ones, same session:** `parseMessage` rejected a file's
+trailing newline (`$` without the `m` flag does not match before it), so
+every envelope read off disk parsed as `null`; and the twin's plan
+summary carried the verdict, so the message read "Plan: proceed —
+Proceed — lo-fi hip hop".
+
+**A fourth bug, found by verifying the STAGED tree — and it was the
+worst of the four.**
+
+The suite passed in the working tree and failed in a fresh copy of the
+index. Two separate things were hiding there:
+
+- The test that asserted "the default root holds the task board and
+  the agent directories" passed only because the hub had already run
+  on this machine. The per-agent directories hold runtime state and
+  git cannot track an empty directory, so **a fresh clone has no
+  `ops/`, `twin/` or `check/`** — the hub creates them at start. The
+  assertion now asks the real question: the board is tracked, and
+  `ensureLayout` creates the agent directories.
+- The race test was **intermittent** — it failed on some runs and
+  passed on others, and the failing runs took 8.12 s against the
+  reader's 8 s deadline. The cause was a trap in the one-file-per-item
+  design itself: a writer creates `.tmp-<name>.msg`, writes into it,
+  then renames it into place. **The temp file ends in `.msg`**, so a
+  reader's "anything that ends in `.msg`" filter treated it as a
+  message, renamed it aside — and the writer's own rename then failed
+  with ENOENT, **killing the writer mid-batch**. Measured: **3 of 300
+  messages survived**, and the writer was dead on the fourth. The same
+  trap sat in the command channel, where a reader could consume a
+  half-written command.
+  Fixed with one predicate — `isCandidateName`: a file is a candidate
+  only when it is neither a writer's `.tmp-…` nor an already-claimed
+  `.claimed-…`. Both channels use it. The writers also survive a temp
+  file that vanishes under them (fresh name, retry) instead of dying
+  with the message. Four new deterministic tests provoke the trap on
+  purpose; the race test now completes in **~0.25 s instead of 8 s**,
+  which is the proof it is no longer spinning against a deadline.
+
+**Decisions:**
+
+- **CommonJS throughout the hub**, like every other `lib/*.js`, so the
+  suite uses the repo's canonical `require` + `check()` shape and the
+  `MODULE_TYPELESS_PACKAGE_JSON` warning never appears.
+- **One file per message, per command** — not a shared file with a lock.
+  A lock serialises the readers; a file per item makes the claim atomic
+  and leaves the concurrency to the filesystem.
+- **The coordinator only watches.** The old `routeMessages()`
+  re-appended each message to the recipient and then unlinked the
+  sender's copy, destroying everything it touched. Deleted, not demoted.
+- **The board's text is the record; the verification subject is a
+  pointer.** The check agent reports a path, not a task.
+- **Runtime state is gitignored, source is tracked** — the pids, logs,
+  inboxes, commands and the verification ledger churn on every cycle,
+  exactly like `.agent/` and `data/`.
+
+**The MJ test render** (the interjection, served first). A five-prompt
+pack at `/tmp/mj-test/test-pack.md` was submitted through
+`lib/mj-web.js` — **outside** `prompts-inbox/`, because the live MJ
+watcher would have submitted the same pack again. Four of five came
+back with a real task id, `matchedBy: feed-command`, `v8-2_hd_diffusion`,
+16:9, four CDN image URLs each:
+
+| prompt | task id |
+|---|---|
+| 01 | `1effb173-942b-4c1d-8c56-73f204b3089a` |
+| 02 | `03a0836d-d6ed-407c-8f6e-649645c3b0d8` |
+| 03 | `b508eca8-4f46-4d05-b2ef-65b3305585b3` |
+| 04 | `9b3adad1-8771-4ec4-b302-71012fe873bc` |
+| 05 | `15ab095e-e6e2-4620-b05c-89292a07830a` — submitted, **no `meta.json`** (the 900 s cap cut the acceptance wait) |
+
+Preflight cost **zero generations** (6.33 s, 11 cookies, 2 `__Host-`,
+session authenticated). The CLI writes `prompt.md` + `meta.json` — it
+does not download image files.
+
+**Verified end-to-end:**
+
+- `node lib/agent-hub/hub.test.js` → **114/114**, six consecutive runs
+  green, and the same in a fresh copy of the index.
+- **Every guard proved to bite:** the shared-file inbox mutation made
+  the race test report "only 277 of 300 messages survived the race"
+  (23 destroyed) and turned 11 assertions red; the exact-match
+  `completeTask` mutation turned the 3 new completion assertions red;
+  removing the temp-file exclusion from `isCandidateName` turned the 3
+  new trap assertions red ("a claimed message was read again", "a
+  half-written command was returned"). All restored, all green.
+- Live: 4 processes (`pgrep`), the full round trip (ops → twin → check →
+  ops → Done, the board carrying the original task text), a 5-task batch
+  with zero lost messages and zero inbox residue, a clean `stop` with no
+  stale pids.
+- `npm run test:all` → **exit 0**, 43 chained steps, 0 failures (no step
+  reported a non-zero failure count).
+
+**Open:**
+
+- **The hub is not on a schedule.** It is started by hand; there is no
+  LaunchAgent for it, and the repo's launchd rule (`~/Library/LaunchAgents/`
+  shims, never `execve` under `$HOME`) applies if one is ever wanted.
+- **The twin has no model behind it.** `lib/lm-client.js` exists for a
+  provider path, but no provider key is configured, so the live loop
+  reasons over rules — focus areas, voice rules, confidence — and
+  nothing else.
+- **`check test` exists but the round trip never issues it.** The check
+  agent verifies files and claims; it does not run the target repo's
+  suite as part of a task.
+- **The board is in memory.** Ops loads it once at start and rewrites
+  the whole file on every change, so editing it while the hub runs is
+  overwritten — reset it with the hub stopped.
+- **The MJ cookie jar expires.** `node lib/mj-web.js --preflight` is the
+  cheap check.

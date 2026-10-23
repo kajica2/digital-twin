@@ -1,3 +1,0 @@
-[2026-10-10T21:07:59.308Z] [OPS] SWR-Ops starting...
-[2026-10-10T21:07:59.309Z] [OPS] Loaded 0 tasks, 0 completed
-[2026-10-10T21:07:59.310Z] [OPS] SWR-Ops ready. Commands: add, done, block, status, twin, check, help
