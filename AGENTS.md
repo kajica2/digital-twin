@@ -7291,7 +7291,7 @@ into the composer, and the reel went up with it.
 - **Instagram's "Add AI label"** on the reel editor is still the
   author's call.
 
-### 2026-10-23 — sprint 0.49 (the LVS page becomes an instrument)
+### 2026-10-23 — sprint 0.50 (the LVS page becomes an instrument)
 
 - **Shipped:**
   - **`pages/loopable-video-segmenter.html`** — redesigned as a *signal
