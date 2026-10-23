@@ -16,7 +16,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-
     /* ============================================================
        2. RESET + BASE
        ============================================================ */
@@ -618,8 +617,7 @@
 
       buttons.forEach(b => {
         b.addEventListener('click', () => {
-          const next = b.dataset.themeValue;
-          DTTheme.set(next);
+          DTTheme.set(b.dataset.themeValue);
           reflect();
         });
       });
