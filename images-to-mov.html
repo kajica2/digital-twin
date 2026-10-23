@@ -8,34 +8,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Images → MOV — Tools</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%8E%A5%3C/text%3E%3C/svg%3E">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%96%BC%3C/text%3E%3C/svg%3E">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         *{box-sizing:border-box;margin:0;padding:0}body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--fg);line-height:1.6}
         .nav{position:fixed;top:0;left:0;right:0;background:var(--surface);border-bottom:1px solid var(--border);z-index:100;padding:0.75rem 1.5rem}
-        main{max-width:800px;margin:0 auto;padding:5rem 1.5rem 4rem}
+        main{max-width:1000px;margin:0 auto;padding:5rem 1.5rem 4rem}
         .hero{text-align:center;margin-bottom:2rem}.hero h1{font-size:2.5rem;font-weight:800}.hero p{color:var(--fg-muted)}
         .section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
         .section h2{font-size:1.1rem;font-weight:600;margin-bottom:1rem}
-        .upload-zone{border:2px dashed var(--border);border-radius:8px;padding:2rem;text-align:center;cursor:pointer}
+        .upload-zone{border:2px dashed var(--border);border-radius:8px;padding:2rem;text-align:center;cursor:pointer;transition:all .2s}
+        .upload-zone:hover{border-color:var(--accent);background:rgba(0,102,255,0.05)}
         .grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
         .image-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:0.5rem;margin-top:1rem}
         .image-thumb{position:relative;border-radius:6px;overflow:hidden}.image-thumb img{width:100%;aspect-ratio:1;object-fit:cover}
-        .image-thumb .x{position:absolute;top:2px;right:2px;background:var(--error);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer}
+        .image-thumb .x{position:absolute;top:2px;right:2px;background:var(--error);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:14px;line-height:1}
         .control-group{margin-bottom:1rem}.control-group label{display:block;font-size:0.85rem;font-weight:500;margin-bottom:0.25rem}
         .control-group select,.control-group input{width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg)}
         .btn{display:inline-flex;padding:0.75rem 1.5rem;font-size:0.95rem;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:var(--accent);color:#fff}
-        .btn:disabled{opacity:0.5}
+        .btn:disabled{opacity:0.5;cursor:not-allowed}
+        .btn-secondary{background:var(--muted);color:var(--fg)}
         .status{padding:0.75rem;border-radius:8px;margin-top:1rem;display:none}.status.visible{display:block}
+        .status.processing{background:rgba(0,102,255,0.1);color:var(--accent)}
+        .status.success{background:rgba(0,122,51,0.1);color:var(--success)}
+        .status.error{background:rgba(217,43,43,0.1);color:var(--error)}
         .output-section{display:none}.output-section.visible{display:block}
         footer{text-align:center;padding:2rem;color:var(--fg-muted);border-top:1px solid var(--border)}
         @media(max-width:768px){.grid{grid-template-columns:1fr}}
     </style>
 </head>
 <body>
-<nav style="position:fixed;top:0;left:0;right:0;background:var(--surface);border-bottom:1px solid var(--border);padding:0.75rem 1.5rem;z-index:100">
-    <a href="landing.html" style="font-weight:700;text-decoration:none;color:var(--fg)">← Digital Twin</a>
-</nav>
+<nav class="nav"><a href="landing.html" style="font-weight:700;text-decoration:none;color:var(--fg)">← Digital Twin</a></nav>
 <main>
     <header class="hero"><h1>🖼️ Images → MOV</h1><p>Convert image sequences to looping video with Ken Burns effects</p></header>
     <div class="grid">
@@ -48,10 +51,9 @@
                 <div class="image-grid" id="imageGrid"></div>
             </section>
             <section class="section"><h2>2. Settings</h2>
-                <div class="control-group"><label>Length</label><select id="length"><option value="3">3 sec</option><option value="5" selected>5 sec</option><option value="10">10 sec</option></select></div>
+                <div class="control-group"><label>Length per image</label><select id="length"><option value="2">2 sec</option><option value="3">3 sec</option><option value="5" selected>5 sec</option></select></div>
                 <div class="control-group"><label>Frame Rate</label><select id="fps"><option value="24">24 fps</option><option value="30" selected>30 fps</option><option value="60">60 fps</option></select></div>
                 <div class="control-group"><label>Ken Burns</label><select id="kenBurns"><option value="none">None</option><option value="zoom-in" selected>Zoom In</option><option value="zoom-out">Zoom Out</option><option value="pan-left">Pan Left</option></select></div>
-                <div class="control-group"><label>Fade In (s)</label><input type="number" id="fadeIn" value="0.5" min="0" max="5" step="0.1"></div>
             </section>
         </div>
         <div>
@@ -63,14 +65,143 @@
                 <video id="outputVideo" controls style="width:100%"></video>
                 <div style="margin-top:1rem"><a class="btn" id="downloadLink" download="video.mov">⬇️ Download</a></div>
             </section>
-            <section class="section"><h2>CLI</h2><pre><code>python3 lib/images-to-mov.py "*.png" out.mov</code></pre></section>
+            <section class="section"><h2>🔌 API Webhook</h2>
+                <div class="control-group"><input type="text" id="apiUrl" placeholder="https://api.example.com/webhook"></div>
+                <button class="btn btn-secondary" onclick="runApi()">📤 Send to API</button>
+            </section>
         </div>
     </div>
 </main>
 <footer><p>Built with FFmpeg • Digital Twin</p></footer>
-<script>let images=[];
-function handleFiles(files){Array.from(files).forEach(f=>{images.push({file:f,url:URL.createObjectURL(f)})});render()}
-function render(){document.getElementById('imageGrid').innerHTML=images.map((img,i)=>`<div class="image-thumb"><img src="${img.url}"><button class="x" onclick="images.splice(${i},1);render()">×</button></div>`).join('');document.getElementById('generateBtn').disabled=images.length===0}
-async function generate(){const s=document.getElementById('status');s.className='status visible';s.textContent='⏳ Processing...';document.getElementById('generateBtn').disabled=true;const fd=new FormData();images.forEach((img,i)=>fd.append('image_'+i,img.file));fd.append('frameDuration',document.getElementById('length').value/images.length);fd.append('frameRate',document.getElementById('fps').value);fd.append('kenBurns',document.getElementById('kenBurns').value);fd.append('fadeIn',document.getElementById('fadeIn').value);try{const r=await fetch('/api/images-to-mov',{method:'POST',body:fd});if(!r.ok)throw new Error;const b=await r.blob();document.getElementById('outputVideo').src=URL.createObjectURL(b);document.getElementById('downloadLink').href=document.getElementById('outputVideo').src;document.getElementById('result').classList.add('visible');s.className='status visible';s.textContent='✅ Done!'}catch(e){s.className='status visible';s.textContent='❌ Error'}document.getElementById('generateBtn').disabled=false}</script>
+<script>
+let images = [];
+
+// The ffmpeg.wasm loader lives in ONE place for the whole repo:
+//   pages/assets/ffmpeg-client.mjs
+// It loads the vendored, sha256-pinned copy of @ffmpeg/ffmpeg from
+// /vendor/ffmpeg — no CDN, no hand-rolled worker patching, no possibility of
+// "FFmpeg is not defined" again.
+//
+// The old code in this page loaded the UMD bundle from unpkg and called
+// `new FFmpegFFmpeg()` — a name that never existed in any build — so every
+// render died with "FFmpegFFmpeg is not defined". It also posted to
+// /api/images-to-mov, an endpoint that does not exist.
+//
+// The ffmpeg argument list is built by /lib/render/plan.mjs, the module the
+// server set uses, so a browser render and a server render of the same images
+// produce the same video.
+let toolPromise = null;
+
+function tool() {
+    if (!toolPromise) {
+        toolPromise = import('/pages/assets/ffmpeg-client.mjs');
+    }
+    return toolPromise;
+}
+
+function handleFiles(files) {
+    Array.from(files).forEach(f => {
+        images.push({ file: f, url: URL.createObjectURL(f) });
+    });
+    render();
+}
+
+function render() {
+    document.getElementById('imageGrid').innerHTML = images.map((img, i) =>
+        `<div class="image-thumb"><img src="${img.url}"><button class="x" onclick="images.splice(${i},1);render()">×</button></div>`
+    ).join('');
+    document.getElementById('generateBtn').disabled = images.length === 0;
+}
+
+async function generate() {
+    if (images.length === 0) return alert('Upload images first');
+    const status = document.getElementById('status');
+    const btn = document.getElementById('generateBtn');
+    status.className = 'status visible processing';
+    status.textContent = '⏳ Loading FFmpeg...';
+    btn.disabled = true;
+
+    try {
+        const fps = parseInt(document.getElementById('fps').value);
+        const duration = parseInt(document.getElementById('length').value);
+        const kenBurns = document.getElementById('kenBurns').value;
+
+        // Output geometry follows the first image's aspect ratio (so portrait photos
+        // do not get letterboxed into a landscape frame), long side capped at 1080.
+        const { renderImagesToMp4, planGeometry, probeImageSize } = await tool();
+        const first = await probeImageSize(images[0].file);
+        const geo = planGeometry(first.width, first.height);
+        const W = geo.width;
+        const H = geo.height;
+
+        status.textContent = '⏳ Encoding video...';
+
+        // The ffmpeg argument list (one looping input per image, Ken Burns per
+        // still, concat at the end) comes from /lib/render/plan.mjs — the same
+        // module the server set uses, so both sets render identically.
+        //
+        // The tool is "Images → MOV", so we mux a real QuickTime container
+        // (ftyp brand "qt  "). MOV carries the same H.264 stream as MP4 and plays
+        // everywhere.
+        const bytes = await renderImagesToMp4({
+            files: images.map(img => img.file),
+            fps,
+            duration,
+            kenBurns,
+            width: W,
+            height: H,
+            container: 'mov',
+            onLog: (message) => {
+                if (/(error|fail|invalid|unable|no such)/i.test(message)) console.warn('[ffmpeg]', message);
+            },
+        });
+
+        const magic = String.fromCharCode(bytes[4], bytes[5], bytes[6], bytes[7]);
+        if (magic !== 'ftyp') throw new Error(`ffmpeg output is not a MOV (got "${magic}" at offset 4)`);
+        const brand = String.fromCharCode(bytes[8], bytes[9], bytes[10], bytes[11]);
+        if (brand !== 'qt  ') throw new Error(`ffmpeg output is not a QuickTime MOV (brand "${brand}")`);
+
+        const blob = new Blob([bytes], { type: 'video/quicktime' });
+        const url = URL.createObjectURL(blob);
+        document.getElementById('outputVideo').src = url;
+        document.getElementById('downloadLink').href = url;
+        document.getElementById('result').classList.add('visible');
+
+        status.className = 'status visible success';
+        status.textContent = `✅ Done! ${W}×${H} · ${(images.length * duration).toFixed(1)}s`;
+        btn.disabled = false;
+    } catch (e) {
+        status.className = 'status visible error';
+        status.textContent = '❌ Error: ' + e.message;
+        btn.disabled = false;
+    }
+}
+
+function runApi() {
+    const apiUrl = document.getElementById('apiUrl').value.trim();
+    if (!apiUrl) return alert('Enter API URL');
+    if (images.length === 0) return alert('Upload images first');
+
+    const status = document.getElementById('status');
+    status.className = 'status visible processing';
+    status.textContent = '⏳ Sending to API...';
+
+    const fd = new FormData();
+    images.forEach((img, i) => fd.append('image_' + i, img.file));
+    fd.append('fps', document.getElementById('fps').value);
+    fd.append('duration', document.getElementById('length').value);
+    fd.append('kenBurns', document.getElementById('kenBurns').value);
+
+    fetch(apiUrl, { method: 'POST', body: fd })
+        .then(r => {
+            status.className = 'status visible success';
+            status.textContent = '✅ Sent to API!';
+        })
+        .catch(e => {
+            status.className = 'status visible error';
+            status.textContent = '❌ Error: ' + e.message;
+        });
+}
+</script>
 </body>
 </html>
