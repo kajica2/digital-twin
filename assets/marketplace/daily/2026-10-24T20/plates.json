@@ -1,0 +1,39 @@
+{
+  "pack": "relay",
+  "date": "2026-10-24",
+  "key": "2026-10-24T20",
+  "title": "Relay",
+  "badge": "cyberpunk / hk",
+  "teaser": "Something travels the line and comes out the other side changed.",
+  "aspect": "16:9",
+  "source": "midjourney",
+  "plates": [
+    {
+      "file": "frame-01.jpg",
+      "caption": "pylon · line",
+      "alt": "A run of power pylons crossing flat ground at dusk, the line running out of frame to the right.",
+      "prompt": "a run of power pylons crossing flat ground at dusk, the cable running out of frame to the right, heavy air, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "8d0938b4-5585-4ba8-9bfa-a122828ba453",
+      "width": 1280,
+      "height": 717
+    },
+    {
+      "file": "frame-02.jpg",
+      "caption": "switchboard · lamp",
+      "alt": "An old switchboard in a dim room, one indicator lamp lit, the rest dark, dust on the keys.",
+      "prompt": "an old switchboard in a dim room, one indicator lamp lit and the rest dark, dust settled on the keys, close-up, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "55eaf469-cbd1-4c1e-b839-71e9a052603f",
+      "width": 1280,
+      "height": 717
+    },
+    {
+      "file": "frame-03.jpg",
+      "caption": "platform · signal",
+      "alt": "An empty rail platform seen down its length, a single signal light burning at the far end.",
+      "prompt": "an empty rail platform seen down its length, one signal light burning at the far end, tunnel mouth behind it, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "4d9af464-8fb4-4575-b05e-d835a3b505e1",
+      "width": 1280,
+      "height": 717
+    }
+  ]
+}
