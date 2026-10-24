@@ -8445,7 +8445,7 @@ directory and the same browser profile. The duplicate was killed about
 three minutes in, after it had submitted its own job for prompt 1
 (`b8a54877`) and written that prompt's meta; the surviving run's own
 job for prompt 1 (`545920bc`) was therefore **not** published. The
-The published plate 1 is a genuine render of the same prompt with the same
+published plate 1 is a genuine render of the same prompt with the same
 flags, and `plates.json` records the task id the image was actually
 downloaded from — the provenance is truthful — but **one generation was
 wasted by the mistake**. The lesson: a CLI that can spend a paid quota
@@ -8465,9 +8465,12 @@ flag exits 2"* — and the restored file is green at 107/107.
 **Open:**
 
 - **The burst was left bootstrapped**, so slots 14:00→23:00 run
-  unattended — ten more slots, thirty generations. The state file and
-  `logs/marketplace-hourly.out.log` are the proof; the first unattended
-  tick is the thing to watch.
+  unattended — ten more slots, thirty generations. The 13:02 calendar
+  tick already fired on its own and skipped its finished slot, so the
+  schedule is proven; what is still unproven is the first unattended
+  **render** (slot `2026-10-24T14`, collection *last-ferry*, at 14:02).
+  The state file and `logs/marketplace-hourly.out.log` are the proof
+  either way.
 - A failed slot is recorded and not retried, so a burst that hits a
   Midjourney refusal ends that slot with `failed` and the operator
   re-runs it by hand.
