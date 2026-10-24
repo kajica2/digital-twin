@@ -1,0 +1,15 @@
+{
+  "id": "hand-cast",
+  "date": "2026-10-24",
+  "key": "2026-10-24T22",
+  "title": "Hand Cast",
+  "badge": "collective",
+  "teaser": "A thing made once, by hand, for one person.",
+  "aspect": "16:9",
+  "source": "midjourney",
+  "plates": [
+    "frame-01.jpg",
+    "frame-02.jpg",
+    "frame-03.jpg"
+  ]
+}

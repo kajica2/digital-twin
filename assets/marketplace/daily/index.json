@@ -1,7 +1,46 @@
 {
-  "updatedAt": "2026-10-24T19:06:48.632Z",
-  "count": 12,
+  "updatedAt": "2026-10-24T20:07:13.750Z",
+  "count": 13,
   "collections": [
+    {
+      "date": "2026-10-24",
+      "key": "2026-10-24T22",
+      "id": "hand-cast",
+      "title": "Hand Cast",
+      "badge": "collective",
+      "teaser": "A thing made once, by hand, for one person.",
+      "aspect": "16:9",
+      "dir": "assets/marketplace/daily/2026-10-24T22",
+      "plates": [
+        {
+          "file": "frame-01.jpg",
+          "caption": "press · screw",
+          "alt": "A screw press in a workshop with a fresh impression in the metal, hand tools on the bench.",
+          "prompt": "a heavy screw press in a workshop with a fresh impression in the metal, hand tools scattered on the bench, one work lamp, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "192e9abf-fc66-418c-9e40-50053364d630",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-02.jpg",
+          "caption": "strings · tuning",
+          "alt": "Hands tuning a small stringed instrument on a workbench, the headstock filling the frame.",
+          "prompt": "hands tuning a small stringed instrument on a workbench, the headstock filling the frame, shallow depth of field, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "82b7c180-3740-406d-b611-5788dd7f6fd7",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-03.jpg",
+          "caption": "kiln · shelf",
+          "alt": "A cooling kiln with its door ajar, one shelf of unglazed pots visible inside, dim workshop.",
+          "prompt": "a cooling kiln with its door ajar, one shelf of unglazed pots visible inside, dim workshop, warm glow from the chamber, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "999e281b-7f4e-4373-9907-8db59b17f4ea",
+          "width": 1280,
+          "height": 717
+        }
+      ]
+    },
     {
       "date": "2026-10-24",
       "key": "2026-10-24T21",
