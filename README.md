@@ -438,6 +438,33 @@ as a product — staged, never posted on its own.
 
 Reference: [`docs/DAILY-CONTENT.md`](docs/DAILY-CONTENT.md).
 
+### Run the hourly burst
+
+The same run, on a schedule. Eleven slots, one per hour — each slot
+renders a *different* collection and publishes it under its own key
+(`2026-10-24T14`), so the hour is the bundle's name rather than the
+date. The state file makes the burst resumable: a slot that failed is
+recorded, never silently retried, and a slot left `running` is taken
+over after 90 minutes.
+
+```bash
+npm run marketplace:hourly:plan   # the schedule — no browser, no generations
+npm run marketplace:hourly        # one slot now
+npm run marketplace:hourly:burst  # eleven slots, one an hour
+npm run test:marketplace-hourly   # the schedule, the state, the slot command
+```
+
+It runs as a launchd service (one short invocation per hour, so a
+reboot does not lose the burst):
+
+```bash
+launchctl print gui/$UID/com.kaidjuric.digital-twin.marketplace-hourly
+```
+
+Eleven slots cost **33 generations** — three per collection, the same
+as the daily run. The burst uses its own browser port and profile, so it
+never collides with the daily agent or the MJ watcher.
+
 ## Post to X (Twitter)
 
 The twin can post to X on your behalf. It needs your logged-in X

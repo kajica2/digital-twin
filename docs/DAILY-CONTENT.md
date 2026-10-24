@@ -160,6 +160,90 @@ That also means the daily run is safe to re-run: an already-published
 day skips the render (no quota) and the hand-off finds its reels
 already processed.
 
+## The hourly burst
+
+`lib/marketplace-hourly.js` runs the same pipeline on an **hourly
+cadence**: eleven slots, one collection each, published under the
+hour's own key.
+
+```bash
+npm run marketplace:hourly:plan    # print the plan — spends nothing
+npm run marketplace:hourly:init    # write the plan to the state file
+npm run marketplace:hourly         # run THIS hour's slot (the launchd tick)
+npm run marketplace:hourly:burst   # stay up and run each slot when its hour arrives
+node lib/marketplace-hourly.js --slot 2026-10-24T13   # run one named slot
+```
+
+### The key is the hour
+
+A bundle directory is named by its **key**, not by its date. The daily
+run's key is the date (`2026-10-24`); an hourly slot's key is the hour
+(`2026-10-24T13`). The key is the directory name, the catalogue
+entry's `key`, and the catalogue's dedupe key:
+
+```
+assets/marketplace/daily/2026-10-24T13/frame-01.jpg
+assets/marketplace/daily/2026-10-24T13/plates.json
+```
+
+A date-only layout would make the eleven slots overwrite each other.
+The `T<HH>` suffix keeps the flat date-directory layout, so every
+consumer — the reel hand-off, the social engine, the marketplace page,
+the e2e spec — needed one regex widened and nothing else.
+
+### The interval is a whole number of hours
+
+`--interval-hours` (default 1) is an integer, and it has to be: the
+bundle key is the hour, so two slots inside one hour would publish into
+the same directory and the second would overwrite the first.
+
+### The state file
+
+`data/marketplace/hourly-burst.json` (gitignored) holds the plan and
+what each slot did:
+
+```
+pending  → not yet run
+running  → a process has it
+done     → published
+failed   → recorded, NOT retried
+```
+
+A failed slot is **not** retried automatically: a retry loop would
+quietly spend a Midjourney quota on a failure that will not heal
+itself. Re-run it by hand with `--slot <key>`.
+
+A slot left `running` by a crash is taken over after 90 minutes — long
+enough that a live render is never disturbed, short enough that a crash
+does not cost the hour.
+
+### The schedule
+
+`~/Library/LaunchAgents/com.kaidjuric.digital-twin.marketplace-hourly.plist`
+fires the tick at **minute 2 of every hour**. The slot belongs to the
+hour it starts in, so a tick at `HH:02` picks `HH`'s slot, and a render
+that overran the hour boundary cannot race the next tick. The tick is a
+short `--once` invocation rather than a long-lived process: launchd
+restarts it, a reboot does not lose the burst, and the state file owns
+the progress.
+
+The burst has its **own browser port (9448) and its own profile**
+(`/tmp/mj-hourly-profile`), so it never collides with the daily agent
+(9445) or the MJ watcher (9444). The session comes from the same cookie
+jar.
+
+```bash
+launchctl print gui/$UID/com.kaidjuric.digital-twin.marketplace-hourly
+launchctl kickstart -k gui/$UID/com.kaidjuric.digital-twin.marketplace-hourly
+tail -f logs/marketplace-hourly.out.log
+```
+
+### The collection rotation
+
+The burst walks the library from an offset of `dayOfYear + 1`, so the
+hourly collections do not repeat the collection the daily run picked for
+the same day, and no two slots in one burst share a collection.
+
 ## Cost
 
 One collection a day is three Midjourney generations — one per plate.
@@ -167,11 +251,15 @@ Each generation is a 4-up, and the run publishes one cell of it. The
 collection cycle is twelve days, so the same collection comes back every
 twelve days with different renders.
 
+An hourly burst of eleven slots costs **eleven collections — 33
+generations**, the same three per collection the daily run spends.
+
 ## Tests
 
 ```bash
 npm run test:daily-content      # the pure logic: selection, prompts, index, guard
 npm run test:daily-reels        # the hand-off: names, the band, a real ffmpeg build
+npm run test:marketplace-hourly # the burst: the schedule, the state, the slot command
 cd e2e && PORT=5180 node marketplace.spec.mjs   # the page contract
 ```
 

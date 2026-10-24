@@ -8292,3 +8292,169 @@ guards the defect. It was rewritten behaviourally. Suite 80 → **84**.
   reference's tight selfie cannot anchor — the same "one angle moved
   when it was phrased as room" experiment again, or a different
   attachment.
+
+### 2026-10-24 — sprint 0.50 (the hourly marketplace burst)
+
+Brief: **"generate marketplace posts every hour for next 11 hours"**.
+
+The daily run already made one collection a day (three Midjourney
+generations, published to the marketplace's *Daily Frames* section, handed
+to the reel pipeline, packaged by the social worker). The ask was the same
+run on an hourly cadence for eleven slots.
+
+**Shipped:**
+
+- **`lib/marketplace-hourly.js`** — the burst runner. Pure helpers
+  (`localDateKey`, `slotKey`, `hourFloor`/`hourCeil`, `localStamp`,
+  `dayOfYear`, `planSlots`, `rotateCollections`, `newState`,
+  `loadState`/`saveState` (atomic tmp+rename), `slotFor`, `pendingSlots`,
+  `slotIsStale`, `applySlotResult`, `loadLibrary`, `slotArgs`,
+  `runSlot`, `executeSlot`, `publishedTaskIds`, `describePlan`) plus a
+  CLI: `--plan`, `--init`, `--once`, `--slot <key>`, `--burst`,
+  `--dry-run`, `--runs` (default 11), `--interval-hours` (default 1),
+  `--port` (9448), `--profile` (`/tmp/mj-hourly-profile`), `--state`.
+  State file `data/marketplace/hourly-burst.json` (gitignored).
+- **`lib/marketplace-hourly.test.js`** — 107 checks, no browser, no
+  generations: the slot key, the schedule, the collection rotation, the
+  state, the slot lookup, the daily run publishing under the key, the
+  consumers seeing the slot bundles, the four statuses, the slot command,
+  the library load, and the flag guard (a CLI-level check that spawns
+  the runner and proves `--help` prints and stops and an unknown flag
+  is refused).
+- **`lib/daily-content.js` — `--key`.** The bundle key (default: the
+  date) names the published directory, the catalogue entry's `key` and
+  the dedupe key. `sanitizeKey()` rejects anything outside
+  `[A-Za-z0-9][A-Za-z0-9._-]*` and any `..`. The catalogue dedupes on
+  `c.key || c.date`, so the legacy date-only entries keep working.
+- **`lib/daily-reels.js` + `lib/social-engine.js`** — the day-directory
+  regex widened to `/^\d{4}-\d{2}-\d{2}(T\d{2})?$/`, so the slot bundles
+  are found by the reel hand-off and by the social worker's catalogue
+  discovery. Nothing else changed: the marketplace page and the e2e spec
+  needed **no** change (both already key on `(collection dir, file)`).
+- **npm** — `marketplace:hourly`, `marketplace:hourly:plan`,
+  `marketplace:hourly:init`, `marketplace:hourly:burst`,
+  `test:marketplace-hourly` (chained into `test:all`).
+- **launchd** — `com.kaidjuric.digital-twin.marketplace-hourly.plist`
+  (`StartCalendarInterval` with **only** `Minute = 2`: omitting `Hour`
+  is how launchd means "every hour", and `<integer>*</integer>` is
+  invalid) + `~/Library/LaunchAgents/marketplace-hourly-launcher.sh`
+  (chmod +x, node resolution → `readlink -f "$HOME/digital-twin"` →
+  `exec node lib/marketplace-hourly.js --once`).
+- **`docs/DAILY-CONTENT.md`** — the "hourly burst" section; README —
+  "Run the hourly burst".
+
+**Decisions:**
+
+- **The bundle key is the hour, not the date.** `2026-10-24T13` is its
+  own directory (`assets/marketplace/daily/2026-10-24T13/`), its own
+  catalogue key and its own reel hand-off. Merging the slots into one
+  day directory would have collided on `frame-01.jpg` and required
+  merging `plates.json`; distinct directories are the smaller change,
+  and the `T<HH>` suffix keeps the flat layout the consumers already
+  walk.
+- **The interval is a whole number of HOURS, not minutes.** This was a
+  deviation from the plan, forced by a test expectation that exposed a
+  real flaw: the bundle key is the hour, so a sub-hourly interval would
+  put two slots in one hour and publish into the same directory — the
+  second overwriting the first.
+- **`--once` is the launchd mode**, one short invocation per hour,
+  rather than one long-lived process: launchd restarts it, a reboot does
+  not lose the burst.
+- **A failed slot is recorded, never retried.** A retry loop would
+  quietly spend a Midjourney quota on a permanent failure; the operator
+  re-runs with `--slot <key>`.
+- **A slot left `running` is taken over after 90 minutes.**
+- **`--init` keeps a burst that still has pending slots** and replaces a
+  finished one; the state file makes the burst resumable.
+- **Its own port (9448) and profile (`/tmp/mj-hourly-profile`)** — it
+  never collides with the daily agent (9445) or the MJ watcher (9444).
+- **The rotation skips the daily run's collection** (offset
+  `dayOfYear(now) + 1`), so an hourly plate never repeats the day's
+  daily collection.
+- **No publishing to Instagram/X.** "Generate" is not "publish": the
+  posts are staged packages, and publishing stays gated.
+
+**Verified end-to-end (a real slot, live services):**
+
+- The 13:00 slot (`2026-10-24T13`, collection *One-Way Mirror*): three
+  Midjourney jobs submitted — 16:9, `v8-2_diffusion`, with the account's
+  personalization applied (`--profile brvazka mhw6dpq xr39csb det21e6
+  67lkfw3 --stylize 21 --v 8.2`) — three plates published at 1280×717,
+  the catalogue holding four collections with the new one first, commit
+  `55eab41` pushed.
+- The reel hand-off queued three reels under the **slot** key; the live
+  reel-watcher transcoded all three (2.3s / 1.1s / 1.2s) and wrote the
+  cover, the POST sheet and the parked source and audio. The POST
+  caption read *studio · pane — Digital Twin (One-Way Mirror)
+  [identity] 🎺 Reel from the twin.* and the hashtags were
+  `#reel #digitaltwin #identity` — the genre rule (sprint 0.47.b) fired
+  on the collection's badge instead of falling back to the jazz block.
+- The live social worker (restarted so it loaded the widened regex)
+  produced **six** staged products: three plates
+  (`daily-2026-10-24t13-frame-01..03`) and three reels
+  (`one-way-mirror-*`). All `publish: false`, `posted: null`; the price
+  plan holds 38 items at 330 EUR with a 264 EUR bundle.
+- `e2e/marketplace.spec.mjs` — **all checks pass**: the daily section
+  renders 9 plates (the three newest collections), every plate matches
+  its catalogue entry, 42 images load, 0 console errors.
+- `npm run skin:check` — 0 errors (48 skinned, 8 opted out, 1 plain).
+- `npm run test:all` — **exit 0**, 25 suites, 0 failures (1,633
+  assertions counted across both suite styles).
+- **Ten mutations proved the guards bite** (mutate → red → restore →
+  green): the reels regex back to date-only (1 fail), the social regex
+  back to date-only (3), a rename that never lands (5), a slot that is
+  never marked done (3), a burst that ignores `--runs` (11), a rotation
+  that ignores its offset (1), a key that drops the hour (8), a bundle
+  key that falls back to the date (5), and the daily run called without
+  the key (2, which only bit after `slotArgs` was extracted as a pure
+  function).
+
+**An accident worth recording.** `node lib/marketplace-hourly.js --slot
+2026-10-24T13 --help` started a **real second render** — `--help` is not
+a flag. It ran alongside the original on the same key, the same output
+directory and the same browser profile. The duplicate was killed about
+three minutes in, after it had submitted its own job for prompt 1
+(`b8a54877`) and written that prompt's meta; the surviving run's own
+job for prompt 1 (`545920bc`) was therefore **not** published. The
+The published plate 1 is a genuine render of the same prompt with the same
+flags, and `plates.json` records the task id the image was actually
+downloaded from — the provenance is truthful — but **one generation was
+wasted by the mistake**. The lesson: a CLI that can spend a paid quota
+must not treat an unknown flag as a no-op.
+
+**Fixed at the source, and proved.** The runner now prints its usage
+for `--help` / `-h` **before any work starts**, and an **unknown flag is
+refused with exit 2** — the whole flag set is declared
+(`VALUE_FLAGS` + `BOOL_FLAGS`) and anything else is a mistake, not a
+no-op. The generalisation is the point: `--help` was only the symptom;
+the defect was a paid-quota CLI that silently ignored what it did not
+understand. Two mutations prove the guard bites — removing the
+`--help` branch turns the suite red on *"--help prints the usage"*, and
+making `unknownFlags` always return `[]` turns it red on *"an unknown
+flag exits 2"* — and the restored file is green at 107/107.
+
+**Open:**
+
+- **The burst was left bootstrapped**, so slots 14:00→23:00 run
+  unattended — ten more slots, thirty generations. The state file and
+  `logs/marketplace-hourly.out.log` are the proof; the first unattended
+  tick is the thing to watch.
+- A failed slot is recorded and not retried, so a burst that hits a
+  Midjourney refusal ends that slot with `failed` and the operator
+  re-runs it by hand.
+- The social engine's `tagText` for a daily plate is the whole prompt,
+  so the tag list is long and uncurated; the reel's own hashtags follow
+  the collection badge, but the product's tag set is still the jazz
+  house pool.
+- The plate product's description is the raw prompt rather than the
+  collection's caption — the collection's own words reach the reel and
+  the page, but not the social package.
+
+**Next:**
+
+- Watch the first unattended tick (`2026-10-24T14`) and confirm the
+  catalogue, the reels and the packages all follow it.
+- Give the daily plate products the collection's caption instead of the
+  prompt, and curate their tag set.
+- The standing backlog: the woody-shaw chart variants; the `.kai/`
+  durability call; a custom domain for the Vercel alias.
