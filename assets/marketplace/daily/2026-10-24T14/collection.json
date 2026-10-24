@@ -1,0 +1,15 @@
+{
+  "id": "last-ferry",
+  "date": "2026-10-24",
+  "key": "2026-10-24T14",
+  "title": "Last Ferry",
+  "badge": "cyberpunk / hk",
+  "teaser": "The last crossing leaves the city quieter than it found it.",
+  "aspect": "16:9",
+  "source": "midjourney",
+  "plates": [
+    "frame-01.jpg",
+    "frame-02.jpg",
+    "frame-03.jpg"
+  ]
+}

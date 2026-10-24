@@ -1,7 +1,46 @@
 {
-  "updatedAt": "2026-10-24T10:37:29.946Z",
-  "count": 4,
+  "updatedAt": "2026-10-24T12:06:37.046Z",
+  "count": 5,
   "collections": [
+    {
+      "date": "2026-10-24",
+      "key": "2026-10-24T14",
+      "id": "last-ferry",
+      "title": "Last Ferry",
+      "badge": "cyberpunk / hk",
+      "teaser": "The last crossing leaves the city quieter than it found it.",
+      "aspect": "16:9",
+      "dir": "assets/marketplace/daily/2026-10-24T14",
+      "plates": [
+        {
+          "file": "frame-01.jpg",
+          "caption": "deck · railing",
+          "alt": "The empty back deck of a ferry at night, one railing lamp, the far shore a line of lights in rain.",
+          "prompt": "the empty back deck of a ferry at night, one railing lamp, the far shore a line of lights in rain, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "6378f01c-66fc-4626-a979-fbf37431d5ae",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-02.jpg",
+          "caption": "bow · wake",
+          "alt": "The bow of a ferry cutting black water, spray lit from the side by the terminal lights behind.",
+          "prompt": "the bow of a ferry cutting black water, spray lit from the side by terminal lights behind, wide lens, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "e92cb39a-0d2e-4255-b824-28603a02e270",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-03.jpg",
+          "caption": "queue · terminal",
+          "alt": "An almost empty ferry terminal at night, fluorescent tubes overhead, a bench and a departure board.",
+          "prompt": "an almost empty ferry terminal at night, fluorescent tubes overhead, one bench and a blank departure board, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "cf5fc2cd-face-4d84-ac84-0d2cda2360e0",
+          "width": 1280,
+          "height": 717
+        }
+      ]
+    },
     {
       "date": "2026-10-24",
       "key": "2026-10-24T13",
