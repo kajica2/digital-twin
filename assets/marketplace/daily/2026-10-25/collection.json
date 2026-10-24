@@ -1,0 +1,15 @@
+{
+  "id": "low-tide-radio",
+  "date": "2026-10-25",
+  "key": "2026-10-25",
+  "title": "Low Tide Radio",
+  "badge": "deep house",
+  "teaser": "The signal gets better the further out you go.",
+  "aspect": "16:9",
+  "source": "midjourney",
+  "plates": [
+    "frame-01.jpg",
+    "frame-02.jpg",
+    "frame-03.jpg"
+  ]
+}
