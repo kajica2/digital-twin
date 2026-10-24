@@ -1,0 +1,15 @@
+{
+  "id": "long-exposure",
+  "date": "2026-10-24",
+  "key": "2026-10-24T16",
+  "title": "Long Exposure",
+  "badge": "deep house",
+  "teaser": "The camera stayed open after the dancer left.",
+  "aspect": "16:9",
+  "source": "midjourney",
+  "plates": [
+    "frame-01.jpg",
+    "frame-02.jpg",
+    "frame-03.jpg"
+  ]
+}

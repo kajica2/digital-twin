@@ -1,7 +1,46 @@
 {
-  "updatedAt": "2026-10-24T13:05:57.933Z",
-  "count": 6,
+  "updatedAt": "2026-10-24T14:07:08.095Z",
+  "count": 7,
   "collections": [
+    {
+      "date": "2026-10-24",
+      "key": "2026-10-24T16",
+      "id": "long-exposure",
+      "title": "Long Exposure",
+      "badge": "deep house",
+      "teaser": "The camera stayed open after the dancer left.",
+      "aspect": "16:9",
+      "dir": "assets/marketplace/daily/2026-10-24T16",
+      "plates": [
+        {
+          "file": "frame-01.jpg",
+          "caption": "studio · trail",
+          "alt": "A dancer reduced to a single streak of light in a dark studio, shutter left open, the floor faintly visible.",
+          "prompt": "a dancer reduced to one continuous streak of light in a dark studio, shutter left open, faint floor and one bare bulb above, 35mm film still, motion blur, fine grain, muted palette, no text",
+          "taskId": "ecea6961-566e-4046-a142-9c9526a5161e",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-02.jpg",
+          "caption": "turntable · hand",
+          "alt": "A hand resting on the edge of a spinning vinyl record, the light streaking around the platter.",
+          "prompt": "a hand resting on the edge of a spinning vinyl record on a turntable, the light streaking into a ring around the platter, close-up, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "5d188458-037d-4b40-9fb1-df5876f3329e",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-03.jpg",
+          "caption": "corridor · flash",
+          "alt": "A corridor lit by a single flash held at waist height, the far end falling into darkness.",
+          "prompt": "a narrow corridor lit by one flash held at waist height, the far end falling into complete darkness, 35mm film still, hard falloff, fine grain, muted palette, no text",
+          "taskId": "6c303d52-2d42-4f76-a101-8e28518680e2",
+          "width": 1280,
+          "height": 717
+        }
+      ]
+    },
     {
       "date": "2026-10-24",
       "key": "2026-10-24T15",
