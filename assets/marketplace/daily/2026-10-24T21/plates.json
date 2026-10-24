@@ -1,0 +1,39 @@
+{
+  "pack": "frost-window",
+  "date": "2026-10-24",
+  "key": "2026-10-24T21",
+  "title": "Frost Window",
+  "badge": "soundhealing",
+  "teaser": "Winter writes on the glass and the room reads it slowly.",
+  "aspect": "16:9",
+  "source": "midjourney",
+  "plates": [
+    {
+      "file": "frame-01.jpg",
+      "caption": "pane · fern",
+      "alt": "Frost branching across a window pane at dawn, the room behind it out of focus and cold blue.",
+      "prompt": "frost branching across a window pane at dawn, the room behind it out of focus and cold blue, close-up, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "33b37d72-d604-4f32-9301-c26b935e4a2e",
+      "width": 1280,
+      "height": 717
+    },
+    {
+      "file": "frame-02.jpg",
+      "caption": "kettle · steam",
+      "alt": "A kettle just beginning to steam on a stove in a cold kitchen, window light behind.",
+      "prompt": "a kettle just beginning to steam on a stove in a cold kitchen, flat window light behind it, close-up, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "55a44221-3203-40df-900e-fd37a8e076a1",
+      "width": 1280,
+      "height": 717
+    },
+    {
+      "file": "frame-03.jpg",
+      "caption": "breath · glass",
+      "alt": "A breath fogging a pane of glass from the inside, a hand held just off the surface.",
+      "prompt": "a breath fogging a pane of glass from the inside, a hand held just off the surface, cold blue room beyond, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "c78b6c9e-2084-48c7-b454-b0b7eaf6a03c",
+      "width": 1280,
+      "height": 717
+    }
+  ]
+}
