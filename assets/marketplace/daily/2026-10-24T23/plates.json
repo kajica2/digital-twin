@@ -1,0 +1,39 @@
+{
+  "pack": "low-tide-radio",
+  "date": "2026-10-24",
+  "key": "2026-10-24T23",
+  "title": "Low Tide Radio",
+  "badge": "deep house",
+  "teaser": "The signal gets better the further out you go.",
+  "aspect": "16:9",
+  "source": "midjourney",
+  "plates": [
+    {
+      "file": "frame-01.jpg",
+      "caption": "antenna · shore",
+      "alt": "A radio mast on a wide empty shore at low tide, wet sand leading out to it, flat light.",
+      "prompt": "a radio mast on a wide empty shore at low tide, wet sand leading out to it, flat overcast light, long lens, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "53ad0840-2f33-411b-b2bd-1f103154bf9b",
+      "width": 1280,
+      "height": 717
+    },
+    {
+      "file": "frame-02.jpg",
+      "caption": "receiver · dial",
+      "alt": "A valve receiver lit by its own dial lamp, the tuning needle resting slightly off centre.",
+      "prompt": "a valve radio receiver lit by its own dial lamp, the tuning needle resting slightly off centre, dark room, close-up, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "6f1186b8-629e-4101-82e8-7c9ff3d66a94",
+      "width": 1280,
+      "height": 717
+    },
+    {
+      "file": "frame-03.jpg",
+      "caption": "pier · cables",
+      "alt": "A concrete pier running into flat water, cables running along its edge, a lamp at the far end.",
+      "prompt": "a concrete pier running into flat water, cables running along its edge, one lamp at the far end, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "cfa7a87e-3730-42a5-af7e-b3291fd8b9c7",
+      "width": 1280,
+      "height": 717
+    }
+  ]
+}
