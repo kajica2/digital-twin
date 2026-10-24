@@ -8293,7 +8293,7 @@ guards the defect. It was rewritten behaviourally. Suite 80 → **84**.
   when it was phrased as room" experiment again, or a different
   attachment.
 
-### 2026-10-24 — sprint 0.50 (the hourly marketplace burst)
+### 2026-10-24 — sprint 0.56 (the hourly marketplace burst)
 
 Brief: **"generate marketplace posts every hour for next 11 hours"**.
 
@@ -8400,14 +8400,43 @@ run on an hourly cadence for eleven slots.
 - `npm run skin:check` — 0 errors (48 skinned, 8 opted out, 1 plain).
 - `npm run test:all` — **exit 0**, 25 suites, 0 failures (1,633
   assertions counted across both suite styles).
-- **Ten mutations proved the guards bite** (mutate → red → restore →
+- **The deploy-test loop.** The pushed commit's CI run (the *Puppeteer
+  deploy-test loop*) went green in 3m16s: the prompt lint, the
+  deploy-freshness guard ("the deployed content serves HEAD") and the
+  full e2e against the **deployed** URL. The new bundle is live —
+  `assets/marketplace/daily/index.json` on the deploy carries four
+  collections with `2026-10-24T13` first, and the three plates answer
+  200 with their exact byte sizes.
+- **The unattended slot can really submit.** The concern with a
+  launchd-driven render is that a headed Chrome launched outside an
+  interactive session might not reach Midjourney. The MJ watcher
+  already answers that: it runs under launchd and its log shows
+  `lib/mj-web.js` creating real jobs there (the failures in that log
+  are feed-attribution misses, not browser failures — the feed reports
+  the jobs it created, e.g. `604b0654 v8-2_edit_diffusion ar=16:9`).
+  The burst inherits that path exactly.
+- **The session is the cookie jar, not the profile.** `lib/mj-web.js`
+  injects `~/.midjourney-cookies.txt` with `Network.setCookies` on
+  every run, so a wiped or rebooted profile still authenticates; the
+  burst's `/tmp/mj-hourly-profile` is a convenience, not a
+  dependency.
+- **The launchd calendar fires on its own.** At 13:02 the job woke by
+  itself and wrote a second log line — `[hourly] 2026-10-24T13
+  already ran — skipped` — with `runs = 2`, `last exit code = 0` and
+  an empty error log. The slot was found, seen as done and skipped
+  **without spending a generation**. (`state = not running` is the
+  correct state for a `StartCalendarInterval` job — it is a schedule,
+  not a daemon; the log-rotate job behaves the same way.) So the whole
+  unattended chain is proven: launchd's calendar → the shim → node →
+  the state file → the slot → a decision, with nothing manual in it.
+- **Twelve mutations proved the guards bite** (mutate → red → restore →
   green): the reels regex back to date-only (1 fail), the social regex
   back to date-only (3), a rename that never lands (5), a slot that is
   never marked done (3), a burst that ignores `--runs` (11), a rotation
   that ignores its offset (1), a key that drops the hour (8), a bundle
   key that falls back to the date (5), and the daily run called without
   the key (2, which only bit after `slotArgs` was extracted as a pure
-  function).
+  function) — plus the two flag-guard mutations below.
 
 **An accident worth recording.** `node lib/marketplace-hourly.js --slot
 2026-10-24T13 --help` started a **real second render** — `--help` is not
