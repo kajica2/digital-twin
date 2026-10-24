@@ -5138,8 +5138,12 @@ it as a service.
   (its seeds are variants of one work), a plate is a product, a reel is
   a product. `data/social/pricing.json` is the price plan — every
   product, its price and the rationale, plus the catalogue total and the
-  bundle. **Gumroad has no API wired here, so the plan is applied by
-  hand**; the engine computes, a human commits.
+  bundle. **Superseded:** *"Gumroad has no API wired here, so the plan is
+  applied by hand"* was true when this entry was written and is not any
+  more — `lib/gumroad.js` writes the plan to the storefront
+  (`node lib/gumroad.js sync --apply`, see `docs/GUMROAD.md`). The engine
+  computes and the module applies; the human still decides when to
+  publish.
 - **Publishing stays gated.** `posting.autoPublish: false` plus a
   per-item `publish: true`; `posting.dryRunPoster: true` runs the whole
   path (worker → `lib/ig-poster.js --dry-run`) without reaching
@@ -5183,7 +5187,11 @@ it as a service.
 
 **Open:**
 
-- The price plan is a document; nothing writes to Gumroad.
+- ~~The price plan is a document; nothing writes to Gumroad.~~
+  **Superseded** by `lib/gumroad.js` (`npm run gumroad:sync`) — see
+  `docs/GUMROAD.md`. Left here as the record of what was true at the
+  time; the sync landed in sprint 0.50 and the duplicate route that gets
+  past the daily ceiling in sprint 0.57.
 - The copy is template-driven. Serviceable, not a campaign.
 - The catalogue and the reels are discovered; anything else has to be
   dropped into `social-inbox/`.
@@ -8490,3 +8498,153 @@ flag exits 2"* — and the restored file is green at 107/107.
   prompt, and curate their tag set.
 - The standing backlog: the woody-shaw chart variants; the `.kai/`
   durability call; a custom domain for the Vercel alias.
+
+### 2026-10-24 — sprint 0.57 (the storefront, standing up)
+
+The price plan became a catalogue. `data/social/pricing.json` asked for 74
+products; the storefront now sells 74 products plus the bundle, each with a
+square cover and its own bytes. The interesting part is not the count, it is
+that Gumroad's daily ceiling was in the way and there was a sanctioned route
+past it that nobody had read yet.
+
+- **Shipped:**
+  - **`lib/gumroad.js` — the duplicate route.** `duplicateProduct()` posts
+    `POST /product_duplicates` and polls `GET /product_duplicates/<source>`
+    until a **new** permalink appears. The copy is saved upstream with
+    `validate: false`, so the daily-creation-limit validation never runs;
+    that is why the route is the way past the wall without deleting anything.
+    `sync` switches to it automatically when a create is refused, and
+    `--via-duplicate` starts there.
+  - **`adoptDuplicate()` — making the copy into the product it should be.**
+    One revision-gated save renames, reprices and re-slugs the copy while
+    naming the **inherited** file rows in
+    `deletion_operations[deleted_ids][files][]`; then this product's own
+    uploads and cover go on. The copy's inherited rows are a *different*
+    set of `product_file` rows pointing at the *same* S3 objects, so
+    leaving them is not cosmetic — the copy would sell the source's file. A
+    deletion that silently did not apply is read back and refuses to
+    continue.
+  - **`syncBundleViaDuplicate()` + `updateBundleProduct()` — the bundle is a
+    converted copy.** Duplicate a twin, drop the copy's inherited file row,
+    then `PUT /bundles/<external id>/product` (which sets `is_bundle` on the
+    same Link row — no creation slot) and `PATCH …/content` with the members
+    by **external id**. The duplicated twin survives. The bundle route is
+    the only one that kinds the currency before the amount, so both always
+    travel together.
+  - **`verify` — the storefront read back.** A new verb that diffs every
+    product against the plan: name, price, currency (off the dashboard
+    row's formatted price — the edit page carries no currency field), public
+    slug, every file by served name **and** byte size with no strays, the
+    cover, and for the bundle the price, slug, `is_bundle` and member count.
+    Exits non-zero on any mismatch. Also `compareProduct` / `compareBundle`
+    / `productFileName` as pure, tested functions, and
+    `syncProductViaDuplicate` / `adoptDuplicate` / `resolveDuplicateSource`
+    exported for the harness.
+  - **`encodeFormBody()`** — one encoder for the three shapes the save route
+    reads: scalars, nested objects, arrays of objects (`files[0][url]`) and
+    bracket arrays of scalars (`deletion_operations[deleted_ids][files][]`).
+    The last must be the bracket form; the permitted filter declares it as an
+    array of scalars.
+  - **`docs/GUMROAD.md`** — the reference the module never had: the routes,
+    the cookie jar, the ceiling and the duplicate route, what a copy
+    inherits, the save contract (omission is not deletion; `editor_revision`
+    is per product and covers files/rich content/variants, not price),
+    the bundle mechanics, cover and file rules, what `verify` checks.
+  - **Docs truth:** the two false claims (*"Gumroad has no API wired here"*,
+    *"nothing writes to Gumroad"*) are struck through and marked superseded
+    with a pointer; `docs/SOCIAL-ENGINE.md` no longer says a catalogue takes
+    a week of daily runs; `README.md` says where the plan goes.
+- **The verdict that had to be probed, not guessed.** The editor save
+  contract (`Feature.active?(:product_editor_save_contract, user)`) is
+  **enforced** for this account: a save that omits `files` leaves them
+  attached. Probed live on a scratch duplicate, then confirmed by the real
+  run — every copy needed an explicit, revision-gated deletion.
+- **Four defects found by running it, three of them mine:**
+  1. **`attachFiles` was handed `displayName`, not `display_name`.** The
+     save route ignores an unknown key silently, so every duplicated
+     product's file row fell back to the S3 basename *without* extension —
+     the buyer would download `system-error-08`, no extension. Caught by
+     `verify` on the first product. Fixed at the call site through
+     `fileDescriptors`, and a unit test now asserts the wire key.
+  2. **`listProducts()` read only page 1.** The dashboard table is 50 rows a
+     page and `findBySlug` was blind past row 50 — so at 74 products the
+     sync decided existing products did not exist and tried to create them
+     again. Three slug claims collided and failed loudly; without the
+     collision it would have made duplicates. Now every page is walked
+     (`products_page`, stopping on `pagination.pages`).
+  3. **The planner planned two packages with one slug.** The daily
+     pipeline derives a plate's slug from its caption, and it cycles a fixed
+     caption pool, so each new day re-proposes `pylon-line-plate`,
+     `switchboard-lamp-plate`, `platform-signal-plate`, … Gumroad answers
+     the second claim with 422 *"Custom permalink is already used by another
+     one of your products"*. `planFromPricingPlan` now skips a slug an
+     earlier package claimed, reports it in `plan` **and** in the `sync`
+     summary, so a run never silently covers fewer products than the
+     registry. Six packages are skipped today (two days × three plates).
+  4. **Re-use looked at the wrong file list.** `syncProduct` matched
+     existing files out of `existing_files` — the seller-wide library — and
+     `frame-01.jpg` is the name of a file on *every* daily plate. A re-run
+     could adopt another product's row. It now reads `product.files` (this
+     product's rows only), which also makes a re-run upload nothing.
+- **Also fixed:** `--only` matched the package id only, while the docs
+  promised the slug (`system-error-01` vs `portrait-rgb-split-plate`); now
+  either.
+- **Decisions:**
+  - **Duplicate, never delete-and-recreate.** Upstream's own comment
+    sanctions deleting to free quota, but the ten products that existed were
+    sellable and their S3 objects are guarded by
+    `has_alive_duplicate_files?`.
+  - **Never duplicate the account's own products.** Source candidates are
+    only storefront products whose public slug is one of the plan's slugs,
+    and `isSafeDuplicateSource` additionally demands **one** alive file and
+    **no** default offer code — `duplicate_offer_codes` *assigns* the
+    source's offer codes to the copy rather than copying them.
+  - **Drafts only.** Publishing is the author's call and the account is
+    `blocked (no_payout_method)` anyway; every product the sync makes is a
+    draft, same as the ten that already existed.
+  - **The copy is verified, not assumed.** Two read-backs per duplicate (the
+    deletion landed; the final state matches the plan) cost about a second
+    each and are the difference between a catalogue and a plausible one.
+  - **The plan is allowed to be bigger than one run.** `sync` is resumable
+    and idempotent; the daily pipeline keeps adding packages, so the job is
+    "converge", not "finish".
+- **Verified end-to-end:**
+  - Run 1 (`sync --apply --via-duplicate`): **61 duplicated**, 13 updated,
+    3 errored — the 3 were the slug collisions above, and each left a stray
+    `(copy)` product behind, which was deleted by hand (3 × `destroy` 200).
+  - Run 2 after the fixes: **74 updated**, bundle **duplicated** by
+    conversion.
+  - Run 3: 74 updated again with zero uploads (the idempotent path).
+  - `node lib/gumroad.js verify` → **75/75** (74 products + the bundle).
+  - `node lib/gumroad.js check` → **76 products** = 74 plan products + the
+    bundle + the account's own `krlzd`.
+  - The bundle: `is_bundle` true, 74 members, `€523.20` (the plan grew from
+    €501.60 mid-sprint), public slug `the-whole-catalogue`, no stray files,
+    cover present.
+  - `npm run test:gumroad` — **173 assertions** (was 102), including the
+    three regressions above and the two-way file-reuse rule.
+  - `npm run test:all` — every suite green (36 + 16 + 114 + 24 + 37 + 72 +
+    43 + 84 + 49 + 30 + 20 + 173 + 98 + 67 + 66 + 31 + 73 + 36 + 53 + 37 +
+    41 + 60 + 107 + 114 …). No repo file outside this sprint's scope changed
+    except the three docs.
+- **Open:**
+  - **The daily captions collide, and that is the real bug behind the six
+    skips.** A plate's name and slug come from its caption, and the caption
+    pool repeats, so a new day's frames cannot become new products —
+    different art under a name that is already sold. The fix is upstream in
+    the caption generator: a plate's slug has to be unique per day (a date
+    fragment in the slug and a distinguishing word in the name), not
+    deduplicated afterwards. Until then the planner's skip is the honest
+    behaviour.
+  - **The bundle's cover is the source twin's plate.** The plan has no
+    bundle artwork; a dedicated cover is a one-image job for a later sprint.
+  - **Publishing is still blocked** at the account level
+    (`no_payout_method`); nothing here changes that, and nothing here
+    publishes.
+  - The session cookie that this sprint ran on was pasted into a chat
+    transcript, so treat it as **exposed** and rotate it by re-running
+    `lib/gumroad-login.js` when convenient.
+- **Next:** the caption/slug uniqueness fix in the daily pipeline (so the
+  next days' plates are sellable), then bundle artwork; the standing backlog
+  (woody-shaw chart variants, `.kai/` durability, the Vercel custom domain)
+  is unchanged.

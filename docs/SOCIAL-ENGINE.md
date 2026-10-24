@@ -96,19 +96,23 @@ application the account does not have.
 
 ```bash
 node lib/gumroad.js check            # preflight: seller, currency, gates
-node lib/gumroad.js plan             # what would be created
+node lib/gumroad.js plan             # what the plan asks for
+node lib/gumroad.js verify           # read every product back, diff it
 node lib/gumroad.js sync             # dry run
 node lib/gumroad.js sync --apply     # write it
 ```
 
-**The daily window.** Gumroad allows **10 new products per day**. A
-catalogue larger than that cannot be applied in one run: the rest are
-refused with *"Sorry, you can only create 10 products per day."* The
-sync is resumable, not all-or-nothing — a product that exists is
-updated, one that does not is created — so a daily run creates ten more
-each day until the plan is whole. The bundle waits for every one of its
-members: a bundle missing members sells a discount on a catalogue that
-is not there.
+**The daily window, and how the sync gets past it.** Gumroad allows
+**10 new products per day**, and the limit is a rolling 24-hour count
+that nobody can raise from the seller side. A create past it is refused
+with *"Sorry, you can only create 10 products per day."* Rather than
+spread one catalogue over a week, the sync **switches to Gumroad's own
+Duplicate route**, which is a first-class dashboard action that saves the
+copy with `validate: false` and so never runs the creation-limit
+validation. The copy is then renamed, repriced, re-slugged, given its own
+file uploads and cover, and — for the bundle — converted into the bundle
+in place. `docs/GUMROAD.md` has the mechanics, the save contract and the
+traps.
 
 **Publishing is still the author's call.** The sync creates and updates
 products; it does not publish them. Every package carries its own
@@ -162,10 +166,10 @@ adds it to the price plan.
 | `lib/social-engine.js` | the worker and every pure function in it |
 | `lib/social-shared.js` | the shared rules: one tag alphabet, one tier contract, one POST.md shape |
 | `lib/social-config.json` | the config: sources, tag pools, caps, price table, posting gate |
-| `lib/gumroad.js` | applies the price plan to the storefront (create/update, cover, files) |
+| `lib/gumroad.js` | applies the price plan to the storefront (create/update/duplicate, cover, files, verify) — see `docs/GUMROAD.md` |
 | `lib/gumroad-login.js` | mints the seller session into `~/.gumroad-cookies.txt` |
 | `lib/gumroad-cover.js` | centre-crops and squares a cover (Gumroad wants 600px+, square) |
-| `lib/gumroad.test.js` | the unit suite (102 assertions) |
+| `lib/gumroad.test.js` | the unit suite (173 assertions) |
 | `lib/social-engine.test.js` | the unit suite (121 assertions) |
 | `lib/social-shared.test.js` | the rules suite (36 assertions) |
 | `data/social/` | the generated packages and the price plan (gitignored) |
@@ -180,7 +184,9 @@ adds it to the price plan.
   are the reel-watcher's output, in the flat layout it writes
   (`<base>.mp4`, `<base>_cover.jpg`, `<base>_POST.md` in one
   directory).
-- The price plan is applied by `lib/gumroad.js`, ten new products per
-  day. The bundle waits for its members.
+- The price plan is applied by `lib/gumroad.js`. Ten NEW products per day
+  are allowed; past that the sync duplicates an existing product and
+  rewrites the copy, so a whole catalogue lands in one run. The bundle
+  waits for its members.
 - The copy is template-driven. It is serviceable, not a campaign.
 - A stale package (its source is gone) is pruned, with a log line.

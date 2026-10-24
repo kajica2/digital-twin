@@ -397,10 +397,14 @@ tail -f logs/social-worker.out.log
 **Nothing is published by default.** `posting.autoPublish` is `false`
 and each item has to say `publish: true`; `posting.dryRunPoster: true`
 runs the whole path — worker → `lib/ig-poster.js --dry-run` — without
-reaching Instagram. The price plan (`data/social/pricing.json`) is a
-document: `lib/gumroad.js` applies it (ten new products per day).
+reaching Instagram. The price plan (`data/social/pricing.json`) is
+applied by `lib/gumroad.js` (`npm run gumroad:sync`): products are
+created, updated and verified on the storefront, and past Gumroad's
+ten-new-products-a-day ceiling the sync duplicates an existing product
+and rewrites the copy instead of waiting.
 
-Reference: [`docs/SOCIAL-ENGINE.md`](docs/SOCIAL-ENGINE.md).
+Reference: [`docs/SOCIAL-ENGINE.md`](docs/SOCIAL-ENGINE.md),
+[`docs/GUMROAD.md`](docs/GUMROAD.md).
 
 ## Run the daily content
 
