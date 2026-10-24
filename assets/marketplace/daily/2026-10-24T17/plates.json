@@ -1,0 +1,39 @@
+{
+  "pack": "tide-line",
+  "date": "2026-10-24",
+  "key": "2026-10-24T17",
+  "title": "Tide Line",
+  "badge": "soundhealing",
+  "teaser": "The sea keeps the hours it has no use for.",
+  "aspect": "16:9",
+  "source": "midjourney",
+  "plates": [
+    {
+      "file": "frame-01.jpg",
+      "caption": "flat · mirror",
+      "alt": "Wet sand at low tide holding a perfect reflection of an overcast sky, a line of foam halfway out.",
+      "prompt": "wet sand at low tide holding a perfect reflection of an overcast sky, one line of foam halfway out, no horizon detail, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "5046550d-d497-4c56-8860-15890d5ff17a",
+      "width": 1280,
+      "height": 717
+    },
+    {
+      "file": "frame-02.jpg",
+      "caption": "break · backlit",
+      "alt": "A small wave breaking against an empty shore, backlit by flat winter light, spray suspended.",
+      "prompt": "a small wave breaking on an empty shore, backlit by flat winter light, spray suspended in the air, long lens, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "3f48be88-e7c6-4d3e-9066-035f2b130ad0",
+      "width": 1280,
+      "height": 717
+    },
+    {
+      "file": "frame-03.jpg",
+      "caption": "post · rope",
+      "alt": "A weathered mooring post in shallow water, rope trailing off frame, grey sky reflected around it.",
+      "prompt": "a weathered wooden mooring post standing in shallow water, rope trailing off frame, grey sky reflected around it, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "9e1f9787-f1bf-441b-ae61-2df06717c2bd",
+      "width": 1280,
+      "height": 717
+    }
+  ]
+}
