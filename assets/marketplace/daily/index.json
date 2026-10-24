@@ -1,7 +1,46 @@
 {
-  "updatedAt": "2026-10-24T15:06:24.354Z",
-  "count": 8,
+  "updatedAt": "2026-10-24T16:06:27.346Z",
+  "count": 9,
   "collections": [
+    {
+      "date": "2026-10-24",
+      "key": "2026-10-24T18",
+      "id": "negative-space",
+      "title": "Negative Space",
+      "badge": "collective",
+      "teaser": "A room with one chair in it and everyone still coming.",
+      "aspect": "16:9",
+      "dir": "assets/marketplace/daily/2026-10-24T18",
+      "plates": [
+        {
+          "file": "frame-01.jpg",
+          "caption": "room · chair",
+          "alt": "An empty rehearsal room with a single wooden chair under a low window, dust in the light, floorboards worn.",
+          "prompt": "an empty rehearsal room with a single wooden chair under a low window, dust suspended in one shaft of light, worn floorboards, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "f20b028b-4397-4cdf-847a-0f27dc1cdcfe",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-02.jpg",
+          "caption": "table · cups",
+          "alt": "A long table with an uneven row of empty cups, one lamp low over the far end.",
+          "prompt": "a long table with an uneven row of empty cups, one low lamp hanging over the far end, long empty room, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "eb6d9c2f-e1ff-47a7-b1ff-3c72aaf59467",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-03.jpg",
+          "caption": "doorway · sound",
+          "alt": "A doorway at the back of a dark room with light spilling in from the corridor, nobody present.",
+          "prompt": "a doorway at the back of a dark room with cold light spilling in from the corridor, nobody present, deep shadows, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "5e7eb23b-9b84-43d2-afc0-fa445d4c3f8e",
+          "width": 1280,
+          "height": 717
+        }
+      ]
+    },
     {
       "date": "2026-10-24",
       "key": "2026-10-24T17",
