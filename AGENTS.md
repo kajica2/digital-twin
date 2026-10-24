@@ -8666,13 +8666,14 @@ and all 353 commits on every ref were read for credential shapes.
 - **Leaked:** `data/suno-cookies.txt` — a Netscape jar for suno.com with
   **`__client` (Clerk's long-lived refresh token) and
   `__session_Jnxw-muT`** — was committed in `cd434e4`, deleted in
-  `dec6892`, and is still in the history of a public repo. The copy on disk
-  was byte-identical to the published blob (same sha256), so the exposed
-  tokens were the ones in use. That file and its stale duplicate are gone
-  from the tree now; **the credential itself still needs rotating** (sign
-  out of suno.com everywhere, then re-mint `~/.suno-cookies.txt`), and
-  purging the blob from history is the owner's call because it rewrites a
-  public repo and breaks every clone.
+  `dec6892`, and is still in the history of a public repo. The in-tree copy
+  was byte-identical to the published blob (same sha256) — the same export —
+  but the jar actually in use (`~/.suno-cookies.txt`, minted six hours
+  later) carries **different** `__client` and `__session` values, so what is
+  public is a stale Clerk refresh token, not the live pair. Rotate it anyway
+  (a Clerk refresh token outlives the session JWT it came with): sign out of
+  suno.com everywhere, then re-mint the jar. Purging the blob from history is
+  the owner's call — it rewrites a public repo and breaks every clone.
 - **One jar was still inside the tree:** `lib/youtube-cookies.txt` (a full
   Google account session — `SID`, `HSID`, `SSID`, `SAPISID`,
   `LOGIN_INFO`). Ignored but never tracked, so not published — moved to
