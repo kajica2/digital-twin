@@ -1,0 +1,15 @@
+{
+  "id": "one-way-mirror",
+  "date": "2026-10-24",
+  "key": "2026-10-24T13",
+  "title": "One-Way Mirror",
+  "badge": "identity",
+  "teaser": "You can see out. They can see in.",
+  "aspect": "16:9",
+  "source": "midjourney",
+  "plates": [
+    "frame-01.jpg",
+    "frame-02.jpg",
+    "frame-03.jpg"
+  ]
+}

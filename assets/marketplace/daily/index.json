@@ -1,7 +1,46 @@
 {
-  "updatedAt": "2026-10-23T22:27:12.405Z",
-  "count": 3,
+  "updatedAt": "2026-10-24T10:37:29.946Z",
+  "count": 4,
   "collections": [
+    {
+      "date": "2026-10-24",
+      "key": "2026-10-24T13",
+      "id": "one-way-mirror",
+      "title": "One-Way Mirror",
+      "badge": "identity",
+      "teaser": "You can see out. They can see in.",
+      "aspect": "16:9",
+      "dir": "assets/marketplace/daily/2026-10-24T13",
+      "plates": [
+        {
+          "file": "frame-01.jpg",
+          "caption": "studio · pane",
+          "alt": "A one-way mirror in a dark studio reflecting a lit room behind the viewer, half the reflection is the room itself.",
+          "prompt": "a one-way mirror in a dark studio reflecting a lit room behind the viewer, half the reflection is the room itself, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "b8a54877-fe33-46fe-acec-4dde95264d96",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-02.jpg",
+          "caption": "booth · light",
+          "alt": "A recording booth with the mic lit from above and the glass between two spaces, one chair empty.",
+          "prompt": "a recording booth with the microphone lit from above, glass between two spaces, one empty chair, small red indicator, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "766ec878-e2b2-4b8f-8cc4-3f3a87c5401c",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-03.jpg",
+          "caption": "screen · ghost",
+          "alt": "A face on a monitor seen through the darker side of a one-way pane, the room behind the glass almost black.",
+          "prompt": "a face on a monitor seen through the darker side of a one-way pane, the room behind the glass almost black, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "9c0885f9-ace5-4c6b-9af8-8ab6074d870d",
+          "width": 1280,
+          "height": 717
+        }
+      ]
+    },
     {
       "date": "2026-10-24",
       "id": "hand-cast",
