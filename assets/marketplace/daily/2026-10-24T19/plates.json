@@ -1,0 +1,39 @@
+{
+  "pack": "after-image",
+  "date": "2026-10-24",
+  "key": "2026-10-24T19",
+  "title": "After Image",
+  "badge": "identity",
+  "teaser": "What the eye keeps after the light is gone.",
+  "aspect": "16:9",
+  "source": "midjourney",
+  "plates": [
+    {
+      "file": "frame-01.jpg",
+      "caption": "portrait · burn",
+      "alt": "A face lit by a single hard light source that burns out across the cheek, the far side falling to black.",
+      "prompt": "a face lit by one hard light source burning out across the cheek, the far side falling to black, no background detail, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "6d7be055-93a1-44e3-b63b-cfdefb101ce3",
+      "width": 1280,
+      "height": 717
+    },
+    {
+      "file": "frame-02.jpg",
+      "caption": "glass · ghost",
+      "alt": "A double exposure of a face and a window, the two layers drifting slightly out of register.",
+      "prompt": "a double exposure of a face and a window frame, the two layers drifting slightly out of register, soft focus, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "734de8bf-c707-4c1d-ac44-dff4c719644c",
+      "width": 1280,
+      "height": 717
+    },
+    {
+      "file": "frame-03.jpg",
+      "caption": "mirror · delay",
+      "alt": "A figure caught mid-turn in a bathroom mirror, the reflection trailing a fraction behind.",
+      "prompt": "a figure caught mid-turn in a small bathroom mirror, the reflection trailing a fraction behind, one cold ceiling light, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "99639222-bfcd-49ac-a09f-72b0aa676f7f",
+      "width": 1280,
+      "height": 717
+    }
+  ]
+}

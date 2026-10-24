@@ -1,0 +1,15 @@
+{
+  "id": "after-image",
+  "date": "2026-10-24",
+  "key": "2026-10-24T19",
+  "title": "After Image",
+  "badge": "identity",
+  "teaser": "What the eye keeps after the light is gone.",
+  "aspect": "16:9",
+  "source": "midjourney",
+  "plates": [
+    "frame-01.jpg",
+    "frame-02.jpg",
+    "frame-03.jpg"
+  ]
+}
