@@ -32,6 +32,30 @@ permissions:
   deployments: read
 
 jobs:
+  # The repo is PUBLIC, so a cookie committed once is published forever and a
+  # later delete cannot take it back. This runs FIRST and on its own, with full
+  # history, because that is the only scope in which the question is answerable
+  # — a shallow checkout can answer "is the tree clean", not "was it ever
+  # leaked". It has no npm install and no browser, so it is cheap.
+  secrets:
+    name: Secrets guard — nothing published a cookie or a key
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout (full history — the check is about every commit ever)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Guard tracked files, ignore rules, cookie-jar paths and history
+        run: node lib/secrets-guard.test.js
+
   e2e:
     name: Puppeteer deploy-test loop
     runs-on: ubuntu-latest

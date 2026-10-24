@@ -82,12 +82,11 @@ data/gumroad/covers/
 social-inbox/*
 !social-inbox/.gitkeep
 
-# Logs
-logs/*.log
-logs/*.out.log
-logs/*.err.log
-logs/*.err
-logs/*.gz
+# Logs — the whole directory, not a list of suffixes. `logs/*.log` left a
+# `.tmp`/`.txt`/`.json` in there un-ignored, which is one `git add -A` away
+# from publishing whatever a watcher happened to write (leak-guard:
+# lib/secrets-guard.test.js asserts this line exists).
+logs/
 
 # OS junk
 .DS_Store

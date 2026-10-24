@@ -1,7 +1,7 @@
 {
     "_note": "YouTube automation configuration. Uses a headed browser + cookie jar to upload via youtube.com.",
 
-    "cookiesFile": "lib/youtube-cookies.txt",
+    "cookiesFile": "~/.youtube-cookies.txt",
     "_note_cookiesFile": "Cookie jar exported from a browser logged into YouTube. Netscape format.",
 
     "userDataDir": "/tmp/yt-profile",

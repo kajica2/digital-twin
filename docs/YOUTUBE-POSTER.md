@@ -27,7 +27,7 @@ could not be confirmed.
 
 | key | meaning |
 |---|---|
-| `cookiesFile` | Netscape cookie jar (`lib/youtube-cookies.txt`, gitignored) |
+| `cookiesFile` | Netscape cookie jar — **outside the repo**: `~/.youtube-cookies.txt` (never in the tree; `lib/secrets-guard.test.js` fails if a jar moves inside) |
 | `userDataDir` | Chrome profile the poster drives |
 | `chrome.debugPort` | CDP port — **must not collide with another tool's browser** |
 | `upload.outputDir` | Where the poster logs the upload |

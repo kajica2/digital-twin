@@ -8648,3 +8648,84 @@ past it that nobody had read yet.
   next days' plates are sellable), then bundle artwork; the standing backlog
   (woody-shaw chart variants, `.kai/` durability, the Vercel custom domain)
   is unchanged.
+
+### 2026-10-24 — security (the repo is public; one jar was published)
+
+Asked to confirm that GitHub is not sharing personal cookies and auth
+settings. The short answer: **the Gumroad session is fine, one Suno jar is
+not** — and it has been readable by anyone since 2026-10-21.
+
+**The audit.** `github.com/kajica2/digital-twin` is **PUBLIC**
+(`visibility: PUBLIC`, not a fork). 955 tracked paths, 783 tracked files,
+and all 353 commits on every ref were read for credential shapes.
+
+- **Not leaked:** `~/.gumroad-cookies.txt` (outside the repo, mode 600) and
+  every other live jar. History contains exactly two kinds of match, both
+  fixtures: `_gumroad_app_session=FAKE-SESSION` and
+  `XSRF-TOKEN=FAKE-XSRF` (22 appearances each, from the test file).
+- **Leaked:** `data/suno-cookies.txt` — a Netscape jar for suno.com with
+  **`__client` (Clerk's long-lived refresh token) and
+  `__session_Jnxw-muT`** — was committed in `cd434e4`, deleted in
+  `dec6892`, and is still in the history of a public repo. The copy on disk
+  was byte-identical to the published blob (same sha256), so the exposed
+  tokens were the ones in use. That file and its stale duplicate are gone
+  from the tree now; **the credential itself still needs rotating** (sign
+  out of suno.com everywhere, then re-mint `~/.suno-cookies.txt`), and
+  purging the blob from history is the owner's call because it rewrites a
+  public repo and breaks every clone.
+- **One jar was still inside the tree:** `lib/youtube-cookies.txt` (a full
+  Google account session — `SID`, `HSID`, `SSID`, `SAPISID`,
+  `LOGIN_INFO`). Ignored but never tracked, so not published — moved to
+  `~/.youtube-cookies.txt` (mode 600), which is where every other module
+  already keeps its jar; `lib/youtube-config.json` and
+  `docs/YOUTUBE-POSTER.md` follow, and the poster already expands `~`.
+- **One hole in the ignore rules:** `logs/*.log` and friends left
+  `logs/tcc-probe.tmp` un-ignored, so a `git add -A` would have published
+  whatever a watcher wrote. `logs/` is now ignored as a directory.
+
+**The guard — `lib/secrets-guard.test.js`** (`npm run test:secrets`, in
+`test:all`, 2.7 s including history):
+
+1. no tracked path is a cookie jar, `.env`, key or `.kai/` memory;
+2. no tracked file contains cookie values, API keys, bearer tokens or
+   session ids — matched by shape, with a **value-level** allowlist for the
+   two fixtures, so "that file is a test" cannot hide a real secret;
+3. nothing untracked-and-un-ignored looks like a credential store;
+4. **nothing ignored either** — a jar sitting in the tree is already one
+   `git add -f` from publication (this check is what found the stale Suno
+   copy, after the first version of the guard passed);
+5. the `.gitignore` rules that keep jars, env files, `.kai/` and logs out
+   are themselves asserted, so deleting one fails the guard;
+6. every module's and every config's cookie-jar path resolves **outside**
+   the repo (9 of them), which is the "someone changes the default to
+   `./cookies.txt`" failure mode;
+7. **all 353 commits**, twice over: values, and paths that ever existed —
+   the check that would have caught the Suno jar the day it was added.
+
+Known findings live in `.secrets-baseline.json`: the guard fails on
+anything not listed, prints every un-rotated entry on every run, and
+`--strict` fails on them too. A baseline that hides things is worse than no
+baseline, so severity is carried in prose and reported, not silenced.
+
+**Where it runs:** a dedicated `secrets` job in
+`.github/workflows/pages-test.yml` (its own job so the e2e's flaky deploy
+wait cannot mask it) with `fetch-depth: 0` — a shallow checkout can answer
+"is the tree clean", never "was it ever leaked". Plus
+`bin/install-secrets-hook.sh`, which installs a **pre-push** hook: CI
+reports a leak after it is public, a hook refuses the push. Installed on
+this machine (idempotent; refuses to overwrite a foreign hook; `--remove`
+uninstalls).
+
+**Proved it can fail, twice.** A forced `git add -f tmp-jar-cookies.txt`
+with a 32-char session value: the path rule and the content rule both
+fired, and the hook exited 1 with *"push refused"*. A planted `.env`: the
+ignored-but-present rule caught it — a gap the first version of the guard
+did not have, found by trying to prove the check worked.
+
+**Verified:** `npm run test:secrets` 9/9, `npm run test:all` green,
+`npm run test:youtube-poster` still green after the jar moved.
+
+**Open:** rotate the Suno session (the only thing between this repo and a
+clean bill of health); decide on the history rewrite; GitHub's own secret
+scanning does not recognise Clerk/Netscape cookie shapes, so it will not
+warn about anything here.
