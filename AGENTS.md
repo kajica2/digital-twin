@@ -8858,3 +8858,136 @@ from 606 s, all of it the render having never started).
 - `no text` in the suffix dissolves the signage the pack is partly about
   (redacted posters, the eligibility stamps, the price list). The packs say
   so; a per-bullet override is the fix if those frames matter.
+
+### 2026-10-25 — sprint 0.59 (twelve plates that could not be sold; the hub starts on login)
+
+Two threads: the storefront was silently dropping a quarter of the daily
+catalogue, and the SWR agent hub was only ever started by hand.
+
+**A. Twelve daily plates were unpublishable, and the cause was the product
+identity.**
+
+`data/social/pricing.json` carried **92 products with 92 item ids but only
+80 distinct slugs**. Gumroad's permalink is unique per seller, so
+`lib/gumroad.js` dropped a duplicate — `node lib/gumroad.js plan` printed
+twelve `skipped daily-…: slug "pylon-line-plate" is already planned by
+daily-2026-10-22-frame-01` lines, and the bundle said "bundle of 80".
+Those twelve are **real renders with real art**; they could never be
+bought.
+
+The cause is structural, not a typo: the daily collections cycle a fixed
+caption pool, so a product name returns with *different art* behind it.
+Sprint 0.57 named the fix and did not do it — *"a plate's slug has to be
+unique per day, not deduplicated afterwards"*. Done now, in the plan,
+because uniqueness is a property of the catalogue and no single item can
+know it:
+
+- **`assignProductSlugs(entries)`** (`lib/social-engine.js`, pure and
+  exported) walks the catalogue **sorted by id** and gives the **first
+  claimer the bare slug** — so a product already on the storefront is
+  never renamed by a later arrival — and every later claimer its own
+  qualifier: `pylon-line-plate-2026-10-24t20`, named
+  `Pylon · line — art plate (24 Oct 2026 20:00)`.
+- **`qualifierFromId()`** derives that qualifier from the **id**, not from
+  the item's meta, because the live plan is built from the **registry**
+  (what an item looked like when it was packaged). Both paths — a fresh
+  discovery and the registry — produce the same slug for all 45 daily
+  products; the test pins that for every packaged daily id.
+- `friendlyDateLabel()` uses a fixed month table, not `toLocaleDateString`
+  — the plan is a tracked artifact and must read the same in every locale.
+  `withSlugSuffix()` keeps the **suffix** inside `slugify()`'s 64
+  characters, because the suffix is the part that must never truncate.
+
+**Two more defects surfaced while wiring it:**
+
+- **A pass that packaged nothing never rewrote the plan.** The write was
+  guarded by `if (produced.length)`, so a derivation change reached the
+  file the storefront sync reads only by luck. It now rewrites whenever
+  the file differs from the registry — verified by repairing a
+  deliberately stale plan on a quiet pass, and by asserting an unchanged
+  plan is **not** rewritten (mtime unchanged).
+- **The plan was built before stale packages were pruned**, so it listed a
+  product whose art had just been deleted, for one pass. Prune → save
+  registry → plan.
+
+**Verified end-to-end:**
+
+- `node lib/social-engine.js --once` → `pricing plan — 92 product(s),
+  total 753 EUR, bundle 602.4 EUR`, 92/92 unique slugs, 12 disambiguated.
+- `node lib/gumroad.js plan` → **80/92 already on the storefront**, **zero
+  skips**, the bundle now reads *bundle of 92*. The 12 new products are
+  drafts like every other one; publishing is still gated on the account's
+  payout method.
+- The 80 existing slugs are **byte-identical** to the shipped plan — no
+  storefront product is renamed by this change (checked id by id against
+  the previous `pricing.json`).
+- `lib/social-engine.test.js` **122 → 151** assertions. Three guards were
+  proved to bite: identity assignment removed (9 red), the plan write
+  narrowed back to `produced.length` (2 red).
+- The live worker was restarted (`launchctl kickstart -k`), so the running
+  service reads the new code — the trap sprints 0.46/0.47.b both hit.
+
+**B. The SWR hub now starts on login — and it had to be node.**
+
+The hub (`lib/agent-hub/`) was start-by-hand only. `com.kaidjuric.digital-twin.swr-hub`
+now runs at login (`RunAtLoad`) and every five minutes (`StartInterval`
+300), so an agent that dies is brought back without a supervisor loop.
+
+- **`ensure`, not `start`.** `agent-hub.sh start` is a *clean restart*: it
+  kills whatever the pid files point at and starts everything. A login job
+  plus a five-minute tick would restart a healthy hub every five minutes
+  and drop any task a running agent had claimed. `ensure` starts only what
+  is not alive.
+- **The launcher is `lib/agent-hub/hub-launch.js`, not the shell script,
+  and that was measured, not assumed.** The first version pointed the
+  LaunchAgent at `agent-hub.sh` and died with **exit 126**,
+  `Operation not permitted` — with a `WorkingDirectory` and without one.
+  launchd on Sequoia grants filesystem access **per binary**, and
+  `/bin/bash` is not granted `~/Documents`; `node` is (the sprint-0.27
+  finding that made `lib/serve.js` replace `python3 -m http.server`). The
+  shim in `~/Library/LaunchAgents` now resolves node and execs it, exactly
+  like the watcher launchers; `agent-hub.sh ensure` just `exec`s the node
+  launcher, so there is one implementation, not two.
+- **`ensure({root, spawnFn, statusFn})` is injectable**, so the suite
+  drives the start decision with no process spawned and no pid file
+  touched. `lib/agent-hub/hub.test.js` **114 → 124**.
+
+**Verified end-to-end:**
+
+- Cold path: hub stopped → `launchctl kickstart -k` → the log shows all
+  four started (pids recorded), `pgrep` confirms an independent process
+  per agent, and they survive the job exiting (each is `setsid`-detached).
+- Warm path: a second tick logged `hub already running (…)` / `nothing to
+  start` — no restart, no dropped task.
+- A real round trip against the launchd-started fleet: ops received a
+  task, twin planned it, check verified `agents/TASKS.md → PASS`, ops
+  moved it to Done. `lib/agent-hub/pids/*.log` carries every hop.
+- The start-decision guard was proved to bite (returning every process
+  regardless of state turns 4 assertions red).
+
+**Open:**
+
+- **The task board misattributes a completion when two In Progress tasks
+  name the same subject.** Measured in the round trip: the lo-fi task's
+  check came back reporting `agents/TASKS.md`, and `completeTask`'s
+  containment match moved the *older* low-tide task to Done. The board is
+  the human view of what the fleet did, so a wrong row is a wrong record.
+  The fix is to complete against the task the plan was **for** (ops
+  dispatches one at a time), not the first In-progress text that matches;
+  not done here because it changes board semantics and the hub suite pins
+  the current matching rule.
+- **A reel's product slug still comes from its title** (the POST sheet the
+  reel-watcher writes), while its id comes from the file basename. Two of
+  the 92 products disagree between a fresh pass and the registry
+  (`frost-window-kettle-steam`, `frost-window-pane-fern`); the registry
+  keeps the first-computed slug so nothing drifts on a normal run, but a
+  rebuilt registry would recreate them — and the ~30 other reels whose
+  slugs already came from a title would be duplicated rather than updated.
+  That is a storefront migration, not a code change.
+- The `marketplace-hourly` LaunchAgent is still loaded and ticks hourly
+  with `no slot … nothing to do` now that its eleven-slot burst finished.
+  Harmless, but it is a loaded gun for the next `--init`; booting it out
+  is a service-state call for the user.
+- Unchanged: woody-shaw chart variants; the `.kai/` durability call; the
+  Vercel custom domain; the per-frame motion and CLI `--durations` items
+  from sprint 0.58.
