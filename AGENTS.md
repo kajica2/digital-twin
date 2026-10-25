@@ -9378,3 +9378,103 @@ then concat its reverse. Applied to all four clips: seam difference
 - The clips are 15 s and share one bed, so they cut together as four shots of
   one video. Concatenating them into a 60 s sequence is a one-command
   follow-up (`ffmpeg -f concat`) if that is the artefact wanted.
+
+### 2026-10-25 — sprint 0.60 (Treblo: the create page's settings, three packs, and where an API song does not live)
+
+Thread: the user's five wind-led prompts, refined twice (avant-garde →
+Kai Djuric house → Coltrane breeds), with the instruction to generate them
+"using these settings" from `treblo.com/create` and to have them appear in
+`treblo.com/editor/6c3b2a73-…`.
+
+**The settings, and the trap in them.** The create page exposes **Model
+Version `v3-preview`** and **Prompt Strength `2.57`**, and no style
+scale. The docs make exactly one of `prompt_strength` / `style_scale`
+able to exceed 1.0, and `style_scale` defaults to **2.3** — so a body
+carrying only `prompt_strength: 2.57` is invalid and would be rejected.
+`resolveStrengths()` now resolves the pair (2.57, **1.0**) once, before
+any submission, clamps to the documented ranges and says on stderr what
+it changed. The model needs no parameter: the model *is* the endpoint
+(`/generations/v3` reports `v3-preview`).
+
+New CLI flags for the rest of the documented surface:
+`--prompt-strength`, `--style-scale`, `--length-range` (multiples of 30,
+min 0–270, max 30–300), `--output-format` (mp3|flac|wav|ogg|m4a — it
+also decides the local extension, so a file never claims a container it
+is not), `--output-bit-rate` (128/192/256/320, mp3+m4a only),
+`--negative-tags`, and `--credits` (`GET /credits/balance`: subscription
++ pay-as-you-go). Suite **39 → 47**, including a check that the request
+body carries `prompt_strength: 2.57` with `style_scale: 1` and no tags or
+lyrics.
+
+**Three packs, five concepts, three idioms:**
+
+| pack | idiom | result |
+|---|---|---|
+| `wind-led-jazz-5.md` | the originals, 95–118 BPM | **5/5**, 139 s / 237 s / 222 s / 189 s / 222 s |
+| `kai-djuric-house-5.md` | deep 95, soulful 122, jackin' 124, deep 118, afro 112 | **5/5**, 104 s / 133 s / 184 s / 63 s / 123 s |
+| `coltrane-breed-5.md` | one Coltrane phase per track (*A Love Supreme*, *Olé/Africa-Brass*, *Impressions/Giant Steps*, *Psalm*, *Ascension/Interstellar Space*) | in flight at this entry |
+
+Every file ffprobe-checked (opus, 48 kHz stereo), every catalog written
+with task ids, every URL downloaded before its 168-hour expiry.
+
+**Where an API song does not live — verified, not assumed.**
+
+Asked directly whether API-generated songs appear under `/create`, the
+answer is **no**, and it is now measured rather than inferred:
+
+- The v1 API documents no library: generate / extend / reference /
+  inpaint, `/uploads`, `/generations/{id}`, `/status/{id}`,
+  `/credits/balance`, streaming. No project, playlist, visibility or
+  "add to library" parameter; the generation object carries no owner or
+  project field.
+- `/create` is fed by `treblo.com/api/v1/projects` and `/tracks` behind a
+  **Supabase JWT** — an API key sent as a bearer token answers
+  `401 {"code":"UNAUTHORIZED","message":"Invalid JWT structure"}`,
+  measured in a browser against the live app.
+- With the account's real session in a browser: **15 projects, a
+  100-track library, and zero tracks matching any of the API runs'
+  prompts.** The songs we generated are not in the app.
+- The API's own view of a song is transient: "songs may be deleted …
+  one week (168 hours) after they were generated".
+
+**So the way into `/create` is the app's own editor, and its endpoint is:**
+
+```
+POST https://p.treblo.com/generate/v3/create/<projectId>
+     Authorization: Bearer <Supabase session>          (the app adds it)
+     { prompt, tags, lyrics, instrumental, prompt_strength, style_scale,
+       length_range, negative_tags, stream_format, … }
+```
+
+Observed, not guessed: patching `fetch`/`XHR` in the editor and clicking
+Generate captured that route and its body builder
+(`app.postGeneration(...)` in the bundle).
+
+**What that attempt cost, and why it stalled.** A scripted click created
+two tracks in the project `6c3b2a73…` ("test") — *Acknowledgement
+Ostinato* and *Underground River Prayer* — and **charged 200 credits**
+(1300 → 1100), because the automation closed the tab six seconds after
+the click. Both tracks then sat at `GENERATING_STREAMING_READY` with no
+`songPath` and no duration for 20+ minutes, watched with the tab open.
+The app's generation is a **streaming** flow: the client consumes the
+stream to finish the track. Closing the tab mid-generation is what froze
+them; the credit is still spent.
+
+Their stored settings are also worth knowing: `promptStrength: 2`,
+`styleStrength: 1` — the editor's own default, not the create page's
+2.57. So an in-app run and an API run of the same prompt are two
+different settings pairs unless the composer state is set explicitly.
+
+**Open — the one decision left:**
+
+- **Fill the project from the app, or keep the API masters?** The
+  in-app path costs **100 credits and 6–10 minutes per song**, needs one
+  editor tab kept open and streaming for the whole generation, and puts
+  the song in a project (and therefore under `/create`). The API path is
+  already done, is cheap to re-run, and yields files we own — but nothing
+  in the app. Both are viable; doing both doubles the spend for the same
+  music.
+- The two stuck tracks should be deleted (or left as a record); they hold
+  a project slot and no audio.
+- Unchanged: the hub board's completion misattribution; a reel's slug
+  still derives from its mutable POST-sheet title.
