@@ -81,6 +81,36 @@ Useful extras (all optional): `tags` (min 1 if you send it),
 > must be greater than 1.0. Raising `prompt_strength` above 1.0 means
 > dropping `style_scale` to 1.0. The client sends neither by default.
 
+### The web app's settings
+
+The create page (`https://treblo.com/create`) exposes a model and one
+strength slider, and a run has to reproduce them or the song is a
+different song:
+
+| app control | value | what the client sends |
+|---|---|---|
+| Model Version | `v3-preview` | nothing — the model is the endpoint (`/generations/v3`) |
+| Prompt Strength | `2.57` | `prompt_strength: 2.57` |
+| Style Scale | not shown | `style_scale: 1.0` — required, see below |
+
+`style_scale` is not cosmetic: its default is **2.3**, and the API
+rejects a body where both strengths are above 1.0, so
+`prompt_strength: 2.57` with the default left in place is an invalid
+request. `resolveStrengths()` therefore resolves the pair once, before
+any submission — it clamps to the documented ranges, drops
+`style_scale` to 1.0 when prompt strength is raised (and says so on
+stderr), and refuses values outside 1.0–4.0 / 1.0–12.0.
+
+```bash
+node lib/treblo.js --prompt-file assets/treblo-prompts/kai-djuric-house-5.md \
+  --out data/treblo/kai-djuric-house-5 --instrumental --prompt-strength 2.57
+```
+
+Other documented knobs the client now carries: `--style-scale`,
+`--length-range min,max`, `--output-format`, `--output-bit-rate`,
+`--negative-tags`, and `--credits` (prints
+`num_credits` / `num_credits_payg` from `GET /credits/balance`).
+
 ---
 
 ## The key
@@ -177,6 +207,44 @@ produced nothing. The client therefore always downloads, and a
 
 ---
 
+## Where a song lives afterwards — and why the app is not the API
+
+Asked directly: *will API-generated songs also appear under
+`treblo.com/create`?* The honest answer, from the docs and from probing
+the app, is **no — not by anything the API offers.**
+
+- **The API has no library.** v1 documents `/generations/{v3,v2}`,
+  `…/extend`, `…/reference`, `…/inpaint`, `/uploads`,
+  `/generations/{task_id}`, `/generations/status/{task_id}`,
+  `/credits/balance` and streaming. There is no project, playlist,
+  visibility, `is_public` or "add to library" parameter, and the
+  generation object it returns carries no owner or project field.
+- **The app's library is a different surface behind a different auth.**
+  `treblo.com/create` is fed by `treblo.com/api/v1/projects` and
+  `/api/v1/tracks` (and `/api/v1/developers/{account,history,usage}` for
+  the developer side). Those routes want a **Supabase JWT**: an API key
+  sent as a bearer token answers
+  `401 {"error":{"code":"UNAUTHORIZED","message":"Invalid JWT structure"}}`,
+  measured in a real browser against the live app.
+- **The API's own model of a song is transient.** The docs say songs
+  "may be deleted from our servers one week (168 hours) after they were
+  generated" and to download what you want to keep — which is why this
+  client downloads every file before the URL expires. A catalogue that
+  only held URLs would be a catalogue of dead links.
+
+So the way to have a song in `/create` is to create it **through the
+app** (its own session + endpoint), not through the API key. That is the
+same split as Suno (`lib/suno-run.js` drives the web app) versus a
+public API. Doing that here needs one thing this repo cannot synthesise:
+a logged-in session, captured once into `~/.treblo-cookies.txt`.
+
+**What is verified, and what is not.** Verified: the app's library is
+JWT-gated (the 401 above), the API key does not open it, and the API
+documents no library route. **Not** verified: whether the backend also
+mirrors API generations into the account's app-side tracks — that needs
+a logged-in session to check, and the jar in `~/.treblo-cookies.txt` is
+a stale login-flow artifact (`hasAuthI: false`, only PKCE verifiers).
+
 ## The five prompts
 
 `assets/treblo-prompts/kai-djuric-5.md` — five instrumentals:
@@ -188,6 +256,24 @@ produced nothing. The client therefore always downloads, and a
 5. Triumphant trumpet lead, gospel-inflected hard bop, layered horns.
 
 Five generations = **500 credits**.
+
+Two more packs came from the same five concepts:
+
+- `assets/treblo-prompts/wind-led-jazz-5.md` — the same five, in their
+  original avant-garde idiom (95–118 BPM).
+- `assets/treblo-prompts/kai-djuric-house-5.md` — the same five
+  translated into Kai Djuric house: deep 95, soulful 122, jackin' 124,
+  deep 118, afro 112 BPM. This is the pack the create-page settings
+  (`v3-preview`, prompt strength 2.57) were applied to.
+- `assets/treblo-prompts/coltrane-breed-5.md` — the house set again,
+  one Coltrane phase per track: *A Love Supreme* (a four-note
+  devotional motif recurring in every register), *Olé / Africa-Brass*
+  (modal two-chord vamp, minor-third cycling, upper-register cries),
+  *Impressions / Giant Steps* (arpeggiated cells in minor thirds, a
+  pedal-point vamp in the breakdown), *Psalm* (wordless speech-like
+  cornet phrasing in breath-length arcs), *Ascension / Interstellar
+  Space* (a free collective passage mid-track, then a
+  flute-and-percussion dialogue before the groove returns).
 
 ---
 
@@ -227,7 +313,7 @@ prompt → POST /generations/v3 → task_id → poll /generations/status
 ## Tests
 
 ```bash
-npm run test:treblo     # 39 checks, no network, no credentials
+npm run test:treblo     # 47 checks, no network, no credentials
 npm run e2e:treblo      # the page contract (Puppeteer)
 ```
 
