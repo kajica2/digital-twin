@@ -1,0 +1,39 @@
+{
+  "pack": "one-way-mirror",
+  "date": "2026-10-26",
+  "key": "2026-10-26",
+  "title": "One-Way Mirror",
+  "badge": "identity",
+  "teaser": "You can see out. They can see in.",
+  "aspect": "16:9",
+  "source": "midjourney",
+  "plates": [
+    {
+      "file": "frame-01.jpg",
+      "caption": "studio · pane",
+      "alt": "A one-way mirror in a dark studio reflecting a lit room behind the viewer, half the reflection is the room itself.",
+      "prompt": "a one-way mirror in a dark studio reflecting a lit room behind the viewer, half the reflection is the room itself, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "a7304740-59ea-4d79-b8ad-439f87ff8556",
+      "width": 1280,
+      "height": 717
+    },
+    {
+      "file": "frame-02.jpg",
+      "caption": "booth · light",
+      "alt": "A recording booth with the mic lit from above and the glass between two spaces, one chair empty.",
+      "prompt": "a recording booth with the microphone lit from above, glass between two spaces, one empty chair, small red indicator, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "72a3caf9-61d6-447d-a22e-bb4bbd4aef1a",
+      "width": 1280,
+      "height": 717
+    },
+    {
+      "file": "frame-03.jpg",
+      "caption": "screen · ghost",
+      "alt": "A face on a monitor seen through the darker side of a one-way pane, the room behind the glass almost black.",
+      "prompt": "a face on a monitor seen through the darker side of a one-way pane, the room behind the glass almost black, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "130cf0f5-9f63-43ae-8b76-5ced01e2f3fc",
+      "width": 1280,
+      "height": 717
+    }
+  ]
+}
