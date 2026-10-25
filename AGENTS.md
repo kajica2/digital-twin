@@ -8730,3 +8730,131 @@ did not have, found by trying to prove the check worked.
 clean bill of health); decide on the history rewrite; GitHub's own secret
 scanning does not recognise Clerk/Netscape cookie shapes, so it will not
 warn about anything here.
+
+### 2026-10-25 — sprint 0.58 (stills → MP4 from the shell; three packs; two flag bugs)
+
+**A. `images → mp4` from the command line.**
+
+The repo could already turn stills into video, but only from the browser page
+or the metered API. The media sets that actually accumulate here (Flux packs,
+the plate families, a daily run) had no shell path.
+
+- **`bin/images-to-mp4.mjs`** — a CLI: a directory (or files) of stills → one
+  H.264 clip. `--mode kenburns|crossfade|cut`, `--motion zoom-in|zoom-out|
+  pan-left`, `--size <preset|WxH>`, `--each` / `--total`, `--fade`, `--loop`,
+  `--audio`, `--dry-run`, `--json`.
+- **It is a third caller, not a second renderer.** `lib/render/plan.mjs`
+  builds the graph, `lib/render/server.mjs` runs ffmpeg, and the new
+  `lib/render/sets.mjs` answers the Node-side questions (which files, what
+  order, what size, how long). `docs/MEDIA-TOOLCHAIN.md` rule 3 says one plan
+  and two executors; this makes the CLI the third *caller*. An earlier
+  standalone `lib/images-to-mp4.js` (own graph builder) was built in this
+  sprint and then deleted — two graphs drift, and the browser test would not
+  guard the shell one.
+- **`plan.mjs` now tags colour instead of leaving it to be guessed.** The
+  chain already converted to limited range (`out_range=tv`), but the stream
+  carried no tag, so players disagreed: measured on the same graph, a JPEG
+  source came out `color_range=tv` (JFIF carries the hint) and a PNG source
+  came out `unknown`. Encoder tags added: `-colorspace bt709
+  -color_primaries bt709 -color_trc bt709 -color_range tv`. `-color_range`
+  alone did nothing; `setparams=range=tv` in the graph did nothing either.
+- **`server.mjs`**: `imagePaths` (absolute, in place) XOR `images` (buffers),
+  per-render mtime guard ("render did not rewrite …"), `-y` (rendering twice
+  used to keep the first file), `withAudio()` for the audio mux.
+- `npm run images:mp4`, `npm run test:images-mp4`; `data/mp4/` gitignored;
+  `docs/IMAGES-TO-MP4.md`; README section; `docs/MEDIA-TOOLCHAIN.md` layout +
+  third-caller note.
+
+Four failure modes are encoded in that doc because each produced a *wrong
+file rather than an error*: `scale`/`crop` take `w:h` while `zoompan`'s `s=`
+takes `WxH`; limited range must be both converted and tagged; `xfade` offsets
+accumulate as `sum(segments[0..i-1]) − i × fade`; and a looped set must echo
+its per-image durations (expanding names without them fell back to the uniform
+value and rendered 11 s instead of 5.4 s).
+
+**B. `e2e/media-set.spec.mjs` part A was testing a page that no longer
+exists.** It uploaded, then read `#imageGrid .image-thumb`, clicked
+`#generateBtn`, read `#outputVideo`. The page is now a batch tool: it groups
+an upload into `[data-batch]` cards, renders per batch, and shows the result
+in `#batchResult0`. So `#imageGrid` was always empty and the button never
+enabled — reported as "0/2 thumbnails" and "render failed" with **zero page
+errors**, which reads exactly like a broken page.
+
+The page was probed live before the spec was touched: 2 batches, 2 strip
+thumbnails, per-batch render → success, 808×1080 MOV, blob URL. Then the spec
+was pointed at the real contract, polling for the async grouping instead of
+reading the DOM the instant the input fires. **ALL CHECKS PASSED**, 34 s (down
+from 606 s, all of it the render having never started).
+
+**C. Midjourney — "Named, Not Owned" packs + two flag-ownership bugs.**
+
+- **Three packs** in `assets/mural-prompts/`: `named-not-owned-anchors.md` (6),
+  `-rooms-a.md` (7), `-rooms-b.md` (8) — the administrative-photography set,
+  every bullet ending in the run suffix
+  (`35mm film still, fine grain, muted palette, no text --ar 16:9 --raw
+  --profile brvazka … --stylize 21`). The grade is the `--profile`; there is
+  no anchor-pick step and no `--sref`.
+- **`--ar 1.85:1` is refused by this account, silently.** Measured live
+  (2026-10-25, empty queue): `--ar 1.85:1` → the composer logs the text and
+  never asks for a submission; `--ar 16:9` → job accepted. `--v 7` is
+  accepted (`v7_raw_diffusion`). `--ar 185:100` produced "no matching job in
+  the feed" — not reproduced, treated as unproven. The packs use 16:9 and the
+  cinematic framing lives in the composition, not the flag.
+- **`--stylize` was not recognised as `--s`.** The guard that stops the
+  config's `--s 21` being appended after a prompt's own stylization only knew
+  the short spelling, so a pack authored with `--stylize 50` composed to
+  `… --stylize 50 … --s 21` — one parameter, two values, last one wins. The
+  guard now matches `(--s|--stylize)`, flag-only (a bare `--stylize` owns the
+  slot too).
+- **`--raw` in the config would duplicate a prompt's own `--raw`.** The
+  defaults filter dropped `--style` when the prompt owned style, but not
+  `--raw` — the same switch. Fixed before the config ever carried it.
+- +7 assertions (`test:mj-submitter` 106).
+
+**Decisions**
+
+- **One plan, three callers.** Deleting the first attempt cost an hour and
+  bought the property the toolchain doc exists for: a clip rendered from the
+  shell and a clip rendered in the browser are the same graph.
+- **Tag colour explicitly, at the encoder.** "It looks slightly washed out"
+  is not a bug report you can act on; an untagged stream is, and the fix is
+  four flags.
+- **Fix the spec, not the page — after proving which is wrong.** The page
+  worked; the spec's selectors predated a redesign. Probing the page first is
+  what made that call safe.
+- **The refusal classifier's own hint list was the fastest diagnostic.** It
+  names the parameters v8 rejects; the ratio was the one nobody suspected.
+
+**Verified**
+
+- `npm run test:images-mp4` — 69 assertions, 0 failures (real renders: dims,
+  pix_fmt, `color_range=tv`, `color_space=bt709`, fps, plan duration
+  `1.5 s` not the uniform fallback, overwrite, looped length, missing-path
+  refusal, buffers-XOR-paths).
+- `npm run e2e:media` — **ALL CHECKS PASSED** (A1–A8 local set, B1–B16
+  server set incl. credits, 402 without credits, 403 cross-user).
+- `npm run test:all` — green (the last suite in the chain is
+  `test:images-mp4`, so reaching it means everything before it passed).
+- Four real clips: System Error 10 → 1920×1080, 25.0 s, 5.8 MB; Covers 12 →
+  1080×1080, 11.4 s, 2.8 MB; Two A.M. 30 → 1920×1080, 29.6 s, 20.5 MB;
+  System Error `--loop` 18 frames → 1080×1920, 28.8 s, 6.8 MB. All
+  `yuv420p / tv / bt709`.
+- 21 pack prompts compose with exactly one `--ar 16:9`, one `--raw`, one
+  `--profile`, one `--stylize`, zero `--style`. `npm run prompt:check` 0
+  violations.
+
+**Open**
+
+- **Nothing from the three packs has been submitted.** The first anchor
+  submission was stopped mid-run at the user's request, so no task ids exist
+  for this set yet. `node lib/mj-web.js --prompt-file
+  assets/mural-prompts/named-not-owned-rooms-a.md --output
+  mj-output/named-not-owned/rooms` is the command, and the profile suffix is
+  the only thing that needs to be right.
+- The CLI applies one motion to a whole set (`--motion`); alternating push-in
+  and pan per frame belongs in `plan.mjs` where both executors get it.
+- Per-image hold durations exist in the plan (`durations`) but are not exposed
+  on the CLI.
+- `no text` in the suffix dissolves the signage the pack is partly about
+  (redacted posters, the eligibility stamps, the price list). The packs say
+  so; a per-bullet override is the fix if those frames matter.
