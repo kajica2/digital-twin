@@ -164,8 +164,30 @@ Flags:
 | `--limit <n>` | only the first n prompts |
 | `--no-download` | do not fetch the audio (the URLs expire — do not) |
 | `--adopt <taskId>` | finish a task that is already running (repeatable) — no new submission, no new credits |
+| `--force` | write into an `--out` that already holds tracks (see below) |
 | `--dry-run` | print the plan and the credit cost, spend nothing |
 | `--json` | machine-readable output |
+
+### A second run into the same `--out` is refused
+
+Audio lands as `NN-<slug>.<ext>`, where the slug comes from the prompt. So a
+second run into the same `--out` does **not** overwrite: two prompts that
+share an index but not a slug leave two files called `02-…`, and whichever
+run finishes last rewrites `catalog.json` — the earlier track is orphaned
+and its task id is lost.
+
+That happened for real on 2026-10-25: a bad extraction truncated one prompt,
+the run went into the pack's own directory, and 100 credits bought a track
+whose record was then overwritten. The guard is now checked **before** the
+submission (a guard that fires after the credits are spent is a receipt, not
+a guard) and exits 2 naming the files it found:
+
+```
+data/treblo/coltrane-breed-5 already holds 5 track(s):
+  01-hypnotic-bass-clarinet-meditation-a-love-supreme.ogg
+  …
+use a new --out, or --force to write here anyway.
+```
 
 ### What a run writes
 

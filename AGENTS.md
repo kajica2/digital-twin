@@ -9488,3 +9488,99 @@ different settings pairs unless the composer state is set explicitly.
   a project slot and no audio.
 - Unchanged: the hub board's completion misattribution; a reel's slug
   still derives from its mutable POST-sheet title.
+
+### 2026-10-25 — sprint 0.60.b (the 32-second fragment, actually recovered)
+
+Sprint 0.60 committed the *detection* (`ff1d484`: probe every download,
+flag `MIN_PLAUSIBLE_SECONDS = 60`). This is the recovery, plus the guard
+that the recovery itself needed.
+
+**The fragment.** `coltrane-breed-5` track 2 was **32.004 s / 410 KB**
+against 205 / 248 / 174 / 147 s for its siblings, and the API had
+reported `SUCCESS`. Re-generated from the same pack line at the same
+settings (`--prompt-strength 2.57 --style-scale 1`):
+
+| | before | after |
+|---|---|---|
+| task id | `685f245e` | **`f00fe096-4ff8-48c4-8648-42564236c3c0`** |
+| duration | 32.0 s | **285 s** |
+| bytes | 410,343 | **3,848,093** |
+| guard | — | silent (285 ≥ 60) |
+
+262 s wall, 100 credits. The remaining four were never suspect but were
+**re-probed through `ffprobe`** so `catalog.json` now carries a measured
+`durationSec` and `bytes` on every entry instead of only what the API
+claimed.
+
+**The catalog records what was replaced, not just the winner.** Entry 2
+keeps the old take under `superseded`
+(`taskId`, `durationSec: 32`, `bytes`, `songPaths`) with
+`regeneratedBecause` / `regeneratedAt` beside it, so the record shows the
+delta rather than silently becoming a different song.
+
+**A 100-credit mistake, made and kept.** The first regeneration attempt
+extracted its single prompt with a guessed `sed` substitution that
+stripped the title prefix, so it submitted *different* prose. It landed in
+the pack's own directory as `02-soaring-soprano-saxophone-melodies-…ogg`
+(242 s, a real song, a real credit), and its `catalog.json` write then
+orphaned the take that was already there. That park of the mistake is
+`coltrane-breed-5/alt/`, listed under `alternates` in the catalog with the
+reason — deleted would have hidden it. Credits went 800 → 600 across the
+two runs.
+
+**The guard that would have prevented it — `preflightOutDir()`.**
+
+`NN-<slug>` means a second run into the same `--out` cannot overwrite:
+two prompts sharing an index but not a slug leave **two** files called
+`02-…`, and the later `catalog.json` orphans the earlier track. On a
+100-credit-a-press CLI that is an expensive default. The check now runs
+**before** the client is constructed:
+
+```
+data/treblo/coltrane-breed-5 already holds 5 track(s):
+  01-hypnotic-bass-clarinet-meditation-a-love-supreme.ogg
+  …
+use a new --out, or --force to write here anyway.
+```
+
+Exit 2, nothing spent. `--force` overrides. `existingTracks()` and
+`preflightOutDir()` are pure and exported, so the refusal is testable
+without a browser or a credit.
+
+**First draft of that test was unsafe, and that is the finding.** It
+called `main()` with an empty `--out`, which meant the guard did not fire
+and the run went to the real network — it hung until it was killed. A test
+that proves a "spend nothing" guard must not itself be able to spend.
+Extracted to the pure function instead, and the *wiring* was proved by
+running the CLI by hand against the populated directory (exit 2, message
+naming all five files, credits unchanged) rather than by a mutation that
+would have needed 100 credits to observe.
+
+**Verified:**
+
+- `node lib/treblo.test.js` — **52/52** (was 50): the refusal names the
+  files and says "nothing was spent", `--force` and a clean `--out` pass,
+  non-audio files in the directory are not tracks.
+- Both new guards proved to bite: `existingTracks` returning `[]` → 2
+  red; `preflightOutDir` ignoring `--force` → 1 red. Restored → 52/52.
+- CLI smoke against the populated pack dir → exit 2, no generation, credit
+  balance unchanged.
+- `ffprobe` on all five: 205 / **285** / 248 / 174 / 147 s, opus 48 kHz
+  stereo.
+- `docs/TREBLO.md` gained `--force` and a section on why a second run is
+  refused.
+
+**Open:**
+
+- The recovery is a **raise of prompt strength**, not a fix: the same
+  prompt at the same settings produced a song once and a fragment once.
+  Nothing about the request changed, so 1-in-2 for this pack line is the
+  observed rate and the guard (detect, flag, re-run by hand) is the right
+  shape rather than an auto-retry that would spend silently.
+- `data/treblo/` is gitignored, so this catalogue is local-only; the
+  committed artefacts are the guard and this entry.
+- `parseArgs` still ignores an **unknown flag** silently — the same class
+  sprint 0.56 fixed for `marketplace-hourly` after `--help` started a paid
+  render. Not fixed here; it wants its own change.
+- Unchanged: the hub board's completion misattribution; a reel's slug
+  still derives from its mutable POST-sheet title.
