@@ -218,6 +218,42 @@ PATCH /bundles/<external id>/content      products[][product_id]=<external id> �
   storefront. A bundle missing members sells a discount on a catalogue
   that is not there.
 
+## Publishing — drafts are invisible
+
+Writing a product is not showing it. The public storefront
+(`https://kaidjuric.gumroad.com`) renders **published** products only, so a
+catalogue of correct drafts shows the seller's name and nothing else — the
+state the store was in until 2026-10-25, with 82 products on the account
+and an empty shop page.
+
+Three things had to line up, and only two of them are code:
+
+1. **The publish step existed and was never called.** `GumroadClient.publish()`
+   was dead code: `sync` created and updated, and `publish: true` on a plan
+   product changed nothing. `sync` now publishes what the plan marks, and
+   `node lib/gumroad.js publish` publishes on demand:
+
+   ```bash
+   node lib/gumroad.js publish                 # what would be published
+   node lib/gumroad.js publish --apply --all    # the whole catalogue
+   node lib/gumroad.js publish --apply --only pylon-line-plate
+   ```
+
+   `--all` and `--only` are the operator naming what to publish, so they win
+   over the plan's per-product `publish` flag; without either, only a marked
+   product is touched.
+
+2. **The account refuses to publish until a payout method is set.** `check`
+   reports `publishing blocked (no_payout_method)`, and both entry points say
+   so instead of attempting and failing: `publishTargets()` returns the
+   products, the block reason, and how many are waiting — nothing is
+   attempted against a blocked account. Set the payout method at
+   `https://gumroad.com/settings/payments`, then run the command above.
+
+3. **The plan has to mark the product.** Every package is written with
+   `publish: false` (`posting.autoPublish` is off for the same reason), so
+   publishing is a deliberate edit, not a side effect of a nightly sync.
+
 ## Covers and files
 
 - A cover is a **thumbnail**, not a product file: `POST /links/<permalink>/thumbnails`
@@ -270,7 +306,7 @@ It exits non-zero on any mismatch, so it is usable as a gate.
 | `lib/gumroad.js` | planner, transport, sync, duplicate route, verifier |
 | `lib/gumroad-cover.js` | square-cover preparation (ffmpeg) |
 | `lib/gumroad-login.js` | mints the session cookie jar |
-| `lib/gumroad.test.js` | 173 assertions, mocked fetch, no network |
+| `lib/gumroad.test.js` | 189 assertions, mocked fetch, no network |
 | `docs/SOCIAL-ENGINE.md` | the engine that computes the price plan |
 
 ## Open
@@ -283,8 +319,10 @@ It exits non-zero on any mismatch, so it is usable as a gate.
 - `verify` compares the formatted price's symbol, not the exact money
   format, and derives the currency from the seller's display currency
   rather than a product field (the edit page has none).
-- Products are drafts. Publishing needs a payout method on the account
-  first.
+- Products are drafts until published, and publishing needs a payout method
+  on the account first. The step is wired (`sync` publishes what the plan
+  marks; `publish --apply --all` does the catalogue) and reports the block
+  rather than failing silently.
 - ~~The daily pipeline can still emit two packages with the same caption
   (and therefore the same slug); the planner skips the second one.~~
   **Resolved 2026-10-25:** the plan disambiguates a repeated name by its
