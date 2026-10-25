@@ -9412,10 +9412,20 @@ lyrics.
 |---|---|---|
 | `wind-led-jazz-5.md` | the originals, 95–118 BPM | **5/5**, 139 s / 237 s / 222 s / 189 s / 222 s |
 | `kai-djuric-house-5.md` | deep 95, soulful 122, jackin' 124, deep 118, afro 112 | **5/5**, 104 s / 133 s / 184 s / 63 s / 123 s |
-| `coltrane-breed-5.md` | one Coltrane phase per track (*A Love Supreme*, *Olé/Africa-Brass*, *Impressions/Giant Steps*, *Psalm*, *Ascension/Interstellar Space*) | in flight at this entry |
+| `coltrane-breed-5.md` | one Coltrane phase per track (*A Love Supreme*, *Olé/Africa-Brass*, *Impressions/Giant Steps*, *Psalm*, *Ascension/Interstellar Space*) | **5/5**, 204.7 / 242.3 / 248.2 / 174.3 / 146.5 s |
 
 Every file ffprobe-checked (opus, 48 kHz stereo), every catalog written
 with task ids, every URL downloaded before its 168-hour expiry.
+
+**A SUCCESS generation is not a song — one came back 32 seconds long.**
+`coltrane-breed-5` prompt 2 finished with `status: SUCCESS` and a
+410 KB file: **32.0 s**, a fragment. Nothing in the response says so, so
+the client now probes every download (`ffprobe`), records `durationSec`
+in the catalogue, and flags anything under **60 s** as
+`shortTrack: true` with a stderr line (`! 02-….ogg is only 32s — the API
+said SUCCESS, but that is a fragment, not a song`). The prompt was
+re-generated (242.3 s) and spliced in, with the catalogue recording
+`regeneratedAt` / `regeneratedFrom`. Suite 47 → **50**.
 
 **Where an API song does not live — verified, not assumed.**
 
