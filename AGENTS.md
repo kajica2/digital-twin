@@ -9137,3 +9137,103 @@ which is why `lib/serve.js` and every watcher already run this way
 - The boot opens a **new tab on every login**; it does not dedupe an
   already-open Twin OS tab. Deliberate for now (a stale tab may predate
   the pull), but it accumulates.
+
+### 2026-10-25 — sprint 0.60 (ten reference-sheet presets, and the whitelist that billed twice)
+
+Brief: *"using this as sample [job `b39e9031`] run character reference sheet"*,
+followed by ten numbered sheet recipes (sci-fi bounty hunter, elf ranger,
+cyberpunk samurai, necromancer, steampunk chibi, post-apoc survivor, mecha
+pilot, victorian detective, magical girl, knight). Each recipe carries its
+own engine (`--v 6.1` / `--niji 6`), its own `--ar`, and its own style
+language, so the ten are the preset comparison the previous brief asked for.
+
+**The run found a bug that cost half of it.**
+
+`lib/mj-feed.js` classified a plain generation against a **hardcoded
+whitelist** of `job_type` strings. `v6-1_raw_diffusion` and
+`v6_raw_diffusion_anime` were not in it, so every v6.1 and every Niji job
+was rejected as "not a plain generation" — *after* Midjourney had accepted
+and billed for it. The matcher then reported "no matching job in the feed"
+and `lib/mj-web.js` **re-submitted**. Measured: **18 generations for 10
+prompts** (8 duplicated) and **zero metadata written**, so not even the job
+ids were recoverable from the run.
+
+Every submission was accepted on the first press (`v6-1_raw_diffusion`,
+`v6_raw_diffusion_anime`) — the acceptance *mechanism* was fine; only the
+recognition of MJ's own job-type vocabulary was wrong. A whitelist of
+someone else's vocabulary always lags, and this one had already been wrong
+once for `v8-2_hd_diffusion`.
+
+**Shipped:**
+
+- **`lib/mj-feed.js` — `isPlainJob` is structural.** A plain generation is
+  a `…diffusion` job with none of `NOT_PLAIN_MODIFIERS` (`vid_`, `video`,
+  `edit`, `inpaint`, `variation`, `upsample`, `blend`, `remix`, `draft`) in
+  its name. `draft` and `video` had to be **named** rather than left to the
+  whitelist's omission — under the new rule a draft
+  (`v8-2_draft_bs24_diffusion`) would otherwise have counted as a full
+  still. `PLAIN_JOB_TYPES` is gone, not demoted.
+- **`lib/mj-web.js` — a known job id is authoritative.** A successful
+  submission already returns the job id, so `awaitJobById()` waits for that
+  id and verifies its flags; the run no longer re-submits on a matcher miss,
+  because a generation that exists has already been paid for. A feed that
+  disagrees with the accepted id is now a reported failure, not another
+  generation.
+- **Tests:** `lib/mj-feed.test.js` 54 → **62** (v6.1, Niji, an unseen future
+  version, draft, video, a non-diffusion type, a v6.1 edit);
+  `lib/mj-web.test.js` 72 → **78** (`awaitJobById` returns the known job,
+  rejects a drifted ratio, returns null when absent, and **never** submits —
+  asserted by checking that no `Input.insertText` was sent). Both suites
+  proved to bite: restoring the whitelist turns 4 feed assertions red, and
+  the drifted/absent cases fail if the flag check is dropped.
+
+**The run, after the fix (prompts 9 and 10, which the broken run never
+reached):** both matched on the **first** submission, 4 images each, no
+duplicates. That is the fix, verified live against the same account that
+produced the bug.
+
+**The ten sheets, read cell by cell** (artifacts in `mj-output/character-sheets-10/`,
+gitignored: `NN/cell-0..3.webp`, `manifest.json`, two contact sheets):
+
+| # | preset | engine | verdict |
+|---|---|---|---|
+| 01 | sci-fi bounty hunter | v6.1 raw, 16:9 | **best realistic sheet** — 5–6 full-body turnarounds per cell, one consistent armor design |
+| 02 | elf ranger | v6.1, 3:2 | painterly and atmospheric; only 3 poses, figures merge into the cloak |
+| 03 | cyberpunk samurai | niji 6, 16:9 | **best overall** in cell 1 — 5 turnarounds + 5 expression heads + katanas on white |
+| 04 | necromancer | v6.1, 16:9 | **fails as a character sheet** — every figure hooded, no face to lock |
+| 05 | steampunk chibi | niji 6, 3:2 | best sticker sheet; cell 3 adds props (key, gears, clockwork robot) |
+| 06 | post-apoc survivor | v6.1 raw, 16:9 | 3 near-identical weapon-drawn stances, almost no pose variety |
+| 07 | mecha pilot | niji 6, 16:9 | **textbook** — front/side/back + helmet-on/off heads on a white grid |
+| 08 | victorian detective | v6.1, 3:2 | 6 poses, but small sepia figures, mostly silhouettes |
+| 09 | magical girl | niji 6, 16:9 | clean pastel turnaround; figure small in the upper row |
+| 10 | knight | v6.1 raw, 16:9 | **drifts off-brief** — swords and a shield replace the poses |
+
+- **Niji 6 wins on sheet layout** (expression heads, grid ground, turnaround
+  discipline). **v6.1 `--style raw` wins on rendering** (the bounty hunter).
+  v6.1 *without* `raw` produced the atmospheric-but-unusable sheets.
+- **`--style raw` is valid on v6.1 and on Niji 6.** The repo's note that
+  "`--style` is refused" is a **v8** fact only; ten for ten were accepted
+  here with it. Both `--v 6.1` and `--niji 6` render fine on this account.
+- The prompt clauses that actually produce a sheet are
+  `full body turnaround` + `multiple poses, front, side, back` +
+  `character design sheet layout with expression heads` + a plain
+  background. The recipes that omitted "expression heads" produced
+  turnarounds only, and the one that said "props" produced props.
+
+**Open:**
+
+- **The identity mechanism was never tested.** That was the previous
+  brief's question (which of `--cref`/`--cw`, `--oref`/`--ow`, `--edit`
+  holds a character still), and it was superseded before it ran. The
+  sample job cannot answer it either: its three `--edit` refs are **two
+  selfies of the account owner and a window frame** (2268×3024, 2268×3024,
+  2544×1904) — there is no female character in it to lock.
+- **To get consistency, the next run needs one character photo** and a
+  fixed scene with the mechanism as the only variable: `--cref <url> --cw N`
+  on v6.1 / Niji 6 (where it is the supported feature), `--oref <url> --ow N`
+  on v7 / v8.2, versus the `--edit` route the sample uses. `mj-web` already
+  exposes `--cref-url/--cw`, `--oref-url`, `--sref-url/--sw`.
+- The sheet pack is a work product in `mj-output/`; it was not added to
+  `assets/mural-prompts/` because the recipes are the user's, not the
+  repo's house style, and putting account-specific engine choices in the
+  tracked library would make them look canonical.
