@@ -9321,3 +9321,60 @@ names repeat across days; they now carry their bundle key
   exists.
 - Unchanged: the hub board's completion misattribution; a reel's slug still
   derives from its mutable POST-sheet title; the standing backlog.
+
+### 2026-10-25 — sprint 0.61 (four music videos, one scene, four cameras)
+
+Brief: *"create 4 music video from [job `369c3a34`]?index=2 — vary camera angle
+with each"*.
+
+**The source** is a v8.2 **edit** job (2944×1648): a lone figure in a red coat
+in an empty concrete underpass, `--profile 5s2lvkr aeq4jzq --stylize 0 --hd
+--v 8.2 --ar 16:9`, three `--edit` refs. So the mechanism was `mj-revise`,
+which inherits all of that from the source record rather than from a
+hand-typed flag string — the angle clause is the only variable.
+
+**Shipped:** four prompts (angle clause **leading**, so each is distinct in the
+first 64 characters — the sprint-0.32 matcher rule), four edit jobs accepted
+first try, all cells at 2048px, then four 1920×1080 H.264 + AAC clips:
+
+| # | angle asked | job | landed? |
+|---|---|---|---|
+| 01 | overhead crane shot straight down, bird's eye | `8aca6f16` | **no** — a high wide with a strong corridor perspective; not a plan view |
+| 02 | dutch tilt, camera rolled 30 degrees | `1cb98385` | **yes** — the roll is in the geometry of all four cells |
+| 03 | low angle from the wet floor looking up | `bace6ed1` | **no** — reads as a medium at eye level; the reference framing won |
+| 04 | very wide, whole tunnel, figure small | `58d6f912` | **yes** — distance lands when stated as *what is visible*, not as a focal length |
+
+That is the same edit-mode boundary sprints 0.53–0.55 measured: a **2-D
+transform of the frame** (`--roll`) and **how much room is visible** are
+steerable; the **camera's height relative to the subject** is not. The
+reference photo is a chest-height portrait, and it keeps winning that fight.
+
+**Deliverable:** `mj-output/red-coat-videos/` (gitignored) — the four MP4s
+plus `manifest.json` (angle, job id, chosen cell, motion, whether the angle
+landed), 15 s each, one shared music bed
+(`data/treblo/kai-djuric-5/02-smoky-muted-trumpet…`, first 15 s, faded).
+
+**`--loop` does not loop a single still, and the CLI hid that.**
+
+`bin/images-to-mp4.mjs --loop --total 15` on one image produced a single
+forward zoom (`zoompan z=min(1+0.2*on/450,1.2)`), so the clip cut back to the
+start on repeat: measured first-frame-vs-last-frame difference **24–55**,
+i.e. no loop at all. The cause is deliberate and documented in the *code* —
+`loopOrder()` returns the list unchanged for fewer than three images
+("cannot ping-pong without showing one twice") — but the CLI help promised
+"so the clip repeats without a seam" with no condition attached.
+
+Fixed the docs, not the code: the help and `docs/IMAGES-TO-MP4.md` now say
+**3+ stills**, and give the single-still recipe — render half the length,
+then concat its reverse. Applied to all four clips: seam difference
+**1.3–2.5** against motion of **25–55**, i.e. a real seamless ping-pong.
+
+**Open:**
+
+- The two missed angles need a **different attachment**, not a different
+  sentence: a floor-level reference, or `--oref` on v7/v8 with the subject
+  cropped to full body. Rewording was tried seven times across sprints
+  0.54–0.55 and the pattern is now clear enough to predict.
+- The clips are 15 s and share one bed, so they cut together as four shots of
+  one video. Concatenating them into a 60 s sequence is a one-command
+  follow-up (`ffmpeg -f concat`) if that is the artefact wanted.

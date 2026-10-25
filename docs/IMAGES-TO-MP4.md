@@ -48,7 +48,7 @@ reporter, and why it is `bin/…mjs` rather than a second `lib/*.js` renderer.
 | `--total <s>` | — | total clip length; wins over `--each`, and accounts for the fades it will subtract |
 | `--fade <s>` | `0.6` | dissolve length, `crossfade` only; clamped to half the shortest segment |
 | `--audio <file>` | — | muxed and re-encoded (`aac`), video cut to it (`-shortest`) |
-| `--loop` | off | ping-pong the set (`a,b,c,b`) so the clip repeats without a visible seam |
+| `--loop` | off | ping-pong the set (`a,b,c,b`) so the clip repeats without a visible seam. **Needs 3+ stills** — fewer cannot ping-pong without showing one twice, so a one-image set is left alone. For a single-still seamless loop, ping-pong the *motion*: render half the length, then `concat` it with its reverse |
 | `--dry-run` | | print the ffmpeg command, run nothing |
 | `--json` | | the whole plan as JSON: graph, argv, durations, image list |
 

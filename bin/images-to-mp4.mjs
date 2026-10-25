@@ -19,7 +19,11 @@
  *   --total <seconds>   total clip length; wins over --each
  *   --fade <seconds>    dissolve length, crossfade only       (default 0.6)
  *   --motion <m>        kenburns only: zoom-in | zoom-out | pan-left
- *   --loop              ping-pong the set so the clip repeats without a seam
+ *   --loop              ping-pong the set (a,b,c,b) so the clip repeats without
+ *                       a seam. Needs 3+ stills: fewer cannot ping-pong without
+ *                       showing one twice, so ONE STILL IS LEFT ALONE — for a
+ *                       single-still seamless loop, ping-pong the motion (render
+ *                       half the length, then concat its reverse).
  *   --audio <file>      mux a track and cut the video to it
  *   --dry-run           print the ffmpeg command, run nothing
  *   --json              machine-readable plan
@@ -79,7 +83,8 @@ options
   --total <seconds>   total clip length; wins over --each
   --fade <seconds>    dissolve length, crossfade only (default ${DEFAULTS.fade})
   --motion <m>        kenburns motion: ${MOTIONS.join(' | ')} (default zoom-in)
-  --loop              ping-pong the set so the clip repeats without a seam
+  --loop              ping-pong the set (a,b,c,b) so the clip repeats without a
+                      seam; needs 3+ stills — one still is left alone
   --audio <file>      mux a track and cut the video to it
   --dry-run           print the ffmpeg command, run nothing
   --json              machine-readable plan
