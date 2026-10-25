@@ -27,6 +27,9 @@ bash lib/agent-hub/agent-cli.sh ops add "Write the liner notes in agents/TASKS.m
 # Read an agent's log
 bash lib/agent-hub/agent-hub.sh logs twin
 
+# Start what is down, leave what is up (what launchd calls)
+bash lib/agent-hub/agent-hub.sh ensure
+
 # Stop everything
 bash lib/agent-hub/agent-hub.sh stop
 ```
@@ -135,7 +138,8 @@ everything it touched. Each agent polls its own inbox.
 
 ```
 lib/agent-hub/
-├── agent-hub.sh          start / stop / status / logs
+├── agent-hub.sh          start / ensure / stop / status / logs
+├── hub-launch.js         the login entry point (launchd runs this)
 ├── agent-cli.sh          send a command to an agent
 ├── hub-coordinator.js    the monitor (read-only)
 ├── hub.test.js           the unit suite (plain node, no framework)

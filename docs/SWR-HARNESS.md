@@ -34,6 +34,29 @@ terminal. `status` is not proof of health — check with
 `pgrep -fl 'swr-ops|swr-twin|swr-check|hub-coordinator'`, the way the
 repo's launchd rule says.
 
+### Start on login
+
+The hub also comes up by itself. `com.kaidjuric.digital-twin.swr-hub`
+(`RunAtLoad`, plus a five-minute `StartInterval`) runs
+`lib/agent-hub/hub-launch.js ensure`, which starts only what is not
+running — `start` is a clean restart that would otherwise kill a healthy
+hub on every tick.
+
+```bash
+launchctl print gui/$UID/com.kaidjuric.digital-twin.swr-hub | grep -E 'runs|last exit'
+node lib/agent-hub/hub-launch.js status     # the same view, without launchd
+```
+
+Two launchd facts this had to work around, both measured:
+
+- **The job cannot exec a script under `$HOME`** (Sequoia, `Operation not
+  permitted`), so the entry point is a shim in `~/Library/LaunchAgents`
+  that resolves node — the same pattern as every watcher.
+- **`/bin/bash` is not granted `~/Documents`.** The first version called
+  `agent-hub.sh` from the shim and died with exit 126; node is granted
+  it, which is why the launcher is JS. `agent-hub.sh ensure` now just
+  `exec`s the node launcher, so there is one implementation.
+
 **Requirements:** Node. Nothing else. No `claude` CLI, no provider key,
 no network.
 

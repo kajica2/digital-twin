@@ -1,7 +1,7 @@
 #!/bin/bash
 # SWR Agent Hub — start / stop / status the three agents.
 #
-# Usage: ./agent-hub.sh {start|stop|status|list|restart|add <name>|logs <agent>}
+# Usage: ./agent-hub.sh {start|ensure|stop|status|list|restart|add <name>|logs <agent>}
 #
 # The three agents are SWR-Ops (orchestrator), SWR-Twin (voice) and
 # SWR-Check (verifier). They talk through per-agent inboxes — one file
@@ -233,12 +233,13 @@ tail_logs() {
 
 case "${1:-list}" in
     start) start_agents ;;
+    ensure) exec node "$HUB_DIR/hub-launch.js" ;;
     stop) stop_agents ;;
     list|status) list_agents ;;
     add) add_agent "$2" ;;
     logs) tail_logs "$2" ;;
     restart) stop_agents; sleep 1; start_agents ;;
     *)
-        echo "Usage: $0 {start|stop|list|status|restart|add <name>|logs <agent>}"
+        echo "Usage: $0 {start|ensure|stop|list|status|restart|add <name>|logs <agent>}"
         ;;
 esac
