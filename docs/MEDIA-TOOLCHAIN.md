@@ -69,6 +69,20 @@ The client exposes `loadFFmpeg()` (the raw ffmpeg.wasm instance), `probeImageSiz
 `planGeometry()` and `ensureToolchain()`. Every failure path ends in a
 `ToolchainUnavailableError` whose message names the exact command that fixes it.
 
+### Shell — the same plan, no browser and no credits
+
+For the repo's own image sets (a Flux pack, the plate families, a daily run):
+
+```bash
+node bin/images-to-mp4.mjs assets/marketplace/system-error --size 9:16 --loop
+```
+
+`bin/images-to-mp4.mjs` is a third caller of the same two pieces — it decides
+which files form the set (`lib/render/sets.mjs`) and hands them to the server
+executor; it owns no filter graph of its own. See
+[`docs/IMAGES-TO-MP4.md`](IMAGES-TO-MP4.md) for the flags and the measured
+numbers.
+
 ### Server set — node, system ffmpeg, metered
 
 The same render, executed by the system ffmpeg on the server, charged against a
@@ -127,6 +141,8 @@ Configuration (environment):
 ```
 lib/render/plan.mjs        the shared render plan (browser + node safe)
 lib/render/server.mjs      system-ffmpeg executor for the server set
+lib/render/sets.mjs        Node-side set questions: which files, size, timing
+bin/images-to-mp4.mjs      CLI: a directory of stills → MP4, same plan + executor
 lib/credits/store.mjs      sqlite credit ledger (users, ledger, jobs)
 lib/api/router.mjs         the /api endpoints
 pages/assets/ffmpeg-client.mjs  the one browser loader

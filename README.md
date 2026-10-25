@@ -785,6 +785,30 @@ Two behaviours worth knowing:
   Compressed `.mxl` files skip that check (they're ZIPs) and rely on a
   `--timeout` instead.
 
+### Images → MP4
+
+```bash
+npm run images:mp4 -- assets/marketplace/system-error              # ken burns, 16:9
+npm run images:mp4 -- assets/marketplace/covers --size 1:1 --mode crossfade
+npm run images:mp4 -- assets/flux2/two-am-infrastructure-30 --total 30
+npm run images:mp4 -- <dir> --mode cut --each 0.12 --loop          # flicker loop
+```
+
+A directory (or set of files) of stills becomes one H.264 clip. `--mode` is
+`kenburns` / `crossfade` / `cut`; `--loop` ping-pongs the set so the clip
+repeats without a seam; `--audio` muxes a track. Dimensions come from a preset
+(`16:9`, `9:16`, `1:1`, `4:5`, `4:3`, `21:9`) or `WxH`, floored to even.
+
+It is a **third caller of the one render plan** — `lib/render/plan.mjs` builds
+the filter graph, `lib/render/server.mjs` runs ffmpeg, and this CLI decides
+which files form the set. The browser page and the metered API call the same
+plan, so there is no second graph to keep in sync.
+
+Output is `yuv420p`, limited range, bt709-tagged and `+faststart`; renders land
+in `data/mp4/` (gitignored — the sets are tracked, the motion is rebuilt).
+See [`docs/IMAGES-TO-MP4.md`](docs/IMAGES-TO-MP4.md) and, for the wider
+toolchain, [`docs/MEDIA-TOOLCHAIN.md`](docs/MEDIA-TOOLCHAIN.md).
+
 ### MJ contact sheet
 
 ```bash

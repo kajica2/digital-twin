@@ -133,19 +133,33 @@ async function partA() {
 
     const input = await page.$('#fileInput');
     await input.uploadFile(...IMAGES);
-    const thumbs = await page.$$eval('#imageGrid .image-thumb', (els) => els.length);
-    check('A1 thumbnails rendered', thumbs === IMAGES.length, `${thumbs}/${IMAGES.length}`);
 
-    await page.select('#length', '2');
-    await page.select('#fps', '24');
-    await page.select('#kenBurns', 'zoom-in');
-    await page.click('#generateBtn');
+    // The page groups an upload into batches and renders one batch at a time.
+    // Both steps are async (the grouping waits on image decode), so poll for
+    // the observable result instead of reading the DOM the instant the input
+    // fires — reading too early reported "0/2 thumbnails" for a page that was
+    // still working, which is the flake that made this spec look like the
+    // page was broken.
+    const deadlineWait = Date.now() + 60000;
+    let thumbs = 0;
+    let batchCount = 0;
+    while (Date.now() < deadlineWait) {
+      thumbs = await page.$$eval('[data-batch] .batch-strip img', (els) => els.length);
+      batchCount = await page.$$eval('[data-batch]', (els) => els.length);
+      if (thumbs === IMAGES.length && batchCount > 0) break;
+      await sleep(250);
+    }
+    check('A1 thumbnails rendered in batch strips', thumbs === IMAGES.length, `${thumbs}/${IMAGES.length} across ${batchCount} batch(es)`);
+
+    const renderBtn = await page.$('[data-batch="0"] .batch-actions .btn');
+    check('A1b the first batch offers a render button', !!renderBtn);
+    if (renderBtn) await renderBtn.click();
 
     let status = null;
     const deadline = Date.now() + 600000;
     while (Date.now() < deadline) {
-      status = await page.$eval('#status', (el) => ({ text: el.textContent, cls: el.className }));
-      if (status.cls.includes('success') || status.cls.includes('error')) break;
+      status = await page.$eval('#batchStatus0', (el) => ({ text: el.textContent, cls: el.className })).catch(() => null);
+      if (status && (status.cls.includes('success') || status.cls.includes('error'))) break;
       await sleep(2000);
     }
     check('A2 render succeeded', !!status && status.cls.includes('success'), status?.text);
@@ -166,7 +180,7 @@ async function partA() {
     if (blocked.length) console.log('  blocked third-party requests (expected for webfonts):', blocked.slice(0, 3));
 
     const info = await page.evaluate(async () => {
-      const v = document.getElementById('outputVideo');
+      const v = document.querySelector('#batchResult0 video');
       await new Promise((res) => {
         if (v.readyState >= 1) return res();
         v.onloadedmetadata = res;
