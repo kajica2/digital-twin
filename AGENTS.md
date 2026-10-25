@@ -9237,3 +9237,87 @@ gitignored: `NN/cell-0..3.webp`, `manifest.json`, two contact sheets):
   `assets/mural-prompts/` because the recipes are the user's, not the
   repo's house style, and putting account-specific engine choices in the
   tracked library would make them look canonical.
+
+### 2026-10-25 — sprint 0.59.b (the store was empty because every product was a draft)
+
+Asked, plainly: *why is `https://kaidjuric.gumroad.com/` not updated?* The
+answer was not the slug work of 0.59 — it was that **nothing had ever been
+published**, plus one account gate.
+
+**What the storefront actually served.** The public page returned HTTP 200,
+title empty, body text `Kai Djuric`, and **zero** `href="/l/<slug>"` links.
+The account held **82 products** at that moment; product pages resolved
+(`/l/pylon-line-plate` → 200) and rendered a title and **no price and no buy
+control**. That is the signature of a draft: Gumroad serves the shell and
+nothing purchasable, and the storefront lists published products only.
+
+**Three findings, in the order they matter:**
+
+1. **`GumroadClient.publish()` was dead code.** The endpoint was implemented,
+   every plan product carried `publish`, and **nothing ever called it** — so
+   `publish: true` changed nothing and the module's own header claim ("and
+   publishes when asked") was false. `sync` now publishes what the plan
+   marks, and a `publish` verb does it on demand:
+
+   ```bash
+   node lib/gumroad.js publish                    # what would be published
+   node lib/gumroad.js publish --apply --all      # the catalogue
+   node lib/gumroad.js publish --apply --only <slug-or-id>
+   ```
+
+   `publishTargets()` is pure: it decides `targets` / `blocked` / `wants` /
+   `skipped` from the plan products, the sync results and the account gate.
+   `--all` and `--only` are the operator naming what to publish, so they win
+   over the per-product flag; without either, only a marked product is
+   touched.
+
+2. **The account refuses to publish: `no_payout_method`.** `check` has
+   reported `publishing blocked (no_payout_method)` since the store was
+   first synced, and nobody read it as "the shop is invisible". Both entry
+   points now say it and **do not attempt**: `publish --all` prints
+   `publishing is blocked: no_payout_method` with the number of products
+   waiting and the URL to fix it. This is the one thing that cannot be
+   automated — a payout method is a bank/identity step in the seller's
+   account.
+
+3. **Every package is written `publish: false`.** Publishing is a deliberate
+   edit (`posting.autoPublish` is off for the same reason), so a nightly
+   sync can never start selling on its own. That is correct, and it also
+   means the store stays empty until someone decides otherwise — which is
+   why the gate has to be *reported* rather than silent.
+
+**The storefront was also six products behind the plan, which the slug fix
+in 0.59 had already solved.** `sync --apply --via-duplicate` ran against the
+new plan: **0 created · 12 duplicated · 80 updated · 0 published · 0
+deferred · 0 errored**, 190 s. The twelve are the plates and reels whose
+names repeat across days; they now carry their bundle key
+(`pylon-line-plate-2026-10-24t20`) and exist as their own drafts.
+
+**Verified end-to-end:**
+
+- `node lib/gumroad.js plan` → **92/92 product(s) already on the storefront**,
+  no skips; `check` → **94 products** (92 + the bundle + the account's own
+  `krlzd`) and `publishing blocked (no_payout_method)`.
+- `node lib/gumroad.js publish --all` → blocked, 81 ready (the products on the
+  storefront when it ran), the fix named. `publish` without `--all` → "none
+  marked", because no package asks to be published.
+- `lib/gumroad.test.js` **173 → 189** assertions: the mark/`--all`/`--only`
+  rules, the blocked-account case (nothing attempted, reason carried, count
+  kept), one publish call per target, and a failing publish reported without
+  stopping the rest. The gate was proved to bite (bypassing it turns 3
+  assertions red).
+- `docs/GUMROAD.md` gained *Publishing — drafts are invisible*; the header
+  claim in `lib/gumroad.js` is now true.
+
+**Open — the one action that is not mine:**
+
+- The store stays invisible until **a payout method is set** at
+  `https://gumroad.com/settings/payments`. After that:
+  `node lib/gumroad.js publish --apply --all` (or mark products with
+  `publish: true` and let the 04:12 sync do it).
+- The public storefront also lists nothing while products are drafts, so the
+  Gumroad link on the Twin OS storefront block and the marketplace CTA point
+  at an empty shop until then. Nothing to change in the pages; the content
+  exists.
+- Unchanged: the hub board's completion misattribution; a reel's slug still
+  derives from its mutable POST-sheet title; the standing backlog.
