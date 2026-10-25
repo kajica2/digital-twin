@@ -130,7 +130,7 @@ For now, what's here:
 Requires **macOS** (the boot core and LaunchAgents are macOS-only), **git**, and **Node 18+**. The pages are static — no build step, no bundler, no runtime dependencies.
 
 ```bash
-# 1. Clone (repo path matters: boot.sh and the LaunchAgents resolve ~/digital-twin)
+# 1. Clone (repo path matters: lib/boot.js and the LaunchAgents resolve ~/digital-twin)
 git clone https://github.com/kajica2/digital-twin.git ~/Documents/digital_twin
 ln -s ~/Documents/digital_twin ~/digital-twin   # launchd resolves the repo through this
 cd ~/digital-twin
@@ -154,16 +154,25 @@ node lib/serve.js --port 5173
 
 ### Self-update on launch
 
-The repo ships with **auto-update on launch** (`bin/auto-update.sh`, wired into `bin/boot.sh`):
+The repo ships with **auto-update on launch**, implemented in `lib/boot.js` and reachable by hand as `bin/auto-update.sh`:
 
-- At every login, `boot.sh` runs `auto-update.sh` which fetches `origin/main`, **detects new commits**, and fast-forwards the repo only if there are any.
-- After a clean pull it **reloads any running LaunchAgents whose code changed** (chart / songs / reel / MJ watchers + the static server) so new code goes live without a logout/login cycle.
-- It **refuses to overwrite uncommitted local changes** (exit 1, logs to `logs/auto-update.log`) and tolerates being offline (exit 3, boot continues).
-- Manual run: `bin/auto-update.sh` from the repo root.
+- At every login, `lib/boot.js` fetches `origin/main`, **detects new commits**, and fast-forwards the repo only if there are any.
+- After a clean pull it **reloads any running LaunchAgent whose code changed** (chart / songs / reel / MJ watchers, the static server, and the daily / hourly / social / Gumroad jobs) so new code goes live without a logout/login cycle.
+- It **refuses to overwrite uncommitted local changes** and tolerates being offline (boot continues at the current HEAD). Every step is logged to `logs/boot-YYYYMMDD.log`.
+- Manual run: `bin/auto-update.sh` (wraps `node lib/boot.js --update-only`).
 
-### Optional: LaunchAgent boot core
+### Login boot: start the twin and open it
 
-The full login-boot experience (auto-update → server → open Twin OS → terminal log → Apple Notes status) runs via two LaunchAgents that already ship on this machine:
+`lib/boot.js` is the boot core. At login it: auto-updates → ensures the server LaunchAgent is loaded and running → waits for `http://127.0.0.1:5173/` → **opens the Twin OS in the default browser**. The Terminal tail and the Apple Notes status note are opt-in flags, so a login does not throw windows in your face.
+
+```bash
+npm run boot                        # boot now: update, start server, open Twin OS
+npm run boot -- --no-open           # start only, no browser
+npm run boot -- --terminal --notes  # also tail the server log + post a status note
+npm run boot -- --update-only       # just fetch/fast-forward/reload agents
+```
+
+Two LaunchAgents carry it — `com.kaidjuric.digital-twin.boot` (RunAtLoad, GUI sessions only) and `com.kaidjuric.digital-twin.server` (KeepAlive):
 
 ```bash
 # Verify the boot core agents are loaded
@@ -172,11 +181,18 @@ launchctl print gui/$(id -u)/com.kaidjuric.digital-twin.server 2>/dev/null | gre
 
 # Force the boot core to run right now
 launchctl kickstart -k gui/$(id -u)/com.kaidjuric.digital-twin.boot
-#   → watch logs/boot-$(date +%Y%m%d).log for the auto-update + server-up lines
-
-# (GUI-visible) open the Twin OS now
-open http://127.0.0.1:5173/pages/twin-os/
+#   → logs/boot-$(date +%Y%m%d).log shows auto-update, server-up and "twin os: opened"
 ```
+
+> **Why is the boot core Node, not a shell script?** launchd's spawn context
+> on Sequoia cannot `execve` **or even read** anything under
+> `$HOME/Documents` — TCC grants filesystem access per binary, and
+> `/bin/bash` has no grant for that tree. A bash boot script fails on every
+> login with `/bin/bash: …: Operation not permitted` (exit 126) while
+> `launchctl print` still looks healthy. Node has the grant, so the sequence
+> lives in `lib/boot.js` and `~/Library/LaunchAgents/boot-launcher.sh` only
+> resolves the binary and execs it — the same shape as every other launcher
+> here.
 
 The plist files themselves are per-machine artifacts (they hardcode `$HOME` paths), so on a fresh install recreate them from the workflow scripts in `bin/` — the schemas are documented in `docs/CHART-WATCHER.md`, `docs/SONGS-WATCHER.md`, `docs/MJ-WATCHER.md` and the `macos-launchd-automation` skill.
 
@@ -700,6 +716,7 @@ digital_twin/
 │   ├── mj-sheets.html         # the Midjourney comparison sheet (12-up)
 │   └── twin-os/              # the Twin OS PWA shell (Today / Songs / Twin)
 ├── lib/                      # pure-Node tooling + browser components
+│   ├── boot.js               # login boot core: update → server → open Twin OS
 │   ├── serve.js              # zero-dep static server (also the LaunchAgent program)
 │   ├── skin-contract.js      # the token contract (source of truth)
 │   ├── skin-tokens.js        # skin validator

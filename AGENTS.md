@@ -8991,3 +8991,149 @@ now runs at login (`RunAtLoad`) and every five minutes (`StartInterval`
 - Unchanged: woody-shaw chart variants; the `.kai/` durability call; the
   Vercel custom domain; the per-frame motion and CLI `--durations` items
   from sprint 0.58.
+
+### 2026-10-25 — sprint 0.59 (login boot that actually runs: start twin + open it)
+
+Asked for: *"start twin on login and open in browser"*. The agent for it
+existed (`com.kaidjuric.digital-twin.boot`, `RunAtLoad`) and **had never
+worked** — not since the repo moved to `~/Documents`.
+
+**The bug.** `launchctl print` said `state = not running` and
+`logs/launchagent.err.log` held thirteen identical lines:
+
+```
+/bin/bash: /Users/…/digital-twin/bin/boot.sh: Operation not permitted
+```
+
+exit code **126**, every login. `bin/boot.sh` was the *only* thing the
+plist ran, so nothing downstream of it ever happened: no auto-update, no
+server, no browser. The server stayed up anyway because it has its own
+KeepAlive agent — which is exactly why the failure went unnoticed for
+months. A boot that does nothing looks identical to a boot whose work was
+already done.
+
+**Root cause, measured.** launchd's spawn context on Sequoia cannot
+`execve` — or **read** — anything under `$HOME/Documents`: macOS grants
+filesystem access per binary, and `/bin/bash` has no grant for that tree.
+Probed deliberately, because the obvious fix (a shim in
+`~/Library/LaunchAgents/`, the sprint-0.25/0.26 pattern) is not enough
+here:
+
+| what launchd ran | result |
+|---|---|
+| `/bin/bash ~/Documents/…/bin/boot.sh` (the old plist) | exit 126, `Operation not permitted` |
+| `/bin/bash ~/Library/LaunchAgents/_probe.sh` → `exec /bin/bash ~/Documents/…/.tcc-probe.sh` | exit 126, **same message** |
+| `/bin/bash ~/Library/LaunchAgents/serve-launcher.sh` → `exec node lib/serve.js` | exit 0, serves the tree |
+
+So the *shim* execs fine — it is **bash reading the second script** that
+is denied. Moving a shell script into `LaunchAgents` would have reproduced
+the same failure with a nicer path. Node is the binary with the grant,
+which is why `lib/serve.js` and every watcher already run this way
+(sprint 0.27).
+
+**Shipped:**
+
+- **`lib/boot.js`** — the boot core, in Node. Step order: auto-update
+  (fetch → fast-forward → reload every agent whose file moved) → ensure
+  the server agent is loaded and running → wait for
+  `http://127.0.0.1:5173/` → **open the Twin OS in the default browser**.
+  Flags: `--update-only`, `--no-open`, `--terminal`, `--notes`,
+  `--no-notes`, `--port`. Logs every step to `logs/boot-YYYYMMDD.log`.
+- **The auto-update reload map is data, not a shell `if` ladder.** One
+  table of `[launchd label, file]` pairs covers the chart / songs / reel /
+  MJ watchers, the server, and the daily / hourly / social / Gumroad jobs;
+  a pull that touches one of those files reloads exactly those agents. The
+  old bash version had a hand-maintained `HAD_*` block that predated four
+  of the agents.
+- **`bin/boot.sh` deleted.** Clean cutover — one boot path, and
+  `lib/boot.test.js` asserts the old file cannot come back.
+- **`bin/auto-update.sh` is now a 20-line wrapper** over
+  `node lib/boot.js --update-only`, so the documented manual entry point
+  still works and the update logic exists once.
+- **`~/Library/LaunchAgents/boot-launcher.sh`** + the rewritten
+  `com.kaidjuric.digital-twin.boot.plist` — shim in `LaunchAgents`,
+  `LimitLoadToSessionType = Aqua` (a login boot only makes sense in a GUI
+  session), logs to the real `logs/` paths (`boot.out.log` /
+  `boot.err.log`, which did not exist before, so the old agent's stderr
+  was the only trace and it was being written through a symlink into the
+  same file repeatedly).
+- **`lib/boot.test.js`** — 35 assertions, no launchd, no browser, no
+  network, no git: the old entry point is gone, timestamps and the log
+  name, the `launchctl print` state reader (running / not running /
+  absent / no state line / trimming), the reload map (one file → its
+  agent, unrelated file → nothing, several → several, blank and `\r`
+  lines, no duplicate labels), and argv (every flag, `--port` missing /
+  garbage / out of range, **an unknown flag is refused**). Wired as
+  `npm run test:boot` and into `test:all`; `npm run boot` runs the core by
+  hand.
+
+**Decisions:**
+
+- **Calm by default.** `bin/boot.sh` opened a Terminal tailing the server
+  log *and* activated Apple Notes on every login. Neither was asked for,
+  both are the opposite of "silent unless something matters", and both
+  now sit behind `--terminal` / `--notes`. The browser open is the one
+  thing that always happens, because that is the ask.
+- **A boot CLI must not no-op a flag it does not know.** `--terminal` was
+  nearly spelled `--term`; the bootstrap in sprint 0.56 learned this the
+  hard way with `--help` starting a paid render (`lib/marketplace-hourly.js`).
+  The flag table is declared and anything else is exit 2 with usage.
+- **Exit 1 when the server never answers**, 0 otherwise — launchd records
+  the code, and `state = not running` alone cannot distinguish "finished"
+  from "gave up".
+- **Retire the other boot agent.** `com.kaidjuric.twin.boot` was still
+  loaded, pointing at a **September-3 checkout** in `~/twin` (a different,
+  older layout with `dispatcher.py`) and reporting exit 0. Two boot paths,
+  one of them booting a stale tree, is worse than one broken one. Booted
+  out, disabled, plist renamed `*.plist.disabled`.
+
+**Verified end-to-end:**
+
+- **Cold start, twice.** Booted out both the boot agent and the server,
+  confirmed `curl http://127.0.0.1:5173/` → `000`, then `launchctl
+  bootstrap` on the login agent: server answered **200**, the browser
+  opened a tab (tab count 47 → 48, then 48 → 49), the log read
+  `server agent: bootstrapped, running` / `server up after 0.50s` /
+  `twin os: opened http://127.0.0.1:5173/pages/twin-os/`, and launchd
+  recorded `last exit code = 0`.
+- **The browser open is real, not just an exit code.** Queried the running
+  browser (Comet, the default handler) over AppleScript and counted tabs
+  before/after; a `/pages/twin-os/` tab appears. Also proved it is not an
+  artifact of my own shell: the same tab appears when launchd fires.
+- **The log line was wrong for one run and is fixed.** The first cold
+  start said `already running` immediately after a bootstrap that had just
+  happened; `ensureServer()` now tracks whether it bootstrapped and says
+  so.
+- **`npm run test:all` — exit 0**, every suite green, `test:boot` last in
+  the chain with 35/35.
+- **Two mutations, both bite:** making the reload map return every agent
+  turns 6 checks red; ignoring unknown flags turns 3 red. Restored → 35/35.
+- **`npm run verify`** (landing / twin-os / twin-os-songs) green after the
+  server restart.
+- Probe artifacts (`.tcc-probe.sh` in the repo, `_probe.sh` /
+  `_tcc.probe.plist` in `LaunchAgents`) removed; no absolute home path in
+  any new repo file.
+
+**Found while here, not fixed (same root cause, different ask):**
+
+- **`com.kaidjuric.digital-twin.log-rotate`** — plist runs
+  `/bin/bash …/bin/log-rotate.sh`; `logs/log-rotate.err.log` is the same
+  `Operation not permitted`, so **nightly rotation has never run** in this
+  location. `logs/` is gitignored, so the cost is disk, not the repo.
+- **`com.kaidjuric.digital-twin.auto-check-updates`** — launcher exits 126
+  too. Lower impact now that boot does the update, but the 15-minute
+  deploy check is dead.
+- Both are the same one-line fix (`exec node <lib>` from a `LaunchAgents`
+  shim); they were left alone because nothing here asked for them and a
+  service-state change deserves its own entry.
+
+**Open:**
+
+- **A real reboot has not been tested.** The cold start exercises the same
+  launchd path (`bootout` → `bootstrap`, `RunAtLoad` firing on load), but
+  only an actual restart / logout proves the `Aqua` session gate and the
+  login ordering. If it fails, `logs/boot.out.log` and
+  `logs/boot-YYYYMMDD.log` are the first two places to look.
+- The boot opens a **new tab on every login**; it does not dedupe an
+  already-open Twin OS tab. Deliberate for now (a stale tab may predate
+  the pull), but it accumulates.
