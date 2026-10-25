@@ -86,6 +86,17 @@ package instead of "upload this by hand".
 its slug, its price and the rationale behind it, plus the catalogue
 total and the bundle.
 
+**Every slug in the plan is unique.** Identity is derived and finalised in
+`buildPricingPlan()` (`assignProductSlugs`), never per item: the earliest
+package of a name keeps the bare slug, so an existing storefront product is
+never renamed by a later arrival, and every later package of the same name
+is qualified by its bundle key (`pylon-line-plate-2026-10-24t20`). The
+daily collections cycle a fixed caption pool, so without this the same
+product name came back with different art behind it and the second one was
+dropped by the storefront planner — art that could never be sold. The plan
+file is also rewritten whenever it no longer matches the registry, not only
+on a pass that produced a package.
+
 **The store is written by `lib/gumroad.js`.** The engine computes the
 price plan; the sync applies it to the storefront — creating the
 products that do not exist, updating the ones that do, uploading the

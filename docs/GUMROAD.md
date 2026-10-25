@@ -167,17 +167,28 @@ the flag.
 
 ## One slug is one product
 
-`planFromPricingPlan` skips a package whose slug an earlier package already
-claimed, and reports it as `skipped` with a reason. Gumroad refuses the
-second claim outright (*"Custom permalink is already used by another one of
-your products"*), and two products with the same public URL and the same
-name are not a catalogue — so the plan makes the choice visible instead of
-discovering it midway through a run.
+Gumroad's public permalink is unique per seller, and it refuses a second
+claim outright (*"Custom permalink is already used by another one of your
+products"*). Slug uniqueness is therefore enforced **upstream, in the plan**
+(`lib/social-engine.js` → `assignProductSlugs`), not here:
 
-Collisions come from upstream: the daily pipeline derives a plate's slug
-from its caption, so two days that draw the same subject produce the same
-slug (and the same product name) for different frames. The fix belongs in
-the caption pool: a plate's slug has to be unique per day.
+- The **earliest package keeps the bare slug**, so a product that already
+  exists on the storefront is never renamed by a later arrival.
+- Every later package with the same name is qualified by its own bundle
+  key — `pylon-line-plate-2026-10-24t20`, named
+  `Pylon · line — art plate (24 Oct 2026 20:00)`.
+
+The reason it has to be that way: the daily collections cycle a fixed
+caption pool, so two days that draw the same subject produce the same
+product name for **different art**. Before this rule the planner skipped
+the second one — 12 of 45 daily plates were unsellable, each a real render
+that could never be bought.
+
+`planFromPricingPlan` still refuses a duplicate slug and reports it as
+`skipped`. That guard is now a **canary**: a plan produced by this repo can
+never contain one, so a skip means the plan file is stale or hand-edited.
+An empty skip list is part of a clean run.
+
 
 ## The bundle
 
@@ -274,7 +285,16 @@ It exits non-zero on any mismatch, so it is usable as a gate.
   rather than a product field (the edit page has none).
 - Products are drafts. Publishing needs a payout method on the account
   first.
-- The daily pipeline can still emit two packages with the same caption (and
-  therefore the same slug); the planner skips the second one, so the counts
-  in `plan` will not match the registry until the caption pool makes a
-  plate's name unique.
+- ~~The daily pipeline can still emit two packages with the same caption
+  (and therefore the same slug); the planner skips the second one.~~
+  **Resolved 2026-10-25:** the plan disambiguates a repeated name by its
+  bundle key (see *One slug is one product*), so the plan always covers the
+  whole registry and the skip list is empty on every real run.
+- A reel's product slug still comes from its **title**, which lives in the
+  POST sheet the reel-watcher writes, while its id comes from the file
+  basename. Two of the 92 products on the plan disagree between a fresh
+  pass and the registry for this reason (`frost-window-kettle-steam`,
+  `frost-window-pane-fern`). The registry keeps the first-computed slug, so
+  nothing drifts on a normal run; a rebuilt registry would rename them, and
+  the old title-derived slugs of ~30 other reels would be recreated rather
+  than updated. Fixing it means a storefront migration, not a code change.
