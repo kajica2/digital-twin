@@ -1,0 +1,15 @@
+{
+  "id": "sodium-hour",
+  "date": "2026-10-28",
+  "key": "2026-10-28",
+  "title": "Sodium Hour",
+  "badge": "cyberpunk / hk",
+  "teaser": "The streetlights know the hour better than the clock does.",
+  "aspect": "16:9",
+  "source": "midjourney",
+  "plates": [
+    "frame-01.jpg",
+    "frame-02.jpg",
+    "frame-03.jpg"
+  ]
+}

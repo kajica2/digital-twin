@@ -1,0 +1,39 @@
+{
+  "pack": "sodium-hour",
+  "date": "2026-10-28",
+  "key": "2026-10-28",
+  "title": "Sodium Hour",
+  "badge": "cyberpunk / hk",
+  "teaser": "The streetlights know the hour better than the clock does.",
+  "aspect": "16:9",
+  "source": "midjourney",
+  "plates": [
+    {
+      "file": "frame-01.jpg",
+      "caption": "parking deck · last lamp",
+      "alt": "An empty multi-storey parking deck at night, one sodium lamp burning at the far end, wet concrete holding its reflection, city haze beyond.",
+      "prompt": "an empty multi-storey parking deck at night, one sodium lamp burning at the far end as the only key light, wet concrete holding a thin reflection, low camera on the level, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "27503491-991d-4266-ad7f-67131b4516aa",
+      "width": 1280,
+      "height": 717
+    },
+    {
+      "file": "frame-02.jpg",
+      "caption": "noodle stall · steam",
+      "alt": "A closed food stall under a covered walkway, steam still rising into one yellow lamp, shutters down, no people.",
+      "prompt": "a closed food stall under a covered walkway, steam still rising into one yellow lamp, metal shutters down, no people, 35mm film still, deep shadows, fine grain, muted palette, no text",
+      "taskId": "ed540e29-9026-4987-b4ea-cf8a840cb6c8",
+      "width": 1280,
+      "height": 717
+    },
+    {
+      "file": "frame-03.jpg",
+      "caption": "flyover · crossing",
+      "alt": "A figure in a long coat crossing an empty flyover at night, haze, a single lamp overhead, unlit road ahead.",
+      "prompt": "a lone figure in a long coat crossing an empty elevated flyover at night, city haze, a single overhead lamp as only key light, the road ahead unlit, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "a311b06d-55dd-44f2-b3ff-4de69faf5941",
+      "width": 1280,
+      "height": 717
+    }
+  ]
+}
