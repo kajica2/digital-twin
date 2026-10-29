@@ -1,7 +1,46 @@
 {
-  "updatedAt": "2026-10-27T23:24:58.692Z",
-  "count": 18,
+  "updatedAt": "2026-10-29T23:24:45.812Z",
+  "count": 19,
   "collections": [
+    {
+      "date": "2026-10-30",
+      "key": "2026-10-30",
+      "id": "tide-line",
+      "title": "Tide Line",
+      "badge": "soundhealing",
+      "teaser": "The sea keeps the hours it has no use for.",
+      "aspect": "16:9",
+      "dir": "assets/marketplace/daily/2026-10-30",
+      "plates": [
+        {
+          "file": "frame-01.jpg",
+          "caption": "flat · mirror",
+          "alt": "Wet sand at low tide holding a perfect reflection of an overcast sky, a line of foam halfway out.",
+          "prompt": "wet sand at low tide holding a perfect reflection of an overcast sky, one line of foam halfway out, no horizon detail, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "72eb4a74-cf11-403b-9e60-29fbacca1096",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-02.jpg",
+          "caption": "break · backlit",
+          "alt": "A small wave breaking against an empty shore, backlit by flat winter light, spray suspended.",
+          "prompt": "a small wave breaking on an empty shore, backlit by flat winter light, spray suspended in the air, long lens, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "84b2d509-4782-4f03-8e88-e5f6a2526a91",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-03.jpg",
+          "caption": "post · rope",
+          "alt": "A weathered mooring post in shallow water, rope trailing off frame, grey sky reflected around it.",
+          "prompt": "a weathered wooden mooring post standing in shallow water, rope trailing off frame, grey sky reflected around it, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "8a7d7b25-8741-49dd-a1fd-4968ae372707",
+          "width": 1280,
+          "height": 717
+        }
+      ]
+    },
     {
       "date": "2026-10-28",
       "key": "2026-10-28",
