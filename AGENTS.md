@@ -10447,3 +10447,51 @@ match the prompt and the flags, and the partner sets' prompts differ).
   variants, the Vercel custom domain, the MJ cookie jar expiry, the
   hub board's completion misattribution, a reel's slug still derived
   from its mutable POST-sheet title.
+
+### 2026-10-31 — sprint 0.72 (`Watch Me Go`: one more set, the same recipe)
+
+A lyric arrived: *watch me go / another time another turn / no more, no
+more / times are fresh and clean / getting to the groove*. Same
+pipeline, same recipe.
+
+**Shipped — `assets/mural-prompts/watch-me-go-12.md` and the set it
+made:**
+
+- Twelve frames, one per beat of the lyric: a foot lifted over a kerb,
+  two steps down a concrete stair, the worn doorway it all began at, a
+  window wiped clean in a hard-edged line, walking away down an empty
+  street toward a low sun, a revolving door turning, an empty room with
+  one chair in it, a closed notebook at a bare table, a hand pulling a
+  door shut, a closed door left behind, a step landing mid-stride, and a
+  long empty road at dawn.
+- **12/12 edit jobs** from the artist's four attached photographs
+  (`6606f40f`), 2944×1648 each, 39 min wall.
+- Three cuts, each decode-checked at 1920×1080 / 30 fps / `yuv420p` /
+  `tv`: the hard-cut edit (48.0 s), the dissolve version (29.4 s), the
+  ping-pong loop (88.0 s), plus the contact sheet and the manifest
+  (frame → title → cell → motion → fx → task id → the exact prompt).
+
+**Decisions:**
+
+- **The register is a cold, clean morning in an empty city** — pale low
+  sun, long shadows, an empty road. The lyric is about leaving
+  something behind, and the film's grammar is the same: one figure
+  moving out of a frame it was standing in.
+- **The wardrobe is stated in every bullet** — a grey wool coat over a
+  black tee — and the reference photo's own garments are negated. In
+  edit mode the attachment out-ranks prose, so the prose has to lead and
+  deny.
+- **One cell per frame, chosen by eye** (the artist at the kerb with
+  the long shadow; the clean edge on the glass; the chair in the empty
+  room; the corridor shadow), and the motion and the look are per shot
+  — a pan for the stride, a push for the notebook, a pull for the road.
+- **No audio.** The song was not generated, so the clip is silent; the
+  same is true of every set in this family.
+
+**Open:** the clips live in `mj-output/`, which is gitignored, like
+every earlier set; the tracked artefact is the pack and the recipe.
+Unchanged: the Suno account still refuses every generation (7 credits),
+the `.kai/` durability call, the woody-shaw chart variants, the Vercel
+custom domain, the MJ cookie jar expiry, the hub board's completion
+misattribution, a reel's slug still derived from its mutable POST-sheet
+title.
