@@ -37,6 +37,7 @@ logged into midjourney.com.
 | `lib/mj-watcher.js` | Poll-loop watcher. Pure-Node, no deps. |
 | `lib/mj-web.js` | **Web backend** — drives midjourney.com/imagine. |
 | `lib/mj-revise.js` | **Re-evolve an edit job** — new prompt, the SAME attachments, style reference, profile and flags. |
+| `lib/mj-download.js` | **Fetch a pack's images** — reads `prompt-NN/meta.json` and writes the CDN cells through the headed browser (`npm run mj:download -- --dir mj-output/<pack>`). Also exports `fetchImage`, which `lib/mj-revise.js` uses. |
 | `lib/mj-submitter.js` | Legacy Discord backend + shared CDP primitives. |
 | `lib/mj-cookies.js` | Cookie-jar loading (Netscape + JSON), `__Host-` rules. |
 | `lib/mj-config.json` | Configuration (engine, cookies, ports, MJ defaults). |
@@ -389,6 +390,66 @@ npm run test:mj
 node lib/mj-watcher.js --once --dry-run
 ```
 
+## Downloading a pack's images
+
+`lib/mj-web.js` writes `prompt.md` + `meta.json` per prompt (the task id
+and the job's CDN urls). It does not write image files — the CDN 403s
+plain clients and blocks a cross-origin fetch, so the bytes have to be
+pulled from inside a midjourney.com tab.
+
+```bash
+# the browser must already be running on :9445, headed, logged in
+node lib/mj-download.js --dir mj-output/<pack>          # every cell
+node lib/mj-download.js --dir mj-output/<pack> --slot 2 # one cell per job
+npm run mj:download -- --dir mj-output/<pack> --dry-run  # the plan, no browser
+```
+
+Files are named `0_<slot>.<ext>` with the **extension taken from the URL
+the CDN served** — naming a WebP `.png` makes the artifact lie about its
+own format. A prompt with no urls in its meta is reported and skipped; a
+cell that never renders is reported and does not stop the rest.
+
+`--force` re-fetches cells already on disk; without it a second run is a
+no-op (which is what makes it safe to re-run after a partial download).
+
+## A soft-banned submission
+
+Midjourney can accept a submission and then never queue it: the
+`POST /api/submit-jobs` answer carries a `job_id` with `softban: true`,
+and the job never appears in the feed and never renders (the CDN 404s
+every size, forever). Measured 2026-10-26 — two `--v 7 --oref`
+submissions came back this way.
+
+The tool used to print `submitted: job <id>` and then spend its whole
+acceptance window hunting for a job that does not exist, reporting "the
+feed disagrees" — a sentence about the tool, not about the cause. It now
+reports the softban, names the job id and the job type, and moves on.
+
+`--accept-on-submit` is the opposite lever and is deliberately separate:
+when the feed merely LAGS (a relaxed queue can publish a job minutes
+after it renders), the submission's own job id is authoritative and the
+metadata is written with `matchedBy: "submit-response"`. A softban is
+refused before that flag is ever consulted, so trusting the id can never
+paper over a job that will not render.
+
+## Which version supports which reference flag
+
+`--oref` (omni reference) is a **v7** flag. Measured 2026-10-26 on this
+account, one prompt each:
+
+| asked | result |
+|---|---|
+| `--oref <url>` with no `--v` | refused — the text is logged, no submission is asked for |
+| `--v 8.2 --oref <url>` | refused, same silent way |
+| `--v 7 --oref <url>` | **accepted** (job `6772ca10`, `v7_raw_diffusion`) |
+
+A refused prompt looks exactly like a bad parameter, so the version is
+always named explicitly in a pack that uses a reference flag. `--hd` is
+a v8 flag and is dropped on v7. The account's own proven v8.2 recipe
+(`--chaos 10 --ar 91:51 --raw --profile <codes> --stylize 50 --hd`)
+carries no reference flag at all — its identity comes from the
+personalization profile.
+
 ## Limitations
 
 - **Requires Discord login.** A fresh Chrome profile needs one-time sign-in.
@@ -469,6 +530,26 @@ that flag.
 **Every flag is resolved exactly once — the composed command never
 contains two of the same flag.** That invariant is what
 `npm run test:mj-revise` checks, across six prompt shapes.
+
+### Two ways to run `mj-revise` without spending a generation
+
+```bash
+node lib/mj-revise.js --source <jobId> --inspect       # the recipe, then stop
+node lib/mj-revise.js --source <jobId> --prompt-file pack.md --dry-run
+```
+
+`--inspect` prints the source's prose, its `--edit` attachments and the
+flag set it carries, then exits — no prompt is composed. `--dry-run`
+composes every prompt and prints the exact command Midjourney would
+receive, then exits. Neither submits, neither creates an output directory.
+Both still need the browser, because the source record is read from the
+feed, not from the job page.
+
+Recorded because the gap cost a generation: `--dry-run` was not a real flag
+and was silently ignored (the run submitted), and the way to "just look at
+the source" was a prompt file with no bullets — which falls through to the
+legacy single-prompt parser and submits the note itself (job `ef28b581`,
+2026-10-30).
 
 ### Why `--edit` travels in the prompt text
 
