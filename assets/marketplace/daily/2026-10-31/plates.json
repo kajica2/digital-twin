@@ -1,0 +1,39 @@
+{
+  "pack": "negative-space",
+  "date": "2026-10-31",
+  "key": "2026-10-31",
+  "title": "Negative Space",
+  "badge": "collective",
+  "teaser": "A room with one chair in it and everyone still coming.",
+  "aspect": "16:9",
+  "source": "midjourney",
+  "plates": [
+    {
+      "file": "frame-01.jpg",
+      "caption": "room · chair",
+      "alt": "An empty rehearsal room with a single wooden chair under a low window, dust in the light, floorboards worn.",
+      "prompt": "an empty rehearsal room with a single wooden chair under a low window, dust suspended in one shaft of light, worn floorboards, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "9e95f705-598c-49d9-8004-a52059edac0a",
+      "width": 1280,
+      "height": 717
+    },
+    {
+      "file": "frame-02.jpg",
+      "caption": "table · cups",
+      "alt": "A long table with an uneven row of empty cups, one lamp low over the far end.",
+      "prompt": "a long table with an uneven row of empty cups, one low lamp hanging over the far end, long empty room, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "e62fa823-5ae9-495d-b4a1-d954ca84550c",
+      "width": 1280,
+      "height": 717
+    },
+    {
+      "file": "frame-03.jpg",
+      "caption": "doorway · sound",
+      "alt": "A doorway at the back of a dark room with light spilling in from the corridor, nobody present.",
+      "prompt": "a doorway at the back of a dark room with cold light spilling in from the corridor, nobody present, deep shadows, 35mm film still, fine grain, muted palette, no text",
+      "taskId": "8b640350-85fd-48d9-b591-bf4f620840c6",
+      "width": 1280,
+      "height": 717
+    }
+  ]
+}
