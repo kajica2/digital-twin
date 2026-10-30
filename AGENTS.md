@@ -10233,3 +10233,78 @@ honest: the song is about her absence from his warmth, not her company.
 (sepia/frost palette, the artist in every frame that holds a person); the
 Halloween pick read at full size — carved pumpkin, real flame, wet street,
 no lettering.
+
+### 2026-10-30 — sprint 0.69 (the eight uncommitted sprints, committed and deployed)
+
+Asked for: *"omp -c"* — continue the previous session. The previous
+session had finished its work and never committed it.
+
+**What was found.** 91 unstaged changes, 18 untracked files, and **no
+commit since `2bfba95` (Oct 25 08:06)** — sprints 0.61–0.68 and the
+Treblo removal were all sitting in the working tree, verified but
+uncommitted. `main` was level with `origin/main`, so none of it had
+reached the deploy either.
+
+**Triage by mtime, because another session was in the same checkout.**
+The concurrent session started writing at 18:03 (`lib/suno-fetch.js`,
+`lib/suno-create.js`, `lib/suno-create.test.js`, `package.json`'s suno
+scripts, `data/suno/created/`). The previous lineage's last write was
+16:03 (`AGENTS.md`). Everything newer than 18:03 was left untouched.
+
+**The shared-file surgery.** `package.json` carries both the Treblo
+removal and the concurrent session's suno additions, and the `test:all`
+chain is one line. The index got a hand-built blob per commit — HEAD's
+bytes minus the treblo lines for the removal, then the working tree's
+bytes minus the suno lines for the feature work — so the pushed tree
+has no suno scripts and the working tree keeps the other session's
+lines. `JSON.parse` → `JSON.stringify` was the first attempt and it
+rewrote the `\u2014` in the description as a literal em dash: a
+gratuitous change to a file the commit had no business touching. Raw
+text surgery on HEAD's bytes instead.
+
+**Commits (four, in the order the work happened):**
+
+- `77e3c65` chore(treblo): remove the Treblo integration
+- `6db54ca` feat(mj): fetch a pack's images, and two levers that spend nothing
+- `e93f0bb` feat(render): a cut list, look effects, and one grade for the whole cut
+- `0986c43` docs(sprint): 0.61-0.68 and the Treblo removal
+
+**One fidelity fix.** Three of the four relocated song packs still
+carried `engine: treblo` in their frontmatter, while the removal entry
+claimed the vendor wording had been stripped. The artifact now matches
+the claim.
+
+**Verified:**
+
+- `npm run test:all` — 47 suites, every one green (the chain's last
+  suite is `test:boot`; reaching it means everything before it passed).
+  `test:mj-web` 89, `test:mj-revise` 84, `test:mj-download` 24,
+  `test:images-mp4` 85, `test:gumroad` 189, `test:agent-hub` 139.
+- `npm run prompt:check` — 63 packs, 643 prompts, 0 violations.
+- `npm run skin:check` — 46 skinned, 8 opted out, 1 plain, 0 errors.
+- `npm run test:secrets` — 9/9 (379 commits on every ref scanned).
+- e2e locally on the repo-root `:5180` server: landing, twin-os,
+  twin-os-songs, how-to — all green, 0 console errors. The how-to spec
+  asserts the hero's page count against the map's row count, so the
+  "fifteen → fourteen" edit is now guarded by a check that fails if
+  either side drifts.
+- **The deploy-test loop**: the freshness gate byte-compared six
+  sentinels against HEAD and went green on attempt 2 (~20 s after the
+  push — Vercel was quick today); then `e2e:live` plus the how-to spec
+  against `https://digitaltwin-ebon.vercel.app` — landing, twin-os,
+  twin-os-songs, skin, how-to, all green, 0 console errors.
+- **CI** — run `41103234607`: the `Puppeteer deploy-test loop` job and the
+  `Secrets guard` job both green on this push.
+
+**Open:**
+
+- **66 tracked thumbnail files under `youtube-inbox/uploaded/` have been
+  deleted on disk since Oct 25** and the deletions are still unstaged.
+  They are not this session's work and were left alone — but a
+  `git commit -a` would sweep them in, so whoever commits next should
+  decide whether they go.
+- The concurrent Suno session's files are uncommitted and unpushed.
+- The standing backlog is unchanged: the `.kai/` durability call, the
+  woody-shaw chart variants, the Vercel custom domain, the MJ cookie
+  jar expiry, the hub board's completion misattribution, a reel's slug
+  still derived from its mutable POST-sheet title.
