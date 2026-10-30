@@ -1,6 +1,5 @@
 ---
 pack: coltrane-breed-5
-engine: treblo
 instrumental: true
 notes: Kai Djuric soulful house as the body, Coltrane's devotional logic as the spirit — five breeds, one per phase.
 ---

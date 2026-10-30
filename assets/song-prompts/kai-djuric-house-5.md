@@ -1,6 +1,5 @@
 ---
 pack: kai-djuric-house-5
-engine: treblo
 instrumental: true
 notes: The five wind-led concepts translated into Kai Djuric house — deep 95, soulful 122, jackin' 124, deep 118, afro 112 BPM.
 ---

@@ -1,10 +1,9 @@
 ---
 # Kai Djuric — 5 instrumental variations
-# Format: one top-level bullet per prompt (the Treblo pack convention, same
-# shape the MJ watcher reads). Each bullet is a full Treblo generation
-# prompt. Instrumental: no lyrics are sent — the client sets instrumental=true.
+# Format: one top-level bullet per prompt (the same pack convention the
+# Midjourney watcher reads). Each bullet is a full song-generation prompt,
+# instrumental only — no lyrics are sent.
 title: Kai Djuric — 5 instrumental variations
-model: melodia-v3
 instrumental: true
 ---
 
