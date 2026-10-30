@@ -42,6 +42,9 @@ reporter, and why it is `bin/…mjs` rather than a second `lib/*.js` renderer.
 | `--out <file>` | `data/mp4/<set>-<mode>-<date>.mp4` | generated, gitignored |
 | `--mode` | `kenburns` | `kenburns`, `crossfade`, `cut` |
 | `--motion` | `zoom-in` | `kenburns` only: `zoom-in`, `zoom-out`, `pan-left` |
+| `--motions` | — | one motion **per image**, comma-separated in image order (`zoom-in,pan-left,zoom-out,none`). Overrides `--motion`, works in any mode, and the count must match the set — a montage reads as camera work when each shot moves differently. `none` holds a shot still. |
+| `--fx` | — | look effects: **one for every shot**, or one per image (comma-separated in image order). A shot stacks effects with `+` (`grain+chroma`). Names, each verified against the installed ffmpeg: `grain`, `grain-heavy`, `vignette`, `chroma`, `vhs`, `smear`, `flicker`, `warm`, `cold`, `blur`, `sharpen`, `contrast`. `none` leaves a shot alone. |
+| `--grade` | — | **one** look applied once to the joined cut (same names, stackable with `+`). The difference matters: a per-shot `vignette` stacks twelve times across a twelve-shot cut; a graded one is one. The grade consumes `[out]` and hands it back, so everything downstream is unchanged. |
 | `--size` | `16:9` | `16:9`, `9:16`, `1:1`, `4:5`, `4:3`, `21:9`, or `WxH` |
 | `--fps` | `30` | `1`–`120` |
 | `--each <s>` | `2.5` | seconds per image |
@@ -118,7 +121,31 @@ Video Segmenter is the other half
 
 ## Open
 
-- `kenburns` applies one motion to the whole set (`--motion`). Alternating
+### Look effects
+
+Twelve stills with a camera move each still read as a slideshow. The
+effects are what turn them into footage, and they are per shot for the
+same reason the motions are: the same grain on every frame is a filter,
+not a look.
+
+```bash
+node bin/images-to-mp4.mjs ./frames --mode kenburns --each 3 \
+  --motions zoom-in,pan-left,zoom-out,zoom-in \
+  --fx "grain+chroma,smear,none,vhs+vignette" --out cut.mp4
+```
+
+`--grade` is the sequence-wide sibling of `--fx`: the same effect on every
+shot *after* they are joined. Use it for anything that should read as one
+continuous piece of footage.
+
+A single `--fx` value applies to every shot. `grain` and `grain-heavy` are
+temporal (`allf=t+u`), so the grain moves with the frame instead of
+sitting on the still. `smear` and `vhs` mix the previous frames, which is
+where motion blur comes from when there is no motion in the source.
+`flicker` modulates brightness per frame with `eval=frame`. `warm` /
+`cold` are `colortemperature`, not a colour balance guess.
+
+- `kenburns` applies one motion to the whole set (`--motion`), or one per shot with `--motions` — the plan looks the motion up **by image name**, because the ping-pong list is longer than the input set. Alternating
   push-in and pan per frame would read better, and belongs in `plan.mjs` where
   both executors get it.
 - No per-image hold list — `--each` is uniform (the plan accepts `durations`

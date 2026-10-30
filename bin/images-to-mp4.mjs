@@ -37,13 +37,13 @@ import { fileURLToPath } from 'node:url';
 
 import { collectImages, parseSize, planDurations, SIZE_PRESETS } from '../lib/render/sets.mjs';
 import { renderImagesToMp4 } from '../lib/render/server.mjs';
-import { DEFAULTS } from '../lib/render/plan.mjs';
+import { DEFAULTS, FX } from '../lib/render/plan.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..');
 const OUT_DIR = path.join(REPO, 'data', 'mp4');
 
-const VALUE_FLAGS = new Set(['--out', '--mode', '--size', '--fps', '--each', '--total', '--fade', '--audio', '--motion']);
+const VALUE_FLAGS = new Set(['--out', '--mode', '--size', '--fps', '--each', '--total', '--fade', '--audio', '--motion', '--motions', '--fx', '--grade']);
 const BOOL_FLAGS = new Set(['--dry-run', '--json', '--help', '-h', '--loop']);
 
 /** kenburns alternates push-in and pan so a set does not feel mechanical. */
@@ -83,6 +83,15 @@ options
   --total <seconds>   total clip length; wins over --each
   --fade <seconds>    dissolve length, crossfade only (default ${DEFAULTS.fade})
   --motion <m>        kenburns motion: ${MOTIONS.join(' | ')} (default zoom-in)
+  --motions <list>    one motion per image, comma-separated, in image order
+                      (e.g. zoom-in,pan-left,zoom-out) — a scripted cut list.
+                      Overrides --motion; the count must match the images.
+  --fx <list>         look effects: one for every shot, or one per image
+                      (comma-separated). A shot stacks effects with a plus sign, e.g. grain+chroma.
+                      Names: ${Object.keys(FX).join(', ')}
+  --grade <spec>      one look applied ONCE to the joined cut (same names,
+                      stackable with +). A per-shot vignette stacks twelve
+                      times; a graded one is one.
   --loop              ping-pong the set (a,b,c,b) so the clip repeats without a
                       seam; needs 3+ stills — one still is left alone
   --audio <file>      mux a track and cut the video to it
@@ -103,6 +112,41 @@ if (!MOTIONS.includes(motion)) {
   process.stderr.write(`[images→mp4] unknown motion "${motion}" — use ${MOTIONS.join(', ')}\n`);
   process.exit(2);
 }
+const motionsRaw = val('--motions', undefined);
+const motions = motionsRaw === undefined
+  ? null
+  : motionsRaw.split(',').map((m) => m.trim()).filter(Boolean);
+if (motions) {
+  const bad = motions.filter((m) => !MOTIONS.includes(m) && m !== 'none');
+  if (bad.length) {
+    process.stderr.write(`[images→mp4] unknown motion(s) in --motions: ${bad.join(', ')} — use ${[...MOTIONS, 'none'].join(', ')}\n`);
+    process.exit(2);
+  }
+}
+const gradeSpec = val('--grade', undefined);
+if (gradeSpec !== undefined) {
+  const bad = gradeSpec.split('+').map((n) => n.trim()).filter((n) => n && n !== 'none' && !FX[n]);
+  if (bad.length) {
+    process.stderr.write(`[images→mp4] unknown grade: ${[...new Set(bad)].join(', ')} — use ${['none', ...Object.keys(FX)].join(', ')}\n`);
+    process.exit(2);
+  }
+}
+const fxRaw = val('--fx', undefined);
+const fxList = fxRaw === undefined
+  ? null
+  : fxRaw.split(',').map((f) => f.trim()).filter(Boolean);
+if (fxList) {
+  const bad = [];
+  for (const spec of fxList) {
+    for (const name of spec.split('+').map((n) => n.trim())) {
+      if (name && name !== 'none' && !FX[name]) bad.push(name);
+    }
+  }
+  if (bad.length) {
+    process.stderr.write(`[images→mp4] unknown fx: ${[...new Set(bad)].join(', ')} — use ${['none', ...Object.keys(FX)].join(', ')}, or stack with +\n`);
+    process.exit(2);
+  }
+}
 
 try {
   const { width, height } = parseSize(val('--size', '16:9'));
@@ -113,6 +157,14 @@ try {
   const { images, missing } = collectImages(inputs.map((p) => path.resolve(REPO, p)));
   if (missing.length) throw new Error(`not found: ${missing.join(', ')}`);
   if (!images.length) throw new Error('no images found — point it at a directory of jpg/png/webp');
+  if (motions && motions.length !== images.length) {
+    throw new Error(`--motions lists ${motions.length} motion(s) but the set holds ${images.length} image(s) — give one per image, in order`);
+  }
+  // One fx entry means "every shot" — repeating it twelve times is noise.
+  if (fxList && fxList.length !== 1 && fxList.length !== images.length) {
+    throw new Error(`--fx lists ${fxList.length} effect(s) but the set holds ${images.length} image(s) — give one for all shots, or one per image`);
+  }
+  const fx = fxList && fxList.length === 1 ? fxList[0] : fxList;
 
   const { each } = planDurations({
     count: images.length,
@@ -136,7 +188,12 @@ try {
     fps,
     duration: Math.max(1, Math.round(each)),
     durations: images.map(() => each),
-    kenBurns: mode === 'kenburns' ? motion : 'none',
+    // --motions is a per-image cut list and wins over both --motion and
+    // the mode's default: a montage reads as camera work when each shot
+    // moves differently, and as a slideshow when they all push in.
+    kenBurns: motions || (mode === 'kenburns' ? motion : 'none'),
+    fx: fx || 'none',
+    grade: gradeSpec || 'none',
     transition: mode === 'crossfade' ? 'crossfade' : 'none',
     fade,
     loop: has('--loop'),
@@ -158,6 +215,8 @@ try {
       duration: planOptions.duration,
       durations: planOptions.durations,
       kenBurns: planOptions.kenBurns,
+      fx: planOptions.fx,
+      grade: planOptions.grade,
       transition: planOptions.transition,
       fade: planOptions.fade,
       loop: planOptions.loop,
