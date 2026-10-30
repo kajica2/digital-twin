@@ -10308,3 +10308,36 @@ the claim.
   woody-shaw chart variants, the Vercel custom domain, the MJ cookie
   jar expiry, the hub board's completion misattribution, a reel's slug
   still derived from its mutable POST-sheet title.
+
+### 2026-10-30 — sprint 0.70 (the tree, emptied)
+
+Asked for: *"comit to main"*. After sprint 0.69 the working tree still
+held two things: a concurrent session's Suno work, and 64 thumbnail
+deletions that had been sitting unstaged since Oct 25.
+
+**Committed (two):**
+
+- `8c12ee6` feat(suno): create a song from a brief, and fetch the clip's
+  audio — `lib/suno-create.js`, `lib/suno-fetch.js`,
+  `lib/suno-create.test.js` (23 assertions, no network, no browser, no
+  credentials) and the three npm scripts. **This work came from a
+  concurrent session in the same checkout**; it is committed as it
+  stands, and the findings in its own header (Turnstile only yields a
+  token in a headed browser; the studio endpoint answers a wrong field
+  name with a 422 carrying the schema) are its author's.
+- `4e2eaf3` chore(youtube): stop tracking the generated upload thumbnails
+  — 64 files deleted on disk since Oct 25, committed as deletions, and
+  `youtube-inbox/uploaded/` ignored. That is the same generated
+  directory the uploaded videos land in, and the one
+  `lib/sr-color-animator.js` writes its frames to; the upload list and
+  its metadata stay tracked.
+
+**Verified:** `npm run test:all` — 47 suites green, `test:suno-create`
+23/23. The tree is clean.
+
+**Open:** the standing backlog is unchanged — the `.kai/` durability
+call, the woody-shaw chart variants, the Vercel custom domain, the MJ
+cookie jar expiry, the hub board's completion misattribution, a reel's
+slug still derived from its mutable POST-sheet title. The Suno work has
+no sprint entry of its own yet: it belongs to the session that wrote
+it, and a log entry written by another session would be a guess.
