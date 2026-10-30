@@ -10341,3 +10341,109 @@ cookie jar expiry, the hub board's completion misattribution, a reel's
 slug still derived from its mutable POST-sheet title. The Suno work has
 no sprint entry of its own yet: it belongs to the session that wrote
 it, and a log entry written by another session would be a guess.
+
+### 2026-10-30 — sprint 0.71 (ten sets, 105 frames, one recipe change)
+
+The briefs arrived as lyrics and treatments; the work was frames and cuts.
+
+**Shipped — ten sets, each with three cuts, a contact sheet and a manifest:**
+
+| set | frames | what it is |
+|---|---|---|
+| `the-way-i-flow` | 12 | a dawn lyric — a bird on a wire, a flooded street, hands on a snare, a trumpet in an empty street, a river with no seam |
+| `get-into-the-beat` | 12 | the studio film — neon blue and crimson, a crowded floor, two dancers closing a gap, the flashback, the strobe chorus, the cypher |
+| `get-into-the-beat-city` | 12 | verse 2 — the wet city at night, subway stairs, fire escapes, the city's own rhythm, a dance-off |
+| `get-into-the-beat-rooftop` | 12 | the bridge and the last chorus — one flickering streetlight with the colour drained out, the neon climbing the buildings, the frozen silhouette |
+| `get-into-the-beat-p2…p5` | 12 × 4 | the same twelve frames with four more partners (blonde, black bob, curly red, shaved head) |
+| `liquid-silver-shadow` | 4 | a translucent human shadow of smoke and liquid silver slipping through an outstretched hand |
+| `afro-house-spiritual-jazz-house` | 5 | the house style — flute and EWI, the percussion island, warm bass and sunlit Rhodes, the pads and the horn swell, the collective |
+
+**105 frames from 75 distinct Midjourney jobs**, every one an edit job
+from the artist's four attached photographs or a plain generation with no
+identity attached. 30 clips, all 1920×1080 / 30 fps / `yuv420p` / `tv`,
+every one decode-checked: a hard-cut edit (48 s for a 12-frame set), a
+dissolve version (29.4 s) and a ping-pong loop (88 s).
+
+**The default recipe changed mid-session, and the change was the point.**
+The artist's own job `6606f40f` (cell 2) became the source: four
+photographs, `--raw --profile aeq4jzq --stylize 0 --hd --v 8.2 --ar
+91:51`, and **no `--sref`** — the earlier sample carried a style
+reference and this one does not. Seven frames had already been rendered
+against the old recipe when the change arrived; they were discarded and
+the set re-rendered, because a set is one look and a half-and-half set is
+two looks in one cut.
+
+**Three tool fixes, all found by running the tools rather than reading
+them:**
+
+- **`lib/mj-revise.js` could not authenticate itself.** The session is
+  the cookie jar, not the profile, and this tool had no way to hand the
+  jar to the browser it launches — so a run on a cleared profile died at
+  "the prompt textarea never appeared" with no reason given. It now
+  injects the jar before navigating, and says why when it cannot use it.
+  The `__Host-` rule comes with it (no `domain` attribute): a browser
+  drops those silently and the site renders "Log in" with no error
+  anywhere. `mj-revise.test.js` 84 → 90.
+- **`lib/mj-web.js --preflight` demanded a prompt file**, which made "is
+  the jar still good?" impossible to ask on its own: the guard exited
+  before the browser ever opened. It now runs standalone and spends
+  nothing.
+- **`lib/suno-create.js` reported "submitted" as if it were "made".**
+  The submit call answers with a clip id whether or not the generation
+  will ever render. The tool now reads the clip back, records the
+  verdict with the generation and exits 3 when the generation was
+  refused. `suno-create.test.js` 23 → 28.
+
+**The Suno brief is blocked on the account, and the tool now says so.**
+Brief 03 (KAI BALKAN UNDERGROUND, 105 BPM, Balkan brass + African
+polyrhythms) was submitted as clip `c71e9ad1` with the brief's own tags,
+negatives, 198 s and 85 % style influence — and came back
+`status: "error"`, its audio URL pointing at
+`studio-api.prod.suno.com/api/forbidden`, with the balance unmoved at
+**7 credits**. Every request on this account fails the same way: the
+concurrent session's own 60 s generations errored identically, with and
+without an explicit model. It is the ACCOUNT refusing, not the body.
+Nothing was spent. The brief is in `assets/song-prompts/` with the
+settings and the attempt recorded; re-run the command when the balance
+allows.
+
+**Three findings that cost generations and are now encoded:**
+
+- **A mixing desk is soft-banned.** The Afro-house frame with a hand
+  turning a knob and indicator lights along the console was refused
+  every time, with and without the negative tail. A two-probe bisect put
+  the trigger in the desk imagery: the pads-and-horn version of the same
+  frame rendered first try. The frame was rewritten without the desk.
+- **A stale attachment turns a plain generation into an edit job.** One
+  shadow frame came back `v8-2_edit_diffusion` — the composer's file
+  input still held something — and the plain-job gate correctly refused
+  to attribute it. Re-run clean, and the manifest records the job that
+  actually produced the shipped cell.
+- **The reuse key saved the partner sets.** The key is the whole prose
+  plus the ratio, so the eight frames whose prose does not mention the
+  partner were reused from the base set: each partner cost four
+  generations, not twelve. That is also why the five partner versions
+  look like one film — the shared frames are literally the same images.
+
+**Throughput.** Three Midjourney runs went at once on three ports with
+three profiles, and the account took it: 12 jobs in ~13 minutes each,
+against ~39 minutes for a single run earlier in the session. The feed
+attribution stayed clean (the matcher requires the job's own command to
+match the prompt and the flags, and the partner sets' prompts differ).
+
+**Open:**
+
+- **No audio for any of the ten sets.** The Suno account refuses every
+  generation, and the songs were not generated anywhere else. The clips
+  are silent.
+- **The clips live in `mj-output/`, which is gitignored** — the same
+  convention as the earlier lyric sets. The tracked artefacts are the
+  packs, the manifests' recipes and the tool fixes.
+- The partner sets' shared frames are the base set's cells, chosen by
+  eye once and reused — deliberate, so the five versions read as one
+  film, but it does mean the partner versions differ only in the four
+  frames that show the partner.
+- Unchanged: the `.kai/` durability call, the woody-shaw chart
+  variants, the Vercel custom domain, the MJ cookie jar expiry, the
+  hub board's completion misattribution, a reel's slug still derived
+  from its mutable POST-sheet title.
