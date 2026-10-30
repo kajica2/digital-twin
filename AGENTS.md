@@ -9584,3 +9584,652 @@ would have needed 100 credits to observe.
   render. Not fixed here; it wants its own change.
 - Unchanged: the hub board's completion misattribution; a reel's slug
   still derives from its mutable POST-sheet title.
+
+### 2026-10-26 — sprint 0.61 (Abre Tudo: twelve stills of the artist, one video)
+
+Brief: *"using this as sample … create 12 frame music video keeping me in
+the frame wearing different clothes and postures, here is the lyric
+`Abre Tudo`"*, corrected mid-run three times — *"we don't want treblo
+generation"*, *"only my stills"*, *"use version that supports it"*, *"the
+url i gave you has images attached use same
+`…/jobs/593d6682-b9a5-4f25-8059-fcaad231784e?index=1`"*.
+
+**Shipped:**
+
+- **`assets/mural-prompts/abre-tudo-stills-12.md`** — 12 bullets, one
+  still each, the artist in twelve different garments and twelve
+  different postures (overcoat, oxford shirt, leather jacket, cream linen
+  suit, field jacket, hoodie, turtleneck, wool coat, burgundy knit,
+  pinstripe suit, khaki shirt, trench coat). The wardrobe leads every
+  bullet and the reference's own garments are negated, because that was
+  the measured failure in sprint 0.54. Prompt lint: 52 packs, 522
+  prompts, 0 violations.
+- **The run** — `lib/mj-revise.js --source
+  593d6682-b9a5-4f25-8059-fcaad231784e`, i.e. the artist's own sample job
+  re-evolved: its three attached photographs are the identity anchor, its
+  flags (`--raw --sref … --profile hqoikhx … --stylize 50 --hd --v 8.2
+  --ar 91:51`) travel with every prompt, and the pack carries no flags at
+  all. **12/12 accepted as `v8-2_edit_diffusion`**, 2944×1648 each, 35 min
+  wall, 48 cells downloaded.
+- **The video** — `bin/images-to-mp4.mjs` over the twelve chosen cells:
+  `abre-tudo-12-frame.mp4` (1920×1080, 30 fps, 21.2 s, yuv420p / tv /
+  bt709, 7.8 MB) and `abre-tudo-loop.mp4` (the ping-pong, 38.2 s, 14.5 MB).
+  Silent — see *Open*.
+- **`lib/mj-download.js`** — the pack's images were never downloadable
+  from the repo: `lib/mj-web.js` writes `prompt.md` + `meta.json`, and the
+  CDN 403s plain clients while a cross-origin fetch is blocked. This is
+  that fetch (in-page, from a midjourney.com tab — the contact-sheet
+  builder's own trick), with the extension taken from the URL the CDN
+  served, `--slot`, `--force`, `--dry-run`, a plan that launches nothing,
+  and a refusal for an unknown flag. `lib/mj-revise.js` now requires it
+  instead of carrying a second copy of `fetchImage`; `gridFileName` stays
+  its name for the same function.
+- **`lib/mj-download.test.js`** — 24 assertions, no browser, wired as
+  `npm run test:mj-download` and into `test:all`. Two real defects caught
+  by it: `imageFileName` returned a regex match **array** for a query-free
+  URL, and an unknown flag's *value* was reported as a second unknown flag.
+
+**Three findings that cost generations, all now encoded:**
+
+1. **A softban is a submission that is accepted and never queued.** MJ's
+   `POST /api/submit-jobs` answer carries a `job_id` with
+   `softban: true`; the job never appears in the feed and the CDN 404s
+   every size, forever. Measured: two `--v 7 --oref` submissions came back
+   this way and the tool printed `submitted: job …` both times, then spent
+   its whole acceptance window hunting a job that does not exist.
+   `submitComposed` now refuses it, names the job id and the job type, and
+   says which lever to pull.
+2. **`--oref` needs the version named, and v8.2 will not take it.** Same
+   prompt, one submission each: no `--v` → refused outright; `--v 8.2
+   --oref` → refused; `--v 7 --oref` → accepted, then silently never
+   rendered (finding 1). `--hd` is a v8 flag and is dropped on v7.
+3. **The acceptance gate forbade the reference flags the caller asked
+   for.** `forbid: ['edit','cref','oref']` exists to reject the account
+   owner's concurrent edit job — but an `--oref` run cannot be attributed
+   by a gate that rejects `--oref`. `forbiddenFlags(text)` is now derived
+   from the composed text, so both paths agree; 6 assertions pin it
+   (`test:mj-web` 78 → 84).
+
+**Also shipped:** `--accept-on-submit` — when the feed merely *lags* a
+rendered job (a relaxed queue can publish minutes late), the submission's
+own job id is authoritative and the metadata is written with
+`matchedBy: "submit-response"`. A softban is refused before that flag is
+consulted, so trusting the id can never paper over a job that will not
+render. `docs/MJ-WATCHER.md` gained *Downloading a pack's images*, *Which
+version supports which reference flag* and *A soft-banned submission*.
+
+**The answer to "which mechanism keeps me in the frame":** an **edit
+job**, not a reference flag. The sample job's three attachments are the
+artist; the prose owns the wardrobe, the posture, the room and the light.
+Verified by looking at every frame: the same man in twelve outfits, no
+other person in any cell.
+
+**Verified:**
+
+- `npm run test:mj-download` 24/24 · `test:mj-web` 84/84 ·
+  `test:mj-revise` 84/84 · `npm run prompt:check` 0 violations ·
+  `npm run test:all` green.
+- The video: `ffprobe` — 1920×1080, 30 fps, 636 frames, 21.2 s,
+  `yuv420p` / `color_range=tv` / `bt709`, video stream only; a frame
+  grabbed at 12 s is frame 7 of the set.
+- The loop file: 1146 frames, 38.2 s. First-vs-last PSNR is only 9.9 dB —
+  which is correct, not a bug: the ping-pong ends on frame 2, so a repeat
+  is a normal adjacent dissolve (2 → 1), not a jump. The seam check that
+  assumes last == first does not apply to this ordering.
+- The contact sheet was read: twelve frames, one man, twelve outfits.
+
+**Open:**
+
+- **No audio.** The lyric was supplied for the song, and the instruction
+  was explicitly *no Treblo generation*, so the video is silent. When the
+  track exists: `node bin/images-to-mp4.mjs <frames> --audio
+  <track.ogg> --mode crossfade --size 1920x1080 --out …` cuts the video to
+  it (`--loop` first if the track outlasts 38 s).
+- **Two camera asks did not land** (frame 7's strict profile became a
+  three-quarter turn; frame 11's tilted-back head became a lean) — the
+  same edit-mode boundary sprints 0.53–0.61 measured.
+- Five generations were spent on the abandoned routes (one v8.2 profile
+  frame, one v8.2 accept, three v7 probes). Recorded rather than hidden:
+  the v7 pair never rendered at all (finding 1), so the real cost was
+  three jobs.
+- The chosen slot per frame is recorded in
+  `mj-output/abre-tudo-stills-12-edit/manifest.json`; ten of the twelve
+  are slot 0, frames 8 and 12 needed a different cell (a red streak, a
+  baked-in "11" stamp).
+
+### 2026-10-26 — sprint 0.62 (Abre Tudo: the twelve cinematic frames, and a per-shot cut list)
+
+Second half of the same brief: the twelve frames as the brief writes
+them — scene, not portrait — carrying the settings suffix it specifies
+(`--ar 16:9 --stylize 200 --chaos 8 --no text subtitles logos watermark`).
+
+**Shipped:**
+
+- **`assets/mural-prompts/abre-tudo-cinematic-12.md`** — the brief's
+  twelve prompts verbatim, one bullet each (intro, verse, verse build,
+  verse climax, chorus, chorus continued, instrumental break, verse 2,
+  bridge, bridge peak, final chorus, outro). Each frame's motion idea is
+  recorded as a **blockquote** beside its bullet, so the intent travels
+  with the pack and is never submitted as prompt text (the parser skips
+  blockquotes). Prompt lint: 53 packs, 534 prompts, 0 violations.
+- **The run** — plain generations, **12/12** accepted as
+  `v8-2_diffusion` at 16:9, 4 cells each, 10 minutes wall, 48 cells
+  downloaded with `lib/mj-download.js`. No identity attachment: the
+  brief's own frames are architecture and light, and an edit attachment
+  would have put the subject into the empty rooms (frames 01, 03, 04,
+  05, 07, 08, 12 call for no figure at all).
+- **`--motions`, one motion per shot.** `lib/render/plan.mjs` accepted a
+  single `kenBurns` for the whole set, so a twelve-shot montage pushed in
+  on every frame — a slideshow. The plan now takes a list, looked up by
+  image **name** (the ping-pong list is longer than the input set, so a
+  positional index slides out of step), and `bin/images-to-mp4.mjs` gained
+  `--motions a,b,c` with `none` to hold a shot still, refused when the
+  count does not match the set. Five assertions pin it
+  (`test:images-mp4` 69 → 74). `docs/IMAGES-TO-MP4.md` documents both.
+- **Three cuts** (`mj-output/abre-tudo-cinematic-12/`, gitignored):
+
+  | file | what |
+  |---|---|
+  | `abre-tudo-cinematic-cut.mp4` | 36.0 s, 1920×1080 / 30 fps, hard cuts, a different camera move per shot — the primary |
+  | `abre-tudo-cinematic-12.mp4` | 26.1 s, the same shots under 0.9 s dissolves |
+  | `abre-tudo-cinematic-loop.mp4` | 47.1 s, the ping-pong, for looping under the full track |
+  | `contact-sheet.png` | the twelve chosen frames |
+
+  Plus `manifest.json`: per frame — title, lyric section, chosen cell,
+  motion, task id, engine, the exact prompt.
+
+**Decisions:**
+
+- **Cut, not dissolve, for the primary.** Sampled at 11 s, the crossfade
+  version showed two shots blended mid-dissolve — muddy for a sequence
+  built on single-subject frames. Hard cuts plus per-shot moves read as
+  cinema; the dissolve cut is kept because a lyric video sometimes wants
+  it.
+- **The motion list is keyed by name, not position.** `loopOrder()`
+  lengthens the name list, and an index into it would rotate the moves
+  out of phase with the shots.
+- **One cell per frame, chosen by eye.** Twelve different slots were
+  reviewed on contact sheets; where a cell carried a baked-in "11" stamp
+  or a stray red streak the next cell was taken (same rule as sprint
+  0.61). The pick is recorded in the manifest, so the choice is auditable.
+- **The 'no' parameter is part of the suffix.** `--no text subtitles
+  logos watermark` travels with every bullet as the brief wrote it; the
+  config's `--style raw` still applies because the guard drops only what
+  the prompt itself names.
+
+**Verified:**
+
+- `npm run test:images-mp4` 74/74 · `test:mj-download` 24/24 ·
+  `prompt:check` 0 violations.
+- `ffprobe` on the primary: 1920×1080, 30 fps, 1080 frames, 36.0 s,
+  `yuv420p` / `tv` / `bt709`.
+- Four frames sampled out of the primary (1.5 s, 4.5 s, 7.5 s, 10.5 s)
+  and read: staircase of light, trumpet silhouette, fracturing wall,
+  blue impossible room — the brief's first four frames, in order.
+- The contact sheet read: twelve frames, twelve sections of the lyric,
+  no baked-in lettering in any of them.
+
+**Open:**
+
+- **No audio** (the song was deliberately not generated). Once the track
+  exists: `node bin/images-to-mp4.mjs /tmp/cinframes --audio <track> …`
+  cuts the video to it; `--loop` first if the track outlasts 47 s.
+- The brief's motion language is richer than three moves (`upward
+  tracking`, `orbit`, `pullback`). `--motions` covers push / pull / pan /
+  hold; an actual orbit or dolly needs per-shot filters the plan does not
+  build yet.
+
+### 2026-10-26 — removal (the Treblo integration comes out)
+
+Asked, plainly: *remove the Treblo connection*. The whole vendor surface
+is gone — client, page, docs, spec, npm scripts, CI lines, the Twin OS
+card and the how-to row. What stays is the artist's own work.
+
+**Removed:**
+
+| path | what it was |
+|---|---|
+| `lib/treblo.js` | the API client (submit, status ladder, download) |
+| `lib/treblo.test.js` | 52 assertions |
+| `pages/treblo.html` + `treblo.html` | the tool page and its root copy |
+| `docs/TREBLO.md` | the reference |
+| `e2e/treblo.spec.mjs` | 30 checks |
+| `package.json` | `treblo:generate`, `treblo:dry`, `test:treblo`, `e2e:treblo`, and `test:treblo` out of `test:all` |
+| `.github/workflows/pages-test.yml` | both `treblo.spec.mjs` lines (push + PR) |
+| `pages/twin-os/index.html` + `twin-os/index.html` | the `[data-tool-treblo]` tool card |
+| `pages/how-to.html` | the page-map row; hero count fifteen → **fourteen** |
+| `README.md` | the "Run Treblo" section, the status-line mention, the file-tree bullet |
+
+**Kept, deliberately:**
+
+- **The four prompt packs** moved from `assets/treblo-prompts/` to
+  **`assets/song-prompts/`** — the same bullets, with the vendor wording
+  and the `model:` line stripped from their frontmatter. They are the
+  artist's own song directions and the format is the repo's pack
+  convention, so they still feed either pipeline.
+- **`data/treblo/`** (gitignored) — the generated audio and its
+  catalogues. Deleting the client must not delete the music; the files
+  stay, and the catalogue's dead CDN links are now just history.
+- **`.gitignore`** keeps the `*-api-key` / `*-cookies.txt` rules (second
+  line of defence, no code depends on them). The comment above
+  `data/treblo/` was rewritten so it no longer names a removed module.
+
+**Outside the repo, untouched:** `~/.treblo-api-key` and
+`~/.treblo-cookies.txt` are still on disk. Nothing reads them any more;
+deleting a credential is the owner's call, not a side effect of a
+refactor.
+
+**Verified:**
+
+- `npm run test:all` — green (the chain no longer contains
+  `test:treblo`; nothing else referenced it).
+- `npm run test:secrets` — 9/9, 9 cookie-jar settings, all outside the
+  repo (the guard enumerates configs dynamically, so the removed client
+  left no dangling expectation).
+- `npm run skin:check` — 46 skinned (48 → 46: two pages gone), 8 opted
+  out, 1 plain, **0 errors**.
+- e2e against the repo-root `:5180` server: `twin-os` ALL CHECKS PASSED
+  (the tool grid is still valid without the card), `how-to` OK — including
+  the hero-count-vs-page-map assertion, which is what proves the
+  fifteen → fourteen edit is consistent — plus `clip-interrogator`,
+  `refael` and `loopable-video-segmenter`, each of which visits the Twin
+  OS and asserts 0 console errors.
+- `.github/workflows/pages-test.yml` parses (2 jobs, 10 steps).
+- `grep -ri treblo` across the tree: only the historical AGENTS.md log
+  and the gitignored `data/treblo/` masters.
+
+### 2026-10-30 — sprint 0.63 (two lyric sets: `Flames Don't Warm Me` and `The Way I Flow`)
+
+Two lyric-to-graphics runs, both anchored to the artist's own photographs
+via the **edit route**, both shipped as packs + stills + three video cuts.
+
+**The mechanism, settled by measurement across four sprints:**
+
+| route | result |
+|---|---|
+| `--oref` (no version) / `--v 8.2 --oref` | refused |
+| `--v 7 --oref` | soft-banned — job id returned, never queued, CDN 404s forever |
+| **edit job from a job that carries his photos** | **24/24 accepted**, `v8-2_edit_diffusion`, 2944×1648 |
+
+So both packs are prose-only bullets and `lib/mj-revise.js --source
+ebe49df4-3e6e-4191-9ecd-62e7e6d01534` re-attaches the four photographs of
+the artist to every prompt, carrying that job's own flags
+(`--raw --sref … --profile hqoikhx … --stylize 50 --hd --v 8.2 --ar 91:51`).
+
+**Shipped:**
+
+- **`assets/mural-prompts/flames-dont-warm-me-12.md`** — 12 frames, one
+  per turn of the lyric: radiator, burn-mark halo, frosted window, ash in
+  a snowy street, the hook twice (inside a ring of fire, arms to a wall of
+  flame), the ghost in the cracked mirror, the bridge over the ashes, the
+  room of matches, three outro frames ending on the last match.
+  **12/12 edit jobs**, 48 cells, 35 min.
+- **`assets/mural-prompts/way-i-flow-12.md`** — 12 frames: the curb, the
+  cold coffee, checking the corner, writing his own script, the brand-new
+  trip, letting go, flying high on a rooftop, watching out in a crowd,
+  owning the moment in a doorway, deliberate boots on the crossing line,
+  a night long-exposure of pure flow, and the bridge at sunrise.
+  **12/12 edit jobs**, 48 cells, 35 min.
+- **Three cuts each**, 1920×1080 / 30 fps / `yuv420p` `tv` `bt709`, with a
+  **different camera move per shot** (`--motions`):
+
+  | set | cut | crossfade | loop |
+  |---|---|---|---|
+  | flames | `flames-12-cut.mp4` 42.0 s | `flames-12-crossfade.mp4` 31.0 s | `flames-12-loop.mp4` 56.0 s |
+  | flow | `flow-12-cut.mp4` 36.0 s | `flow-12-crossfade.mp4` 26.1 s | `flow-12-loop.mp4` 47.1 s |
+
+  Each directory also carries `contact-sheet.png` and `manifest.json`
+  (frame → title → lyric section → chosen cell → motion → task id →
+  the exact prompt).
+- Prompt lint: 55 packs, 558 prompts, 0 violations.
+
+**One frame was re-rendered, and why.** `flames` frame 04 came back with
+baked-in "NO WAY OUT" lettering in one cell — the source's flag set
+carries no `--no` clause, so the pack's own "no text" has no teeth in
+edit mode. Re-rendering that single frame with `--no text subtitles logos
+watermark lettering` appended to its bullet produced four clean cells
+(job `c5fa381e`), and the manifest records the swap. **In edit mode, add
+the `--no` clause to the prompt; it is not inherited.**
+
+**A generation was wasted on a mistake worth recording.** Trying to read a
+source job's record "for free" by pointing `mj-revise` at a file with no
+bullets: `extractPrompts` has a legacy fallback that treats a
+paragraph-shaped file as ONE prompt, so the blockquote-only file was
+submitted as a prompt (job `ef28b581`). The tool spent a generation to
+look up a record. There is no dry-run on `mj-revise`; do not invent one
+out of an empty prompt file.
+
+**Also observed:** the plain-generation attempt of the flames pack hit a
+**softban on prompt 1** (`e2c96e2d`) and reported it correctly — the
+sprint-0.61 fix doing its job on its first real recurrence.
+
+**Verified:**
+
+- 24/24 jobs `v8-2_edit_diffusion`; 96 cells on disk; `manifest.json`
+  carries 12 distinct task ids per set.
+- Contact sheets read frame by frame: the same man, twelve different
+  garments and postures per set, no other person in any cell, matching
+  each lyric turn (the flames sheet in cold blue/orange, the flow sheet in
+  daylight).
+- `ffprobe` on both primaries: flames 1920×1080 / 30 fps / 1260 frames /
+  42.0 s, flow 1920×1080 / 30 fps / 1080 frames / 36.0 s, `yuv420p` /
+  `tv` / `bt709`.
+- `npm run prompt:check` 0 violations; `npm run test:images-mp4` 74/74
+  (the `--motions` path these cuts use).
+
+**Open:**
+
+- **No audio** for either set — the songs were not generated here. One
+  command cuts a set to a track:
+  `node bin/images-to-mp4.mjs /tmp/flframes --audio <track> --mode kenburns --each 3.5 --motions …`.
+- In edit mode the reference's own garment still wins in some frames (the
+  blue outer jacket appears across most of the flow set despite a
+  slate-blue cotton jacket in the prose). Leading + negating the garment
+  helps; it does not overrule.
+- `mj-revise` has no `--dry-run`; a record-inspection path that spends
+  nothing would be the next small tool.
+
+### 2026-10-30 — sprint 0.64 (`Baby Lover`: abstract frames, and look effects in the renderer)
+
+Third lyric set, and the first one that pushes the cut past "still with a
+camera move". Two briefs arrived in sequence — *add more fx*, then *think
+more abstract, creative* — and they are one change: the abstraction
+belongs in the **prompt**, and the film look belongs in the **renderer**.
+
+**Shipped — `--fx`, a per-shot look list.**
+
+`lib/render/plan.mjs` grew an `FX` registry (12 effects, each verified
+against the installed ffmpeg *before* it entered the table) and an `fx`
+option: one entry for the whole set, or one per input image, looked up by
+**name** (the ping-pong list is longer than the input set). A shot stacks
+effects with `+` (`grain+chroma`); `none` leaves it clean. Unknown names
+are refused at plan time, so a typo cannot reach ffmpeg.
+
+| name | what it is |
+|---|---|
+| `grain`, `grain-heavy` | temporal noise (`allf=t+u`) — the grain moves, it is not painted on |
+| `vignette` | `vignette=angle=PI/4.5` |
+| `chroma` | `chromashift` — the RGB-split |
+| `vhs` | `rgbashift` + noise + `tmix` |
+| `smear` | `tmix` — motion blur with no motion in the source |
+| `flicker` | `eq=brightness=…` per frame (`eval=frame`) |
+| `warm` / `cold` | `colortemperature`, not a colour-balance guess |
+| `blur`, `sharpen`, `contrast` | `gblur`, `unsharp`, `eq` |
+
+`bin/images-to-mp4.mjs` gained `--fx` (one value = every shot; a list must
+match the image count), the executor forwards it, and the dry-run view
+builds the **same** graph as the run — the first patch missed both of
+those, and the dry run then printed a command with no effects in it.
+Six assertions pin the behaviour (`test:images-mp4` 74 → 80);
+`docs/IMAGES-TO-MP4.md` documents the table and the rule.
+
+**Shipped — the frames, twice.**
+
+- **`assets/mural-prompts/baby-lover-12.md`** — the literal pass (road,
+  mile marker, radio, cupped light). Five frames were rendered, the brief
+  changed, and it stayed on disk as the literal alternative.
+- **`assets/mural-prompts/baby-lover-abstract-12.md`** — the shipped set:
+  a rope of light dragged across black, a dust horizon with an arm
+  entering it, clock faces in broken mirror shards, a jaw dissolving into
+  emulsion, a double-exposed corridor over a face, a frozen breath shape,
+  a macro iris filling the frame, hands cupping a blown-out sun, wet
+  asphalt as vertical light streaks, a strip of fabric whipping through
+  the dark, a door of white light with a thrown hand, two silhouettes
+  merged into one mark.
+  **12/12 edit jobs** (`v8-2_edit_diffusion`), 48 cells, 39 min.
+- **Three cuts** (`mj-output/baby-lover-abstract/`), 1920×1080 / 30 fps /
+  `yuv420p` `tv` `bt709`, per-shot motion **and** per-shot fx:
+  `baby-lover-abstract-cut.mp4` (38.4 s), `…-crossfade.mp4` (26.3 s),
+  `…-loop.mp4` (47.3 s), plus `contact-sheet.png` and `manifest.json`
+  (frame → title → chosen cell → motion → fx → task id → prompt).
+
+**Decisions:**
+
+- **Abstract means optical, not vague.** Every bullet names a physical
+  event a camera can record — a drag, a shard field, a bloom of vapour, a
+  macro — and the person appears only as a fragment (eye, hand, jaw,
+  silhouette). A prompt that says "abstract, dreamy" renders mush; a
+  prompt that says "dozens of clock faces in broken mirror shards" renders
+  an image you can cut to.
+- **The look lives in the video, not the still.** `--fx` runs per shot at
+  render time, so one frame set can produce a clean cut and a degraded
+  one, and the abstraction can be pushed without spending generations.
+- **`mj-revise` reuse is keyed on the full prose**, which is why rewriting
+  the pack produced twelve new jobs and left the five literal frames
+  behind as a second set — and also why the accidental restart reused job
+  `90af8af3` instead of paying for it twice.
+
+**Verified:**
+
+- 12/12 jobs, 48 cells, 12 distinct task ids in the manifest.
+- `ffprobe` on the primary cut: 1920×1080, 30 fps, 1152 frames, 38.4 s,
+  `yuv420p` / `tv` / `bt709`.
+- A frame pulled at 20 s and read: the macro iris with `sharpen+contrast`
+  applied — the effect is in the encode, not in the still.
+- Contact sheet read frame by frame: twelve optical events, the artist
+  present as a fragment in ten of them, no baked-in lettering.
+- `npm run test:images-mp4` 80/80 · `npm run test:all` green ·
+  `npm run prompt:check` 57 packs, 582 prompts, 0 violations.
+
+**Open:**
+
+- No audio for any of the three sets (flames, flow, baby lover) — the
+  songs were not generated here.
+- The literal `baby-lover-12.md` set is five frames in
+  `mj-output/baby-lover-edit/`; it needs seven more to become a cut.
+- `--fx` is per shot; there is no global grade stage after the join. A
+  shared grade per *sequence* would be the next addition.
+
+### 2026-10-30 — sprint 0.65 (`Round and Round`: the sample job becomes the recipe)
+
+The brief was one line — *use this as sample prompt* — plus a new lyric,
+so the work was: read the sample, take its recipe, and build the set in its
+optical language.
+
+**The sample, read at zero cost.** `a075cacc-27f9-42a2-8603-03ef66520551`
+is `v8-2_edit_diffusion` and its recorded command is:
+
+```
+… --ar 91:51 --raw --sref https://s.mj.run/bWwO-0V9NsQ --profile aeq4jzq
+   --edit <4 s.mj.run photographs> --stylize 0 --hd --v 8.2
+```
+
+Two things differ from the recipe every earlier set used, and both change
+the look: **`--stylize 0`** (not 50) and a **single** `--profile aeq4jzq`
+(not the eight-code list). Pointing `--source` at this job carried exactly
+that set — verified in the first meta's `carriedFlags`.
+
+**Shipped:**
+
+- **`assets/mural-prompts/round-and-round-12.md`** — twelve frames in the
+  song's own language of loops: desks dragging into concentric arcs in an
+  empty exam hall, a corridor whose doorways repeat to vanishing, a profile
+  double-exposed under dragged traffic light, four ghosted copies of one
+  man walking a circle in a car park, paper swept into streaks, a shoulder
+  smeared while the jaw stays sharp, city lights dragged past a bus window,
+  papers and blurred birds circling a still figure, one man ghosted three
+  times along a crosswalk, light trails spiralling above a motionless
+  figure, a row of lit doorways receding into dark, and a spiral of light
+  on wet ground seen from above.
+  **12/12 edit jobs**, 48 cells, 39 min, every one `2944×1648`.
+- **Three cuts** (`mj-output/round-and-round/`), 1920×1080 / 30 fps /
+  `yuv420p` `tv` `bt709`, per-shot motion **and** per-shot fx:
+  `round-and-round-cut.mp4` (33.6 s), `…-crossfade.mp4` (24.8 s),
+  `…-loop.mp4` (44.8 s), `contact-sheet.png`, `manifest.json` (frame →
+  title → cell → motion → fx → task id → `carriedFlags` → prompt).
+
+**Decisions:**
+
+- **Read the sample from the feed, not from the page.** The job page
+  carries only `og:image`; the recorded command lives in
+  `/api/imagine?page_size=400` behind `X-CSRF-Protection: 1`. A 20-line
+  probe found it with no generation spent — the counter-lesson to sprint
+  0.64, where a "free" read cost a job because an empty prompt file fell
+  through to the legacy single-prompt fallback.
+- **The lyric decides the camera, the sample decides the surface.** The
+  song is about repetition, so every frame is a repeat: arcs, rings,
+  spirals, ghosted copies, receding doorways. Motion blur is not decoration
+  here, it is the subject.
+- **`--stylize 0` keeps it honest.** The sample's own setting, and the
+  reason the frames look like a photograph of a long exposure rather than
+  an illustration of one.
+
+**Observed, not fixed:** because all four attached photographs are
+selfies, the edit route pulls the framing toward a handheld
+arm's-length portrait — the figure fills the frame more than the prose
+asks. It reads as a phone-camera music video, which suits this song; a
+wider set would need plate-first frames with the face attached second.
+
+**Verified:**
+
+- 12/12 jobs `v8-2_edit_diffusion`; `carriedFlags` on the first meta is
+  byte-for-byte the sample's recipe.
+- `ffprobe` on the primary cut: 1920×1080, 30 fps, 1008 frames, 33.6 s,
+  `yuv420p` / `tv` / `bt709`.
+- A frame pulled at 16 s and read: the `vhs` effect is in the encode —
+  chromatic fringing at the jacket edge, blown highlights, streaked lamp.
+- Contact sheets read cell by cell; twelve distinct task ids in the
+  manifest; no baked-in lettering.
+- `npm run prompt:check` 58 packs, 594 prompts, 0 violations.
+
+### 2026-10-30 — sprint 0.66 (`Mais uma vez`: the sample recipe on a warm lyric)
+
+The bossa set. Same recipe as sprint 0.65's sample job
+(`--stylize 0`, `--profile aeq4jzq`, one `--sref`, the four attached
+photographs, `--ar 91:51`, `v8.2`) — the point of this run was that the
+**recipe** is now stable and the **register** is what changes per song.
+
+**Shipped:**
+
+- **`assets/mural-prompts/mais-uma-vez-12.md`** — twelve frames for a
+  bossa: a mosaic promenade curving to the sea, wind at a low sea wall, a
+  palm frond in soft blur over shimmering water, a close profile with the
+  sun behind the eye line and halation off the cheek, long-exposure surf
+  drawing back over wet sand with two bare feet at the frame edge, a hand
+  on a chest with sunlight through the linen weave, the sea abstracted to a
+  field of gold highlights with a hand breaking rings into it, a curtain
+  lifting into a bright room with the sea beyond, a small wave breaking
+  with a blurred figure behind it, macro on a bare footprint filling with
+  water, macro across guitar strings and soundboard with salt on the
+  lacquer, and a near-abstract low sun flaring over bokeh.
+  **12/12 edit jobs** (`v8-2_edit_diffusion`), 48 cells, 39 min.
+- **Three cuts** (`mj-output/mais-uma-vez/`), 1920×1080 / 30 fps,
+  per-shot motion and fx tuned slow and warm (`warm`, `grain`, `blur`,
+  `vignette`, `sharpen`): `mais-uma-vez-cut.mp4` (48.0 s, 4 s shots),
+  `…-crossfade.mp4` (32.6 s), `…-loop.mp4` (58.6 s), plus
+  `contact-sheet.png` and `manifest.json`.
+
+**Observed:** the recipe is deterministic enough that the difference
+between this set and the night one is entirely the prose — same flags,
+same attachments, opposite mood (sepia linen and sea light vs. blue night
+and dragged neon). Worth knowing: `--stylize 0` is what makes that
+possible, because the prompt is not competing with a stylization pass.
+
+**Verified:** 12/12 jobs, 12 distinct task ids, `ffprobe` on the primary:
+1920×1080, 30 fps, 1440 frames, 48.0 s; contact sheet read cell by cell.
+
+### 2026-10-30 — sprint 0.67 (two more sets, and a self-improvement pass)
+
+Three things: the two coin/withdrawal lyrics rendered, and then a pass over
+what this session's own friction taught — with each fix verified against a
+real failure it prevents.
+
+**A. `Drip Withdrawals` and `Air Heavy Like Coins`** — same sample recipe
+(`--stylize 0`, `--profile aeq4jzq`, one `--sref`, the four photographs,
+`--ar 91:51`, `v8.2`), 12 frames each, 12/12 edit jobs each, 39 min per
+set:
+
+| set | register |
+|---|---|
+| `drip-withdrawals-12.md` | cold neon rain — ATM receipt, beaded keypad, a receipt held over the eyes, neon drowning in a puddle, rain streaks under a flyover, coins in a wet palm, a banknote coming apart, a card swiped to a smear, a price tag taped over a reflection, a vault with no keyhole, IOUs falling under a streetlight, headlights dragging past a figure at the kerb |
+| `air-heavy-like-coins-12.md` | metallic air — coins seen through a pocket seam, a floodlit lot with coins on the asphalt, a figure pacing under two lamps, a coin frozen mid-flip, a facade of vents and counters, sunset running off a billboard edge, a failing mirror, a coin above an open palm, breath on a rooftop, vapour with metallic glints, coins in a storm grate, bokeh like coins down a hazy street |
+
+Both got cut / crossfade / loop, `contact-sheet.png` and `manifest.json`
+(frame → title → cell → motion → fx → task id → `carriedFlags` → prompt).
+
+**B. The self-improvement pass — three fixes, each from a real failure.**
+
+1. **`mj-revise --inspect` and `--dry-run` now exist and spend nothing.**
+   This session lost a generation because `--dry-run` was not a real flag
+   (silently ignored → the run submitted), and because the way to "just
+   read the source" was a prompt file with no bullets — which falls through
+   to the legacy single-prompt parser and submits the note itself (job
+   `ef28b581`). `--inspect` prints the source's prose, attachments and flag
+   set and exits before any prompt is composed; `--dry-run` composes every
+   prompt, prints the exact command and exits before any submission. Both
+   skip the output directory, and the summary line says "dry run" instead
+   of claiming generations were made. Verified live: `--inspect` on the
+   sample job printed the recipe and stopped; `--dry-run` printed
+   `--raw --sref … --profile aeq4jzq --stylize 0 --hd --v 8.2 --edit … --ar
+   91:51` and left no directory behind.
+
+2. **The softban guard got the test it never had.** The fix landed in
+   sprint 0.61 without one. Writing it immediately **found where the guard
+   lives**: `submitViaComposer` returns the parsed job (`softban: true`)
+   and does not refuse — the refusal is in `submitComposed`, the layer that
+   reports to the operator. A test aimed at the wrong layer passed nothing;
+   pointed at `submitComposed` it pins five facts (refused, flag carried,
+   job id reported, the words "soft-banned", and that nothing will render).
+   `test:mj-web` 84 → **89**.
+
+3. **`--grade`: one look applied once to the joined cut.** A per-shot `fx`
+   cannot express a sequence-wide treatment — twelve shot vignettes stack,
+   one graded vignette does not. The grade consumes `[out]` and hands it
+   back, so the map and every downstream consumer are untouched. `--grade`
+   on the CLI validates names the same way `--fx` does; six assertions
+   (`test:images-mp4` 74 → **85**); `docs/IMAGES-TO-MP4.md` explains the
+   difference. Used for real on the coins set (`--grade vignette+grain`).
+
+**Verified:** `npm run test:all` green · `test:mj-revise` 84/84 ·
+`test:mj-web` 89/89 · `test:images-mp4` 85/85 · `prompt:check` 61 packs,
+630 prompts, 0 violations · `--inspect` and `--dry-run` exercised against
+the live account · `--grade` smoke-rendered and refusing an unknown name.
+
+**Still open, in priority order:**
+
+- `--fx`/`--grade` are per-cut; there is no cross-cut project grade.
+- The edit route pulls framing toward arm's-length portrait (all four
+  reference photos are selfies). A plate-first pass — frame without the
+  attachment, face attached second — is the experiment that would settle it.
+- `mj-revise` reuse keys on the full prose, so a one-word edit re-pays for
+  the frame. A fuzzy reuse (same attachment + ratio + >90 % prose) would
+  need a similarity gate that cannot silently misattribute; not attempted.
+- The literal `baby-lover-12.md` set still holds five unfinished frames.
+
+### 2026-10-30 — sprint 0.68 (one Halloween frame, and `Florada e Cinzas`)
+
+**A. Halloween image** (`mj-output/halloween/out/`) — two frames, both an
+edit job from the same sample recipe: a lit gourd on a frost-covered wall
+(`halloween-01.jpg`) and a carved jack-o'-lantern with a real flame, wet
+cobbles, mist and fallen leaves (`halloween-02-jackolantern.jpg`, the
+pick). One generation each, 4 cells, no lettering.
+
+**B. `Florada e Cinzas` — twelve frames**
+(`assets/mural-prompts/florada-e-cinzas-12.md`). The song is a sevdalinka
+in Portuguese, so the register is Balkan winter night rather than the
+bossa's afternoon: a plum orchard in blossom under frost, a glass of plum
+brandy with petals floating in it, a hissing radiator, the scar-halo, a
+breath freezing on the glass, an empty street under one sodium lamp,
+blossom falling into rows of glasses, a ring of fire on frozen ground, a
+stranger in a cracked mirror, a trumpet raised at the dark, a room full of
+unlit matches, and the last match over ice and petals.
+**12/12 edit jobs**, 48 cells, 39 min, all `2944×1648`.
+
+- **Three cuts**: `florada-cut.mp4` (48.0 s, 1440 frames), `…-crossfade.mp4`
+  (32.6 s), `…-loop.mp4` (58.6 s) — 1920×1080 / 30 fps, per-shot motion and
+  fx plus a **sequence grade** (`--grade vignette+grain`), which is the
+  sprint-0.67 feature earning its keep on a real cut.
+- `contact-sheet.png` + `manifest.json` (frame → title → cell → motion → fx
+  → task id → `carriedFlags` → prompt).
+
+**Decision — Fazila stays off camera.** The lyric names her in every other
+line; the standing rule for this project is that only the artist appears on
+camera, so she is present as a poured glass, a lantern hanging over the
+table and a lit window — never a second face. It also keeps the frames
+honest: the song is about her absence from his warmth, not her company.
+
+**Verified:** 12/12 jobs, 12 distinct task ids; `ffprobe` on the primary —
+1920×1080, 30 fps, 1440 frames, 48.0 s; contact sheet read frame by frame
+(sepia/frost palette, the artist in every frame that holds a person); the
+Halloween pick read at full size — carved pumpkin, real flame, wet street,
+no lettering.
