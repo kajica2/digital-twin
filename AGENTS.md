@@ -10495,3 +10495,52 @@ the `.kai/` durability call, the woody-shaw chart variants, the Vercel
 custom domain, the MJ cookie jar expiry, the hub board's completion
 misattribution, a reel's slug still derived from its mutable POST-sheet
 title.
+
+### 2026-10-31 — sprint 0.73 (`Till You Get The Light`: four in the morning)
+
+A lyric arrived: *all I open up wide / one night / come again, for
+something under, at 4:00 in the morning / back, back, back / tap, par,
+pa, par, par / till you get the light / everybody needs somebody / let
+me go*.
+
+**Shipped — `assets/mural-prompts/till-you-get-the-light-12.md` and the
+set it made:**
+
+- Twelve frames, one per beat: a door swung wide in the middle of the
+  night, a step out of the light into the street, a row of closed doors
+  walked at four in the morning, a corridor walked back down, a
+  crossroads at four with four streets going away from it, knuckles
+  tapping a painted door with a band of light under it, a second hand
+  reaching for the same handle, a window going from black to deep blue,
+  a warm doorway with the street still cold outside it, a match struck
+  in the dark and doubled in a window, a lit door seen from the cold
+  street, and two figures at the door in the first grey light with one
+  of them turning away.
+- **12/12 edit jobs** from the artist's four attached photographs
+  (`6606f40f`), 2944×1648 each, 39 min wall.
+- Three cuts, decode-checked at 1920×1080 / 30 fps / `yuv420p` / `tv`:
+  the hard-cut edit (48.0 s), the dissolve (29.4 s), the ping-pong loop
+  (88.0 s), plus the contact sheet and the manifest.
+
+**Decisions:**
+
+- **This is the coldest, quietest set in the family** — the blue hour,
+  street lamps still burning, one warm point of light per frame. Every
+  earlier set had an event (a rehearsal, a crowd, a fire escape); this
+  one has a door and a corridor, and the frame's job is to hold still
+  enough for the light to change in it.
+- **The warm/blue contrast is the film's grammar.** The cold is `cold`
+  and the warm points are `warm`, per shot: the street, the row of
+  doors, the corridor and the crossroads are cold; the light under the
+  door, the match and the open doorway are warm. The grade is one
+  `vignette+grain` over the whole cut.
+- **The partner is faceless in the last frame** — she is the silhouette
+  in the warm doorway while he turns away, which is what "everybody
+  needs somebody / let me go" asks for, and it keeps the one-face rule.
+
+**Open:** the clip is silent (the song was not generated) and lives in
+`mj-output/`, like every earlier set. Unchanged: the Suno account
+still refuses every generation (7 credits), the `.kai/` durability
+call, the woody-shaw chart variants, the Vercel custom domain, the MJ
+cookie jar expiry, the hub board's completion misattribution, a reel's
+slug still derived from its mutable POST-sheet title.
