@@ -10620,7 +10620,7 @@ untracked `my-video/` Remotion template sitting in the repo root
 the secrets guard will not let an env-shaped path sit inside a public
 repo).
 
-### 2026-11-01 — sprint 0.75 (two style tests, and the album cover that was missing)
+### 2026-11-01 — sprint 0.77 (two style tests, and the album cover that was missing)
 
 Two briefs, both a fixed suffix applied to five prompts: one **style
 test** (five different stories, one identical suffix) and one **the
@@ -10699,7 +10699,7 @@ the hub board's completion misattribution, a reel's slug still derived
 from its mutable POST-sheet title, and the untracked `my-video/`
 Remotion template in the repo root.
 
-### 2026-11-01 — sprint 0.76 (the camera grid: twelve beats, twelve cameras)
+### 2026-11-01 — sprint 0.78 (the camera grid: twelve beats, twelve cameras)
 
 Brief: the same lyric again — *all I open up wide / come again at 4:00 in
 the morning / tap par pa par par / till you get the light / everybody
@@ -10768,3 +10768,275 @@ variants, the Vercel custom domain, the MJ cookie jar expiry, the hub
 board's completion misattribution, a reel's slug still derived from its
 mutable POST-sheet title, and the untracked `my-video/` Remotion
 template in the repo root.
+
+### 2026-11-01 — sprint 0.79 (scene presets, and the session MJ refuses)
+
+A pasted list of MJ scene presets, turned into a registry the repo can
+render. Two things came out of it that are worth more than the presets.
+
+**Shipped — `lib/mj-scene-presets.json` + `lib/mj-scene-presets.js` + `lib/mj-scene-presets.test.js` (305 assertions).**
+
+23 presets in four groups (`music-video` 9, `electronic-pop` 4,
+`story-video` 6, `vertical` 4). Each preset is a **scene** (the physical
+event), a **frame** (where the camera stands, naming an OBJECT in the
+picture) and a **cut** (the renderer's own vocabulary: motion, per-shot
+look, whole-cut grade, mode, seconds). The registry is canonical; the
+pack (`--pack`), the cut argv (`--cut-plan`) and the reference
+(`docs/MJ-SCENE-PRESETS.md`) are generated from it.
+
+**Decisions:**
+
+- **The camera's distance is not in the prompt.** `docs/VIDEO-FRAMING.md`
+  measured it: a clause naming an object in the frame lands, a clause
+  naming a distance does not. So "wide shot", "slow tracking shot" and
+  "crane shot rising" moved out of the prompt and into the cut recipe.
+  The pasted list had them in the prompt, which is exactly the mistake
+  the one-door-five-ways test was run to find.
+- **No preset carries a flag.** `--v 7` was MEASURED soft-banned on this
+  account (2026-10-26), and `--v 8.2` is the account's proven engine —
+  the engine lives in `lib/mj-config.json`. The house `--style raw --s
+  21` lives there too, and `buildFullPrompt` drops the config's `--s`
+  when the PROMPT names a style, so a preset naming one would silently
+  reset stylize to 100. `--oref` is refused on this account outright.
+- **A cut is one aspect ratio.** The renderer takes ONE `--size`, so a
+  cut can only be built from presets sharing an aspect — mixing a 1:1
+  plate into a 16:9 cut means the renderer scales or crops it and the
+  frame stops being the frame the prompt asked for. `--ar-filter`
+  selects the subset.
+- **The pack does not land in `prompts-inbox/` by default.** That
+  directory is the MJ watcher's drop zone and a pack there is rendered
+  on sight — 23 generations for a file nobody asked to render. The
+  default output is `data/scene-presets/` (gitignored, regenerable);
+  `--inbox` is the explicit opt-in.
+
+**Bug found and fixed — a session MJ refuses, for a reason the tool did not know.**
+
+The preflight failed: *"the prompt textarea never appeared. Verify the
+cookie jar is from a logged-in session."* — a sentence about the JAR
+when the jar was fine.
+
+The evidence, in order:
+
+1. The two `__Host-Midjourney.AuthUserTokenV3_*` cookies never landed
+   in the browser. Set them by hand and they landed fine — so the tool
+   was setting them, and something removed them afterwards.
+2. The store had them BEFORE the navigation and was EMPTY AFTER. The
+   SERVER clears them: midjourney.com received the session, rejected
+   it, and redirected to /auth/signin.
+3. The expiry hypothesis was WRONG. The jar's id token was valid until
+   06:04 and was rejected at 05:44.
+4. The A/B was clean — same browser, same profile, same cookies, only
+   the id token's VALUE differing:
+   - original id token → sent on the wire, both auth cookies cleared,
+     landed on /auth/signin
+   - freshly minted id token → sent on the wire, page loaded, composer
+     present
+5. The exchange works: the jar's `_r` cookie is a Firebase REFRESH
+   token, and `POST securetoken.googleapis.com/v1/token` with
+   `grant_type=refresh_token` returned HTTP 200 and a new id token.
+   The API key is read from MJ's own bundle (it is in every visitor's
+   browser).
+
+One red herring worth recording: `Network.requestWillBeSent` does NOT
+carry the Cookie header — the real headers are in
+`Network.requestWillBeSentExtraInfo`. A probe that read the wrong
+event reported "the cookies are not being sent", which pointed at the
+browser instead of the server. The cookies were always sent.
+
+**Shipped — `lib/mj-token-refresh.js` + `lib/mj-token-refresh.test.js` (44 assertions).**
+
+The session is renewed on TWO triggers, because neither alone covers the
+failure: PRE-EMPTIVELY when the id token is expired or nearly so (the
+normal hour-boundary case), and ON REJECTION when the server redirects
+to `/auth/signin` (the case the expiry does NOT predict). Wired into
+`lib/mj-web.js` and `lib/mj-revise.js` — both had the same failure.
+
+Verified live: the preflight that used to die now prints *"midjourney.com
+rejected the session — refreshing it"* → *"the session was refreshed"* →
+**PREFLIGHT OK**, and the render that followed submitted four prompts.
+
+**Verified end-to-end (a real run, not a dry one):**
+
+- 4 prompts submitted with the live web backend: 3 accepted
+  (`v8-2_diffusion`, matched by `feed-command` — the trustworthy matcher),
+  1 soft-banned. The tool reported the softban and moved on, so the
+  other three still shipped.
+- 12 cells written, every one 1141×640 (16:9).
+- The cut: 1920×1080, 30 fps, 9.0 s, h264 / yuv420p / bt709 / tv.
+- **The grade and the looks were measured in the ENCODE**, not assumed:
+  - `chroma` (shot 1) — U +0.75 with V −0.01: the RGB split moved one
+    axis, which is what `chromashift` does
+  - `warm` (shot 3) — U +2.20, and only the warm shot moved
+  - `grain` — a luma delta against the still on every shot
+  - `vignette` grade — edges darker than centre on all three shots
+    (28.22 vs 54.08, 22.16 vs 88.90, 29.90 vs 45.57)
+- **One cell per frame, chosen by a measured rule:** the cell whose
+  exposure is closest to the median of the four, never a blown one
+  (>90 luma). That picked `0_1`, `0_1`, `0_0`; the third prompt's cells
+  ran 65.8 / 93.3 / 100.0 / 98.7 — three of them nearly clipped, and the
+  rule took the only one with headroom.
+
+**The softban is a content trigger, not a parameter one.** The refused
+prompt was the church interior — a religious building full of coloured
+bulbs. The accepted jobs were `v8-2_diffusion`, so the engine was not
+the cause. The house response is to re-word the scene, not to change the
+flags.
+
+**Open:**
+
+- The church preset still needs re-wording (the scene, not the flags)
+  before it can be rendered.
+- `mj-output/scene-presets/` holds the proof run — 12 cells, a contact
+  sheet and `scene-proof-cut.mp4` — and is gitignored, like every other
+  rendered set.
+- Unchanged: the `.kai/` durability call, the woody-shaw chart
+  variants, the Vercel custom domain, the MJ cookie jar expiry, the
+  hub board's completion misattribution, a reel's slug still derived
+  from its mutable POST-sheet title.
+
+### 2026-11-01 — sprint 0.80 (the Suno mutator: send a URL, get custom variants)
+
+Asked for: *create sumo mutaror script send url to get custom variants*.
+
+**Shipped — `lib/suno-mutator.js` + `lib/suno-mutator.test.js` (114 assertions) + `docs/SUNO-MUTATOR.md`.**
+
+Hand it a Suno link; it works out which song that is, reads that song's
+own settings, and builds **custom variants** of it — the same audio, a
+different style applied to each. Two outputs: `--save-styles` writes
+each variant as a saved style in the account (so it appears in the
+studio's own picker), `--generate` submits a cover of the source for
+each variant. A manifest lands at `data/suno/mutator.json`.
+
+Six built-in mutations ship (dub, orchestral, lofi-tape, afro-house,
+ambient, breaks); `--mutation` takes arbitrary ones.
+
+**The composition rule** is the one the repo already established in
+`lib/suno-styles.js`:
+
+    tags = <the source song's own style descriptor> + <the mutation>
+
+with the **descriptor always preserved** — when the two exceed the
+server's 1000-character limit, the *mutation* gives way. A variant that
+loses the descriptor is not a variant of the source song, it is a
+different song.
+
+**Decisions:**
+
+- **The style write is idempotent.** `POST /api/prompts/v2` with
+  `id: null` creates and an existing id updates, and the mutator looks
+  the title up in the account's existing styles first — so a re-run
+  updates the same styles instead of piling up duplicates.
+- **The captcha is per-request.** Each cover takes a fresh token, the
+  same way `lib/suno-run.js` does it.
+- **The mutator follows the cover chain BY DEFAULT, and `--no-follow`
+  opts out.** A link can point at a cover of another clip, and
+  "variants of this song" means the SOURCE. But on the artist's own
+  chain the two carry different lyrics AND different tags, so the choice
+  is real and is now explicit rather than assumed.
+
+**The URL shapes — one was a gap, found by asking the network.**
+
+The obvious shapes are `/song/<uuid>`, `/s/<uuid>`, `/create?wid=<uuid>`
+and a bare uuid. But Suno also hands out **short share links** whose
+slug is not a uuid at all (`https://suno.com/s/htrR5vlSCxATy77v`), and
+those are what the mobile app's share button produces.
+
+MEASURED 2026-11-01: suno.com answers a short link with a **307** to
+`/song/<uuid>?sh=<slug>` — the clip id is in the redirect target. The
+mutator follows it and reads the uuid out; a link whose song is private
+or deleted resolves to nothing and the tool says so rather than
+guessing. Verified live against the real suno.com:
+`htrR5vlSCxATy77v` → `4fa05b74-e3bd-4fc1-b6f0-479bc4f67cf4`. A `/hook/<uuid>`
+link is accepted too — a hook is a section of a song, but it carries the
+clip id.
+
+A lookalike host is refused: `suno.com` (or a subdomain of it) or
+nothing. The id must be uuid-shaped.
+
+**Six bugs the unit tests caught, all fixed:**
+
+1. `resolveClipId` was synchronous but `getClip` is async — the source's
+   title was always `null`. It is async now.
+2. A clip with no duration information fell into simple mode and was
+   capped at **60 s** — a third of the length, and a different piece of
+   music. A clip with no duration is a max-mode track (~198 s).
+3. The manifest's source fields were ambiguously named (`source.clipId`
+   held the LINKED clip, `source.sourceClipId` the source). Renamed to
+   `clipId` / `linkClipId`.
+4. The influence was not clamped — the server's slider runs 0..1, and an
+   out-of-range value was passed straight through.
+5. The variant title could exceed the server's 100-character limit. The
+   mutation name survives the trim (it is what distinguishes one variant
+   from another); the song name gives way.
+6. **The command-line grammar split mutations on a COMMA** — so
+   `--mutation "orchestral:0.6:symphonic strings, brass"` came out as
+   TWO mutations, the second one named "brass". Found by RUNNING the
+   tool, not by the test: a comma belongs to the style text, and the
+   separator is a semicolon. There is now a test for it.
+
+**Four more the LIVE run caught — the unit tests could not have:**
+
+1. **The MODEL lives at the clip's TOP LEVEL, not in `metadata`.**
+   MEASURED on a live clip: `metadata.model_name` is undefined and
+   `metadata.major_model_version` is undefined, while the clip carries
+   `model_name: "chirp-hawk"` and `major_model_version: "Custom"`.
+   Reading only `metadata` meant every real clip silently fell back to
+   the default model.
+2. **A 172 s source is not a 60 s track waiting to be trimmed.** The
+   simple-mode cap was truncating a 172 s source to a third of its
+   length. The cap only applies below the simple-mode ceiling.
+3. **The PROMPT is the LYRICS, and it must travel with the variant.**
+   The artist's clip carries its whole lyric sheet in
+   `metadata.prompt`, in Suno's own bracketed form
+   (`[Intro | 4/4 | instrumental, full band]` …). A variant carrying
+   only the TAGS drops the words and becomes a different song with the
+   same instrumentation.
+4. **The studio API RATE-LIMITS, and says so.** MEASURED: a plain clip
+   read came back `429 {"error_type": "rate_limited", "retryable":
+   true}` and failed the whole run. Every call is now retried on the
+   server's own instruction, with the backoff the body implies.
+
+**Verified live, on the account (2026-11-01):**
+
+- The session authenticated (7 credits, subscription active).
+- A song URL → the source behind it → the 452-char descriptor.
+- **SIX custom styles written**, each with a real style id, the
+  descriptor intact and the mutation appended — read back from the
+  account's own style list to confirm.
+- The short-link resolve against the real suno.com.
+- The network facts (`api.suno.ai` 503, `studio-api-prod` 401
+  unauthenticated, `suno.com` 200) — exactly what the repo already
+  documented.
+- `npm run test:all` — 1612 assertions / 0 failures.
+- `npm run test:secrets` — 9/9.
+
+**One thing the secrets guard caught in MY OWN work, and it was right.**
+
+The mutator's test fixture held a literal 39-character `AIza…` string —
+synthetic, but credential-SHAPED, and the guard's pattern
+(`/\b(AIza[0-9A-Za-z_-]{30,})/`) cannot tell a synthetic key from a
+live one. The guard failed, and it was correct to: a fixture that keeps
+the guard red has to be rewritten.
+
+The fix is that the key is now CONSTRUCTED at runtime
+(`'AIza' + 'S'.repeat(35)`), so no credential-shaped literal is in the
+source at all — and the matcher is still exercised on a real-shaped key.
+The commits were re-created (all three were local and unpushed, so
+nothing was ever published); `origin/main` never moved.
+
+**Open:**
+
+- **The account still refuses every generation** (7 credits, measured
+  2026-10-30) — so `--generate` would submit and then report that
+  nothing rendered. `--save-styles` is unaffected: it spends no
+  credits, and it is verified working.
+- The mutations that ship are six styles; the `--mutation` flag takes
+  arbitrary ones, but there is no library file for them the way
+  `assets/mural-prompts/STYLE-PRESETS.md` holds the MJ ones.
+- The `data/suno-cookies.txt` finding in `.secrets-baseline.json` is
+  still open and still needs the owner to rotate it — it predates this
+  sprint.
+- Unchanged: the `.kai/` durability call, the woody-shaw chart
+  variants, the Vercel custom domain, the MJ cookie jar expiry, the
+  hub board's completion misattribution, a reel's slug still derived
+  from its mutable POST-sheet title.
