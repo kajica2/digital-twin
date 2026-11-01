@@ -198,7 +198,49 @@ mostly E.
 
 ---
 
-## 4. The proof — one frame, five ways
+## 4. The camera grid — make the camera the set's structure
+
+A pack normally varies the *moment* from frame to frame and keeps the
+camera implicit. The camera grid inverts that: **each frame gets a
+different camera position**, so the set teaches where a camera can be,
+one beat at a time, and the lyric supplies the twelve reasons.
+
+`assets/mural-prompts/till-you-get-the-light-camera-grid-12.md` is the
+set: the same lyric as `till-you-get-the-light`, twelve beats, twelve
+cameras —
+
+1. the wide establishing shot · 2. the low angle, from the floor ·
+3. the high angle, from above · 4. the dutch tilt, the horizon rolled ·
+5. the extreme close-up · 6. over the shoulder · 7. the profile, side
+on · 8. the top-down flat lay · 9. the long lens, the light compressed
+at the end of the street · 10. the whip pan, the body blurred ·
+11. from behind, following · 12. front on, symmetric, dead centre.
+
+**Render it PLAIN — no identity attachment.** This is the important
+part, and it was measured, not guessed:
+
+- In **edit** mode (an `--edit` attachment), the reference photograph
+  decides the distance and the height. Every distance clause in the
+  five-way test was disobeyed (see §4).
+- In **plain** mode (no attachment) the camera clause is obeyed: the
+  wide, the high angle, the dutch tilt, the macro, the profile, the
+  top-down, the long lens and the whip pan all landed in the frames
+  they were written for.
+
+**Ten of the twelve landed cleanly.** The low angle and the over-the-
+shoulder came back close but not exact, and the from-behind came back
+facing the camera — so the grid is a strong default, not a guarantee.
+
+**So the rule is: when the camera is the point, render plain.** The
+identity attachment is not free — it buys the face and it spends the
+framing.
+
+**The camera clause goes before the style words**, so the camera reads
+as the instruction and the style as the grade on top of it.
+
+---
+
+## 5. The proof — one frame, five ways
 
 `assets/mural-prompts/one-door-five-ways-5.md` renders **one** beat
 (a door swung wide in the middle of the night, the artist in the

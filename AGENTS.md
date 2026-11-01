@@ -10698,3 +10698,73 @@ chart variants, the Vercel custom domain, the MJ cookie jar expiry,
 the hub board's completion misattribution, a reel's slug still derived
 from its mutable POST-sheet title, and the untracked `my-video/`
 Remotion template in the repo root.
+
+### 2026-11-01 — sprint 0.76 (the camera grid: twelve beats, twelve cameras)
+
+Brief: the same lyric again — *all I open up wide / come again at 4:00 in
+the morning / tap par pa par par / till you get the light / everybody
+needs somebody* — under the surreal suffix, **with a different camera
+type and angle on every frame**.
+
+**Shipped — `assets/mural-prompts/till-you-get-the-light-camera-grid-12.md`:**
+
+- Twelve beats, twelve camera positions, one suffix
+  (`--chaos 70 --ar 4:3 --raw --sref 445203861 --profile ub2pnlv
+  --stylize 750 --weird 71 --hd`): the wide establishing shot · the low
+  angle from the floor · the high angle from above · the dutch tilt ·
+  the extreme close-up · over the shoulder · the profile · the top-down
+  flat lay · the long lens · the whip pan · from behind · front on and
+  centred.
+- 12/12 jobs (one soft-ban and one dead job, both re-run — see
+  below), three cuts at 4:3 — the hard-cut edit (48.0 s), the dissolve
+  (29.4 s), the loop (88.0 s) — plus the contact sheet and the
+  manifest.
+
+**The finding that makes the grid work, and it is a mode difference:**
+
+- **Render it PLAIN (no identity attachment).** In EDIT mode the
+  reference photograph decides the distance and the height — every
+  distance clause in the five-way test was disobeyed. In PLAIN mode the
+  camera clause is obeyed: the wide, the high angle, the dutch tilt, the
+  macro, the profile, the top-down, the long lens and the whip pan all
+  landed in the frames they were written for. **Ten of the twelve landed
+  cleanly**; the low angle and the over-the-shoulder came back close but
+  not exact, and the from-behind came back facing the camera.
+- **So: when the camera is the point, render plain.** The identity
+  attachment is not free — it buys the face and it spends the framing.
+- **The camera clause goes before the style words**, so the camera reads
+  as the instruction and the style as the grade on top of it.
+
+**Two failures, both cost a generation and both now known:**
+
+1. **The flat-lay soft-ban was a COMBINATION.** "Looking straight down
+   at the floor of a bare room, a set of objects laid out on the boards
+   in a line — a key, a watch, a folded coat, a spent match" was
+   refused. Two probes: the bare room from above alone **passed**, and
+   the objects on the floorboards alone **passed**. It needs the objects
+   AND the room to trip it — which is why the frame was reworded to "a
+   key and a folded coat lying on wooden floorboards, seen from directly
+   above". The pack carries the rendered wording, not the first one.
+2. **An accepted job can have no images at all.** The whip-pan frame was
+   accepted as `9219159d` and then the feed never showed it as this
+   prompt; the CDN answered **422** for every variant of its cells
+   (640, 2048, bare). The job was paid for and is unrecoverable — the
+   frame was re-run with a small rewording and landed. The recovery
+   path that did NOT work: writing the meta by hand and re-running
+   `lib/mj-download.js`; the bare URL and the `?method=shortest` variant
+   both 422 for that job.
+
+**Also measured:** at `--chaos 70 --stylize 750` Midjourney paints
+**pseudo-lettering** into signage and posters much more readily than at
+chaos 5 — two of the twelve chosen cells carried fake words ("SKOP",
+"PULP-JERK") and both were swapped for clean cells before the cut. The
+set is a graphic poster film rather than the dawn realism of the
+earlier `till-you-get-the-light` set: the same lyric, a different film.
+
+**Open:** the clips are silent and live in `mj-output/`, like every
+earlier set. Unchanged: the Suno account still refuses every generation
+(7 credits), the `.kai/` durability call, the woody-shaw chart
+variants, the Vercel custom domain, the MJ cookie jar expiry, the hub
+board's completion misattribution, a reel's slug still derived from its
+mutable POST-sheet title, and the untracked `my-video/` Remotion
+template in the repo root.
