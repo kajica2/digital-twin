@@ -1,0 +1,255 @@
+{
+  "_note": "Midjourney SCENE PRESET registry. The canonical list of reusable scene presets for music videos and short visual stories. Each preset is a SCENE (what is in the frame) plus a FRAME (where the camera stands and what it names) plus a CUT (how the renderer turns it into video).",
+  "_why-split": "Measured on this account, 2026-10-26 → 2026-11-01: a prompt clause naming an OBJECT IN THE FRAME is obeyed, while a clause naming a DISTANCE is not (the reference photo's framing wins the distance). So the camera's DISTANCE is not written in the prompt at all — it is the CUT's job. A preset that says 'wide shot' is lying about what Midjourney will do.",
+  "_why-no-flags": "No preset carries --v, --style, --s/--stylize, --cref, --sref, --oref or --edit. (1) `--v 7` was MEASURED soft-banned on this account on 2026-10-26: a job id came back, the job was never queued, the CDN 404'd forever. `--v 8.2` is the account's proven engine and lives in lib/mj-config.json. (2) `--style raw --s 21` is the house recipe and lives in the config; buildFullPrompt drops the config's `--s` when the PROMPT names a style, so a preset naming one would silently reset stylize to 100. (3) `--oref` is REFUSED on this account with no `--v`, and REFUSED again with `--v 8.2`; only `--v 7 --oref` was accepted and that engine soft-bans.",
+  "_why-no-race": "Per the repo's prompt-lint rule (docs/PROMPT-LINT.md): a prompt must not name the subject's race or ethnicity, because the reference photo is authoritative. Every preset describes the SCENE — light, lens, medium, mood, era, wardrobe, gesture, setting — and leaves the person to the reference.",
+  "_house-tail": "Every preset's frame clause ends with the house texture and negation tail: 'fine natural film grain, muted palette, no text'. That tail is part of the look, not decoration.",
+  "schema": {
+    "slug": "stable kebab-case handle — the programmatic address",
+    "name": "display name, shown in the doc and carried in the pack",
+    "group": "one of: music-video, electronic-pop, story-video, vertical",
+    "bestFor": "the genres this preset serves",
+    "ar": "the aspect ratio: 16:9, 9:16, 21:9, 1:1",
+    "prose": "the SCENE — the physical event, the environment, the light. Subject-first, one idea.",
+    "frame": "the FRAME — where the camera stands and what it names IN the picture. Never a distance.",
+    "cut": {
+      "motion": "a renderer motion: none, zoom-in, zoom-out, pan-left",
+      "fx": "the per-shot look: one name, or stacked with +",
+      "grade": "the look applied ONCE to the joined cut",
+      "mode": "the cut mode: cut, crossfade, kenburns",
+      "each": "seconds per shot"
+    }
+  },
+  "presets": [
+    {
+      "slug": "neon-night-drive",
+      "name": "Neon Night Drive",
+      "group": "music-video",
+      "bestFor": "electronic, synthwave, R&B, night-drive anthems",
+      "ar": "16:9",
+      "prose": "A driver in a dark jacket behind the wheel of a car on a rain-soaked street at night, the windshield beaded with water, neon signs smeared into wet asphalt, a passenger's hand on the gear stick",
+      "frame": "the camera low beside the front wheel at street level, the door frame passing close across the edges of the picture, the wet road filling the lower third, fine natural film grain, muted palette, no text",
+      "cut": { "motion": "zoom-in", "fx": "chroma+grain", "grade": "vignette", "mode": "cut", "each": 3 }
+    },
+    {
+      "slug": "desert-ritual",
+      "name": "Desert Ritual",
+      "group": "music-video",
+      "bestFor": "cinematic pop, world music, emotional ballads",
+      "ar": "21:9",
+      "prose": "A lone dancer in flowing white fabric turning slowly in a vast red desert, dust lifting in the air around the hem, long shadows running away from the low sun",
+      "frame": "the camera low in the sand looking across the dune toward the figure, the ridge line cutting across the frame, warm dust in the air, fine natural film grain, muted palette, no text",
+      "cut": { "motion": "zoom-out", "fx": "warm+grain", "grade": "vignette", "mode": "crossfade", "each": 4 }
+    },
+    {
+      "slug": "warehouse-performance",
+      "name": "Abandoned Warehouse Performance",
+      "group": "music-video",
+      "bestFor": "rock, hip-hop, dark pop, industrial electronic",
+      "ar": "16:9",
+      "prose": "A singer standing alone in an abandoned industrial warehouse, one hand lifted off the microphone, dust drifting through the air",
+      "frame": "the camera at chest height in the middle of the floor facing the singer square on, the steel columns passing close at the edges of the picture, a single hard spotlight from above, fine natural film grain, muted palette, no text",
+      "cut": { "motion": "zoom-in", "fx": "grain", "grade": "vignette+grain", "mode": "cut", "each": 3 }
+    },
+    {
+      "slug": "underwater-dream",
+      "name": "Underwater Dream",
+      "group": "music-video",
+      "bestFor": "ambient, dream pop, emotional storytelling",
+      "ar": "9:16",
+      "prose": "A woman floating weightless underwater in a flowing dress, her hair drifting upward, bubbles rising past her hands",
+      "frame": "the camera underwater at the level of her shoulders looking slightly up, shafts of blue sunlight from the surface crossing the frame, fine natural film grain, muted palette, no text",
+      "cut": { "motion": "zoom-in", "fx": "blur+grain", "grade": "cold", "mode": "crossfade", "each": 4 }
+    },
+    {
+      "slug": "rainy-city-confession",
+      "name": "Rainy City Confession",
+      "group": "music-video",
+      "bestFor": "sad pop, lo-fi, breakup songs, spoken-word",
+      "ar": "9:16",
+      "prose": "A person standing under a lit bus shelter during heavy rain at night, arms folded against the cold, water running off the shelter's edge in front of them",
+      "frame": "the camera on the wet pavement looking up at the shelter, the glass panel passing close across the edges of the picture, blurred city lights behind, fine natural film grain, muted palette, no text",
+      "cut": { "motion": "zoom-in", "fx": "grain+cold", "grade": "vignette", "mode": "cut", "each": 3.5 }
+    },
+    {
+      "slug": "rooftop-sunrise",
+      "name": "Rooftop Sunrise",
+      "group": "music-video",
+      "bestFor": "uplifting pop, motivational stories, endings",
+      "ar": "16:9",
+      "prose": "A person walking toward the edge of a city rooftop at sunrise, their coat moving in the wind, the low sun breaking through the cloud",
+      "frame": "the camera behind them at shoulder height, the rooftop parapet passing close across the edges of the picture, the city skyline beyond, fine natural film grain, muted palette, no text",
+      "cut": { "motion": "zoom-out", "fx": "warm+grain", "grade": "warm", "mode": "cut", "each": 4 }
+    },
+    {
+      "slug": "surreal-mirror-room",
+      "name": "Surreal Mirror Room",
+      "group": "music-video",
+      "bestFor": "concept videos, identity themes, alternative music",
+      "ar": "16:9",
+      "prose": "A person walking through an endless hall of tall mirrors, each pane showing a different version of the same figure, cold white light on the polished floor",
+      "frame": "the camera directly behind them at head height, the mirror frames passing close across the edges of the picture, one red accent light far down the hall, fine natural film grain, muted palette, no text",
+      "cut": { "motion": "zoom-in", "fx": "grain", "grade": "contrast", "mode": "cut", "each": 3 }
+    },
+    {
+      "slug": "forest-spirit",
+      "name": "Forest Spirit Sequence",
+      "group": "music-video",
+      "bestFor": "folk, fantasy storytelling, acoustic tracks",
+      "ar": "21:9",
+      "prose": "A hooded figure walking through a misty ancient forest at dawn, glowing fireflies drifting between the trunks, fog lying in the hollows",
+      "frame": "the camera low among the roots at the edge of the path, the tree trunks passing close across the edges of the picture, deep green and gold in the light, fine natural film grain, muted palette, no text",
+      "cut": { "motion": "zoom-in", "fx": "blur+grain", "grade": "vignette", "mode": "crossfade", "each": 4 }
+    },
+    {
+      "slug": "street-dance",
+      "name": "High-Energy Street Dance",
+      "group": "electronic-pop",
+      "bestFor": "hip-hop, drill, dance-pop, fast edits",
+      "ar": "9:16",
+      "prose": "A street dancer mid-step under a graffiti-covered underpass, one arm swept across the body, a wall of tags behind them",
+      "frame": "the camera at waist height close to the dancer, the pillar passing close across the edges of the picture, hard red and blue light on the wet ground, fine natural film grain, muted palette, no text",
+      "cut": { "motion": "none", "fx": "chroma+flicker", "grade": "contrast", "mode": "cut", "each": 1.2 }
+    },
+    {
+      "slug": "vintage-road-trip",
+      "name": "Vintage Road Trip",
+      "group": "music-video",
+      "bestFor": "indie, folk-pop, summer anthems, friendship stories",
+      "ar": "16:9",
+      "prose": "Two friends in a vintage convertible driving along a coastal highway at sunset, the wind lifting their hair, the sea flashing past the barrier",
+      "frame": "the camera from the following car at bumper height, the car's tail passing close across the edges of the picture, warm sun flare across the lens, fine natural film grain, muted palette, no text",
+      "cut": { "motion": "zoom-in", "fx": "warm+grain", "grade": "vignette", "mode": "cut", "each": 3.5 }
+    },
+    {
+      "slug": "mystery-alley",
+      "name": "Mystery Alley",
+      "group": "story-video",
+      "bestFor": "mystery, noir, thriller openings",
+      "ar": "16:9",
+      "prose": "A detective in a long coat stepping into a foggy alley at midnight, one hand on the wall, a streetlamp flickering above the entrance",
+      "frame": "the camera at the mouth of the alley looking in, the brickwork passing close across the edges of the picture, the lamp's light failing and returning, fine natural film grain, muted palette, no text",
+      "cut": { "motion": "zoom-in", "fx": "grain+cold", "grade": "vignette", "mode": "cut", "each": 3.5 }
+    },
+    {
+      "slug": "romance-platform",
+      "name": "Romance Platform",
+      "group": "story-video",
+      "bestFor": "romance, longing, the chorus of a love song",
+      "ar": "9:16",
+      "prose": "Two people reaching toward each other across a crowded train platform, a train arriving behind them, commuters passing between",
+      "frame": "the camera low at platform level looking along the crowd, the train's lit windows passing close across the edges of the picture, soft golden backlight, fine natural film grain, muted palette, no text",
+      "cut": { "motion": "zoom-in", "fx": "warm+grain", "grade": "warm", "mode": "crossfade", "each": 3.5 }
+    },
+    {
+      "slug": "loss-childrens-room",
+      "name": "Loss",
+      "group": "story-video",
+      "bestFor": "grief, absence, the quiet end of a verse",
+      "ar": "16:9",
+      "prose": "An empty child's bedroom, a curtain moving in the window, an unmade bed with the blanket turned back",
+      "frame": "the camera in the corner at the height of the bed frame looking across the room, the window curtain passing close across the edges of the picture, pale morning light, fine natural film grain, muted palette, no text",
+      "cut": { "motion": "zoom-out", "fx": "grain+cold", "grade": "cold", "mode": "crossfade", "each": 4.5 }
+    },
+    {
+      "slug": "triumph-summit",
+      "name": "Triumph",
+      "group": "story-video",
+      "bestFor": "arrival, victory, the last chorus",
+      "ar": "16:9",
+      "prose": "An exhausted runner reaching the top of a mountain trail at sunrise, one hand on a fence post, dust and sweat in the air",
+      "frame": "the camera on the trail below looking up, the fence post passing close across the edges of the picture, the sun coming over the ridge behind, fine natural film grain, muted palette, no text",
+      "cut": { "motion": "zoom-in", "fx": "warm+grain", "grade": "warm", "mode": "cut", "each": 3.5 }
+    },
+    {
+      "slug": "horror-corridor",
+      "name": "Horror Corridor",
+      "group": "story-video",
+      "bestFor": "horror, dread, the turn before the drop",
+      "ar": "16:9",
+      "prose": "A figure standing motionless at the end of a dim hospital corridor, a gurney pushed against the wall halfway along",
+      "frame": "the camera low down the corridor looking along it, the gurney passing close across the edges of the picture, one fluorescent tube flickering overhead, fine natural film grain, muted palette, no text",
+      "cut": { "motion": "zoom-in", "fx": "grain+cold", "grade": "vignette+grain", "mode": "cut", "each": 4 }
+    },
+    {
+      "slug": "scifi-monolith",
+      "name": "Sci-Fi Monolith",
+      "group": "story-video",
+      "bestFor": "sci-fi, scale, the outro",
+      "ar": "21:9",
+      "prose": "A lone astronaut walking across an alien desert toward a massive black monolith, orange dust blowing sideways across the ground",
+      "frame": "the camera low behind them at the height of the dust, the monolith's edge passing close across the sides of the picture, twin suns on the horizon, fine natural film grain, muted palette, no text",
+      "cut": { "motion": "zoom-out", "fx": "warm+grain", "grade": "vignette", "mode": "crossfade", "each": 4.5 }
+    },
+    {
+      "slug": "neon-church",
+      "name": "Neon Church",
+      "group": "electronic-pop",
+      "bestFor": "ambient electronica, sacred-geometry, the cool-down",
+      "ar": "16:9",
+      "prose": "The interior of a disused church where a spiral of coloured bulbs has been threaded through the columns, the whole vault a lattice of light, no pews, bare stone floor",
+      "frame": "the camera at the back of the nave looking down the aisle, the nearest column passing close across the edges of the picture, dust in the light shafts, fine natural film grain, muted palette, no text",
+      "cut": { "motion": "zoom-in", "fx": "chroma+grain", "grade": "vignette", "mode": "crossfade", "each": 4 }
+    },
+    {
+      "slug": "strobe-floor",
+      "name": "Strobe Floor",
+      "group": "electronic-pop",
+      "bestFor": "dance tracks, the drop, the strobe chorus",
+      "ar": "9:16",
+      "prose": "A packed floor caught at the peak of a strobe flash, every body turned the same way, arms raised, mouths open on the same syllable",
+      "frame": "the camera at shoulder height inside the crowd, a raised arm passing close across the edges of the picture, hard magenta and cyan against black, fine natural film grain, muted palette, no text",
+      "cut": { "motion": "none", "fx": "flicker+chroma", "grade": "contrast", "mode": "cut", "each": 0.8 }
+    },
+    {
+      "slug": "empty-club-after",
+      "name": "Empty Club After",
+      "group": "electronic-pop",
+      "bestFor": "the last chorus, the comedown, the outro",
+      "ar": "16:9",
+      "prose": "First light outside a club after the party, a few figures sitting on the kerb with their jackets over their shoulders, empty bottles, pale dawn in the sky, the streetlights still burning",
+      "frame": "the camera on the kerb at the height of the seated figures, the doorway's lit sign passing close across the edges of the picture, fine natural film grain, muted palette, no text",
+      "cut": { "motion": "zoom-out", "fx": "cold+grain", "grade": "cold", "mode": "crossfade", "each": 4.5 }
+    },
+    {
+      "slug": "platform-four-am",
+      "name": "Platform, 4 A.M.",
+      "group": "vertical",
+      "bestFor": "Reels, TikTok, Shorts, the vertical hook",
+      "ar": "9:16",
+      "prose": "A person sitting alone on a subway platform at four in the morning, a paper cup beside them, one train light sweeping the far wall",
+      "frame": "the camera at the height of the bench looking along the platform, the tiled wall passing close across the edges of the picture, one fluorescent tube overhead, fine natural film grain, muted palette, no text",
+      "cut": { "motion": "zoom-in", "fx": "grain+cold", "grade": "vignette", "mode": "cut", "each": 3 }
+    },
+    {
+      "slug": "phone-screen-light",
+      "name": "Phone-Screen Light",
+      "group": "vertical",
+      "bestFor": "shorts, the vertical chorus, a face lit by a screen",
+      "ar": "9:16",
+      "prose": "A face lit from below by a phone screen in a dark room, the window behind it a pale rectangle",
+      "frame": "the camera close to the face at eye level, the phone's light passing close across the edges of the picture, the room around it black, fine natural film grain, muted palette, no text",
+      "cut": { "motion": "zoom-in", "fx": "grain", "grade": "vignette", "mode": "cut", "each": 2.5 }
+    },
+    {
+      "slug": "vertical-corridor",
+      "name": "Vertical Corridor",
+      "group": "vertical",
+      "bestFor": "vertical storytelling, a walk, a journey",
+      "ar": "9:16",
+      "prose": "A figure walking down a narrow corridor lined with closed doors, one light burning at the far end",
+      "frame": "the camera low behind them looking down the corridor, the door frames passing close across the edges of the picture, the far light small in the middle, fine natural film grain, muted palette, no text",
+      "cut": { "motion": "zoom-in", "fx": "grain", "grade": "vignette+cold", "mode": "cut", "each": 3 }
+    },
+    {
+      "slug": "square-cover",
+      "name": "Square Cover",
+      "group": "vertical",
+      "bestFor": "album art, cover plates, a looping visualiser",
+      "ar": "1:1",
+      "prose": "A single figure standing in the middle of a bare room, one light above them, the floor and the ceiling the same colour",
+      "frame": "the camera square on at the height of the figure's chest, the wall's corner passing close across the edges of the picture, a hard shadow on the floor behind them, fine natural film grain, muted palette, no text",
+      "cut": { "motion": "zoom-in", "fx": "grain", "grade": "contrast+vignette", "mode": "cut", "each": 3 }
+    }
+  ]
+}

@@ -290,6 +290,36 @@ npm run lvs:segment -- video.mp4 --segments 4
 
 Details, CLI flags, exit codes and e2e: [`docs/LOOPABLE-VIDEO-SEGMENTER.md`](docs/LOOPABLE-VIDEO-SEGMENTER.md).
 
+## Run the scene presets
+
+23 reusable Midjourney scene presets for music videos and short visual
+stories — a registry, not a wall of prompts. Each preset is a **scene**
+(what is in the frame), a **frame** (where the camera stands) and a
+**cut** (how the renderer turns the still into video).
+
+```bash
+# the registry
+npm run mj:presets -- --list
+
+# one preset's composed prompt, no rendering
+npm run mj:presets -- --show neon-night-drive
+
+# a prompt pack (writes to data/scene-presets/; --inbox puts it where
+# the MJ watcher will actually render it)
+npm run mj:presets -- --pack
+
+# the renderer's argv for the cut
+npm run mj:presets -- --cut-plan --ar-filter 16:9
+```
+
+The reference is [`docs/MJ-SCENE-PRESETS.md`](docs/MJ-SCENE-PRESETS.md);
+the registry itself is `lib/mj-scene-presets.json` and is the source of
+truth. Two rules the presets follow, both measured on this account: the
+camera's **distance** is not written in the prompt (a clause naming an
+object in the frame lands; one naming a distance does not), and no
+preset carries a flag (the engine and the house style live in
+`lib/mj-config.json`).
+
 ## Run the Temple of Control
 
 Pure client-side — no server, no Python, no build step. Two files:
