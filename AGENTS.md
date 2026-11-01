@@ -10544,3 +10544,78 @@ still refuses every generation (7 credits), the `.kai/` durability
 call, the woody-shaw chart variants, the Vercel custom domain, the MJ
 cookie jar expiry, the hub board's completion misattribution, a reel's
 slug still derived from its mutable POST-sheet title.
+
+### 2026-11-01 — sprint 0.74 (one frame, five ways — and the method it produced)
+
+Asked: a better way to turn lyrics into Midjourney prompts, and what
+the same frame looks like under five different approaches to video
+making.
+
+**Shipped:**
+
+- **`docs/VIDEO-FRAMING.md`** — the method, in two parts. The
+  translation ladder: the beat → **the gesture** (the lyric is
+  abstract, MJ is literal: "back, back, back" is a corridor walked
+  twice, not a mood) → **the camera's place** (distance, lens, height —
+  the step the old packs skipped) → **one light, one direction** → the
+  constant identity clause → the texture and the negation tail. Six
+  rules, each with the measured failure behind it. Then the five
+  approaches and what each changes: the prompt, the cut, and the cost.
+- **`assets/mural-prompts/one-door-five-ways-5.md`** — one beat (a
+  door swung wide in the middle of the night) rendered five ways, the
+  identity clause and the house tail identical and only the framing
+  clause changed: **A** the literal cut (camera at chest height in the
+  street, square on), **B** the single take (camera low at the threshold
+  moving out toward him, the door frame passing across the edges),
+  **C** the graphic (the light as a hard bright shape, the figure
+  without a face), **D** the rhythm cut (caught on the beat, the room's
+  light flaring across the wet road), **E** the held moment (the light
+  moving from lamp-orange to the first cold blue of morning).
+- **5/5 edit jobs**, 2944×1648 each, and five clips cut with each
+  approach's own recipe: `a-literal-cut.mp4` (9.0 s, three distances
+  hard-cut), `b-single-take.mp4` (8.0 s, one slow move out, no grade),
+  `c-graphic.mp4` (6.0 s, poster drift, `contrast+grain`),
+  `d-rhythm-cut.mp4` (4.0 s, one frame four treatments, one second
+  each), `e-held-moment.mp4` (9.0 s, a long push, a cold grade). Plus
+  the contact sheet and the manifest.
+
+**What the test taught — three rules the method did not have:**
+
+1. **Name what is IN the frame, not how far away it is.** The door
+   frame clause ("passing close across the edges of the frame") landed
+   in all four cells; every distance clause in the test did not. The
+   reference's framing wins the distance, exactly as it wins the
+   height.
+2. **A negative cannot remove the anchor.** "No face visible" kept the
+   face — the attachment is holding it and a negation is not enough.
+   To get a graphic frame, remove the person from the shot.
+3. **Write a change as the two ends of it.** "The light moving from
+   lamp-orange to the first cold blue" rendered as a frame containing
+   *both* lights; MJ renders the ends of a change, never the change, so
+   the held-moment approach is written as a state and the movement
+   between the states is the cut's job.
+
+**Decisions:**
+
+- **The five approaches change the prompt and the cut in different
+  places**, which is the point: the literal cut is a prompt decision
+  (three distances, hard cuts), the graphic is a look decision
+  (`contrast+grain`, a grade, a drift), the rhythm cut is an edit
+  decision (one frame, many treatments), the held moment is a
+  duration decision (a long hold and a cold grade).
+- **A set can mix them.** The sets in this repo are mostly the literal
+  cut, with the graphic for the cover and the rhythm cut for the chant
+  sections; `Till You Get The Light` is mostly the held moment.
+- **The doc is the deliverable, not the render.** The five clips are
+  the evidence for it; the method is what the next pack uses.
+
+**Open:** the clips are silent (the song was not generated) and live in
+`mj-output/`, like every earlier set. Unchanged: the Suno account
+still refuses every generation (7 credits), the `.kai/` durability
+call, the woody-shaw chart variants, the Vercel custom domain, the MJ
+cookie jar expiry, the hub board's completion misattribution, a reel's
+slug still derived from its mutable POST-sheet title, and the
+untracked `my-video/` Remotion template sitting in the repo root
+(its env file now lives at `~/Documents/my-video.env.example`, because
+the secrets guard will not let an env-shaped path sit inside a public
+repo).
