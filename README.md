@@ -320,6 +320,34 @@ object in the frame lands; one naming a distance does not), and no
 preset carries a flag (the engine and the house style live in
 `lib/mj-config.json`).
 
+## Run the Suno mutator
+
+Send a Suno link, get custom variants of the song behind it — the same
+audio, a different style applied to each.
+
+```bash
+# the plan (nothing submitted)
+npm run suno:mutate -- --url https://suno.com/song/<uuid>
+
+# save each variant as a custom style in the account
+npm run suno:mutate -- --url https://suno.com/song/<uuid> --save-styles --apply
+
+# generate a cover of the source for each variant
+npm run suno:mutate -- --url https://suno.com/s/<slug> --generate --apply
+```
+
+It accepts a song page, a share link, a short `/s/<slug>` link (resolved
+over the network), a hook, a workspace, or a bare clip id. The source
+song's own style descriptor is always preserved — the mutation gives way
+when the two together exceed Suno's 1000-character tag limit.
+
+By default it mutates the clip the song was MADE FROM, not the one the
+link points at. `--no-follow` mutates the linked clip instead — which
+carries its own lyrics and its own tags.
+
+Needs a cookie jar at `~/.suno-cookies.txt` (outside the repo). The
+reference is [`docs/SUNO-MUTATOR.md`](docs/SUNO-MUTATOR.md).
+
 ## Run the Temple of Control
 
 Pure client-side — no server, no Python, no build step. Two files:
