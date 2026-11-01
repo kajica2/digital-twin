@@ -10619,3 +10619,82 @@ untracked `my-video/` Remotion template sitting in the repo root
 (its env file now lives at `~/Documents/my-video.env.example`, because
 the secrets guard will not let an env-shaped path sit inside a public
 repo).
+
+### 2026-11-01 — sprint 0.75 (two style tests, and the album cover that was missing)
+
+Two briefs, both a fixed suffix applied to five prompts: one **style
+test** (five different stories, one identical suffix) and one **the
+album cover that was missing**.
+
+**Shipped:**
+
+- **`assets/mural-prompts/five-stories-surreal-vintage-5.md`** — five
+  scenes (a decayed ballroom after the last waltz, an orchard of blown
+  glass fruit, a fortune teller at the end of a pier, a Victorian
+  parlour of stuffed animals, a flooded underground hall) under the
+  artist's suffix: `interested scene, Surreal and vintage and grotesque
+  and strange --chaos 5 --ar 16:9 --raw --sref 3467726611 4013243484
+  --profile hptnc8n --stylize 330 --hd`. 5/5 jobs, a 15 s reel, the
+  contact sheet and the manifest.
+- **`assets/mural-prompts/seemingly-so-covers-5.md`** — five album
+  covers for **`seemingly so`**, the release that had no artwork
+  anywhere in the repo (only `data/releases/seemingly-so/RELEASE.md` and
+  the clip): the switchboard with one lamp, a bare bulb, a reel-to-reel
+  under a lamp, a television with colour bars, the corridor of bulbs.
+  Suffix: `--chaos 70 --ar 4:3 --raw --sref 445203861 --stylize 750
+  --weird 71 --hd`. 5/5 jobs (one soft-ban, re-run clean), a 12.5 s
+  reel, the contact sheet and the manifest.
+- **`assets/releases/seemingly-so/seemingly-so-cover.jpg`** — the cover
+  itself: the switchboard at **2048×1532**, with the title and the
+  credit line set in the layout by `lib/flux2-renderer/lettering.py`,
+  never generated (diffusion models paint letter-shaped marks, not
+  glyphs — measured 2026-10-07). The CRT frame is kept beside it as
+  `alternate-crt-cover.jpg`.
+
+**What the two tests measured about Midjourney's flags:**
+
+- **A typed `--profile` beats the account's ambient one.** The
+  five-stories pack typed `--profile hptnc8n` and MJ's recorded command
+  for all five jobs carries `--profile hptnc8n --stylize 330` — the
+  account's moodboard selection did NOT win. The covers pack typed no
+  profile, and MJ applied the account's ambient `--profile ub2pnlv`.
+  (The older note in this log — that the account's profile always wins
+  — was measured on a `--p` CODE, which is a different mechanism.)
+- **`--weird 71` survives into the recorded command**, as do `--chaos
+  70` and `--stylize 750`. The whole suffix reaches MJ.
+- **The tool's "the account's personalization was applied" notice fires
+  whenever a `--profile` appears in the job's command** — including
+  when that profile is the prompt's own. It is a false positive in the
+  messaging, not in the render.
+- **The suffix owns its flags.** The config's own defaults
+  (`--ar 16:9 --style raw --s 21`) are stripped rather than appended
+  alongside, so the composed command carries exactly one `--ar`, one
+  `--raw`, one `--s`/`--stylize`, one `--sref`, one `--profile`. Two
+  `--s` flags is the duplicated-flag class, and MJ honours the LAST one.
+- **`--chaos 70` and `--stylize 750` change the look, not just the
+  noise**: the surreal set came back dense, red-and-black, high
+  contrast, with the two tape-machine prompts drifting onto the same
+  object — MJ's object prior beats the prose when the chaos is high.
+- **One soft-ban**, on the first tape-machine wording; reworded (the
+  spares "turning slowly" became "spares turning slowly") and accepted
+  first try. Same class as the mixing-desk soft-ban (2026-10-31).
+
+**Decisions:**
+
+- **The cover is text-free in the render and lettered in the layout.**
+  Five covers were rendered and one shipped; the four others stay in
+  `mj-output/` as the alternates.
+- **Full resolution is a URL edit, not a re-render.** The CDN serves
+  `…_640_N.webp` by default; rewriting the recorded url to `…_2048_N`
+  and re-running `lib/mj-download.js` pulls the 2048×1532 original.
+- **The release cover lives in `assets/`, not `data/releases/`** —
+  `data/releases/` is gitignored, so a cover put there would be local
+  only and could never be served or published.
+
+**Open:** the reels are silent (no track was generated) and live in
+`mj-output/`. Unchanged: the Suno account still refuses every
+generation (7 credits), the `.kai/` durability call, the woody-shaw
+chart variants, the Vercel custom domain, the MJ cookie jar expiry,
+the hub board's completion misattribution, a reel's slug still derived
+from its mutable POST-sheet title, and the untracked `my-video/`
+Remotion template in the repo root.
