@@ -1,7 +1,46 @@
 {
-  "updatedAt": "2026-10-31T23:24:50.595Z",
-  "count": 21,
+  "updatedAt": "2026-11-01T23:24:35.792Z",
+  "count": 22,
   "collections": [
+    {
+      "date": "2026-11-02",
+      "key": "2026-11-02",
+      "id": "relay",
+      "title": "Relay",
+      "badge": "cyberpunk / hk",
+      "teaser": "Something travels the line and comes out the other side changed.",
+      "aspect": "16:9",
+      "dir": "assets/marketplace/daily/2026-11-02",
+      "plates": [
+        {
+          "file": "frame-01.jpg",
+          "caption": "pylon · line",
+          "alt": "A run of power pylons crossing flat ground at dusk, the line running out of frame to the right.",
+          "prompt": "a run of power pylons crossing flat ground at dusk, the cable running out of frame to the right, heavy air, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "2bf49b29-521e-4381-8922-3f5b24354eaf",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-02.jpg",
+          "caption": "switchboard · lamp",
+          "alt": "An old switchboard in a dim room, one indicator lamp lit, the rest dark, dust on the keys.",
+          "prompt": "an old switchboard in a dim room, one indicator lamp lit and the rest dark, dust settled on the keys, close-up, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "d5abac53-4e7f-4bd9-a772-1c66bca0dab3",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-03.jpg",
+          "caption": "platform · signal",
+          "alt": "An empty rail platform seen down its length, a single signal light burning at the far end.",
+          "prompt": "an empty rail platform seen down its length, one signal light burning at the far end, tunnel mouth behind it, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "848f802c-8297-40a5-9762-2fc9072bde50",
+          "width": 1280,
+          "height": 717
+        }
+      ]
+    },
     {
       "date": "2026-11-01",
       "key": "2026-11-01",
