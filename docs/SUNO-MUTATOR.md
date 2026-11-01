@@ -115,8 +115,27 @@ otherwise it is the style text (`--mutation "lofi:soft tape hiss"`).
 **`--save-styles`** writes each variant as a **saved style** in the
 account, so it appears in the studio's own style picker.
 `POST /api/prompts/v2` with `{ tags, id, title }` — `id: null` creates,
-an existing id updates — so a re-run **updates** the same styles rather
-than piling up duplicates.
+an existing id updates.
+
+**The id is what decides create-vs-update, and it has to be sent.**
+MEASURED 2026-11-01 (live): the tool looked the title up, logged
+"style updated" — and sent `id: null` anyway. The server reads `null` as
+"new" every time, so two runs left the account holding **twelve** styles
+with **identical titles**: six pairs, each pair a duplicate of the other.
+The log said "updated" while the write created.
+
+The fix sends the existing style's id, so a re-run updates in place.
+The title match is **exact** — two songs whose variant titles share a
+prefix must not collide, or one song's variants would overwrite
+another's.
+
+There is no history endpoint (`/api/prompts/v2/history` answers 404), so
+an update **replaces** the previous tags rather than keeping both. If
+you re-run against a different variant of the same song, the style now
+carries the newer variant's descriptor. Re-run the older one to put it
+back.
+
+To remove a style: `DELETE /api/prompts/v2/<id>` (answers 204).
 
 **`--generate`** submits a **cover** of the source for each variant
 (`POST /api/generate/v2-web/`, `task: "cover"`), and records the clip id.

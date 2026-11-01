@@ -11040,3 +11040,59 @@ nothing was ever published); `origin/main` never moved.
   variants, the Vercel custom domain, the MJ cookie jar expiry, the
   hub board's completion misattribution, a reel's slug still derived
   from its mutable POST-sheet title.
+
+### 2026-11-01 — sprint 0.76.b (the mutator, run against a second variant)
+
+The user handed over a second Suno link for the same song
+(`9d68f520`, "Serbian Byzantine Choir M" — but a DIFFERENT variant:
+Nordic chamber jazz, 11/8, soprano, 215 s, instrumental, against the
+original's dark-jazz 11/8, 172 s, with the Serbian hymn as lyrics) and
+a refreshed cookie jar.
+
+**Both paths behave correctly, and they differ — which is the point.**
+
+| path | mutates | descriptor | length |
+|---|---|---|---|
+| default (follow the cover chain) | the SOURCE `1443a36e` | 452 chars, dark jazz electronica | 172 s |
+| `--no-follow` | the LINKED clip `9d68f520` | 237 chars, Nordic chamber jazz | 215 s |
+
+On this song the two carry different tags AND different lyrics (the
+linked variant is instrumental — its `prompt` is empty), so which one
+you mutate is a real, visible difference rather than a theoretical one.
+
+**A bug the live run found: the mutator duplicated styles on every run.**
+
+The account ended up with **twelve** styles carrying **identical titles**
+— six pairs — and the log printed `style updated` both times.
+
+Root cause: `createStyle` hardcoded `id: null` in the request body. The
+server reads `null` as "new" every time. The existing-style lookup fed
+only the LOG MESSAGE; the id never reached the request. So the tool
+looked idempotent in its output and was not idempotent in its effect.
+
+The timestamps made the sequence visible: 17:17:24 (first run), 17:38:10
+(the buggy run — six new rows), and after the fix 17:40:34 (the older
+pair's `updated_at` moved, no new rows).
+
+**Fixed, with a test first.** `findExistingStyle(styles, title)` — an
+EXACT title match, skipping rows with no title — and the write now sends
+the existing id. `lib/suno-web.js` gained `deleteStyle` too
+(`DELETE /api/prompts/v2/<id>`, MEASURED to answer 204), which is the
+escape hatch for the duplicates the bug left behind.
+
+Verified live after the fix: a re-run updated all six in place, the
+count stayed at **6**, and the account's six styles each carry the
+Nordic descriptor. The six duplicates were deleted, keeping the oldest
+of each pair.
+
+**A measured consequence worth recording:** there is NO history endpoint
+(`/api/prompts/v2/history` answers 404), so an update REPLACES the
+previous tags rather than keeping both. The first run's Serbian-hymn
+descriptor is gone from the account — recoverable, because the
+descriptor is deterministic from the source, but not recoverable by the
+tool. Re-running against the older variant puts it back.
+
+**Verified:** `npm run test:all` — 1618 assertions / 0 failures (up from
+1612 — six new assertions on the lookup). `npm run test:secrets` — 9/9.
+The account ends the run holding six styles, one per variant, and a
+re-run leaves it at six.
