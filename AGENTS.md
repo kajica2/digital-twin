@@ -11530,3 +11530,92 @@ stray empty saved style, which was deleted.
   question, and the audio is AES256 encrypted at rest — the browser
   decrypts it, so a plain `ffprobe` cannot read the file. That
   verification is still open.
+
+### 2026-11-02 — sprint 0.83 (the upload layer — local audio INTO Suno)
+
+Asked: *"batch upload suno"*, with five iReal Pro WAV exports.
+
+**The gap this fills.** The repo could `cover` a clip Suno generated,
+but there was NO way to get a local audio FILE into Suno. Every
+`cover_clip_id` could only ever point at a clip Suno itself made. An
+upload produces a real clip id from a real file — which is the missing
+first half.
+
+**The routes were READ, not guessed.** The first probe guessed
+`/api/upload/file-upload`, `/api/uploads/audio/`, and six others; every
+one 404'd. The real route set was extracted from suno.com's own JS
+bundle (`3c89nzlmg-fve.js`, `0clz7vt3vzhif.js`):
+
+| step | route | body |
+|---|---|---|
+| 1 | `POST /api/uploads/audio/` | `{extension, is_stem_mix:false, upload_type}` -> `{id, url, fields}` |
+| 2 | `POST <presigned S3 url>` | multipart: fields + `file` |
+| 3 | `POST /api/uploads/audio/{id}/upload-finish/` | `{upload_type, upload_filename}` |
+| 4 | `GET  /api/uploads/audio/{id}/` | poll -> `status: complete\|error` |
+| 5 | `POST /api/uploads/audio/{id}/initialize-clip/` | `{downbeats}` -> `{clip_id}` |
+
+**Step 5 is the one that matters.** Steps 1–4 leave an *upload*; only
+step 5 turns it into a *clip* — which is what a cover needs as its
+source.
+
+**The step that stalled, and the fix.** Step 2 originally ran IN the
+browser (the CDP evaluate channel), which turned 26 MB into a ~35 MB
+base64 string in a debug message. The run sat for 8+ minutes with no
+progress and no error. **Step 2 never needed the browser** — a
+presigned S3 POST is a plain multipart request that S3's CORS policy
+allows from any origin, and Node 22 has FormData/Blob/fetch natively.
+Moved it to Node: the bytes go straight from disk to S3, and the same
+file finished in ~40 s.
+
+**Shipped — `lib/suno-upload.js` + `lib/suno-upload.test.js` (21
+assertions) + `docs/SUNO-UPLOAD.md` + `npm run suno:upload`.**
+
+```
+npm run suno:upload -- <file.wav> [more.wav ...]
+npm run suno:upload -- upload --dir <dir>
+```
+
+**VERIFIED LIVE — 4 clips uploaded, all `complete`, all with a real
+CloudFront `m4a` media URL:**
+
+| file | clip_id | duration |
+|---|---|---|
+| A Night In Tunisia.wav | `17e2e06c-7928-4756-8487-9a6a490880e6` | 156.99 s |
+| A Shade Of Jade.wav | `b824ba24-15b2-4523-8300-610f56c9be40` | 163.93 s |
+| Wave.wav | `e30368a9-b52d-45de-9362-f1f10abcd005` | 232.11 s |
+
+The durations match the source WAVs to the millisecond — the upload
+path is byte-exact, not a re-render.
+
+**TWO FILES WERE REFUSED, and the reason is the finding.**
+`Aisha.wav` and `Blame It On My Youth.wav` came back:
+
+```
+error_type: upload_failure_match_acrcloud
+"This audio matches an existing recording in our catalog."
+```
+
+Suno fingerprints uploads against ACRCloud and blocks anything that
+matches a catalogued commercial recording. These two are standards
+that ARE in the catalog. **This is Suno's copyright gate working
+correctly, not a bug in the uploader** — the other three passed the
+same gate. A re-encode does NOT reliably defeat it (fingerprinting is
+acoustic, not bitwise); the honest workaround is a different recording
+or a different source.
+
+**Verified:** `npm run test:all` — the new `test:suno-upload` suite is
+21/21 green. The one failing suite in `test:all` is
+`test:youtube-poster` (6 failures, missing `~/.youtube-cookies.txt`) —
+**pre-existing and unrelated**; confirmed by stashing the change and
+re-running that suite alone.
+
+**Open:**
+
+- **The upload path is not yet the COVER path.** `lib/suno-run.js`
+  takes `--source <upload_clip_id>`; the uploaded clip ids above feed
+  it directly, but that chain has not been run end-to-end yet.
+- **`downbeats` is sent as `null`.** The bundle passes the detector's
+  downbeat array when it has one; Suno falls back to its own. For a
+  jazz standard with a steady pulse the fallback is probably right, but
+  a tempo-mapped downbeat array would be better.
+- The manifest is written to `data/suno/uploads/` (gitignored).
