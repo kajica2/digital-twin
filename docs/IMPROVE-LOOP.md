@@ -70,7 +70,7 @@ leads with the fix, not with the diagnosis.
 |---|---|---|---|
 |`launchd-tcc`|P2|`Operation not permitted`|launchd grants access per binary — shim node in `~/Library/LaunchAgents/`, never `/bin/bash` into `~/Documents`|
 |`api-rate-limit`|P3|`429`, `Too many requests`|reuse one browser session, prefer the singular route, treat a 429 as "wait", never as "empty"|
-|`encrypted-media`|P3|`moov atom not found`|the bytes are encrypted at rest; no header unwraps them — capture from the app's own MediaSource|
+|`encrypted-media`|P3|`moov atom not found`|the bytes are encrypted at rest; no header unwraps them — decrypt with `lib/suno-mango.js` (Mango rights → AES-GCM unwrap → AES-CTR) and check the `ftyp` brand|
 |`prompt-refusal`|P3|`banned_prompt_detected`, `softban`|a refusal is not a fact about the prompt until a known-good control passes through the same path|
 |`stale-chrome-port`|P3|`Chrome failed to bind on port`|stale profile lock **or** a too-tight deadline — launch it by hand on the same port before blaming Chrome|
 |`no-deadline`|P2|`timed out after …ms`|every hangable call gets a deadline; the in-page one must be shorter so it surfaces as a named `AbortError`|

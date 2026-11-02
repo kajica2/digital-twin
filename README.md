@@ -687,6 +687,32 @@ protocols, influence values, clip ids. A re-run skips what is already
 `ok`, so it only submits what is missing. Reference:
 [`docs/SUNO-STYLES.md`](docs/SUNO-STYLES.md).
 
+## Fetch a Suno clip as playable audio
+
+Suno's media objects are **encrypted at rest** — the CloudFront URL
+returns ciphertext, so nothing decodes it as fetched. The key material
+comes from Suno's Mango rights service, per request.
+
+```bash
+# fetch + decrypt a finished clip to data/suno/clips/<clipId>.m4a
+npm run suno:fetch -- --clip <clip_id>
+
+# wait for the audio to appear (seconds), then fetch
+npm run suno:fetch -- --clip <clip_id> --wait 600
+
+# a fresh browser profile, if the default one is locked
+npm run suno:fetch -- --clip <clip_id> --port 9460 --user-data-dir /tmp/suno-fetch-profile
+```
+
+`lib/suno-mango.js` does the handshake (Mango rights → SHA-256 of the
+`glt` → AES-GCM unwrap of the CTR key and IV → AES-CTR decrypt) and
+checks the `ftyp` brand before the bytes are written, so a wrong key
+fails loudly instead of writing a plausible-looking broken file. The
+browser must be **headed** — Turnstile does not solve headless. The
+cookie jar lives outside the repo at `~/.suno-cookies.txt`.
+
+Reference: [`docs/SUNO-FETCH.md`](docs/SUNO-FETCH.md).
+
 ## Run the SWR harness
 
 Three agents — **Ops** (orchestrator), **Twin** (voice and focus) and

@@ -311,15 +311,26 @@ key: `x-cache` goes `Hit` → `Miss`, with identical content.) The head is
 `184faa13 1f9a742f …` — no `ftyp` box, so it is not an MP4 container at
 all.
 
-**Consequence: `lib/suno-fetch.js` cannot be the audio source.** Its
-whole approach — fetch the CloudFront URL in-page, base64 the result to
-Node — is disproven: it can only ever retrieve the encrypted object.
-A one-shot probe on it timed out at 900 s and wrote nothing.
+**Consequence: the encrypted object cannot be used as-is.** Fetching
+the CloudFront URL in-page (or with `curl`) only ever retrieves the
+ciphertext — it is not an MP4 container, so it will not decode.
 
-The clip payload carries **no decryption key**: `media_urls` holds
-exactly one entry, `audio_url` is the `/api/forbidden` placeholder, and
-no encryption-key field exists on the payload. The web app must decrypt
-somewhere else (its own bundle, a stream endpoint, or WebCodecs).
+**Superseded — the key material is reachable.** This section concluded
+that decryption was impossible because the clip payload carries no
+encryption key: `media_urls` holds exactly one entry, `audio_url` is the
+`/api/forbidden` placeholder, and no encryption-key field exists on the
+payload. That is still true of the *clip payload* — but the key comes
+from a different endpoint. `POST https://suno.com/a/api/mango/rights`
+with `{content_params:{content_id:<clipId>, content_type:"clip"}}`
+returns `{key, iv, glt}`, and those unwrap the object. The key is not
+on the clip; it is issued per request by Mango.
+
+`lib/suno-mango.js` implements that: it fetches the rights, derives the
+AES-GCM key from `SHA-256(glt)`, unwraps the CTR key and IV with the
+clip id as AAD, and AES-CTR-decrypts the CloudFront object.
+`lib/suno-fetch.js` then writes the **decrypted** bytes. The full
+procedure — including the one-hour `glt` TTL and the `ftyp` brand check
+that catches a wrong key — is in **`docs/SUNO-FETCH.md`**.
 
 **The real download route exists and is refused for this account:**
 `GET /api/download/clip/<id>` → HTTP 200 with
@@ -476,4 +487,5 @@ belongs to the style text. There is now a test for it.
 | `lib/suno-styles.js` | the composition rule, and the protocol library |
 | `lib/suno-create.js` | a song from a text brief |
 | `lib/suno-playlist.js` | put finished clips in a playlist |
-| `lib/suno-fetch.js` | pull a finished clip's audio to disk — **see the encrypted-object section: this path cannot produce playable bytes** |
+| `lib/suno-fetch.js` | pull a finished clip's audio to disk — **decrypts the Mango/AES-CTR object; see `docs/SUNO-FETCH.md`** |
+| `lib/suno-mango.js` | the Mango rights handshake and the AES-CTR media decryptor |
