@@ -11096,3 +11096,76 @@ tool. Re-running against the older variant puts it back.
 1612 — six new assertions on the lookup). `npm run test:secrets` — 9/9.
 The account ends the run holding six styles, one per variant, and a
 re-run leaves it at six.
+
+### 2026-11-02 — sprint 0.77 (a login command, because the jar expires)
+
+The mutator was verified live at 18:00; by 18:30 the jar's `__session`
+had expired and the tool could no longer authenticate. The failure is
+quiet — "the cookie jar is probably expired or logged out" — and the jar
+is the user's only credential, so there was no way forward from the
+command line.
+
+**Shipped — `lib/suno-login.js` + `npm run suno:login`.**
+
+It opens the Suno browser profile (headed, on the CDP port the tools
+already use), waits while the user signs in by hand, exports the
+browser's own cookies back to `~/.suno-cookies.txt`, and **verifies the
+result against the live API** — in a SECOND browser, on a separate port
+and profile, so the check does not inherit anything from the browser the
+cookies were read from.
+
+`lib/mj-cookies.js` gains `toNetscape(entries, origin)` — the
+round-trip partner to `parseCookieFile`. The jar the browser exports and
+the jar the tools read are the same shape, so a jar written here can be
+handed straight back to the parser. 12 new assertions pin the row shape
+(7 tab-separated fields), the header, the session-cookie case (`0`),
+and the parse-back round-trip.
+
+**Three things MEASURED while building it, each of which broke the
+obvious implementation:**
+
+1. **An expired session sends the browser to GOOGLE's sign-in page**,
+   not Suno's. The first version treated "not on /auth/signin" as
+   signed in — and the browser was sitting on a Google login screen,
+   which it happily declared a success. The positive signal is the
+   Authorization header the SPA attaches; the URL is only ever a
+   *negative* signal.
+2. **`document.cookie` cannot see `__session`** — it is HttpOnly — so a
+   cookie probe can never confirm a sign-in, whatever the jar says.
+3. **The session cookie has carried a per-user suffix**
+   (`__session_Jnxw-muT`) rather than the plain `__session`, so a name
+   check has to accept either.
+
+**And one measured mistake of my own.** The first run's verifier printed
+"VERIFIED — the session works (2677 credits)". `total_credits_left` is
+the plan's monthly ALLOWANCE (2677 on Premier); `credits` is the
+BALANCE — **7**. The session was fine and the number was misleading: it
+said there were generations to spend when there are seven. The verifier
+now reads the balance and names the plan.
+
+**Verified live, end to end:**
+
+- The browser opened on the Google sign-in page (the profile's session
+  had expired), the user signed in, and the script noticed.
+- 44 cookies exported to `~/.suno-cookies.txt` (mode 600, outside the
+  repo, `*-cookies.txt` gitignored).
+- **The jar was verified against the live API in a second browser** —
+  session authenticated, Premier plan, 7 credits left.
+- The mutator then ran against that jar: URL → clip → the 237-char
+  Nordic descriptor → 215 s, chirp-hawk, influence 0.65.
+
+**Verified:** `npm run test:all` — 1630 assertions / 0 failures (up from
+1618 — twelve new cookie assertions). `npm run test:secrets` — 9/9.
+`npm run prompt:check` — 76 packs, 777 prompts, 0 violations.
+
+**Open:**
+
+- **The account still has 7 credits and refused every generation when
+  last measured (2026-10-30).** Re-authenticating does not change that
+  — the refusal was the ACCOUNT refusing, not an expired session. The
+  `--generate` path still needs a live test once the balance allows.
+- The login command waits for a HUMAN to sign in. There is no automated
+  path, and there should not be one — the credential is the user's.
+- The jar's lifetime is not characterised beyond "about an hour"; a
+  re-login is cheap (one command), so there is no case for scheduling
+  it.

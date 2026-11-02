@@ -151,6 +151,7 @@
     "mj:presets": "node lib/mj-scene-presets.js",
     "suno:create": "node lib/suno-create.js",
     "suno:mutate": "node lib/suno-mutator.js",
+    "suno:login": "node lib/suno-login.js",
     "suno:fetch": "node lib/suno-fetch.js",
     "test:suno-create": "node lib/suno-create.test.js",
     "test:suno-mutator": "node lib/suno-mutator.test.js"

@@ -346,7 +346,16 @@ link points at. `--no-follow` mutates the linked clip instead — which
 carries its own lyrics and its own tags.
 
 Needs a cookie jar at `~/.suno-cookies.txt` (outside the repo). The
-reference is [`docs/SUNO-MUTATOR.md`](docs/SUNO-MUTATOR.md).
+session is short-lived, so refresh it with:
+
+```bash
+npm run suno:login
+```
+
+It opens the browser, waits while you sign in, exports the session back
+to the jar, and verifies it against the live API.
+
+The reference is [`docs/SUNO-MUTATOR.md`](docs/SUNO-MUTATOR.md).
 
 ## Run the Temple of Control
 

@@ -174,6 +174,45 @@ The cookie jar lives **outside** the repo, at `~/.suno-cookies.txt`
 (gitignored, same precedent as `~/.midjourney-cookies.txt`). Without it
 the tool refuses to start and says where to get one.
 
+### Refreshing the jar: `npm run suno:login`
+
+The session cookie is short-lived — MEASURED 2026-11-01, the jar's
+`__session` expired within the hour — so a jar that worked in the
+morning is dead by the afternoon. The failure is quiet: "the cookie jar
+is probably expired or logged out", with no way forward.
+
+```bash
+npm run suno:login
+```
+
+It opens the Suno browser profile (headed, on the CDP port the tools
+already use), waits while you sign in by hand, then exports the
+browser's own cookies back to the jar and **verifies the result against
+the live API**. The verification is a real request, not an inspection —
+a jar can look perfect and still be refused.
+
+Useful flags:
+
+| flag | what it does |
+|---|---|
+| `--out <path>` | write the jar somewhere else |
+| `--timeout <sec>` | wait longer for the sign-in (default 300) |
+| `--keep-open` | leave the browser up afterwards |
+
+Two things MEASURED on 2026-11-01, both of which shaped it:
+
+- **An expired session sends the browser to GOOGLE's sign-in page**, not
+  Suno's. So a "not on /auth/signin" check is not a sign-in test — the
+  page can look like suno.com and still be a login screen. The positive
+  signal is the Authorization header the SPA attaches; the URL is only
+  ever used as a *negative* signal.
+- **`document.cookie` cannot see `__session`** (it is HttpOnly), so a
+  cookie probe can never confirm a sign-in.
+
+The session cookie has also carried a per-user suffix
+(`__session_Jnxw-muT`) rather than the plain `__session`, so the check
+accepts either — and the real gate is the live API call, not the name.
+
 Three constraints the repo already established, and this tool inherits:
 
 1. **The browser must be HEADED.** suno.com loads Cloudflare Turnstile,
