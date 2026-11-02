@@ -12401,9 +12401,198 @@ other way round.
 - **`launchd-tcc` has 638 recorded occurrences** and is still recurring
   in logs nothing cleans up — the general log rotation and
   `com.kaidjuric.digital-twin.auto-check-updates` are both still dead at
-  this location for the same exit-126 reason.
+  this location for the same exit-126 reason. **Both are fixed in sprint
+  0.90**; the occurrences are historical.
 - **The Mango decryptor is still gitignored** and `lib/suno-fetch.js`
-  still has its three defects (see sprint 0.88).
+  still has its three defects (see sprint 0.88). **Both are fixed in
+  sprint 0.90** — the decryptor is now `lib/suno-mango.js`.
+- Unchanged: the `.kai/` durability call, the woody-shaw chart variants,
+  the Vercel custom domain, the MJ cookie jar expiry, the hub board's
+  completion misattribution, a reel's slug still derived from its mutable
+  POST-sheet title.
+
+### 2026-11-02 — sprint 0.90 (the decryptor leaves the scratchpad, and the two LaunchAgents that never ran)
+
+Sprint 0.89 closed three hang sites and left a note: the general log
+rotation and `com.kaidjuric.digital-twin.auto-check-updates` were both
+**still dead at this location for the same exit-126 reason**, and the
+Mango decryptor was **still gitignored** with `lib/suno-fetch.js`
+carrying three defects. Four workstreams, one sprint.
+
+**Workstream one — the decryptor becomes tracked code.**
+
+The Mango decryptor existed only under gitignored `data/suno/tools/`.
+It is now `lib/suno-mango.js` (9,631 B) — the rights handshake and the
+AES-CTR decryptor — with `lib/suno-mango.test.js` (37 passed / 0
+failed). **Nothing under `data/suno/` is committed**; the module
+resolves its own repository path from `__dirname`, so there is no
+hardcoded `/Users/…` path anywhere in it.
+
+The procedure it implements, measured on 2026-10-30 and re-verified
+here:
+
+1. `POST https://suno.com/a/api/mango/rights` with
+   `{content_params:{content_id:<clipId>, content_type:"clip"}}` →
+   `{key, iv, glt}`. The request must come **from the page** — it
+   carries the session cookies.
+2. `gcmKey = SHA-256(glt)`.
+3. `ctrKey` / `ctrIv` = AES-256-GCM-decrypt of the base64 `key` / `iv`,
+   with the **GCM IV taken from the first 12 bytes of the blob itself**
+   and the **clip id as AAD**. The AAD is why the same `gcmKey` under a
+   different clip id yields different plaintext.
+4. AES-CTR over the CloudFront object, `setAutoPadding(false)` (a
+   stream cipher has no padding — the default throws).
+5. **The `ftyp` brand check.** A wrong key yields plausible-looking
+   garbage, so the decryptor refuses to return bytes that do not start
+   with an `ftyp` box.
+
+The `glt` is a JWT with a **one-hour TTL**, so the rights are fetched
+per run and never cached.
+
+**Workstream two — `lib/suno-fetch.js` rewritten (380 lines).**
+
+Three defects, all fixed at the source:
+
+- **It wrote encrypted bytes to the output path.** It now **decrypts
+  before anything is written** — the output path never holds ciphertext,
+  not even briefly — and the sidecar JSON records `decrypted: true` and
+  the `algorithm`.
+- **Its in-page read was unbounded.** It is now bounded **twice**: an
+  in-page `AbortController` bounds the page's own fetch, and a
+  per-call CDP `timeoutMs` bounds the round trip back to Node. Either
+  alone leaves a hang — without the first the page waits forever,
+  without the second Node waits for a page that never answers.
+- **It could not point at a browser profile.** `--user-data-dir` is
+  accepted now, so a run can take a fresh profile when the default one
+  is locked by another Chrome.
+
+The **plain Node fetch is the primary path**; the in-page browser read
+is the **fallback** for a session-gated URL. `main(argv, deps)` is
+injectable — seams `openClient`, `rightsFor`, `decrypt`, `fetchBytes`,
+`readInPage`, `sleepFor` — so the suite needs no browser and no
+network. **59 passed / 0 failed.**
+
+**Workstream three — the general log rotation, in Node.**
+
+`bin/log-rotate.sh` was never running at this location (exit 126 — the
+sprint-0.25/0.26 launchd-TCC rule), and its approach was **wrong even
+if it had run**: it *renamed* the live log and gzipped the rename. The
+hub's coordinator holds its stdout on an **O_APPEND, inode-bound**
+descriptor, so a rename orphans the writer — it keeps appending to a file
+nothing reads any more.
+
+`lib/log-rotate.js` (5,564 B) replaces it with **gzip-then-truncate**:
+the current content is gzipped into `<name>.log.1.gz`, and the original
+is truncated **in place** with `ftruncateSync`, so the inode — and every
+writer holding it — survives. Old generations are bumped downward first,
+so `foo.log.2.gz` becomes `foo.log.1.gz` and the new `.1.gz` takes the
+top slot. It sweeps `*.log` only, matching the shell implementation
+exactly, and appends the same completion line:
+`[log-rotate] done at YYYY-MM-DD HH:MM:SS`.
+
+**The stderr-path gap was fixed at the configuration root, not by
+widening the sweep.** `com.kaidjuric.digital-twin.auto-check-updates`
+was the only repo LaunchAgent whose `StandardErrorPath` did not end in
+`.log` (`logs/auto-check-updates.err`), so the `*.log` sweep never saw
+it. It now uses `logs/auto-check-updates.err.log`, matching every
+sibling agent — and the stale `logs/auto-check-updates.err` was deleted.
+
+**Workstream four — the auto-check agent, running again.**
+
+`bin/auto-check-updates.sh` exited **126** on every one of its 283
+runs: the plist ran `/bin/bash` against a script under
+`~/Documents`, which launchd cannot read. The port is
+`lib/auto-check-updates.js` (5,492 B), reached through a
+`~/Library/LaunchAgents/` shim that `exec`s **node** directly — the
+pattern every working watcher uses.
+
+The port also fixes a **latent bug in the shell**: its loop variable was
+named `PATH`, shadowing the shell's `PATH`, so `curl` was not found
+inside the loop and **every probe returned `000`** — the script had been
+reporting a live deploy as down. The report text is preserved exactly,
+so existing log consumers keep parsing it. **14 passed / 0 failed.**
+
+**Decisions:**
+
+- **Decrypt before write, always.** A file on disk that might be
+  ciphertext is a file nobody can trust.
+- **The `ftyp` brand check is the guard, not a hope.** A wrong key is
+  indistinguishable from a good one by size; only the container header
+  tells them apart.
+- **Never rename a live log.** Inode preservation is the whole point;
+  the shell's rename was the bug, not a limitation of the shell.
+- **Fix the stderr path rather than widening the sweep.** The rotator
+  keeps the shell's `*.log` contract; the misconfigured agent was the
+  anomaly.
+- **Node for everything launchd invokes.** `exec node <lib>` from a
+  `~/Library/LaunchAgents/` shim — never `/bin/bash` into `~/Documents`.
+- **The Mango API takes the CDP client, not a whole `SunoClient`** —
+  smaller, directly testable, and it lets `lib/suno-fetch.js` reuse the
+  browser session it already opened.
+- **The plain Node fetch is primary; the browser is the fallback.** The
+  in-page read exists for URLs the session gates, not as the default
+  path.
+- **Nothing under `data/suno/` is tracked.** The decryptor is tracked;
+  the audio it produces is not.
+
+**Verified end-to-end:**
+
+- **A live fetch, byte-identical to the reference capture.** Clip
+  `543c6f53-9dca-4319-b90a-d894f2becc40` fetched through the plain
+  Node path → `cmp` against
+  `data/suno/clips/organic-breakbeat-orchestra-1.m4a` → **no
+  difference**. `ffprobe`: `codec_name=opus`, `sample_rate=48000`,
+  `channels=2`, `duration=247.600000`, `size=4445147`.
+- The decryption was independently confirmed against the app's own
+  MSE-decrypted playback: **0 differing samples out of 7,679,376**,
+  correlation `1.0`.
+- `com.kaidjuric.digital-twin.auto-check-updates`: **283 runs at exit
+  126 → 1 run at exit 0**, and `logs/auto-check-updates.log` now carries
+  `✓ Repo up to date (commit a6a888c)` and
+  `✓ Deployed site responding (landing.html → 200 OK)`.
+- `com.kaidjuric.digital-twin.log-rotate`: **runs = 1, exit code = 0**;
+  66 files rotated into `<name>.log.1.gz`, empty files skipped, and the
+  **inode preserved** on the live `logs/auto-check-updates.err` (29729731
+  before and after).
+- `node lib/suno-mango.test.js` → **37 / 0**.
+  `node lib/suno-fetch.test.js` → **59 / 0**.
+  `node lib/log-rotate.test.js` → **14 / 0**.
+  `node lib/auto-check-updates.test.js` → **14 / 0**.
+- `npm run test:all` → **exit 0**.
+- `npm run test:secrets` → **9 / 0**; the sensitive-path sweep over the
+  branch diff produced **no output** for `cookie`, `.env`, `my-video` or
+  `data/suno`.
+
+**Docs:**
+
+- **`docs/SUNO-FETCH.md`** (new) — the whole procedure: the rights
+  handshake, the GCM IV drawn from the blob, the clip id as AAD, the
+  one-hour `glt` TTL, the `ftyp` brand check, decrypt-before-write, the
+  flags, the exit codes, the rate limits (prefer `GET /api/clip/<id>`
+  over `get_songs_by_ids`), and the byte-identical live result.
+- **`README.md`** — a "Fetch a Suno clip as playable audio" section.
+- **`docs/SUNO-MUTATOR.md`** — the two obsolete claims are gone. The
+  "cannot be the audio source" paragraph and the "cannot produce
+  playable bytes" table row now point at the Mango decryptor and
+  `docs/SUNO-FETCH.md`.
+- **The `encrypted-media` prevention rule now names the fix that
+  works.** It said "capture from the app's own MediaSource" — the
+  capture path, which was the fallback, not the answer. It now points
+  at `lib/suno-mango.js` (Mango rights → AES-GCM unwrap → AES-CTR) and
+  at the `ftyp` check, and its `files` list includes the new module.
+  `docs/IMPROVE-LOOP.md`'s signature table carries the same row.
+
+**Open:**
+
+- **The `glt` TTL means a long-idle run can fail with a brand error.**
+  Re-running the fetch gets fresh rights; there is no cache to clear.
+- **The rotator still sweeps `*.log` only.** A future agent that
+  configures a LaunchAgent with a non-`.log` stderr path reintroduces
+  the gap — the fix is the `*.err.log` convention, not a wider sweep.
+- **`bin/log-rotate.sh` and `bin/auto-check-updates.sh` are still on
+  disk.** The LaunchAgents no longer call them, but the shells remain a
+  trap for the next reader; they were left in place because deleting
+  them is a separate change from the one that made the agents run.
 - Unchanged: the `.kai/` durability call, the woody-shaw chart variants,
   the Vercel custom domain, the MJ cookie jar expiry, the hub board's
   completion misattribution, a reel's slug still derived from its mutable
