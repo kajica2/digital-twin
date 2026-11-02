@@ -1,7 +1,46 @@
 {
-  "updatedAt": "2026-11-01T23:24:35.792Z",
-  "count": 22,
+  "updatedAt": "2026-11-02T23:24:57.497Z",
+  "count": 23,
   "collections": [
+    {
+      "date": "2026-11-03",
+      "key": "2026-11-03",
+      "id": "frost-window",
+      "title": "Frost Window",
+      "badge": "soundhealing",
+      "teaser": "Winter writes on the glass and the room reads it slowly.",
+      "aspect": "16:9",
+      "dir": "assets/marketplace/daily/2026-11-03",
+      "plates": [
+        {
+          "file": "frame-01.jpg",
+          "caption": "pane · fern",
+          "alt": "Frost branching across a window pane at dawn, the room behind it out of focus and cold blue.",
+          "prompt": "frost branching across a window pane at dawn, the room behind it out of focus and cold blue, close-up, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "91610ff0-a40e-4b2c-a597-df099490b589",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-02.jpg",
+          "caption": "kettle · steam",
+          "alt": "A kettle just beginning to steam on a stove in a cold kitchen, window light behind.",
+          "prompt": "a kettle just beginning to steam on a stove in a cold kitchen, flat window light behind it, close-up, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "633b0519-fd06-4e86-b86d-8e792b880a37",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-03.jpg",
+          "caption": "breath · glass",
+          "alt": "A breath fogging a pane of glass from the inside, a hand held just off the surface.",
+          "prompt": "a breath fogging a pane of glass from the inside, a hand held just off the surface, cold blue room beyond, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "4b3b76f9-e800-4810-9c89-25128afe4b3a",
+          "width": 1280,
+          "height": 717
+        }
+      ]
+    },
     {
       "date": "2026-11-02",
       "key": "2026-11-02",
