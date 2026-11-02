@@ -1,0 +1,188 @@
+{
+  "_note": "Suno STYLE DESCRIPTOR registry — the Anchor Five and their Ten Extensions. A preset here is a STYLE (what the track sounds like), not a prompt for a model: it is written to be pasted into Suno's style field, or saved as a custom style in the account.",
+  "_house": "Every descriptor is a self-contained style text: genre, tempo, instrumentation, the mix treatment, and the imperfections to KEEP. The imperfections are the point — a flubbed attack, a tape dropout, room tone instead of a clean fade. A perfectly produced track is not this house.",
+  "_why-header": "Each style opens with a bracketed title line and a tempo/mood/role line, then the descriptor. The header is how the account's own house styles are written (the 'Serbian Byzantine Choir M' style is [Trippy Microhouse Textural Fusion] + sections), so the new styles sit beside the old ones rather than in a different shape.",
+  "_limits": "The server's tag limit is 1000 characters and its title limit is 100. Every preset here fits with room to spare (the longest is 689 including the header).",
+  "_groups": {
+    "anchor-five": "The five anchors. Each is a complete style on its own.",
+    "extensions": "The ten extensions. Each is a complete style on its own, and each extends the anchor it grew out of."
+  },
+  "schema": {
+    "slug": "stable kebab-case handle",
+    "name": "display name",
+    "group": "anchor-five | extensions",
+    "index": "the order the house listed them in",
+    "genre": "the genre line",
+    "tempo": "the tempo line ('Free' and 'Rubato' are not BPM)",
+    "mood": "the mood word",
+    "role": "what the lead is doing in the track",
+    "descriptor": "the style text itself"
+  },
+  "presets": [
+    {
+      "slug": "midnight-solstice",
+      "name": "Midnight Solstice",
+      "group": "anchor-five",
+      "index": 1,
+      "genre": "Deep House / Modal Jazz",
+      "tempo": "120 BPM",
+      "mood": "introspective",
+      "role": "meditative narrator",
+      "descriptor": "Melancholic flugelhorn solitoquy with intimate breath detail and warm tape saturation blooming around sustained notes, over a 120 BPM deep house groove with muted kick, off-beat hi-hats and rolling sub-bass. Electric piano seventh chords with lifted low-mids and rolled-off highs, ambient pad swells sitting behind the beat, distant vinyl crackle and constant fine tape hiss. Spacious modal phrasing drenched in long dub delay and glowing cathedral reverb tails. Loose humanized percussion, micro-detune on the pads, one tape dropout near the second chorus, room tone framing the intro and outro."
+    },
+    {
+      "slug": "concrete-garden",
+      "name": "Concrete Garden",
+      "group": "anchor-five",
+      "index": 2,
+      "genre": "Trip-Hop / Cinematic Downtempo",
+      "tempo": "85 BPM",
+      "mood": "jazz-noir",
+      "role": "cinematic ghost",
+      "descriptor": "Smoky muted trumpet improvisation with heavy tape saturation and vintage amp reamping, grit and distance in the tone, harmonic bloom crowding the loud phrases. 85 BPM trip-hop beat with dusty breakbeats, deep sub-bass and sparse piano, dulled transients and dragging swing. Electronic wind ghost lines with pitch modulation and reverse delay drift in and out of tune. Dark atmosphere of vinyl noise, low-passed string samples and darkened stereo corners. One audible breath left in, a faint tape dropout before the last section, hiss as the frame."
+    },
+    {
+      "slug": "ethio-spiral",
+      "name": "Ethio-Spiral",
+      "group": "anchor-five",
+      "index": 3,
+      "genre": "Ethio-Jazz / Broken Beat / Future Soul",
+      "tempo": "105 BPM",
+      "mood": "hypnotic",
+      "role": "percussive lead",
+      "descriptor": "Percussive staccato trumpet phrases on Ethiopian pentatonic scales, doubled in octaves and micro-detuned a few cents apart, over a 105 BPM broken beat with polyrhythmic congas, shakers and angular synth bass, humanized and slightly loose against the grid. Vibraphone accents and plucked lyre-inspired synth lines with rolled-off highs. Call-and-response horn figures processed with granular bloom rather than glint. Sparse clicks, one flubbed horn attack left in, narrowed stereo edges on the shakers, fine tape noise floor throughout."
+    },
+    {
+      "slug": "tape-memory",
+      "name": "Tape Memory",
+      "group": "anchor-five",
+      "index": 4,
+      "genre": "Ambient Jazz / Generative",
+      "tempo": "Free",
+      "mood": "meditative",
+      "role": "textural element",
+      "descriptor": "Floating flugelhorn fragments captured through tape loop systems with degrading repeats, wow and flutter pitch drift, heavy harmonic bloom on each regeneration. Ambient drones and rhythmic pulses emerge from layered horn phrases, top end softened and rolled off. Sparse modular bleeps with dulled attacks, field recordings of rain and distant traffic pushed to the stereo edges, sub-bass swells. No traditional drums — structure emerges from loop decay and harmonic resonance. Occasional dropouts, one unplanned room sound caught in the capture, no clean fade at either end."
+    },
+    {
+      "slug": "peak-hour-prayer",
+      "name": "Peak Hour Prayer",
+      "group": "anchor-five",
+      "index": 5,
+      "genre": "Soulful House / Gospel Jazz",
+      "tempo": "124 BPM",
+      "mood": "uplifting",
+      "role": "celebratory voice",
+      "descriptor": "Triumphant trumpet lead with gospel-inflected hard bop phrasing and bright open tone, harmonic saturation blooming generously at the peaks. 124 BPM soulful house groove with four-on-the-floor kick, live-feel percussion loose around the grid and warm analog bassline. Electric piano with lush extensions and rolled-off highs, organ pads, synthesized horn stabs micro-detuned against the live horns. Breakdown features solo trumpet in call-and-response with choir samples sitting darker at the edges. Count-in left in at the head, stray click, room tone instead of a clean fade."
+    },
+    {
+      "slug": "room-tone",
+      "name": "Room Tone",
+      "group": "extensions",
+      "index": 6,
+      "genre": "Chamber Jazz Ballad",
+      "tempo": "Rubato",
+      "mood": "intimate",
+      "role": "unadorned lead",
+      "descriptor": "Slow unhurried flugelhorn ballad with close breathy detail and a warm covered tone, played live in one room with grand piano, upright bass and brushes. No click track — tempo breathes and drifts, bass and horn trade loose rubato phrases. Piano sustains decaying into the room, drum bleed caught on the horn mic, a chair creak left in. Long analog plate tails rather than clean digital decays. One audible breath before the final phrase, room tone framing both ends."
+    },
+    {
+      "slug": "brass-cathedral",
+      "name": "Brass Cathedral",
+      "group": "extensions",
+      "index": 7,
+      "genre": "Acoustic Ambient Drone",
+      "tempo": "Free",
+      "mood": "sacred",
+      "role": "atmospheric texture",
+      "descriptor": "Solo flugelhorn fragments recorded live in a large stone room, captured through analog tape echo with degrading repeats and gentle wow and flutter, each regeneration blooming rather than glinting. Harmonium drone and low bowed cello underneath, a small vocal group humming long tones at the stereo edges. No drums, no pulse — structure emerges from room resonance and harmonic overlap. Heavy natural reverb, top end rolled off, low-mids lifted, one tape dropout, no clean fade."
+    },
+    {
+      "slug": "second-line-sunday",
+      "name": "Second Line Sunday",
+      "group": "extensions",
+      "index": 8,
+      "genre": "Acoustic Brass Band / Street Funk",
+      "tempo": "100 BPM",
+      "mood": "communal",
+      "role": "greasy lead",
+      "descriptor": "Bright celebratory trumpet lead with behind-the-beat phrasing, live with sousaphone, trombone, snare, bass drum and tambourine. No drum machine — the groove is played by hands and feet, loose and dragging, natural push and pull. Call-and-response horn riffs, handclaps and shouts left in the take. Horns slightly overblown at the peaks, saturated on tape, thick warm room bleed. A flubbed attack, a stray whistle, tape hiss under everything."
+    },
+    {
+      "slug": "night-ferry",
+      "name": "Night Ferry",
+      "group": "extensions",
+      "index": 9,
+      "genre": "Jazz Waltz",
+      "tempo": "Slow 3/4",
+      "mood": "melancholic",
+      "role": "melodic lead",
+      "descriptor": "Restrained flugelhorn melody in three-four over vibraphone, upright bass and brushed drums, played live with no click and a gentle rocking tempo drift. Vibraphone motor tremolo captured on tape, its ring bleeding into the horn mic. Muted trumpet in the middle section with a soft breathy attack. Analog spring on the horn, plate on the vibes, one shared room. A page turn, a bass string buzz, a faint tape dropout before the final chorus."
+    },
+    {
+      "slug": "pentatonic-porch",
+      "name": "Pentatonic Porch",
+      "group": "extensions",
+      "index": 10,
+      "genre": "Acoustic Modal Groove",
+      "tempo": "100 BPM",
+      "mood": "earthy",
+      "role": "percussive lead",
+      "descriptor": "Percussive staccato trumpet phrases on five-note pentatonic scales, live with plucked lyre, one-string bowed fiddle, hand drums and shakers. Loose humanized groove sitting slightly behind the beat, no click, polyrhythmic hand percussion bleeding across microphones. Vibraphone accents and call-and-response horn figures, all acoustic, all one room. Horns warm and slightly saturated on tape, natural room reverb. One flubbed attack, sparse clicks, hiss throughout."
+    },
+    {
+      "slug": "morning-service",
+      "name": "Morning Service",
+      "group": "extensions",
+      "index": 11,
+      "genre": "Gospel Jazz / Acoustic Soul",
+      "tempo": "Rising",
+      "mood": "communal",
+      "role": "triumphant lead",
+      "descriptor": "Triumphant trumpet lead with gospel-inflected phrasing, bright and open at the peaks, live with grand piano, rotary organ, upright bass, tambourine and small choir. Handclaps and foot stomps instead of a drum machine, tempo loose and rising through the arrangement. Organ and choir darker and narrower at the edges, piano bleeding into the horn mics. Count-in left in, a stray shout, tape saturation crowding the loudest moments, room tone framing the outro."
+    },
+    {
+      "slug": "tape-reel",
+      "name": "Tape Reel",
+      "group": "extensions",
+      "index": 12,
+      "genre": "Analog Tape Music / Prepared Piano",
+      "tempo": "Free",
+      "mood": "experimental",
+      "role": "looped texture",
+      "descriptor": "Flugelhorn fragments captured on a small analog tape machine and looped by hand, repeats degrading and drifting with wow and flutter. Prepared grand piano with paper and mutes, bowed cymbal, and a single sustained harmonium note forming the bed. No synths, no samplers — all loops are physical tape. Structure emerges from loop decay and saturation. Constant hiss, clicks and pops as the tape wears, one accidental splice audible, narrowed edges, no clean fade."
+    },
+    {
+      "slug": "glass-corridor",
+      "name": "Glass Corridor",
+      "group": "extensions",
+      "index": 13,
+      "genre": "Dub Techno",
+      "tempo": "118 BPM",
+      "mood": "cavernous",
+      "role": "distant narrator",
+      "descriptor": "Long-toned flugelhorn phrases pushed far back in the mix, drenched in cascading tape delay and cavernous reverb, harmonic bloom trailing each note. 118 BPM dub techno pulse with soft kick, deep sub-bass and off-grid chord stabs with rolled-off highs. Muted trumpet answer phrases appearing and disappearing at the stereo edges. Heavy tape saturation, fine hiss throughout, one delay feedback left to run long, a tape dropout mid-track. Cold, spacious, quietly devotional."
+    },
+    {
+      "slug": "sodium-vapour",
+      "name": "Sodium Vapour",
+      "group": "extensions",
+      "index": 14,
+      "genre": "Liquid Downtempo",
+      "tempo": "87 BPM",
+      "mood": "nocturnal",
+      "role": "half-time lead",
+      "descriptor": "Breathy flugelhorn melodies floating over a half-time 87 BPM liquid groove with soft broken drums, warm sub-bass and shimmering electric piano. Trumpet phrasing long and patient, half-whispered at the low end, bright and open at the peaks. Tape saturation and gentle wow on the keys, vinyl crackle and fine hiss throughout, analog delay trails. A brushed snare fill left slightly late, one audible breath, room tone framing the intro and outro. Rain-soaked, streetlit, unhurried."
+    },
+    {
+      "slug": "sunrise-procession",
+      "name": "Sunrise Procession",
+      "group": "extensions",
+      "index": 15,
+      "genre": "Afro-Tech / Deep House",
+      "tempo": "126 BPM",
+      "mood": "euphoric",
+      "role": "soaring lead",
+      "descriptor": "Rising trumpet lead with bright open tone and long sustained peaks, harmonic saturation blooming at the top of each phrase, over a 126 BPM Afro-tech groove with layered hand percussion, deep kick and a warm analog bassline with lifted low-mids. Marimba and plucked synth accents, call-and-response horn stabs micro-detuned against the lead. Percussion loose and humanized around the grid. Tape hiss under the whole track, a stray click, count-in left at the head, room tone and percussion bleed framing the outro. Sunrise-set euphoria, warm and analog."
+    }
+  ]
+}
