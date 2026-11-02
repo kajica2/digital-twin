@@ -11838,12 +11838,27 @@ not for "afro" alone.
 - A 3-song batch run: 3 ok, 0 fail, each file ffprobe-verified with a
   real duration (A Flower Is A Lovesome Thing 394.97 s, A Night In
   Tunisia 156.99 s, Afro Blue 79.48 s).
-- The 95-song batch: 95 of the 100 requested standards mapped to a
-  library row; the five that did not (Haitian Fight Song,
-  Pithecanthropus Erectus, The Rumproller, Cornbread, Search for the New
-  Land) are genuinely absent from the 1702-song library, and four more
-  were spelling variants (Recorda Me -> Recordame, and three with a
-  leading "The" dropped by iReal).
+- **THE FULL BATCH RAN: 95 of the 95 mapped standards exported.** Every
+  file ffprobe-verified as pcm_s16le, 44100 Hz, stereo, duration > 0 —
+  96 probes, 0 bad. Durations 40.9 s to 563.0 s, median 152.9 s:
+  **313 minutes of audio in 3.06 GB**, in `~/Documents/ireal-export/`.
+  - The runner reported `total=95 ok=90 skip=4 fail=1`. The four skips
+    were songs already on disk from the 3-song test, and the ONE
+    "failure" was **Witch Hunt**, where the save panel did not open on
+    that attempt. iReal rendered it anyway and the file landed
+    (39,686,188 bytes, 224.98 s) — so the real count is **95/95**.
+  - A lesson worth recording: "the panel did not open" is a statement
+    about the PANEL, not about the render. iReal renders into its
+    container's tmp and the save is a separate step, so the file can
+    appear even when the panel step failed. The runner re-checks the
+    output directory before calling a song failed, which is why a
+    re-run of Witch Hunt reported `skip=1` rather than exporting twice.
+- 95 of the 100 requested standards mapped to a library row; the five
+  that did not (Haitian Fight Song, Pithecanthropus Erectus, The
+  Rumproller, Cornbread, Search for the New Land) are genuinely absent
+  from the 1702-song library, and four more were spelling variants
+  (Recorda Me -> Recordame, and three with a leading "The" dropped by
+  iReal).
 - `npm run test:all` was green before these changes (34 suites, 1963
   assertions); `test:youtube-poster` fails for an unrelated,
   pre-existing reason — `~/.youtube-cookies.txt` does not exist on this
@@ -11851,9 +11866,9 @@ not for "afro" alone.
 
 **OPEN**
 
-- The 95-song batch takes about 90 minutes (iReal renders each track
-  itself, ~1 minute for a 3-minute standard). It is re-runnable: songs
-  whose file already exists are skipped.
+- The 95-song batch took about 100 minutes (iReal renders each track
+  itself). It is re-runnable: songs whose file already exists are
+  skipped, so a re-run is a no-op.
 - The five absent standards need a source other than iReal Pro's
   library.
 - The iReal export writes into `~/Documents/ireal-export/`, which is
