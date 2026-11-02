@@ -11873,3 +11873,538 @@ not for "afro" alone.
   library.
 - The iReal export writes into `~/Documents/ireal-export/`, which is
   outside the repo — nothing here is committed.
+
+### 2026-11-02 — sprint 0.87 (the 56 MB log, and the rotation that was never running)
+
+Asked: the swarm is running — stop its log eating the disk.
+
+**The measurement.** `lib/agent-hub/pids/hub.log` had reached
+**57,490,994 bytes (56 MB)**, growing at roughly **7 MB a day**. The
+coordinator prints a status report immediately and then every 5,000 ms
+(`lib/agent-hub/hub-coordinator.js`), so the file grows by one report
+every five seconds, forever.
+
+**The rotation path that should have caught it was dead.**
+
+`bin/log-rotate.sh` rotates `$REPO/logs/*.log` and nothing else — it
+never looks at `lib/agent-hub/pids/`. And it rotates the way rotation
+usually works: rename + gzip. That would have been wrong even if it had
+run: the hub's processes write their stdout straight into
+`pids/<name>.log` through an **O_APPEND file descriptor** —
+`setsid nohup "$@" >> "$logfile" 2>&1 < /dev/null &` in `detach()`
+(`lib/agent-hub/agent-hub.sh:157`) and `fs.openSync(logPath, 'a')` in
+`lib/agent-hub/hub-launch.js`. A rename moves the inode; the running
+writer keeps appending to the *renamed* inode, and the live log comes
+back at zero bytes with an invisible writer still attached.
+
+It also had never run here:
+
+```
+$ launchctl print gui/$UID/com.kaidjuric.digital-twin.log-rotate
+	state = not running
+	runs = 3
+	last exit code = 126
+$ tail logs/log-rotate.err.log
+/bin/bash: /Users/kaidejuricmasscmbook/digital-twin/bin/log-rotate.sh: Operation not permitted
+```
+
+**Exit 126 is the launchd TCC wall, and it is the same wall this repo
+hit in sprint 0.25 and sprint 0.59:** launchd on Sequoia grants
+filesystem access **per binary**, and `/bin/bash` has no grant for
+`~/Documents`. The script was never executed at this location — a fix
+inside it would have been a fix to a dead code path. `node` IS granted,
+and the hub's own launcher already runs under launchd every five minutes
+with exit 0.
+
+**Shipped:**
+
+- **`lib/agent-hub/lib/log-trim.js`** — `trimLogFile(file, { maxBytes,
+  keepLines })` and `trimLogDir(dir, opts)`, defaults **1 MiB /
+  2,000 lines**. It **truncates the same inode** (`ftruncateSync` +
+  `writeSync` at offset 0) and writes the tail back into it, so the
+  writer's fd stays valid and its next append lands at the new end of
+  file. It reads an expanding tail window until it holds enough lines,
+  drops the final empty element of the split (a trailing newline is not
+  a line), and returns a **summary** rather than throwing — a missing,
+  unreadable or unwritable log is reported, not a crash.
+- **`lib/agent-hub/hub-launch.js`** — `ensure()` now takes
+  `trimFn = trimLogDir` and trims `root/pids` **before** the process
+  planning and before every early return. That ordering is the point:
+  `ensure` legitimately concludes "everything is already running", and
+  the logs still need capping on that path. New CLI verb `trim`
+  (`node lib/agent-hub/hub-launch.js trim`); usage is now
+  `hub-launch.js [ensure|status|trim]`.
+- **`lib/agent-hub/hub.test.js`** — section 11, "the log trim (in
+  place)", six checks: a log under the cap is byte-identical afterwards;
+  an oversized log keeps exactly the requested last lines; the trim
+  preserves the inode, so an O_APPEND writer keeps appending to the
+  same file; a missing log is reported rather than thrown; a directory
+  trim touches only the `.log` files; and the launcher trims on every
+  `ensure`.
+
+**The off-by-one the test found, fixed in production code.** A trailing
+newline makes `split('\n')` yield a final empty element, so the first
+implementation counted it as a line and kept one line too few (9
+instead of 10). The **production** code drops the empty tail element;
+the assertion was not weakened to match the bug.
+
+**Decisions:**
+
+- **Trim in place, never rename.** The coordinator's fd is bound to the
+  inode. `mv` would orphan the writer and the log would come back
+  empty — a silent regression that is worse than the 56 MB.
+- **The trim lives in Node, not in `bin/log-rotate.sh`.** The shell
+  agent is measurably dead (exit 126); the Node launcher is measurably
+  alive (runs = 824, last exit code = 0).
+- **Trim before the launcher's early returns.** Otherwise the caps would
+  only apply on the days the hub needed restarting.
+- **1 MiB / 2,000 lines.** The coordinator's report is one block; 2,000
+  of them is roughly an hour of history and a fraction of a megabyte.
+- **Losing a concurrent line is the accepted trade.** A writer that
+  appends between our read and our write loses those lines. For a
+  status log the alternative is an unbounded file.
+- **Do not restart the swarm to prove health.** `ensure` is idempotent;
+  `start` kills the processes and could drop claimed work. Health is
+  proved with a live task round trip.
+
+**Verified end-to-end:**
+
+- **Live trim of the 56 MB file:** `node lib/agent-hub/hub-launch.js
+  trim` → `hub.log` **57,490,994 B → 157,136 B**, the last 2,000 lines
+  retained, **the inode unchanged**. Twelve seconds later the file was
+  159,233 B with fresh coordinator output — the writer was never
+  orphaned, because it never lost its fd.
+- The trimmed file is the live one: the coordinator (PID 3327) and the
+  three agents (3328 / 3346 / 3348) were running before and after the
+  trim, and the log still carries their status reports.
+- `launchctl print gui/$UID/com.kaidjuric.digital-twin.swr-hub` →
+  `runs = 824`, `last exit code = 0`.
+- `node lib/agent-hub/hub.test.js` → **145 passed / 0 failed** (139
+  before this section).
+
+**Open:**
+
+- **The general log rotation is still dead.** `bin/log-rotate.sh` and
+  its LaunchAgent remain unusable at this location for the same TCC
+  reason; the hub log is now bounded by its own trim, but `logs/*.log`
+  is not. The fix is the sprint-0.59 pattern — a Node rotator and a
+  shim in `~/Library/LaunchAgents/`.
+- `com.kaidjuric.digital-twin.auto-check-updates` has the same exit-126
+  defect and is also dead.
+- The trim runs on the launcher's five-minute tick, so the file
+  oscillates between its post-trim size and the cap rather than sitting
+  at one size. That is the design; a tighter cadence would cost a
+  `launchctl` run per minute.
+- Unchanged: the `.kai/` durability call, the woody-shaw chart
+  variants, the Vercel custom domain, the MJ cookie jar expiry, the
+  hub board's completion misattribution, a reel's slug still derived
+  from its mutable POST-sheet title.
+
+### 2026-11-02 — sprint 0.88 (six covers of one song, and the encryption in front of them)
+
+Asked: take the song *Everything Still Moves* and make **cover versions** of
+it in three new styles, then put them somewhere I can hear.
+
+**Shipped:**
+
+- **`assets/suno-specs/everything-still-moves-variants-3.json`** — the
+  three style specs as a JSON **array** (`name`, `slug`, `influence:
+  0.65`, `makeInstrumental: true`, `tags`, `negativeTags`): *Organic
+  Breakbeat Orchestra* (105 BPM, live acoustic drummer, Ninja-Tune-era
+  abstract jazz), *Dark Percussive Labyrinth* (112 BPM, chopped-breakbeat
+  orchestra, irregular 7/8 against a 4/4 pulse) and *The Human Sampler*
+  (98 BPM, a drummer imitating sample-based music by physical playing).
+  Every spec carries its own negative clauses — *"no electronic drums, no
+  saturation, no vocals, no loops, no samples…"* — which are ~40 terms
+  each and were being **silently discarded** before this sprint.
+- **`lib/suno-mutator.js` — four real fixes:**
+  - **`--specs <file.json>`** replaces `--mutation`. A style spec carries
+    commas, semicolons **and** colons inside its own prose, so the
+    `--mutation` grammar cannot carry one: a comma split a spec in two and
+    a colon inside prose was read as the influence field. `parseSpecsFile()`
+    is a JSON file form with no delimiter hazard at all.
+  - **`composeTags()` gained `priority`.** With `priority: 'mutation'` the
+    spec survives in full and the **source's** 800-character descriptor is
+    the side that gets cut. Measured: the source descriptor alone is 800
+    characters and a spec is ~900, so descriptor-first would have cut the
+    request down to ~200 characters — most of what was asked for.
+  - **`negative_tags` now travels from the spec.** The field was
+    hardcoded `''`, so every "no …" clause in a spec was thrown away at
+    the API boundary. It is now the difference between a materially
+    different render and the same render with different words.
+  - **A variant may force `makeInstrumental`.** The source is a vocal
+    track and its own flag says so; a spec that forbids vocals must
+    override it.
+- **`lib/suno-playlist.js`** (422 lines) — playlists on the account. No
+  public docs, so every route was read out of suno.com's own production
+  SPA bundles and then confirmed live. The trailing slash on
+  `POST /api/playlist/create/` is **required**; the v2 detail route
+  **must not** have one. Verbs: `list`, `find`, `create`, `show`,
+  `add`, `remove`.
+  **`lib/suno-playlist.test.js` — 59 assertions.**
+- **`lib/suno-mutator.test.js` — 188 assertions** (was 106).
+- **`docs/SUNO-MUTATOR.md`** (479 lines) and **`docs/SUNO-PLAYLIST.md`**
+  (133 lines).
+
+**One cover request yields TWO clips, and they are two TAKES.** Measured:
+the pair differs in exactly eight fields (`batch_index`, `display_tags`,
+`id`, `image_url`, `image_large_url`, `media_urls`, `metadata.duration`,
+`metadata.tags`, `updated_at`) and **no instrumental/vocal field differs
+at all**. Four independent probes agreed. `has_vocal` is an
+account-pipeline property, not the instrumentality flag — `make_instrumental`
+is the discriminator. So three variants produced six clips, and they are
+two takes of each, not a vocal and an instrumental version.
+
+**The media URL is an encrypted object, and it is not playable as
+fetched.** Every clip's `media_urls` entry is a CloudFront `.m4a` served
+with `x-amz-server-side-encryption: AES256`. Measured five ways, all
+agreeing: `curl` → `ffprobe` answers *"moov atom not found"*; `file`
+answers `data`; a byte scan of all 4,445,147 bytes finds **no** `ftyp`,
+`moov`, `mdat`, `moof`, `sidx`, `styp`, `free`, `init`, `OggS`, `ID3`,
+`OpusHead` or `RIFF` anywhere; in-page `fetch()` + `decodeAudioData`
+answers *"Unable to decode audio data"*; and the in-page head hex is
+**byte-identical** to the `curl` head hex — so neither `Origin` nor
+compression negotiation is the differentiator. The head is
+`184faa13 1f9a742f …`: no `ftyp` box, so it is not an MP4 container at
+all. The real download route exists and is refused for this account
+(`GET /api/download/clip/<id>` → `{"ok": false, "reason":
+"not_authorized"}`), and the clip payload carries **no** key.
+
+**The key is Mango.** The app calls
+`POST https://suno.com/a/api/mango/rights` with
+`{content_params:{content_id:<clipId>, content_type:"clip"}}` and gets
+`{key, iv, glt}`. `glt` is a JWT from `rights.suno.com` with a **one-hour
+TTL** — so a fresh rights call per session, not per clip. `gcmKey =
+SHA-256(glt)`; the key and the IV are each AES-GCM-decrypted with
+`iv = blob[0:12]` and `aad = clipId`; the resulting `ctrKey`/`ctrIv`
+decrypt the CloudFront body with **AES-128-CTR**, 16-byte big-endian
+counter per block.
+
+**Decryption correctness was proven against the app's own playback**, not
+against a header check: the app's MSE-decrypted output and the offline
+decryption differ in **0 samples out of 7,679,376**, correlation **1.0**.
+
+**Six playable renders now exist** (gitignored `data/suno/clips/`,
+ffprobe-verified — `codec_name=opus, sample_rate=48000, channels=2`):
+
+|file|seconds|bytes|
+|---|---|---|
+|`organic-breakbeat-orchestra-1.m4a`|247.600|4,445,147|
+|`organic-breakbeat-orchestra-2.m4a`|247.880|4,325,989|
+|`dark-percussive-labyrinth-1.m4a`|249.200|4,318,831|
+|`dark-percussive-labyrinth-2.m4a`|248.400|4,233,418|
+|`the-human-sampler-1.m4a`|248.400|4,402,711|
+|`the-human-sampler-2.m4a`|248.400|4,388,855|
+
+All six read back `status: "complete"`, `model_name: "chirp-hawk"`,
+`make_instrumental: true`.
+
+**The playlist is `guslars`** (`a6f92f95-9889-42fb-bb93-08a00bbd15db`) and
+now holds **10 clips** — the 4 that were already there plus the 6 new
+ones. The add route answers `{successes:[…], failures:[]}` and the
+read-back is the proof, not the add's own return.
+
+**A read-back that misses the real shape reports "empty" while the
+playlist is full.** The v1 detail nests the id under **`clip.id`**, the v2
+detail carries `metadata.song_count` but **no ids at all**, and some
+responses carry a bare `clip_ids`. `clipIdsOf()` looks for the id at
+`id`, `clip.id`, `clip_id`, `song_id` in that order; anything
+unrecognised contributes nothing rather than throwing.
+
+**The manifest now records the selection.** `data/suno/
+everything-still-moves-variants-3.json` grew 12,990 B → 17,550 B with a
+top-level `selection` block: the playlist (id, name, clipCount, addedHere
+6, preExisting 4), the credit meter, and one entry per clip with its
+variant, take, clip id, title, the reason it was chosen, `primary` /
+`alternate`, the local audio path, the **measured** duration and byte
+count, the status, the model and `inPlaylist`.
+
+**Credit meter as observed:** `credits 1289`, `total_credits_left 1289`,
+`visuals_credits_left 450`, `current_period_downloads_used 11` of 60,
+`is_paused: false`, period ends `2026-11-20T18:55:15Z`. Credits are a
+**side observation, not a gate** — a 401 from `/api/billing/info/` means
+"unknown", not "blocked".
+
+**Decisions:**
+
+- **A spec is a file, not a flag.** The delimiter grammar could not
+  carry a spec; the spec is prose with commas, semicolons and colons in
+  it. A JSON array is the form that has no ambiguity.
+- **The spec wins the trim; the descriptor fills the tail.** The spec IS
+  the request; the source descriptor is context.
+- **`negative_tags` and `make_instrumental` are part of the spec.** Both
+  were silently dropped, and both change the render.
+- **Two takes are two takes.** There is no per-render vocal flag to hunt
+  for, and hunting for one burns credits.
+- **The key comes from Mango, not from the payload.** The payload has no
+  key field; the rights endpoint has a one-hour JWT, so the rights call
+  is per session.
+- **Prove decryption against the app's playback.** A file that decodes is
+  not proof that it is the right audio; 0 differing samples out of
+  7.6 M is.
+- **Prefer `GET /api/clip/<id>`** over `get_songs_by_ids`, which answered
+  429 after about six clip reads in one session.
+- **Space the probes out and reuse one browser session.** The rate limit
+  is per session, and the always-on instance holds the default profile's
+  lock.
+
+**Verified end-to-end:**
+
+- Six clip ids read back `complete` / `chirp-hawk` / `make_instrumental:
+  true`; six `.m4a` files on disk, ffprobe-verified, durations and byte
+  counts as tabulated; `data/suno/clips/manifest.json`
+  (`schema: suno-fetch/manifest-v1`) maps file → clipId → title → bytes.
+- The final `show` reported **10 clip(s)** in `guslars`, listing all six
+  new ids.
+- `node lib/suno-playlist.test.js` → **59 passed / 0 failed**.
+  `node lib/suno-mutator.test.js` → **188 passed / 0 failed**.
+- The offline decryption was checked against the app's own MSE playback:
+  **0 differing samples of 7,679,376**, correlation 1.0.
+- `npm run test:secrets` — 9/9. The cookie jar stays in `~/.suno-cookies.txt`
+  (0600) and the decryptor scripts live under gitignored `data/suno/tools/`.
+
+**Open:**
+
+- **The decryptor is not tracked.** `data/suno/tools/suno-mango-fetch.js`
+  and `suno-mango-decrypt.js` are gitignored working scripts. Promoting
+  them into `lib/` is the obvious next step, and it should happen with
+  the same care `lib/suno-fetch.js` was written with.
+- **`lib/suno-fetch.js` has three real defects** and is now known to be
+  the wrong approach for the audio: it writes the **encrypted** bytes,
+  its CDP body read has no timeout, and its CLI takes no
+  `--user-data-dir`. It should not be used as the audio source.
+- **The playlist api is undocumented.** Every route came out of the
+  production SPA bundle; a change on Suno's side would break it
+  silently.
+- **Six renders cost six generations' worth of credits.** The six are
+  complete; no further renders were bought.
+- Unchanged: the `.kai/` durability call, the woody-shaw chart variants,
+  the Vercel custom domain, the MJ cookie jar expiry, the hub board's
+  completion misattribution, a reel's slug still derived from its mutable
+  POST-sheet title.
+
+### 2026-11-02 — sprint 0.89 (every hangable call gets a deadline, and a loop that writes down what keeps breaking)
+
+Two asks: **nothing can hang**, and **when something breaks the same way
+again, write it down** — without an agent having to rediscover it.
+
+**Part one — deadlines on every hangable call.**
+
+Three hang sites were found and closed. All three had the same failure
+shape: a promise that never settles, so the run sat there until someone
+killed it by hand.
+
+- **CDP requests — `lib/mj-submitter.js`.** `DEFAULT_CDP_TIMEOUT_MS =
+  30000`; `CDPClient.send()` rejects with `CDP <method> timed out after
+  <limit>ms — the browser did not answer`. The pending timer is cleared
+  bare on both the reply and the send-failure paths (a truthiness guard
+  around `clearTimeout` would leak the timer and keep the process alive).
+  `CDPClient.close()` now settles every pending entry with
+  `new Error('CDPClient closed')` so a caller that gives up mid-flight
+  does not leave the process unable to exit.
+- **In-page API calls — `lib/suno-web.js`.** `DEFAULT_API_TIMEOUT_MS =
+  20000`, deliberately **below** the 30 s CDP deadline so the abort
+  surfaces as a named `AbortError` rather than a generic "the browser
+  did not answer". The abort's **name** is preserved through the CDP
+  wrapper: over CDP the in-page exception arrives as text
+  (`"JS error: AbortError: …"`), so the message is the only signal left.
+- **Chrome's debug-port bind — `lib/mj-submitter.js`.
+  `DEFAULT_CHROME_BIND_TIMEOUT_MS = 45000`, configurable per call.**
+
+**The 8-second bind deadline was wrong, and it was measured.** A manual
+launch of the same binary on the same port with a fresh profile bound in
+~1 second on an idle machine, while the same launch **failed the 8-second
+deadline** on a machine carrying a dozen Chrome instances — and a manual
+launch on that port succeeded immediately. The failure was the deadline,
+not the launch.
+
+**A Chrome that cannot use its profile exits at once**, and waiting out
+the whole deadline for a process that is already dead reports the wrong
+problem: the message says "failed to bind", which sends you looking at the
+port when the cause is the profile lock. The launcher now listens for an
+early exit and rejects with *"Chrome exited immediately (code …, signal …)
+on port … Most likely the profile … is locked by another Chrome. Use a
+fresh --user-data-dir and a fresh port."* `lib/suno-web.js`'s CLI accepts
+`--user-data-dir` so a second run can sit beside the always-on instance
+that holds the default profile's lock.
+
+**`CDPClient` also learned to listen.** CDP **events** carry a method and
+no id, and they used to be dropped on the floor — which made "watch what
+the page actually requests" impossible; the only way to see a request was
+to guess the URL and fetch it. `CDPClient.on(method, fn)` registers
+handlers and returns an unsubscribe function. This is what made the
+Mango rights-call discovery possible.
+
+**Part two — `lib/improve-loop.js`.**
+
+The loop watches the repo's own logs for failure signatures this project
+has actually hit, and writes each recurring one down as a **postmortem**,
+a **prevention rule** and a **tech-debt item**.
+
+**The one rule that matters: the loop never edits product code.** It
+writes three artefacts and stops. Applying a lesson is a separate,
+deliberate act by an agent — and the `/daily` ENOENT it found was fixed
+by hand. An automated loop that edits source code is a loop that will
+eventually edit the wrong thing at 3am.
+
+- **Seven signatures** at `SIGNATURES`: `launchd-tcc` (P2),
+  `api-rate-limit` (P3), `encrypted-media` (P3), `prompt-refusal` (P3),
+  `stale-chrome-port` (P3), `no-deadline` (P2), `missing-path` (P3).
+  Each carries a severity, the files it usually implicates, and an
+  **action** written to be read by a future agent *before* it starts
+  work — so it leads with the fix, not the diagnosis.
+- **A signature only fires when it recurs** (default threshold 3). One
+  stray `ENOENT` is noise; three is a pattern worth writing down.
+- **Every bound is a ceiling, not a target**: 64 KiB tail per file, 40
+  log files per run, 10 findings written per run, 5 evidence lines kept
+  per finding.
+- **Idempotent across all three artefacts**: a finding is already
+  recorded when its rule id is in `active_prevention_rules`, its title is
+  in the register, or a postmortem file for it exists. A second run over
+  the same logs writes **nothing** — verified: the second `--force` run
+  reported `written: 0`.
+- **Atomic writes** (temp + rename), so a reader never sees a
+  half-written rule.
+- **Byte-surgical insertions** into `.kai/memory.yaml` and the register,
+  because those files are hand-curated and a JSON/YAML round-trip would
+  reformat them.
+- **`lib/improve-loop.test.js` — 41 assertions**, nine sections, temp-dir
+  fixtures, no network, no browser, no `.kai/` writes.
+
+**The loop found a real bug on its first live run, and the fix was
+hand-authored.** It reported `missing-path` (14 occurrences) as fresh;
+the root cause was that `lib/daily-pipeline.js` resolved `daily/` and
+`prompts-inbox/` from `process.cwd()` — **and a launchd job's cwd is
+`/`**, so the write went to the filesystem root and failed ENOENT. The
+production fix is one line: `const REPO = resolve(__dirname, '..')`, the
+same shape `lib/daily-content.js` already used. Verified live from cwd
+`/`: `/daily` does not exist.
+
+**The `missing-path` action had to be rewritten.** The first version's
+action text was a tautology ("resolve paths from the repo root") — a rule
+that adds nothing. It now leads with the rule and names the files it
+applies to (`lib/daily-pipeline.js`, `lib/daily-content.js`).
+
+**The live run** (`node lib/improve-loop.js --json --force`):
+`evidenceFiles: 35`, findings `launchd-tcc` (638 occurrences, **known** —
+it has been in the register since 2026-10-25) and `missing-path` (14,
+fresh). It wrote `.kai/postmortems/2026-11-02-missing-path.md` (1,948 B),
+rule `PM-2026-11-02-missing-path`, and `### TD-009`. The YAML re-parsed
+valid with 14 active prevention rules.
+
+**The hub seam.** The SWR hub ticks every five minutes under launchd, and
+the loop rides that tick — no new LaunchAgent, and the cadence belongs to
+the loop's own state file.
+
+```js
+function runImprovementLoop() {
+    const { readState, shouldRun, run } = require('../improve-loop.js');
+    const state = readState();
+    if (!shouldRun(state)) return { ran: false, reason: 'not due' };
+    return { ran: true, result: run() };
+}
+```
+
+Three decisions in that seam:
+
+- **The loop runs *before* the hub's early return.** A tick that starts
+  no process is still a tick on which a recurring failure could be
+  recorded; a tick that returns early has no chance to notice anything.
+- **The seam calls `shouldRun()` itself.** The interval gate lives in the
+  module's `main()`, so a caller invoking `run()` directly would bypass
+  it. The seam enforces the 30-minute floor itself.
+- **A failing loop is non-fatal.** `.kai/` may be missing or unwritable;
+  that must never take the swarm down. The failure is logged
+  (`improvement loop failed: …`) and the hub proceeds.
+
+`ensure()` takes `improveFn = runImprovementLoop` as an injectable
+parameter, so the tests drive the whole decision with no process spawned
+and no `.kai/` written. New CLI verbs: `improve`, `trim`, `status`,
+`ensure`.
+
+**Five guards were mutation-tested** — each mutation was shown to fail the
+intended test, and the production module was restored (md5
+`30c8d14e7e973d6a38ebd33ab0f8baf0`). Two real production defects were
+found by the suite and fixed **in the production code**: `renderDebtItem()`
+minted three-digit TD ids, and `main()` consumed `--min` / `--interval`
+in one argv pass. Three invalid test expectations were corrected rather
+than the assertions being weakened — and one wrong state-field name
+(`lastRunAt` vs `lastRun`) was corrected **to match the module**, not the
+other way round.
+
+**Shipped:**
+
+- **`lib/improve-loop.js`** (~614 lines) — the loop.
+- **`lib/improve-loop.test.js`** — 41 assertions.
+- **`lib/agent-hub/hub-launch.js`** — the seam, `improveFn`, the `improve`
+  verb, and `runImprovementLoop` exported.
+- **`lib/agent-hub/hub.test.js`** — section 12, "the improvement loop
+  seam", five checks. The suite is now **150 passed / 0 failed**.
+- **`docs/IMPROVE-LOOP.md`** (212 lines) — the reference: what it does,
+  the seven-signature table, the three artefacts, the interval gate, the
+  idempotency rules, the hub integration, the live run, the tests, the
+  open items.
+- **npm** — `test:improve-loop`, `improve:loop`, `improve:loop:dry`,
+  `hub:improve`, `hub:trim`. `test:improve-loop` is chained into
+  `test:all`.
+- **`lib/mj-submitter.js`** — the CDP timeout, the `on()` event handlers,
+  `close()`, the 45 s bind deadline and the early-exit message.
+- **`lib/suno-web.js`** — the 20 s in-page abort with the name preserved,
+  and `--user-data-dir`.
+- **`lib/daily-pipeline.js`** — `REPO = resolve(__dirname, '..')`.
+
+**Decisions:**
+
+- **Every hangable call gets a deadline**, and the in-page one is
+  **shorter** than the CDP one, so the abort surfaces as a named
+  `AbortError` a caller can distinguish from a browser failure.
+- **A deadline is generous by default.** The cost of waiting too long is
+  a slow run; the cost of failing too early is a false failure that
+  looks exactly like "Chrome is broken".
+- **An early exit is a different failure from a timeout**, and says so.
+- **The loop never edits product code.** It records; an agent applies.
+- **A recorded lesson must be actionable, not a tautology.** The
+  `missing-path` action names the files it applies to.
+- **The seam, not `main()`, enforces the interval gate**, so a direct
+  `run()` caller cannot bypass it.
+- **A failing loop must never take the swarm down.**
+- **Reuse the hub's five-minute tick** rather than adding another
+  LaunchAgent; the cadence control belongs to the loop's own state file.
+- **package.json edits are byte-surgical.** A `JSON.parse` →
+  `JSON.stringify` round-trip rewrites the `\u2014` escape in the
+  description — a gratuitous change to a file the commit had no business
+  touching.
+
+**Verified end-to-end:**
+
+- `node lib/improve-loop.test.js` → **41 passed / 0 failed**.
+- `node lib/agent-hub/hub.test.js` → **150 passed / 0 failed**.
+- `node lib/suno-playlist.test.js` → **59 passed / 0 failed**.
+  `node lib/suno-mutator.test.js` → **188 passed / 0 failed**.
+- The live improvement-loop run wrote one postmortem, one rule and one
+  debt item; the second `--force` run wrote **nothing**.
+- The `/daily` ENOENT was reproduced from cwd `/` and confirmed fixed:
+  `/daily` does not exist and the write lands in the repo.
+- Five mutation-tested guards each failed the intended test with the
+  mutation and passed with it restored.
+- `npm run test:secrets` — 9/9.
+
+**Open:**
+
+- **`.kai/` is gitignored**, so the rules travel only on this machine.
+  Deliberate (the memory is local-first) but a fresh clone starts with an
+  empty register.
+- **The loop finds signatures; it does not fix them.** Every finding
+  still needs a human or an agent to apply the lesson.
+- **Seven signatures cover the failures seen so far.** A new failure
+  shape is a new entry in `SIGNATURES`.
+- **`launchd-tcc` has 638 recorded occurrences** and is still recurring
+  in logs nothing cleans up — the general log rotation and
+  `com.kaidjuric.digital-twin.auto-check-updates` are both still dead at
+  this location for the same exit-126 reason.
+- **The Mango decryptor is still gitignored** and `lib/suno-fetch.js`
+  still has its three defects (see sprint 0.88).
+- Unchanged: the `.kai/` durability call, the woody-shaw chart variants,
+  the Vercel custom domain, the MJ cookie jar expiry, the hub board's
+  completion misattribution, a reel's slug still derived from its mutable
+  POST-sheet title.
