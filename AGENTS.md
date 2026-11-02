@@ -10620,7 +10620,7 @@ untracked `my-video/` Remotion template sitting in the repo root
 the secrets guard will not let an env-shaped path sit inside a public
 repo).
 
-### 2026-11-01 — sprint 0.77 (two style tests, and the album cover that was missing)
+### 2026-11-01 — sprint 0.75 (two style tests, and the album cover that was missing)
 
 Two briefs, both a fixed suffix applied to five prompts: one **style
 test** (five different stories, one identical suffix) and one **the
@@ -10699,7 +10699,7 @@ the hub board's completion misattribution, a reel's slug still derived
 from its mutable POST-sheet title, and the untracked `my-video/`
 Remotion template in the repo root.
 
-### 2026-11-01 — sprint 0.78 (the camera grid: twelve beats, twelve cameras)
+### 2026-11-01 — sprint 0.76 (the camera grid: twelve beats, twelve cameras)
 
 Brief: the same lyric again — *all I open up wide / come again at 4:00 in
 the morning / tap par pa par par / till you get the light / everybody
@@ -10769,7 +10769,7 @@ board's completion misattribution, a reel's slug still derived from its
 mutable POST-sheet title, and the untracked `my-video/` Remotion
 template in the repo root.
 
-### 2026-11-01 — sprint 0.79 (scene presets, and the session MJ refuses)
+### 2026-11-01 — sprint 0.77 (scene presets, and the session MJ refuses)
 
 A pasted list of MJ scene presets, turned into a registry the repo can
 render. Two things came out of it that are worth more than the presets.
@@ -10894,7 +10894,7 @@ flags.
   hub board's completion misattribution, a reel's slug still derived
   from its mutable POST-sheet title.
 
-### 2026-11-01 — sprint 0.80 (the Suno mutator: send a URL, get custom variants)
+### 2026-11-01 — sprint 0.78 (the Suno mutator: send a URL, get custom variants)
 
 Asked for: *create sumo mutaror script send url to get custom variants*.
 
@@ -11041,7 +11041,7 @@ nothing was ever published); `origin/main` never moved.
   hub board's completion misattribution, a reel's slug still derived
   from its mutable POST-sheet title.
 
-### 2026-11-01 — sprint 0.76.b (the mutator, run against a second variant)
+### 2026-11-01 — sprint 0.78.b (the mutator, run against a second variant)
 
 The user handed over a second Suno link for the same song
 (`9d68f520`, "Serbian Byzantine Choir M" — but a DIFFERENT variant:
@@ -11097,7 +11097,7 @@ tool. Re-running against the older variant puts it back.
 The account ends the run holding six styles, one per variant, and a
 re-run leaves it at six.
 
-### 2026-11-02 — sprint 0.77 (a login command, because the jar expires)
+### 2026-11-02 — sprint 0.79 (a login command, because the jar expires)
 
 The mutator was verified live at 18:00; by 18:30 the jar's `__session`
 had expired and the tool could no longer authenticate. The failure is
@@ -11170,7 +11170,7 @@ now reads the balance and names the plan.
   re-login is cheap (one command), so there is no case for scheduling
   it.
 
-### 2026-11-02 — sprint 0.78 (the generate path, verified — and a RAW style)
+### 2026-11-02 — sprint 0.80 (the generate path, verified — and a RAW style)
 
 The `--generate` path had never run against the live account. It did
 now, and it found three bugs plus a style to write.
@@ -11261,7 +11261,7 @@ fetch lookup, eleven on the Raw style). `npm run test:secrets` — 9/9.
 - The account still holds **7 credits** and a cover spent none of them.
   A fresh generation (not a cover) is still untested against it.
 
-### 2026-11-02 — sprint 0.80 (the KAI sound DNA, in three fields)
+### 2026-11-02 — sprint 0.81 (the KAI sound DNA, in three fields)
 
 The house's signature: **Nordic Modern Jazz Big Band** — Scandinavian
 contemporary orchestral jazz, restrained brass writing, spacious
@@ -11359,7 +11359,7 @@ prompts, 0 violations.
 - The roll manifests are written to `data/suno/` (gitignored). The
   tracked artefacts are the registries.
 
-### 2026-11-02 — sprint 0.81 (the humanize layer — raw, unpolished, imperfect)
+### 2026-11-02 — sprint 0.82 (the humanize layer — raw, unpolished, imperfect)
 
 Asked: *"is the style suffix in place for humanize? raw unpolished"*.
 
@@ -11448,7 +11448,7 @@ BPM, alternating 4/4 and 7/8) and the ensemble survived with it.
   styles as they are; there is no `--humanize` on it yet. The mutator
   and the KAI runner both take the layer.
 
-### 2026-11-02 — sprint 0.82 (the post-submit humanize preset)
+### 2026-11-02 — sprint 0.83 (the post-submit humanize preset)
 
 Asked: *"add it as post submit atile preset"* — take the humanize layer
 and apply it to tracks that have ALREADY been submitted.
@@ -11531,7 +11531,7 @@ stray empty saved style, which was deleted.
   decrypts it, so a plain `ffprobe` cannot read the file. That
   verification is still open.
 
-### 2026-11-02 — sprint 0.83 (the upload layer — local audio INTO Suno)
+### 2026-11-02 — sprint 0.84 (the upload layer — local audio INTO Suno)
 
 Asked: *"batch upload suno"*, with five iReal Pro WAV exports.
 
@@ -11620,7 +11620,7 @@ re-running that suite alone.
   a tempo-mapped downbeat array would be better.
 - The manifest is written to `data/suno/uploads/` (gitignored).
 
-### 2026-11-02 — sprint 0.84 (the relay still — and a profile parser that lied)
+### 2026-11-02 — sprint 0.85 (the relay still — and a profile parser that lied)
 
 Asked: one music-video still — an old switchboard, one lamp lit, dust on
 the keys — rendered on Midjourney with the house `--profile` grade.
