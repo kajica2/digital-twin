@@ -78,6 +78,83 @@ Balkan brass, African polyrhythms, 105 BPM, dub techno, tape delay, submerged ba
 
 ---
 
+## Style specs as a file — `--specs`
+
+A mutation on the command line is fine for one; a set of three styles
+with three influence values and three negative-tag lists is not. The
+specs file is a JSON array, one object per variant:
+
+```json
+[
+  {
+    "name": "organic-breakbeat-orchestra",
+    "slug": "organic-breakbeat-orchestra",
+    "influence": 0.65,
+    "makeInstrumental": true,
+    "tags": "2027 progressive Afro-modal nu-jazz big band, live acoustic drummer drives fractured breakbeats",
+    "negativeTags": "vocals, lead melody, featured solo"
+  }
+]
+```
+
+```bash
+npm run suno:mutate -- --url https://suno.com/song/<uuid> \
+  --specs assets/suno-specs/everything-still-moves-variants-3.json \
+  --generate --apply --out data/suno/everything-still-moves-variants-3.json
+```
+
+`--specs` **replaces** `--mutation` (not both). `influence` defaults to
+`0.65` — the same default the source's own audio influence uses when it
+carries none. `slug` defaults to a slug of `name`. Every spec is read
+with `priority: 'mutation'`, so the spec text is kept whole and the
+source's descriptor is trimmed to fit the 1,000-character limit — the
+same composition rule as a command-line mutation.
+
+The tracked spec files live in **`assets/suno-specs/`**; the Markdown
+prompt packs stay in `assets/song-prompts/`.
+
+---
+
+## Negative tags
+
+Every "no …" clause belongs in `negative_tags`, not in `tags`. The
+builder splits a spec's text on the field it arrives in, but a spec may
+also carry its own `negativeTags` list, and that list is used
+**directly** — the source's negative list is *not* auto-merged into it.
+
+Measured on the source `Everything Still Moves` (whose own negative list
+is 344 characters of mastering artefacts):
+
+| variant | `tags` length | `negative_tags` length |
+|---|---|---|
+|01 Organic Breakbeat Orchestra|1000|469|
+|02 Dark Percussive Labyrinth|1000|400|
+|03 The Human Sampler|999|396|
+
+All three are at the 1,000-character ceiling and all three are flagged
+`truncated: true` in the manifest. The negative list is not a garnish:
+the source's own negatives are what keep a cover from turning into a
+loudness-war demo.
+
+---
+
+## Forced instrumental mode
+
+`make_instrumental` is a **per-variant** field. The source is
+non-instrumental (`make_instrumental: false`, `has_vocal: true`), so
+inheriting it would produce a *vocal* cover of an instrumental brief —
+wrong in both directions. `buildCoverBody` lets an explicit variant value
+win over the source's flag, and the three specs each set
+`makeInstrumental: true`.
+
+MEASURED on the six rendered children: all six carry
+`make_instrumental: true`, `has_vocal: true` and
+`can_publish_with_vocal: true`. `has_vocal` is therefore **not** the
+instrumentality flag — it is a property of the account's pipeline, not of
+the render. `make_instrumental` is the discriminator.
+
+---
+
 ## The built-in mutations
 
 | slug | style | influence |
@@ -180,6 +257,123 @@ The manifest records both, under names that say which is which:
 
 ---
 
+## One cover request → TWO clips, and they are two TAKES
+
+MEASURED 2026-11-02: one cover request for the source
+`92e5ef3b-445a-4bdd-8f34-a6d473a17e46` returned **two** clip ids, and
+each variant produced the same pair. They are **two takes of one
+generation**, not a vocal and an instrumental version.
+
+The evidence is a full field diff between the two clips of a pair: they
+differ in exactly eight fields — `batch_index`, `display_tags`, `id`,
+`image_url`, `image_large_url`, `media_urls`, `metadata.duration`,
+`metadata.tags`, `updated_at` — and **no instrumental/vocal field
+differs at all**. Four independent probes agreed: the pair diff, the
+`/api/feed/v2` listing (which shows `make_instrumental: true` on the six
+children and `false` on two older account clips), the clip payload's
+`metadata`, and the absence of any `has_vocal` divergence.
+
+So a cover yields two takes; pick one, or keep both. There is no
+per-render vocal flag to hunt for, and hunting for one burns credits.
+
+---
+
+## Reading a clip back — use `GET /api/clip/{id}`
+
+`GET /api/clips/get_songs_by_ids` rate-limits hard: it answered **429
+`Too many requests`** after about six clip reads in one session.
+`GET /api/clip/{id}` (singular) does **not** 429 — prefer it for
+anything that reads a clip back.
+
+---
+
+## The media URL is an ENCRYPTED object, not a media file
+
+Every clip's `media_urls` entry is a CloudFront `.m4a`:
+`https://d2lwuy8qc234o3.cloudfront.net/1/clip/<id>.m4a`, served with
+`content-type: audio/mp4`, `accept-ranges: bytes`, `x-cache: Hit from
+cloudfront`, `x-amz-server-side-encryption: AES256`.
+
+**It is not playable as fetched.** Measured five ways, all agreeing:
+
+|probe|result|
+|---|---|
+|`curl` full body → `ffprobe`|`moov atom not found` / `Invalid data found when processing input`|
+|`curl` full body → `file`|`data`|
+|byte scan of all 4,445,147 bytes|**no** `ftyp`, `moov`, `mdat`, `moof`, `sidx`, `styp`, `free`, `init`, `OggS`, `ID3`, `OpusHead`, `\x1aE\xdf\xa3`, `RIFF` anywhere|
+|in-page `fetch()` + `AudioContext.decodeAudioData`|`ERR Unable to decode audio data`|
+|in-page `fetch()` head hex vs `curl` head hex|**byte-identical**|
+
+The bytes are the same for `curl`, for `curl --compressed`, and for the
+browser's own `fetch()` — so neither the `Origin` header nor compression
+negotiation is the differentiator. (`Origin` does change the CDN cache
+key: `x-cache` goes `Hit` → `Miss`, with identical content.) The head is
+`184faa13 1f9a742f …` — no `ftyp` box, so it is not an MP4 container at
+all.
+
+**Consequence: `lib/suno-fetch.js` cannot be the audio source.** Its
+whole approach — fetch the CloudFront URL in-page, base64 the result to
+Node — is disproven: it can only ever retrieve the encrypted object.
+A one-shot probe on it timed out at 900 s and wrote nothing.
+
+The clip payload carries **no decryption key**: `media_urls` holds
+exactly one entry, `audio_url` is the `/api/forbidden` placeholder, and
+no encryption-key field exists on the payload. The web app must decrypt
+somewhere else (its own bundle, a stream endpoint, or WebCodecs).
+
+**The real download route exists and is refused for this account:**
+`GET /api/download/clip/<id>` → HTTP 200 with
+`{"ok": false, "reason": "not_authorized", "message": "Seems like you don't have permission to download this one."}`
+The clip's `action_config` is an **object** (not an array) whose
+`actions[]` includes `action_type: "download_song"` with
+`disabled: false, visible: true`.
+
+The web player plays a `blob:` URL whose element reports the correct
+duration (248.4 s) — but `fetch(blobUrl)` fails, and a MediaSource
+interception saw **no** MediaSource at all. The blob is a handle, not a
+plain blob.
+
+---
+
+## The web app's own API base
+
+The SPA on suno.com does **not** use `studio-api-prod.suno.com`. It calls
+`https://suno.com/a/api/*`:
+
+```
+GET  /a/api/clips/parent?clip_id=<id>
+GET  /a/api/clips/get_similar/?id=<id>
+GET  /a/api/clips/remixes?clip_id=<id>
+GET  /a/api/feed/v3
+POST /a/api/unified/feed
+POST /a/api/realtime/token
+POST /a/api/music_player/playbar_state
+POST /a/api/gen/<clipId>/increment_play_count/v2
+GET  /a/api/playlist/<id>/?page=1
+GET  /a/api/billing/info/
+```
+
+`lib/suno-web.js` targets the studio base and **cannot** reach these
+routes. A route probe against the studio base that answers `{}` proves
+nothing — probe on the `suno.com` origin, in-page, or through
+`client.cdp` with an absolute URL.
+
+---
+
+## Putting a clip somewhere — playlists
+
+`lib/suno-playlist.js` adds finished clips to a playlist. The routes
+were read out of the live production bundle; the full table, the
+response shapes and the two trailing-slash rules are in
+**`docs/SUNO-PLAYLIST.md`**.
+
+```bash
+node lib/suno-playlist.js add --playlist <id> --clip <id> [--clip <id>...]
+node lib/suno-playlist.js show --playlist <id>
+```
+
+---
+
 ## Credentials and constraints
 
 The cookie jar lives **outside** the repo, at `~/.suno-cookies.txt`
@@ -255,7 +449,7 @@ nothing rendered. `--save-styles` is unaffected — it spends no credits.
 ## Tests
 
 ```bash
-npm run test:suno-mutator   # 92 assertions — no browser, no account, no credits
+npm run test:suno-mutator   # 188 assertions — no browser, no account, no credits
 ```
 
 The pure half is covered: the URL shapes and the refusals, the
@@ -281,4 +475,5 @@ belongs to the style text. There is now a test for it.
 | `lib/suno-run.js` | variants using the ten reference-lock PROTOCOLS |
 | `lib/suno-styles.js` | the composition rule, and the protocol library |
 | `lib/suno-create.js` | a song from a text brief |
-| `lib/suno-fetch.js` | pull a finished clip's audio to disk |
+| `lib/suno-playlist.js` | put finished clips in a playlist |
+| `lib/suno-fetch.js` | pull a finished clip's audio to disk — **see the encrypted-object section: this path cannot produce playable bytes** |

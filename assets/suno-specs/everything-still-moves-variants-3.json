@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Organic Breakbeat Orchestra",
+    "slug": "organic-breakbeat-orchestra",
+    "influence": 0.65,
+    "makeInstrumental": true,
+    "tags": "2027 underground experimental nu-jazz big band, Ninja Tune-era abstract jazz energy, Amon Tobin-inspired fractured breakbeat architecture performed entirely by a live acoustic drummer, 105 BPM, ferocious ghost-note snare patterns, displaced kick accents, rapid acoustic hi-hat subdivisions, unpredictable cymbal choke stops, physical human microtiming, deep clean upright bass ostinato, acoustic grand piano, Fender Rhodes played clean, four trombones, four trumpets, five saxophones, French horn, aggressive polytonal brass chord stabs, quartal harmony, altered ninth clusters, angular orchestral counterpoint, abrupt ensemble silences, asymmetrical rhythmic figures, dramatic natural dynamics. All rhythm sounds played acoustically in real time.",
+    "negativeTags": "saturation, tape saturation, tape distortion, overdrive, fuzz, clipping, brickwall limiting, heavy compression, pumping, loudness maximization, aggressive mastering, distorted bass, distorted brass, lo-fi effects, vinyl crackle, tape hiss, artificial reverb, cinematic effects, polished commercial production, vocals, lead melody, featured solo, samples, loops, electronic drums, solos, saturation, compression, limiting, distortion, tape effects, artificial processing"
+  },
+  {
+    "name": "Dark Percussive Labyrinth",
+    "slug": "dark-percussive-labyrinth",
+    "influence": 0.65,
+    "makeInstrumental": true,
+    "tags": "Dark 2027 avant-garde jazz orchestra, 112 BPM, live acoustic drummer performing hyper-detailed chopped-breakbeat patterns with abrupt stop-start phrasing, snare ghost-note flurries, displaced bass drum attacks, irregular 7/8 accents against a steady 4/4 bass pulse, intricate cross-rhythms, dry close-miked acoustic drums, clean deep electric bass, prepared acoustic piano, baritone saxophone, bass clarinet, low trombones, French horn, muted trumpets. Menacing minor ninth clusters, chromatic quartal harmony, short violent ensemble chord punches, unpredictable harmonic interruptions, long open trumpet accompaniment sections, precise aggressive collective playing. Entire performance recorded live.",
+    "negativeTags": "saturation, tape saturation, tape distortion, overdrive, fuzz, clipping, brickwall limiting, heavy compression, pumping, loudness maximization, aggressive mastering, distorted bass, distorted brass, lo-fi effects, vinyl crackle, tape hiss, artificial reverb, cinematic effects, polished commercial production, vocals, lead melody, featured solo, sampling, sequencers, drum machines, solos, processing"
+  },
+  {
+    "name": "The Human Sampler",
+    "slug": "the-human-sampler",
+    "influence": 0.65,
+    "makeInstrumental": true,
+    "tags": "Experimental underground 2027 acoustic nu-jazz big band, 98 BPM, live drummer imitates the fragmented structure of abstract sample-based breakbeat music entirely through physical playing, rapid snare rolls interrupted by silence, shuffled sixteenth-note hi-hat patterns, unpredictable kick placements, acoustic rim clicks, ghost notes, cymbal chokes, evolving rhythmic cells, deep woody upright bass, sparse clean Fender Rhodes, acoustic piano, French horn, four trombones, trumpet chord section, bass clarinet and baritone saxophone. Dark mysterious harmonic textures, tightly arranged brass clusters, displaced syncopated chord attacks, spacious unresolved modal harmony, aggressive but highly controlled live performance, raw room microphones, natural dynamic transients.",
+    "negativeTags": "saturation, tape saturation, tape distortion, overdrive, fuzz, clipping, brickwall limiting, heavy compression, pumping, loudness maximization, aggressive mastering, distorted bass, distorted brass, lo-fi effects, vinyl crackle, tape hiss, artificial reverb, cinematic effects, polished commercial production, vocals, lead melody, featured solo, electronic drums, loops, samples, solos, mastering"
+  }
+]
