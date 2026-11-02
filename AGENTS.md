@@ -11711,3 +11711,150 @@ grade. Fixed to stop at the next flag; 5 new assertions in
   the Vercel custom domain, the MJ cookie jar expiry, the hub board's
   completion misattribution, a reel's slug still derived from its mutable
   POST-sheet title.
+
+### 2026-11-02 — sprint 0.86 (the backing-band briefs, and the iReal WAV export)
+
+Two pieces of work, both about making the twin produce material rather
+than describe it.
+
+**SHIPPED — the seven backing-band briefs**
+
+- `lib/suno-backing-bands.json` — the registry: seven briefs, each a
+  STYLE BOX and an ARRANGEMENT.
+- `lib/suno-backing-bands.js` — the loader (`bands`, `bySlug`,
+  `byIndex`, `arrangementText`, `arrangementFlat`, `openSpaceCount`,
+  `styleLength`, `isWellFormed`, `notes`).
+- `lib/suno-backing-bands.test.js` — 18 assertions, green.
+- `docs/SUNO-BACKING-BANDS.md` — the reference.
+- npm: `suno:bands:list`, `test:suno-backing-bands` (+ `test:all`).
+
+A "band" here is a brief for a rhythm section and a horn section that
+plays BEHIND a soloist. What it reserves is SPACE: every brief carries
+exactly TWO `[Open Trumpet Space: 32 bars, ...]` sections, and the test
+asserts the count — a brief with one space leaves the soloist nowhere to
+go, and one with three is a backing band with a soloist grafted on.
+
+**THE THREE-FIELD SPLIT, and why it is three fields**
+
+`style` -> Suno's style/tags field (global, and weighted far more
+heavily than the lyrics field). `negativeTags` -> the exclusions field.
+`arrangement` -> the lyrics/prompt field, as square-bracketed section
+tags.
+
+The split is not cosmetic. Suno PARAPHRASES the style box — "Recorded
+live to two-track in a natural concert hall, authentic room reflections,
+audible breathing, loose human timing" came back as "raw two-track
+concert-hall recording with room reflections, audible breaths, tape
+wobble, bleed, dry close-mic room tone and unquantized timing" — but
+the ARRANGEMENT comes back VERBATIM, clock times and movement titles and
+every tag. So the arrangement field is the part that is a contract, and
+the style box is a description of intent.
+
+The exclusions get their own field because the house rule already says
+so, and because it is measured: the account's own "UNPLUGGED IMPERFECT
+TRUMPET" style is exactly 1000 characters — the style limit — so the
+exclusions cannot ride along in the same field.
+
+**THE 1000-CHARACTER LIMIT** — measured style lengths: 476, 466, 519,
+511, 550, 577, 597. Every one fits (403 characters to spare at the
+tightest), so NO truncation was needed and no band carries an overflow
+rule. If a future brief overflows, cut the STYLE at a clause boundary
+and move the excess into `negativeTags`, never mid-word — the rule the
+KAI sound DNA had to follow (856 + 176 = 1034).
+
+**The house vocabulary** — the briefs name the concrete imperfections
+Suno responds to (close-mic spit, valve clicks, lip buzz, unquantized
+timing drift, live one-take room recording, honest rough performance)
+rather than adjectives that say nothing about what to do. The raw
+register is the point. No brief names the subject's race or ethnicity,
+and the test asserts it; band 01's "Afro-Latin" is a genre lineage, not
+a subject descriptor, so the matcher looks for whole ethnicity terms and
+not for "afro" alone.
+
+**SHIPPED — the iReal Pro WAV export, end to end**
+
+- `tools/ax.swift` — the AX driver, now with `exportSong` (the whole
+  export in one call) and `setGoFolder` (the panel's destination).
+- `tools/gui.swift` — real CGEvents: click, move, type, key, wins, shot.
+- `tools/ireal-export.sh` — builds the helpers, exposes them.
+- `tools/ireal-plan.py` — maps the requested standards to iReal's row
+  indices, off the app's own SQLite.
+- `tools/ireal-batch.sh` — the batch runner: skips what is already
+  there, verifies each file, logs a line per song.
+- `tools/README.md` — the measurements and the known-good sequence.
+
+**WHAT WAS FOUND BY RUNNING IT (not by reading the docs)**
+
+- THE ROW MAPPING IS EXACT. The library table is 1702 rows sorted
+  naturally by title, and the AX row index maps 1:1 onto
+  `SELECT ZTITLE FROM ZSONG WHERE ZPLAYLIST IS NULL ORDER BY ZTITLE`.
+  The `ZPLAYLIST IS NULL` filter matters: the database holds all three
+  playlists (1702 + Jazz 1460 + Brazilian 220 = 3382 rows) but the table
+  shows the 1702 that are in no playlist. Verified against the live
+  table: 301 = Caravan, 452 = Doxy, 760 = In a Sentimental Mood, 777 =
+  Infant Eyes.
+
+- THE EXPORT IS UNDER SHARE, NOT FILE. The File menu has `Export Audio`
+  (item 9, enabled) but clicking it does nothing visible. The working
+  path is the Share toolbar button (description "Share", child #7), whose
+  popover has Export Chord Chart / Export Audio / Export Playlist — and
+  Export Audio opens a SUBMENU: WAV (Highest quality, large file) /
+  AAC (Good quality, small file) / MIDI (Note data, no audio).
+
+- AXPress ON THE MENU BUTTONS REPORTS SUCCESS AND DOES NOTHING. The
+  Share button and the WAV item both need real clicks. Measured screen
+  points: Share at (1413, 56), Export Audio at (1470, 110), WAV at
+  (1192, 109).
+
+- THE SAVE PANEL'S NAME FIELD IS A FILENAME FIELD. Typing a full path
+  into it makes the panel treat the whole string as ONE filename and
+  save it into its current directory. Measured: three WAVs landed in
+  /Applications, one of them literally named
+  ":Users:kaidejuricmasscmbook:Documents:ireal-export:test-export.wav",
+  and another landed in ~/.hermes/skills/engine-improvement-worker. The
+  directory has to be set through the go-to-folder sheet — whose path
+  field IS AX-reachable (it is an AXTextField whose value is an absolute
+  path ending in "/"). `ax setGoFolder` does that; the panel's
+  destination then persists across exports.
+
+- THE AX TREE WALK IS WHAT SPINS iREAL. Every full-tree walk produced a
+  CPU-resource diagnostic (90 s of CPU over a 120 s window) and
+  AppleScript tree walks TIME OUT. The rule the tools follow: read
+  elements one at a time, and never descend into the 1702-row table or
+  the sidebar outline.
+
+- A WRONG KEYCODE IS NOT A NO-OP. Mapping "2" to 19 (which is 'o' on the
+  US layout) and sending it with a modifier opened the Force Quit
+  Applications dialog. The letters are macOS VIRTUAL keycodes, not
+  ASCII: 'a' is 0, 's' is 1, ... 'o' is 31, 'p' is 35.
+
+**VERIFIED**
+
+- `npm run test:suno-backing-bands` — 18 passed, 0 failed.
+- One full export, end to end, in ONE command
+  (`ax exportSong 301 <path>`): Caravan.wav, 46,510,124 bytes, 263.66 s,
+  44.1 kHz stereo PCM, written to
+  ~/Documents/ireal-export/Caravan.wav.
+- A 3-song batch run: 3 ok, 0 fail, each file ffprobe-verified with a
+  real duration (A Flower Is A Lovesome Thing 394.97 s, A Night In
+  Tunisia 156.99 s, Afro Blue 79.48 s).
+- The 95-song batch: 95 of the 100 requested standards mapped to a
+  library row; the five that did not (Haitian Fight Song,
+  Pithecanthropus Erectus, The Rumproller, Cornbread, Search for the New
+  Land) are genuinely absent from the 1702-song library, and four more
+  were spelling variants (Recorda Me -> Recordame, and three with a
+  leading "The" dropped by iReal).
+- `npm run test:all` was green before these changes (34 suites, 1963
+  assertions); `test:youtube-poster` fails for an unrelated,
+  pre-existing reason — `~/.youtube-cookies.txt` does not exist on this
+  machine, and it fails identically at origin/main.
+
+**OPEN**
+
+- The 95-song batch takes about 90 minutes (iReal renders each track
+  itself, ~1 minute for a 3-minute standard). It is re-runnable: songs
+  whose file already exists are skipped.
+- The five absent standards need a source other than iReal Pro's
+  library.
+- The iReal export writes into `~/Documents/ireal-export/`, which is
+  outside the repo — nothing here is committed.

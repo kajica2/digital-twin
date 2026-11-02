@@ -215,6 +215,270 @@ case "pressMenu":
     scanMenu(root, 0)
     if !hit { print("not found: \(needle)") }
 
+case "savePanel":
+    // Set the save panel's name field and press Save, WITHOUT walking the
+    // tree. MEASURED 2026-11-02: an AppleScript tree walk on this app
+    // hangs (and spins its CPU) — the panel's elements are read one at a
+    // time by position instead.
+    //
+    // usage: ax savePanel <path>
+    //
+    // IMPORTANT: the path is SPLIT. The name field is a FILENAME field —
+    // typing a full path into it makes the panel treat the whole string
+    // as one name and save it into its CURRENT directory (measured: it
+    // landed a file literally named
+    // ":Users:kaidejuricmasscmbook:Documents:ireal-export:Caravan.wav"
+    // inside ~/.hermes/skills/engine-improvement-worker). So the
+    // directory has to be set separately, with Cmd-Shift-G.
+    let dest = a.count > 2 ? a[2] : ""
+    guard windowEl != nil else { print("no window"); exit(1) }
+
+    let dir = (dest as NSString).deletingLastPathComponent
+    let name = (dest as NSString).lastPathComponent
+
+    if let running = NSRunningApplication.runningApplications(withBundleIdentifier: "com.massimobiolcati.irealbookmac").first {
+        running.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+        usleep(700_000)
+    }
+    func keyPress(_ code: CGKeyCode, _ flags: CGEventFlags) {
+        if let d = CGEvent(keyboardEventSource: nil, virtualKey: code, keyDown: true) {
+            d.flags = flags; d.post(tap: .cghidEventTap)
+        }
+        usleep(60_000)
+        if let u = CGEvent(keyboardEventSource: nil, virtualKey: code, keyDown: false) {
+            u.flags = flags; u.post(tap: .cghidEventTap)
+        }
+        usleep(60_000)
+    }
+    func typeUnicode(_ s: String) {
+        for ch in s {
+            var buf = Array(String(ch).utf16)
+            if buf.isEmpty { continue }
+            if let d = CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: true) {
+                d.keyboardSetUnicodeString(stringLength: buf.count, unicodeString: &buf)
+                d.post(tap: .cghidEventTap)
+            }
+            usleep(14_000)
+            if let u = CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: false) {
+                u.keyboardSetUnicodeString(stringLength: buf.count, unicodeString: &buf)
+                u.post(tap: .cghidEventTap)
+            }
+            usleep(14_000)
+        }
+    }
+    keyPress(5, [.maskCommand, .maskShift])   // Cmd-Shift-G
+    usleep(1_500_000)
+    typeUnicode(dir)
+    usleep(900_000)
+    keyPress(36, [])                          // Return: navigate
+    usleep(1_500_000)
+
+    // The name field now holds just the filename.
+    var field: AXUIElement? = nil
+    func findField(_ e: AXUIElement, _ depth: Int) {
+        if field != nil || depth > 6 { return }
+        let r = role(e)
+        if r == kAXTableRole || r == kAXOutlineRole { return }
+        if r == kAXTextFieldRole {
+            let v = str(e, kAXValueAttribute)
+            if v.hasSuffix(".wav") || v.hasSuffix(".aac") || v.hasSuffix(".mid") { field = e; return }
+        }
+        for c in children(e) { findField(c, depth + 1) }
+    }
+    for win in children(root) { findField(win, 0) }
+    guard let f = field else { print("no name field"); exit(1) }
+    print("field prefill='\(str(f, kAXValueAttribute))'")
+    if AXUIElementSetAttributeValue(f, kAXValueAttribute as CFString, name as CFTypeRef) == .success {
+        print("field set")
+    } else {
+        print("could not set the field"); exit(1)
+    }
+
+    var saveBtn: AXUIElement? = nil
+    func findSave(_ e: AXUIElement, _ depth: Int) {
+        if saveBtn != nil || depth > 6 { return }
+        let r = role(e)
+        if r == kAXTableRole || r == kAXOutlineRole { return }
+        if r == kAXButtonRole && str(e, kAXTitleAttribute) == "Save" { saveBtn = e; return }
+        for c in children(e) { findSave(c, depth + 1) }
+    }
+    for win in children(root) { findSave(win, 0) }
+    guard let sb = saveBtn else { print("no save button"); exit(1) }
+    if perform(sb, kAXPressAction) { print("save pressed") }
+    else { print("save press failed"); exit(1) }
+
+case "exportSong":
+    // ax exportSong <rowIndex> <outPath>
+    //
+    // The whole export in one shot. MEASURED 2026-11-02, and every
+    // step below was found by running it, not by reading the docs:
+    //
+    //  1. The row is selected via AXSelected + a press on the title's
+    //     static text.
+    //  2. The Share button does NOT answer AXPress — it needs a real
+    //     click at its AX position.
+    //  3. The Share popover's "Export Audio" opens a SUBMENU; the WAV
+    //     item is a real click too, at (1192,109) in screen points.
+    //  4. The save panel is a separate CGWindow named "Save". Its
+    //     "Where:" directory persists in the app's preferences, so once
+    //     it is right, every later export lands in the right place.
+    //  5. The panel's name field is a FILENAME field. Typing a full
+    //     path into it saves a file literally named
+    //     ":Users:...:ireal-export:Caravan.wav" in the panel's current
+    //     directory. The directory has to be set through the go-to-folder
+    //     sheet (whose path field IS AX-reachable) — see setGoFolder.
+    let rowIdx = Int(a.count > 2 ? a[2] : "0") ?? 0
+    let outPath = a.count > 3 ? a[3] : ""
+    guard let w = windowEl, let t = tableEl else { print("ERR no window/table"); exit(1) }
+    let rs = rows(t)
+    guard rowIdx >= 1, rowIdx <= rs.count else { print("ERR bad row"); exit(1) }
+    let row = rs[rowIdx - 1]
+    let title = label(row)
+
+    // --- 1. select the row -------------------------------------------------
+    var picked = false
+    if AXUIElementSetAttributeValue(row, kAXSelectedAttribute as CFString, true as CFTypeRef) == .success {
+        picked = true
+    }
+    for c in children(row) where role(c) == kAXCellRole {
+        for cc in children(c) where role(cc) == kAXStaticTextRole {
+            if str(cc, kAXValueAttribute) == title {
+                if perform(cc, kAXPressAction) { picked = true }
+                break
+            }
+        }
+    }
+    usleep(500_000)
+    print("STEP row \(rowIdx) '\(title)' picked=\(picked)")
+
+    // --- 2 + 3. Share -> Export Audio -> WAV (real clicks) ------------------
+    guard let tb = children(w).first(where: { role($0) == kAXToolbarRole }) else { print("ERR no toolbar"); exit(1) }
+    var share: AXUIElement? = nil
+    for b in children(tb) where str(b, kAXDescriptionAttribute) == "Share" { share = b; break }
+    guard let sh = share else { print("ERR no share button"); exit(1) }
+
+    if let running = NSRunningApplication.runningApplications(withBundleIdentifier: "com.massimobiolcati.irealbookmac").first {
+        running.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+        usleep(900_000)
+    }
+    func realClick(_ x: Double, _ y: Double) {
+        let p = CGPoint(x: x, y: y)
+        if let e = CGEvent(mouseEventSource: nil, mouseType: .mouseMoved, mouseCursorPosition: p, mouseButton: .left) {
+            e.post(tap: .cghidEventTap)
+        }
+        usleep(250_000)
+        if let e = CGEvent(mouseEventSource: nil, mouseType: .leftMouseDown, mouseCursorPosition: p, mouseButton: .left) {
+            e.post(tap: .cghidEventTap)
+        }
+        usleep(70_000)
+        if let e = CGEvent(mouseEventSource: nil, mouseType: .leftMouseUp, mouseCursorPosition: p, mouseButton: .left) {
+            e.post(tap: .cghidEventTap)
+        }
+        usleep(250_000)
+    }
+    func realMove(_ x: Double, _ y: Double) {
+        let p = CGPoint(x: x, y: y)
+        if let e = CGEvent(mouseEventSource: nil, mouseType: .mouseMoved, mouseCursorPosition: p, mouseButton: .left) {
+            e.post(tap: .cghidEventTap)
+        }
+        usleep(400_000)
+    }
+    var pos = CGPoint(x: -1, y: -1)
+    var sz = CGSize(width: -1, height: -1)
+    if let p = attr(sh, kAXPositionAttribute) { AXValueGetValue(p as! AXValue, .cgPoint, &pos) }
+    if let s = attr(sh, kAXSizeAttribute) { AXValueGetValue(s as! AXValue, .cgSize, &sz) }
+    guard pos.x >= 0 else { print("ERR share has no position"); exit(1) }
+    realClick(Double(pos.x + sz.width / 2), Double(pos.y + sz.height / 2))
+    print("STEP share clicked")
+    realMove(1470, 110)          // hover "Export Audio" -> submenu opens
+    usleep(2_500_000)
+    realClick(1192, 109)         // click "WAV (Highest quality, large file)"
+    print("STEP wav clicked")
+    usleep(3_000_000)
+
+    // --- 4. wait for the save panel ---------------------------------------
+    var panelUp = false
+    for _ in 0..<24 {
+        let wl = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as! [[String: Any]]
+        for w2 in wl {
+            let owner = w2[kCGWindowOwnerName as String] as? String ?? ""
+            let nm = w2[kCGWindowName as String] as? String ?? ""
+            if owner.contains("iReal") && nm.contains("Save") { panelUp = true; break }
+        }
+        if panelUp { break }
+        usleep(500_000)
+    }
+    print("STEP panel up=\(panelUp)")
+    if !panelUp { print("ERR save panel did not open"); exit(1) }
+
+    // --- 5. set the name field and save ------------------------------------
+    var field: AXUIElement? = nil
+    func findField(_ e: AXUIElement, _ depth: Int) {
+        if field != nil || depth > 6 { return }
+        let r = role(e)
+        if r == kAXTableRole || r == kAXOutlineRole { return }
+        if r == kAXTextFieldRole {
+            let v = str(e, kAXValueAttribute)
+            if v.hasSuffix(".wav") || v.hasSuffix(".aac") || v.hasSuffix(".mid") { field = e; return }
+        }
+        for c in children(e) { findField(c, depth + 1) }
+    }
+    for win in children(root) { findField(win, 0) }
+    guard let f = field else { print("ERR no name field"); exit(1) }
+    let name = (outPath as NSString).lastPathComponent
+    print("STEP name field prefill='\(str(f, kAXValueAttribute))'")
+    if AXUIElementSetAttributeValue(f, kAXValueAttribute as CFString, name as CFTypeRef) == .success {
+        print("STEP field set")
+    } else {
+        print("ERR could not set field"); exit(1)
+    }
+    var saveBtn: AXUIElement? = nil
+    func findSave(_ e: AXUIElement, _ depth: Int) {
+        if saveBtn != nil || depth > 6 { return }
+        let r = role(e)
+        if r == kAXTableRole || r == kAXOutlineRole { return }
+        if r == kAXButtonRole && str(e, kAXTitleAttribute) == "Save" { saveBtn = e; return }
+        for c in children(e) { findSave(c, depth + 1) }
+    }
+    for win in children(root) { findSave(win, 0) }
+    guard let sb = saveBtn else { print("ERR no save button"); exit(1) }
+    if perform(sb, kAXPressAction) { print("STEP save pressed") }
+    else { print("ERR save press failed"); exit(1) }
+
+case "setGoFolder":
+    // ax setGoFolder <absolute-dir-with-trailing-slash>
+    //
+    // The save panel's go-to-folder sheet has an AXTextField whose value
+    // is an ABSOLUTE path ending in "/". That is the ONLY AX-reachable
+    // way to change the panel's destination directory — typing a path
+    // into the panel's own name field does not navigate (it becomes part
+    // of the filename).
+    let dir = a.count > 2 ? a[2] : ""
+    guard dir.hasSuffix("/") else { print("ERR dir needs a trailing slash"); exit(1) }
+    var goField: AXUIElement? = nil
+    func scan(_ e: AXUIElement, _ d: Int) {
+        if goField != nil || d > 6 { return }
+        let r = role(e)
+        if r == kAXTableRole || r == kAXOutlineRole { return }
+        if r == kAXTextFieldRole {
+            let v = str(e, kAXValueAttribute)
+            if v.hasSuffix("/") && v.contains("/") { goField = e; return }
+        }
+        for c in children(e) { scan(c, d + 1) }
+    }
+    scan(root, 0)
+    guard let f = goField else { print("ERR no go-to-folder field (open the sheet with Cmd-Shift-G first)"); exit(1) }
+    print("old='\(str(f, kAXValueAttribute))'")
+    if AXUIElementSetAttributeValue(f, kAXValueAttribute as CFString, dir as CFTypeRef) == .success {
+        print("set")
+    } else {
+        print("ERR set failed"); exit(1)
+    }
+    if let d = CGEvent(keyboardEventSource: nil, virtualKey: 36, keyDown: true) { d.post(tap: .cghidEventTap) }
+    usleep(80_000)
+    if let u = CGEvent(keyboardEventSource: nil, virtualKey: 36, keyDown: false) { u.post(tap: .cghidEventTap) }
+    print("return sent")
+
 case "find":
     let needle = a.count > 2 ? a[2] : ""
     func scan(_ e: AXUIElement, _ depth: Int) {

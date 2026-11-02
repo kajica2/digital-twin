@@ -1,0 +1,98 @@
+{
+  "_note": "Marketplace product-category / discovery-keyword taxonomy — the canonical list of the storefront's search terms, in seven groups. This is DATA ONLY: it names the categories the marketplace sells into and the keyword a shopper would type to find them. It is NOT the Midjourney collection registry (lib/daily-collections.json, which names what gets rendered) and it is NOT the published catalogue (assets/marketplace/daily/index.json). Consumed by lib/marketplace-taxonomy.js, which is the only thing that should read this file; the storefront's discovery surface, the Gumroad product metadata and the daily-content pipeline all reach the taxonomy through that loader. Nothing here publishes anything: adding a term adds a keyword, never a product.",
+  "_source": "Transcribed verbatim from the marketplace's own category list (seven groups, 41 terms). Where the source spelled a term in a bracketed link, the link text is the search keyword and is kept exactly as written, lowercased. The words that FOLLOW a bracketed term in the source ('3D models', 'brushes', 'effects', ...) are that term's QUALIFIER, not a term of their own — they are kept in `hint` so the copy can be rebuilt from the registry. Two terms in the source are NOT bracketed ('printable planners', 'VJ loops'); their keyword is derived from the phrase and their label keeps the source's own spelling and capitalisation ('VJ loops').",
+  "_oddity-spark-ar": "'spark ar' is kept VERBATIM, lowercase and space-separated, exactly as the source has it. It reads like a truncation ('Spark AR', the AR toolkit, is a plausible reading) but the source says 'spark ar' and the job here is to register what the storefront says, not to correct it. If the storefront later spells it 'Spark AR', change the `query` and the `label` together and the slug follows. Do NOT silently normalise it in place — that is a copy change, and it needs to be made deliberately.",
+  "schema": {
+    "groups[].id": "stable kebab-case handle — the programmatic address of the group",
+    "groups[].name": "the display name — the group's title on the storefront",
+    "groups[].terms[].label": "the DISPLAY term — how the category is written to a shopper. Keeps the source's own spelling and capitalisation.",
+    "groups[].terms[].slug": "the URL-safe handle — lowercase, hyphen-separated, no spaces. This is the programmatic address of the term.",
+    "groups[].terms[].query": "the SEARCH KEYWORD — the lowercase phrase a shopper types into the storefront's search. The slug with its hyphens read as spaces, except where the source itself carries a hyphen ('sci-fi').",
+    "groups[].terms[].hint": "the QUALIFIER — the words that followed the term in the source ('3D models', 'brushes', 'templates'). Empty string when the source had none."
+  },
+  "groups": [
+    {
+      "id": "creative-assets-tools",
+      "name": "Creative Assets & Tools",
+      "terms": [
+        { "label": "blender", "slug": "blender", "query": "blender", "hint": "3D models" },
+        { "label": "procreate", "slug": "procreate", "query": "procreate", "hint": "brushes" },
+        { "label": "textures", "slug": "textures", "query": "textures", "hint": "" },
+        { "label": "fonts", "slug": "fonts", "query": "fonts", "hint": "" },
+        { "label": "mockups", "slug": "mockups", "query": "mockups", "hint": "" },
+        { "label": "luts", "slug": "luts", "query": "luts", "hint": "" },
+        { "label": "spark ar", "slug": "spark-ar", "query": "spark ar", "hint": "effects" }
+      ]
+    },
+    {
+      "id": "templates-productivity",
+      "name": "Templates & Productivity",
+      "terms": [
+        { "label": "notion template", "slug": "notion-template", "query": "notion template", "hint": "designs" },
+        { "label": "productivity", "slug": "productivity", "query": "productivity", "hint": "frameworks" },
+        { "label": "kdp interior", "slug": "kdp-interior", "query": "kdp interior", "hint": "layouts" },
+        { "label": "printable planners", "slug": "printable-planners", "query": "printable planners", "hint": "" }
+      ]
+    },
+    {
+      "id": "audio-music",
+      "name": "Audio & Music",
+      "terms": [
+        { "label": "instrumental music", "slug": "instrumental-music", "query": "instrumental music", "hint": "" },
+        { "label": "singles", "slug": "singles", "query": "singles", "hint": "" },
+        { "label": "sample pack", "slug": "sample-pack", "query": "sample pack", "hint": "bundles" },
+        { "label": "ableton", "slug": "ableton", "query": "ableton", "hint": "project files" },
+        { "label": "sheet music", "slug": "sheet-music", "query": "sheet music", "hint": "" },
+        { "label": "jazz", "slug": "jazz", "query": "jazz", "hint": "resources" },
+        { "label": "VJ loops", "slug": "vj-loops", "query": "vj loops", "hint": "" }
+      ]
+    },
+    {
+      "id": "education-writing",
+      "name": "Education & Writing",
+      "terms": [
+        { "label": "ebook", "slug": "ebook", "query": "ebook", "hint": "guides" },
+        { "label": "programming", "slug": "programming", "query": "programming", "hint": "tutorials" },
+        { "label": "certification exams", "slug": "certification-exams", "query": "certification exams", "hint": "study materials" },
+        { "label": "education", "slug": "education", "query": "education", "hint": "courses" },
+        { "label": "comic", "slug": "comic", "query": "comic", "hint": "issues" },
+        { "label": "manga", "slug": "manga", "query": "manga", "hint": "" },
+        { "label": "fiction", "slug": "fiction", "query": "fiction", "hint": "writing" }
+      ]
+    },
+    {
+      "id": "mind-body",
+      "name": "Mind & Body",
+      "terms": [
+        { "label": "meditation", "slug": "meditation", "query": "meditation", "hint": "audio" },
+        { "label": "yoga", "slug": "yoga", "query": "yoga", "hint": "programs" },
+        { "label": "fitness", "slug": "fitness", "query": "fitness", "hint": "" },
+        { "label": "workout program", "slug": "workout-program", "query": "workout program", "hint": "guides" },
+        { "label": "hypnosis", "slug": "hypnosis", "query": "hypnosis", "hint": "tracks" },
+        { "label": "subliminal messages", "slug": "subliminal-messages", "query": "subliminal messages", "hint": "" }
+      ]
+    },
+    {
+      "id": "visual-media-art",
+      "name": "Visual Media & Art",
+      "terms": [
+        { "label": "art", "slug": "art", "query": "art", "hint": "" },
+        { "label": "reference photos", "slug": "reference-photos", "query": "reference photos", "hint": "" },
+        { "label": "stock photos", "slug": "stock-photos", "query": "stock photos", "hint": "" },
+        { "label": "coloring page", "slug": "coloring-page", "query": "coloring page", "hint": "designs" },
+        { "label": "after effects", "slug": "after-effects", "query": "after effects", "hint": "templates" },
+        { "label": "vrchat", "slug": "vrchat", "query": "vrchat", "hint": "avatars" },
+        { "label": "sci-fi", "slug": "sci-fi", "query": "sci-fi", "hint": "assets" }
+      ]
+    },
+    {
+      "id": "niche-markets",
+      "name": "Niche Markets",
+      "terms": [
+        { "label": "investing", "slug": "investing", "query": "investing", "hint": "guides" },
+        { "label": "instagram", "slug": "instagram", "query": "instagram", "hint": "growth kits" },
+        { "label": "windows", "slug": "windows", "query": "windows", "hint": "utilities" }
+      ]
+    }
+  ]
+}
