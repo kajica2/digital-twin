@@ -407,6 +407,28 @@ section tags with the clock times.
 The reference is
 [`docs/SUNO-KAI-SOUND-DNA.md`](docs/SUNO-KAI-SOUND-DNA.md).
 
+## Humanize a style — raw, unpolished, imperfect
+
+Suno's default sound is polished. The humanize layer is the suffix
+that says what the track is **not**: not quantised, not mastered, not
+clean.
+
+```bash
+# print a suffix
+npm run suno:humanize -- raw
+npm run suno:humanize -- unplugged
+
+# humanize the KAI sound DNA in a workspace
+npm run suno:kai -- --workspace <wid> --source <clipId> --humanize raw --apply
+```
+
+Four suffixes — `raw`, `unplugged`, `one-take`, `tape` — built from the
+account's own measured vocabulary (close-mic spit, valve clicks,
+unquantized timing drift), not from adjectives. The suffix composes
+after the descriptor; the exclusions go in their own field.
+
+The reference is [`docs/SUNO-HUMANIZE.md`](docs/SUNO-HUMANIZE.md).
+
 ## Run the Temple of Control
 
 Pure client-side — no server, no Python, no build step. Two files:

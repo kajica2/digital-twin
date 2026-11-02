@@ -11358,3 +11358,92 @@ prompts, 0 violations.
   Editor — is not automated here.
 - The roll manifests are written to `data/suno/` (gitignored). The
   tracked artefacts are the registries.
+
+### 2026-11-02 — sprint 0.81 (the humanize layer — raw, unpolished, imperfect)
+
+Asked: *"is the style suffix in place for humanize? raw unpolished"*.
+
+**Partly — and the answer was the account's own vocabulary, not mine.**
+
+What existed: one hardcoded `raw` mutation in `lib/suno-mutator.js`,
+composed as a suffix (descriptor first, raw clause after). It was in the
+account. But there was no *layer* — no mechanism, no exclusions in
+their own field, and the Anchor Five and the KAI DNA carried no raw
+clause at all.
+
+**The vocabulary is MEASURED, not invented.** Reading the raw styles
+already in the account — the ones tagged "Raw & Imperfect", "raw
+unplugged acoustic demo", the "UNPLUGGED IMPERFECT TRUMPET" style —
+the phrases Suno has been shown to respond to on THIS account are
+concrete ones: close-mic spit, valve clicks, lip buzz, unquantized
+timing drift, live one-take room recording, honest rough performance,
+no autotune, no mastering, no compression, no quantized.
+
+So the suffixes are built from THOSE, rather than from adjectives like
+"authentic" or "lo-fi" that say nothing about what to do.
+
+**Shipped — `lib/suno-humanize.js` + `lib/suno-humanize.test.js` (47
+assertions) + `docs/SUNO-HUMANIZE.md`.**
+
+Four suffixes, all from the measured vocabulary:
+
+| suffix | what it is |
+|---|---|
+| `raw` | the general one — unprocessed, imperfect takes, no gloss, honest mistakes left in |
+| `unplugged` | the house's own — close-mic spit, valve clicks, lip noise, unquantized drift |
+| `one-take` | the performance, not the production — no edits, no second takes |
+| `tape` | the house's most-used warmth — tape wobble, wow and flutter, hiss and bleed |
+
+**Two fields, not one.** The suffix composes into `tags`; the
+exclusions go in `negative_tags`. That is the house's rule for
+Pro/Premier, and a necessity: MEASURED, the account's "UNPLUGGED
+IMPERFECT TRUMPET" style is exactly **1000 characters** — the tag
+limit — so the exclusions cannot ride along in the same field.
+
+**The overflow rule, and where it breaks the house rule on purpose.**
+
+Everywhere else the descriptor always wins when the two exceed the
+limit. The humanize layer is the **exception**, and it has to be:
+
+> MEASURED: the KAI master style is 856 characters and the raw suffix
+> is 176 — 1034 together, over the limit. With the descriptor winning,
+> the style came out ending `"…dry close-mic roo"` — the raw layer cut
+> mid-word and the thing that was asked for was gone.
+
+A mutation is an *amendment* to a song, so the song wins. The
+humanize layer **is** the instruction, so it wins. So when the two
+overflow: the suffix keeps its WHOLE tail (its meaning lives at the
+end — "honest mistakes left in" is not optional) and the descriptor
+gives way from the front, **cut at a clause boundary** so the style
+still reads as prose. (The first version cut from the front and left
+the style starting "big band, 16-piece…" — it read like a mistake.)
+
+**VERIFIED LIVE:** the humanized KAI style generated in the workspace —
+two clips, both `complete`, both with a media URL, credits unchanged
+(7 → 7).
+
+And the check that matters: **Suno kept the raw vocabulary.** Both
+clips came back carrying `raw two-track concert-hall recording with
+room reflections`, `audible breaths`, `tape wobble`, `bleed`, `dry
+close-mic room tone`, `unquantized timing` — the humanize layer
+survived the render instead of being polished away. The meter (105
+BPM, alternating 4/4 and 7/8) and the ensemble survived with it.
+
+**Also fixed:** the mutator's `raw` mutation is now built FROM
+`HUMANIZE_SUFFIXES.raw`, so the two cannot drift.
+
+**Verified:** `npm run test:all` — 1925 assertions / 0 failures (up from
+1878). `npm run test:secrets` — 9/9.
+
+**Open:**
+
+- The humanize layer is a **suffix on a descriptor**. For a style that
+  is already raw by construction — the KAI DNA says "live to two-track,
+  audible breathing, loose human timing" — the layer is a second
+  statement of the same thing, not a new one. It is still worth having:
+  Suno paraphrases the style box, and the suffix's concrete phrases
+  survived the paraphrase when the descriptor's softer wording did not.
+- **The suffixes are not a general "add X to any style" API for the
+  saved-style path.** `lib/suno-style-save.js` writes the library
+  styles as they are; there is no `--humanize` on it yet. The mutator
+  and the KAI runner both take the layer.
