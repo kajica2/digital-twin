@@ -357,6 +357,56 @@ to the jar, and verifies it against the live API.
 
 The reference is [`docs/SUNO-MUTATOR.md`](docs/SUNO-MUTATOR.md).
 
+## Run the meter prompts
+
+Five Suno prompts in rare meters — 7/8, 5/4, 13/8, 11/8 and a shifting
+4/4↔7/8 — each carrying a style box and a lyrics field.
+
+```bash
+# the plan (nothing submitted)
+npm run suno:meters -- --workspace <wid> --source <clipId>
+
+# submit four rolls of each
+npm run suno:meters -- --workspace <wid> --source <clipId> --apply
+
+# print the prompts
+npm run suno:meters:list
+```
+
+They are made as **covers**, not plain generations: MEASURED on this
+account, a plain generation is refused (the balance does not move and
+the clip's audio points at `/api/forbidden`), while a cover renders and
+costs nothing. On a cover the style box replaces the source's
+descriptor — the opposite of the mutator's rule, and deliberately so.
+
+The reference is
+[`docs/SUNO-METER-PROMPTS.md`](docs/SUNO-METER-PROMPTS.md).
+
+## Run the KAI sound DNA
+
+The Nordic Modern Jazz Big Band — the house's signature style. A large
+ensemble playing with the intimacy of a small jazz group: restrained
+brass, spacious harmonies, asymmetric phrasing, acoustic intimacy.
+
+```bash
+# the plan (nothing submitted)
+npm run suno:kai -- --workspace <wid> --source <clipId>
+
+# with the house's own variation as a second roll
+npm run suno:kai -- --workspace <wid> --source <clipId> --with-variation --apply
+
+# print it
+npm run suno:kai:list
+```
+
+Three fields, because the style (856 chars) and the exclusions (211)
+are 1069 together — over the server's 1000-character tag limit — so they
+go in separate fields, and the arrangement goes in the lyrics field as
+section tags with the clock times.
+
+The reference is
+[`docs/SUNO-KAI-SOUND-DNA.md`](docs/SUNO-KAI-SOUND-DNA.md).
+
 ## Run the Temple of Control
 
 Pure client-side — no server, no Python, no build step. Two files:

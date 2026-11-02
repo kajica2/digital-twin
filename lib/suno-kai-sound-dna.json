@@ -1,0 +1,90 @@
+{
+  "_note": "The Nordic Modern Jazz Big Band — the KAI sound DNA. A master style, the musical architecture it implies, an arrangement timeline, and the exclusions.",
+  "_why": "The house's signature: Scandinavian contemporary orchestral jazz, restrained brass writing, spacious harmonies, asymmetric rhythmic phrasing, acoustic intimacy and natural ensemble dynamics. The defining character is a large ensemble playing with the intimacy of a small jazz group — not big-band blasts, but subtle tension, silence, shifting meters and carefully balanced instrumental colors.",
+  "_why-negative-field": "MEASURED against the server's limits: the master style is 856 characters and the exclusions 211. TOGETHER they are 1069 — over the 1000-character tag limit. They go in SEPARATE fields (tags and negative_tags), which is exactly what the house rule says to do on Pro/Premier: move the exclusions into Exclude Styles under Advanced Options.",
+  "_why-arrangement": "The arrangement is written as SECTION TAGS in the lyrics field, with the clock times and each movement's title. The house rules: all instructions in square brackets, blank lines between sections, and the meter in the style box rather than only in the tags.",
+  "schema": {
+    "slug": "stable kebab-case handle",
+    "name": "display name",
+    "style": "the STYLE BOX — the master style text",
+    "negativeTags": "the EXCLUSIONS — what this sound is not",
+    "lyrics": "the LYRICS FIELD — the arrangement as section tags",
+    "architecture": "the musical architecture table (tempo, meter, brass, ...)",
+    "arrangement": "the arrangement timeline, section by section",
+    "suggested": "the suggested Suno settings (weirdness, style influence)",
+    "variation": "the house's own suggested variation of this style"
+  },
+  "styles": [
+    {
+      "slug": "nordic-big-band",
+      "name": "Nordic Modern Jazz Big Band",
+      "style": "Nordic contemporary modern jazz big band, 16-piece acoustic ensemble, restrained muted trumpets, soft trombone voicings, breathy saxophone section, lyrical low-register flugelhorn, intimate piano, resonant upright bass, delicate ride cymbal and brushed snare. Alternating 4/4 and 7/8 phrases, medium tempo around 105 BPM, subtle polyrhythmic displacement, sparse unresolved modal jazz harmony, suspended chords, melancholic Scandinavian atmosphere. Minimalist orchestral writing, slowly evolving motifs, understated brass counterpoint, conversational improvisation, delicate ensemble swells, spacious pauses. Recorded live to two-track in a natural concert hall, authentic room reflections, audible breathing, loose human timing, unprocessed acoustic instruments, wide dynamic range, warm analog texture. Instrumental only, no vocals, no commercial polish.",
+      "negativeTags": "EDM, synth bass, cinematic trailer brass, aggressive swing, bebop shredding, glossy studio production, quantized drums, exaggerated crescendos, pop chord progressions, vocals, autotune, artificial orchestration.",
+      "lyrics": "[Intro | 0:00-0:35 | The Empty Hall — Solo piano, upright bass harmonics, distant muted brass]\n[Instrumental | 0:35-1:15 | Uneven Footsteps — Ride cymbal establishes pulse; alternating 4/4 and 7/8]\n[Instrumental | 1:15-2:00 | Sixteen Breaths — Quiet brass harmonies, flugelhorn introduces the melody]\n[Break | 2:00-2:45 | Fractured Conversation — Saxophone counterpoint, piano responses, bass improvisation]\n[Crescendo | 2:45-3:30 | The Room Opens — Gradual ensemble crescendo, dense suspended harmony, no explosive climax]\n[Outro | 3:30-4:00 | Unfinished Light — Instruments withdraw, solitary flugelhorn, natural room decay]",
+      "architecture": {
+        "tempo": "105 BPM, medium and fluid",
+        "meter": "Alternating 4/4 and 7/8",
+        "brass": "Muted, understated, layered",
+        "saxophones": "Breath-driven counterpoint",
+        "piano": "Sparse quartal and suspended voicings",
+        "bass": "Acoustic, melodic, slightly behind the beat",
+        "drums": "Ride cymbal, brushes, delicate accents",
+        "harmony": "Modal, ambiguous, unresolved",
+        "recording": "Live-to-2-track, natural hall ambience"
+      },
+      "arrangement": [
+        {
+          "tag": "Intro",
+          "start": "0:00",
+          "end": "0:35",
+          "title": "The Empty Hall",
+          "direction": "Solo piano, upright bass harmonics, distant muted brass"
+        },
+        {
+          "tag": "Instrumental",
+          "start": "0:35",
+          "end": "1:15",
+          "title": "Uneven Footsteps",
+          "direction": "Ride cymbal establishes pulse; alternating 4/4 and 7/8"
+        },
+        {
+          "tag": "Instrumental",
+          "start": "1:15",
+          "end": "2:00",
+          "title": "Sixteen Breaths",
+          "direction": "Quiet brass harmonies, flugelhorn introduces the melody"
+        },
+        {
+          "tag": "Break",
+          "start": "2:00",
+          "end": "2:45",
+          "title": "Fractured Conversation",
+          "direction": "Saxophone counterpoint, piano responses, bass improvisation"
+        },
+        {
+          "tag": "Crescendo",
+          "start": "2:45",
+          "end": "3:30",
+          "title": "The Room Opens",
+          "direction": "Gradual ensemble crescendo, dense suspended harmony, no explosive climax"
+        },
+        {
+          "tag": "Outro",
+          "start": "3:30",
+          "end": "4:00",
+          "title": "Unfinished Light",
+          "direction": "Instruments withdraw, solitary flugelhorn, natural room decay"
+        }
+      ],
+      "suggested": {
+        "weirdness": "60%",
+        "styleInfluence": "80%"
+      },
+      "variation": {
+        "name": "Nordic Chamber Big Band x Raw Kai Flugelhorn x Asymmetric Jazz Minimalism",
+        "style": "Nordic chamber big band, raw flugelhorn as the emotional center, 16-piece acoustic ensemble responding to the lead rather than a fixed arrangement, alternating 4/4 and 7/8 with the 7/8 as a natural hesitation rather than a mathematical exercise, muted brass, breathy saxophone section, intimate piano, resonant upright bass, delicate ride cymbal and brushed snare, sparse unresolved modal jazz harmony, suspended chords, asymmetric jazz minimalism, spacious pauses, live to two-track in a natural hall, audible breathing, loose human timing, unprocessed acoustic instruments, wide dynamic range, warm analog texture, instrumental only, no vocals, no commercial polish",
+        "note": "Keep the Nordic orchestral discipline, but make your low flugelhorn the emotional center. Let the orchestra respond to your breathing rather than forcing your phrases into a fixed arrangement. The 7/8 should feel like a natural hesitation, not a mathematical exercise."
+      }
+    }
+  ]
+}

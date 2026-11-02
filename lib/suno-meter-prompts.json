@@ -1,0 +1,68 @@
+{
+  "_note": "The five UNCOMMON-METER Suno prompts — style box + lyrics field, in rare meters. A prompt here is TWO things: the STYLE BOX (what the track sounds like) and the LYRICS FIELD (the section tags that carry the meter and the arrangement).",
+  "_why-cover": "MEASURED 2026-11-02 on this account: a plain text generation is REFUSED — the submit answers with a clip id, the balance does not move, and the clip's audio URL points at /api/forbidden. A COVER of an existing track renders and costs nothing. So these prompts are made as covers of the house source, with `override_fields: ['prompt','tags']` — which is exactly what the workspace's own 593 clips are (every one of them `task: cover`).",
+  "_why-replace": "MEASURED 2026-11-02: on a cover, `override_fields: ['prompt','tags']` means the style box REPLACES the source's descriptor (the workspace's clips carry the meter style, not the source's 'Dark jazz electronica') and the lyrics travel in the prompt field. So the meter style is not composed WITH the source descriptor — it takes its place.",
+  "_why-roll-four": "The house rule, from the prompt text: meter tags are probability weights, not commands. Generate four versions per prompt, keep the one where the bars actually line up. 4 x 5 = 20 generations.",
+  "_meter-cheat-sheet": {
+    "7/8": "uneven, propulsive — `7/8 time, 2+2+3 pattern`",
+    "5/4": "asymmetric ballad — `5/4 time, uneven bars`",
+    "13/8": "rolling, restless — `13/8 time, 3+3+3+2+2`",
+    "11/8": "lopsided, limping — `11/8 time, 3+3+3+2`",
+    "4/4 / 7/8": "conversational — `alternating 4/4 and 7/8 phrases`"
+  },
+  "schema": {
+    "slug": "stable kebab-case handle",
+    "name": "display name",
+    "meter": "the meter this prompt is in",
+    "style": "the STYLE BOX — what the track sounds like",
+    "lyrics": "the LYRICS FIELD — the section tags carrying meter and arrangement",
+    "note": "the production note: what to listen for and which knob to turn when it drifts"
+  },
+  "prompts": [
+    {
+      "slug": "seven-bells",
+      "name": "Seven Bells",
+      "meter": "7/8",
+      "roll": 4,
+      "style": "Nordic modern jazz big band, 16-piece ensemble, slow-building and melancholy, muted flugelhorn, low brass, felt piano, upright bass, brushes and ride cymbal, 7/8 time with a 2+2+3 pattern, spacious hall reverb, live-to-2-track, no synth, no electric piano, no vocals",
+      "lyrics": "[Intro | 7/8 | 2+2+3, open form, brushes only]\n[Instrumental | 7/8 | muted flugelhorn lead, long sustains]\n[Break | 7/8 | vibes and piano, no horns]\n[Solo | 7/8 | tenor sax, breathy, no vibrato]\n[Interlude | 7/8 | horn pads, no lead]\n[Outro | 7/8 | full ensemble, long decay]",
+      "note": "7/8 is the odd meter Suno handles most reliably, but it WILL straighten into 4/4 the moment density drops. Keep something moving in the low end. If it flips, add `odd meter, uneven phrasing` and re-roll — budget three or four attempts before one locks."
+    },
+    {
+      "slug": "five-of-a-kind",
+      "name": "Five of a Kind",
+      "meter": "5/4",
+      "roll": 4,
+      "style": "Nordic modern jazz big band, 14-piece ensemble, sparse and patient, muted trumpet, vibraphone, felt piano, upright bass, brushes, 5/4 time, wide reverb tail, very slow, no drum machine, no synth, no vocals",
+      "lyrics": "[Intro | 5/4 | vibes, bowed cymbal, no bass]\n[Instrumental | 5/4 | piano motif, rubato but stays in meter]\n[Solo | 5/4 | muted trumpet, sparse]\n[Break | 5/4 | rhythm section alone, brushes]\n[Outro | 5/4 | ensemble swells then thins]",
+      "note": "5/4 drifts toward 4/4 with a pickup. Anchor it early, then reinforce the phrasing in a section tag: `asymmetric phrasing, uneven bars`. The payoff is a ballad that breathes differently from 4/4 — keep the tempo low and let the space do the work."
+    },
+    {
+      "slug": "thirteen-windows",
+      "name": "Thirteen Windows",
+      "meter": "13/8",
+      "roll": 4,
+      "style": "Nordic avant jazz big band, 15-piece ensemble, restless and layered, low brass chorale, bowed vibraphone, acoustic piano, upright bass, aggressive 13/8, no swing, no fusion, no vocals",
+      "lyrics": "[Intro | 13/8 | piano and bass, irregular accents]\n[Solo | 13/8 | trombone, sharp accents]\n[Interlude | 13/8 | stacked brass, no melody]\n[Break | 13/8 | drums and cymbal, accelerating]\n[Outro | 13/8 | full band, abrupt stop]",
+      "note": "The hardest of the five — Suno approximates rather than counts, and 13/8 often lands as 7/8 with extra weight. Write `13/8 time, 3+3+3+2+2`, and give the model a foothold with a pair of 7/8 bars in the intro. Run this one in batches and cherry-pick."
+    },
+    {
+      "slug": "ledger",
+      "name": "Ledger",
+      "meter": "4/4 / 7/8",
+      "roll": 4,
+      "style": "Nordic modern jazz big band, 16-piece ensemble, alternating 4/4 and 7/8 phrases, restrained, muted horns, piano, upright bass, ride cymbal, medium tempo, hall reverb, live-to-2-track, no vocals",
+      "lyrics": "[Intro | 4/4 | full band, plain 4/4]\n[Instrumental | 7/8 | horns shift, drums follow]\n[Break | 4/4 | piano and bass, straight]\n[Interlude | 7/8 | trio feel, no horns]\n[Outro | 4/4 | slow coda, ride only]",
+      "note": "Meter CHANGES are the hardest thing to prompt, because one style box governs the whole track. Either accept a soft transition from the tags above, or split the piece — generate the 4/4 and 7/8 halves separately and stitch them in the Song Editor. The stitch is cleaner, and it's how you get a real metric shift."
+    },
+    {
+      "slug": "salt-cathedral",
+      "name": "Salt Cathedral",
+      "meter": "11/8",
+      "roll": 4,
+      "style": "Nordic chamber jazz ensemble with string quartet, 11/8 time, extremely quiet, muted vibraphone, felt piano, contrabass, brushed snare, slow, enormous reverb, sacred and still, no vocals",
+      "lyrics": "[Intro | 11/8 | strings alone, no percussion]\n[Instrumental | 11/8 | vibraphone, sparse]\n[Break | 11/8 | piano and strings, rubato]\n[Outro | 11/8 | single held note, long decay]",
+      "note": "The most \"album track\" of the five and the most demanding. Keep density minimal — Suno pads out sparse prompts with unwanted melodic filler. Add `no saxophone, no brass, no guitar` if it wanders. Optional variant: swap the opening for a soft female alto, replacing the first tag with `[Verse | 11/8 | breathy alto, half-sung]`."
+    }
+  ]
+}

@@ -11260,3 +11260,101 @@ fetch lookup, eleven on the Raw style). `npm run test:secrets` — 9/9.
   verification that plays the audio is still open.
 - The account still holds **7 credits** and a cover spent none of them.
   A fresh generation (not a cover) is still untested against it.
+
+### 2026-11-02 — sprint 0.80 (the KAI sound DNA, in three fields)
+
+The house's signature: **Nordic Modern Jazz Big Band** — Scandinavian
+contemporary orchestral jazz, restrained brass writing, spacious
+harmonies, asymmetric rhythmic phrasing, acoustic intimacy and natural
+ensemble dynamics. The defining character is a large ensemble playing
+with the intimacy of a small jazz group.
+
+**Shipped — `lib/suno-kai-sound-dna.json` + `lib/suno-kai-dna.js` +
+`lib/suno-kai-dna.test.js` (51 assertions) + `lib/suno-kai-run.js` +
+`docs/SUNO-KAI-SOUND-DNA.md`.**
+
+**The finding that shaped it: the style does not fit in one field.**
+
+MEASURED against the server's limits: the master style is **856
+characters** and the exclusions are **211**. Together they are **1069** —
+over the 1000-character tag limit.
+
+They go in SEPARATE fields (`tags` and `negative_tags`), which is what
+the house rule says to do on Pro/Premier anyway: move the exclusions
+into Exclude Styles under Advanced Options. And the arrangement goes in
+the lyrics field, as square-bracketed section tags carrying the clock
+time and the movement's title — six movements, from "The Empty Hall" to
+"Unfinished Light".
+
+The arrangement's shape is the point: it opens with ONE instrument and
+ends with ONE instrument, and the crescendo section says **no explosive
+climax** explicitly.
+
+**VERIFIED LIVE:** the master style and the house's own suggested
+variation ("Nordic Chamber Big Band × Raw Kai Flugelhorn × Asymmetric
+Jazz Minimalism") generated in the workspace as covers — **four clips,
+all `complete`, all with a media URL**, credits unchanged (7 → 7).
+
+And a measured detail that matters for what to trust: **Suno rewrites
+the style box into its own prose** (it kept the ensemble, the 7/8
+pattern, the instruments and the hall reverb, and rephrased the
+wording), while the **arrangement comes back VERBATIM** — the clock
+times, the movement titles, every tag. So the lyrics field is the part
+that is a contract, and the style box is a description of intent.
+
+**Also shipped in this sprint — the meter prompts rolled (0.79).** Five
+uncommon-meter prompts (7/8, 5/4, 13/8, 11/8, 4/4↔7/8), each with a
+style box and a lyrics field, rolled **four times each** — the house
+rule, because meter tags are probability weights, not commands.
+
+**The finding that decided their shape: a plain generation is REFUSED.**
+
+MEASURED on this account: a plain text generation submits, answers with
+a clip id, and the balance does not move (7 → 7) — the clip's audio URL
+points at `/api/forbidden`. A **COVER** renders and costs nothing. So
+the rolls are covers, which is also how the 593 clips in the target
+workspace ("kais_style new") were all made.
+
+And on a cover, `override_fields: ['prompt','tags']` means the style
+box **replaces** the source's descriptor — MEASURED on the workspace's
+own clips, which carry the meter style rather than the source's "Dark
+jazz electronica". That is the opposite of `lib/suno-mutator.js`'s rule
+(descriptor + mutation), and deliberately so: a meter prompt is a whole
+style, not an amendment.
+
+**VERIFIED LIVE: 20/20 rolls rendered**, every clip `complete` with a
+media URL, in the right workspace, credits unchanged.
+
+**Two bugs the first live roll found:**
+
+1. **The Bearer token EXPIRES mid-run.** It is captured once at
+   bootstrap; a roll that polls six times per clip came back
+   `GET /api/billing/info/ -> 401 {"detail": "Unauthorized."}` long
+   after the generation had been submitted — and the run died with NO
+   manifest, so every record of what had happened was lost. The SPA
+   refreshes the session itself (the jar's `__client` is a Firebase
+   refresh token), so the fix is to ask the PAGE for a fresh token on a
+   401 and try once more.
+2. **A clip that is not ON THE SERVER YET is not a failure.** Right
+   after the submit, `get_songs_by_ids` does not know the clip, and the
+   verdict reported "the clip is not on the server yet" as a FAILED
+   generation while it was in flight. A missing clip now means KEEP
+   WAITING; a clip with a status means the verdict applies.
+
+**Verified:** `npm run test:all` — 1878 assertions / 0 failures.
+`npm run test:secrets` — 9/9. `npm run prompt:check` — 76 packs, 777
+prompts, 0 violations.
+
+**Open:**
+
+- **Suno paraphrases the style box.** The meter survives (7/8, 2+2+3,
+  the ensemble, the instruments) but the wording does not. If a roll
+  comes back in the wrong meter, the style box is the lever — the
+  lyrics field will not fix it.
+- **13/8 and 4/4↔7/8 are the risky meters.** 13/8 often lands as 7/8
+  with extra weight, and a meter CHANGE is the hardest thing to prompt,
+  because one style box governs the whole track. The house note's
+  answer — generate the halves separately and stitch them in the Song
+  Editor — is not automated here.
+- The roll manifests are written to `data/suno/` (gitignored). The
+  tracked artefacts are the registries.
