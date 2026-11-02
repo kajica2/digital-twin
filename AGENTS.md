@@ -11169,3 +11169,94 @@ now reads the balance and names the plan.
 - The jar's lifetime is not characterised beyond "about an hour"; a
   re-login is cheap (one command), so there is no case for scheduling
   it.
+
+### 2026-11-02 — sprint 0.78 (the generate path, verified — and a RAW style)
+
+The `--generate` path had never run against the live account. It did
+now, and it found three bugs plus a style to write.
+
+**Verified live: a cover DOES render.** A `--mutation "dub"` cover of
+the instrumental linked clip produced TWO clips, both `complete`, both
+with a real CloudFront media URL:
+
+| clip | created | state | media |
+|---|---|---|---|
+| `6b348a64` | 01:23:54.904Z | complete | yes |
+| `4715e4fa` | 01:23:54.904Z | complete | yes |
+
+The balance did not move (7 before, 7 after) — a cover of an existing
+track is free on this plan.
+
+**Three bugs, all found by running it:**
+
+1. **`make_instrumental` was hardcoded true.** MEASURED: the SOURCE
+   (`1443a36e`) carries `make_instrumental: false` — it has the Serbian
+   hymn — while the LINKED cover (`9d68f520`) carries `true`. A variant
+   of the source would have had its lyrics discarded, silently, because
+   the request succeeds either way. The flag is a property of the
+   SOURCE, so it is read from the clip's own metadata and carried in
+   the settings. The default is `false`: a source that has lyrics is the
+   common case, and a wrong `true` throws the words away.
+
+2. **The verdict called `queued` a failure.** A generation passes
+   through `queued` → `streaming` → `complete`, and `queued` was
+   missing from the list — so the first live run reported a generation
+   that was on its way to rendering as "an unexpected state". A verdict
+   that cries wolf on a normal state is worse than no verdict: it makes
+   the operator distrust the success reports too. `queued` is now a
+   live state.
+
+3. **One cover request produces TWO clips, and only the first was
+   recorded.** The instrumental one and the vocal one, created in the
+   SAME second. Reading only `clips[0]` made the second track invisible
+   — it existed in the account and was never mentioned anywhere. Both
+   are now recorded (`clipIds`) and both are checked.
+
+**One correction to an earlier reading.** The `/api/forbidden` audio
+URL has been read as "the account refused this" since 2026-10-30. On
+this account it is the placeholder on EVERY clip of this shape —
+including ones made weeks ago that have real audio. It is not a refusal
+marker. The real address is in `media_urls` (a CloudFront `.m4a`,
+AES256 at rest — the browser decrypts it, so a plain curl gets bytes
+ffprobe cannot read).
+
+That last one was a real gap: `lib/suno-fetch.js` only looked at
+`audio_url` / `song_url` / `stream_url` and skipped the placeholder, so
+it found NOTHING for these clips — a finished track looked unfetchable.
+`audioUrlOf` now reads `media_urls` too, picking the first AUDIO entry.
+New file `lib/suno-fetch.test.js` (7 assertions) pins the lookup.
+
+**Also shipped — the RAW style**, asked for on 2026-11-02: *"more raw
+unprocessed sound, unpolished and imperfect"*.
+
+The word that matters is IMPERFECT. Suno's default sound is polished,
+so a raw style has to pull the track AWAY from that — which means naming
+the imperfections to KEEP, not just adding a genre word. Every clause
+names a specific defect: unprocessed, rough and imperfect takes,
+unpolished and unquantized, tape wobble and bleed, no gloss no polish,
+dry close-miked room, honest mistakes left in.
+
+Its influence is the highest of the set (0.85) on purpose: the point is
+to stay CLOSE to the source audio and let its character through, not to
+replace it with a different recording.
+
+**VERIFIED LIVE:** written to the account as a saved style —
+`Serbian Byzantine Choir M - Raw`, id `55614aa2`, read back from the
+account's own style list, with the 237-char Nordic descriptor preserved
+and the rawness appended.
+
+**Verified:** `npm run test:all` — 1677 assertions / 0 failures (up from
+1630: eleven new on the verdict and the two-clip response, seven on the
+fetch lookup, eleven on the Raw style). `npm run test:secrets` — 9/9.
+`npm run prompt:check` — 76 packs, 777 prompts, 0 violations.
+
+**Open:**
+
+- The generated audio is **AES256 encrypted at rest**. The bytes are
+  identical whether fetched in-page or by curl, and the browser's own
+  app decrypts them. So `lib/suno-fetch.js` can confirm the bytes
+  arrive (3.7 MB, `audio/mp4`) but a plain `ffprobe` cannot read the
+  file — the decryption happens in the app, not in the fetch. A
+  verification that plays the audio is still open.
+- The account still holds **7 credits** and a cover spent none of them.
+  A fresh generation (not a cover) is still untested against it.

@@ -82,12 +82,24 @@ Balkan brass, African polyrhythms, 105 BPM, dub techno, tape delay, submerged ba
 
 | slug | style | influence |
 |---|---|---|
+| `raw` | raw unprocessed recording, rough and imperfect takes, unpolished and unquantized, tape wobble and bleed, no gloss no polish, dry close-miked room, honest mistakes left in | 0.85 |
 | `dub` | dub techno, tape delay, submerged basslines, cavernous reverb | 0.75 |
 | `orchestral` | symphonic orchestra, cinematic strings, brass section, timpani | 0.60 |
 | `lofi-tape` | lo-fi hip hop, cassette saturation, vinyl crackle, dusty drums | 0.80 |
 | `afro-house` | afro house, log drum, shuffled percussion, warm sub bass | 0.70 |
 | `ambient` | ambient drone, long reverb tails, soft pads, no percussion | 0.55 |
 | `breaks` | broken beat, amen break, live drum breaks, vinyl swing | 0.78 |
+
+**On `raw`.** The word that matters is *imperfect*. Suno's default
+sound is polished, so a raw style has to pull the track AWAY from that
+— which means naming the imperfections to KEEP, not just adding a genre
+word. Every clause in it names a specific defect: unprocessed, rough
+and imperfect takes, unpolished and unquantized, tape wobble and bleed,
+no gloss no polish, dry close-miked room, honest mistakes left in.
+
+Its influence is the highest of the set (0.85) on purpose: the point is
+to stay CLOSE to the source audio and let its character through, not to
+replace it with a different recording.
 
 Your own:
 
