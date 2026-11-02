@@ -207,6 +207,10 @@ vendor/ffmpeg/*
 
 # Credit ledger (SQLite, WAL mode) and server render job output.
 data/credits.sqlite
+
+# Agent screenshot scratch (captured while driving desktop apps).
+.agent-ax/
+.agent-ireal-*.png
 data/credits.sqlite-shm
 data/credits.sqlite-wal
 data/jobs/job_*/

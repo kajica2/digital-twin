@@ -38,6 +38,7 @@ logged into midjourney.com.
 | `lib/mj-web.js` | **Web backend** — drives midjourney.com/imagine. |
 | `lib/mj-revise.js` | **Re-evolve an edit job** — new prompt, the SAME attachments, style reference, profile and flags. |
 | `lib/mj-download.js` | **Fetch a pack's images** — reads `prompt-NN/meta.json` and writes the CDN cells through the headed browser (`npm run mj:download -- --dir mj-output/<pack>`). Also exports `fetchImage`, which `lib/mj-revise.js` uses. |
+| `lib/mj-fetch-fullres.js` | **Fetch the native-resolution cells** — the un-suffixed CDN path serves 1456×816 against the preview's 1141×640 (`npm run mj:fullres -- <jobId> 0_0 0_1`). |
 | `lib/mj-submitter.js` | Legacy Discord backend + shared CDP primitives. |
 | `lib/mj-cookies.js` | Cookie-jar loading (Netscape + JSON), `__Host-` rules. |
 | `lib/mj-config.json` | Configuration (engine, cookies, ports, MJ defaults). |
@@ -319,6 +320,30 @@ The flag is opt-in: the default path is untouched. That is deliberate for a
 conditions — re-rendering one tile without the account's moodboards would
 make it the odd one out visually, whatever the angle says.
 
+### A prompt's OWN `--profile` is not the account's personalization
+
+`--profile` is also how the house grade is applied — the codes in
+`assets/mural-prompts/named-not-owned-anchors.md`
+(`brvazka mhw6dpq xr39csb det21e6 67lkfw3`) are the artist's own moodboard
+selection, carried in the prompt text on purpose.
+
+So the backend's check has to tell the two apart, and it does it against
+the accepted job's **own recorded command**: the ids between `--profile`
+and the next flag. MEASURED 2026-11-02, the greedy form of that parse
+(`(?:\s+\S+)*`, no stop condition) swallowed every flag that followed the
+codes, so a command carrying
+
+```
+--profile brvazka mhw6dpq xr39csb det21e6 67lkfw3 --stylize 755 --ar 16:9
+```
+
+reported `--stylize`, `755`, `--ar` and `16:9` as though they were
+moodboard ids. The consequence is not cosmetic: with `--no-personalize` a
+prompt carrying the artist's own profile would be **failed** as "the
+account's personalization was applied" — a false failure against the
+account, for the account's own grade. The parse now stops at the next
+flag (`lib/mj-web.test.js` §4b).
+
 
 ## Chrome profile setup (one-time) — Discord backend only
 
@@ -411,6 +436,25 @@ cell that never renders is reported and does not stop the rest.
 
 `--force` re-fetches cells already on disk; without it a second run is a
 no-op (which is what makes it safe to re-run after a partial download).
+
+### Full-resolution cells
+
+`lib/mj-download.js` fetches the **preview** — the `0_<slot>_640_N.webp`
+path the feed's url list names (1141×640). The CDN serves the **original**
+at the same path without the `_640_N` size marker:
+
+```bash
+npm run mj:fullres -- <jobId> 0_0 0_1 0_2 0_3 --out mj-output/<pack>/prompt-01
+```
+
+MEASURED 2026-11-02: the original is **1456×816** — the native MJ grid
+cell — against the preview's 1141×640, and it is a different file, not a
+re-encode (490 KB against 156 KB). The `_U` variant is a third thing: it
+only exists if the job was actually upscaled in the studio UI, and the CDN
+answers **422** for a job that was not (`--upscale` tries it anyway).
+
+The bytes still have to come through the headed browser — the CDN 403s
+curl — so this reuses `lib/mj-download.js`'s `fetchImage`.
 
 ## A soft-banned submission
 

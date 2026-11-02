@@ -11619,3 +11619,95 @@ re-running that suite alone.
   jazz standard with a steady pulse the fallback is probably right, but
   a tempo-mapped downbeat array would be better.
 - The manifest is written to `data/suno/uploads/` (gitignored).
+
+### 2026-11-02 — sprint 0.84 (the relay still — and a profile parser that lied)
+
+Asked: one music-video still — an old switchboard, one lamp lit, dust on
+the keys — rendered on Midjourney with the house `--profile` grade.
+
+**Shipped:**
+
+- **`assets/mural-prompts/relay-switchboard-lamp.md`** — the pack. The
+  plate is not new prose: it is a registry entry, `lib/daily-collections.json`
+  → collection "relay" → plate "switchboard · lamp", rendered verbatim
+  with its flags. The `--profile brvazka mhw6dpq xr39csb det21e6 67lkfw3`
+  codes are the "Named, Not Owned" house grade
+  (`named-not-owned-anchors.md`); the grade lives in the profile, so
+  there is no `--sref`.
+- **The still** — task `8aa8525d-c004-4ddc-be69-8a72a8a5306c`,
+  `v8-2_diffusion`, 16:9, 4 cells. Picked cell `0_0`: the dim run of
+  keys with one amber lamp lit, dust on the white labels, no text.
+- **`lib/mj-fetch-fullres.js`** + `.test.js` (9 assertions) + `npm run
+  mj:fullres` — fetches the **native-resolution** cells.
+
+**The finding — the CDN serves a bigger file than the feed names.**
+
+The feed's url list points at the PREVIEW (`0_0_640_N.webp`, 1141×640).
+The un-suffixed path (`0_0.webp`) serves the **original**: 1456×816, the
+native MJ grid cell, 490 KB against the preview's 156 KB — a different
+file, not a re-encode. `lib/mj-download.js` only ever fetched the
+preview, so every pack in the repo was working from the small file.
+
+The `_U` variant is a third thing: it exists only if the job was
+actually upscaled in the studio UI, and the CDN answers **422** for one
+that was not.
+
+**The bug this run found — `profileIdsIn` swallowed the flags.**
+
+The tool reported the account's personalization as
+
+```
+--profile brvazka mhw6dpq xr39csb det21e6 67lkfw3 --stylize 755 --ar 16:9
+```
+
+— every flag after the codes. The parse was `(?:\s+\S+)*`: greedy, with
+no stop condition, so it ran to the end of the command.
+
+Not cosmetic. Those ids are what the personalization check compares, so
+with `--no-personalize` a prompt carrying the **artist's own** `--profile`
+(the house grade) would be FAILED as "the account's personalization was
+applied" — a false failure against the account, for the account's own
+grade. Fixed to stop at the next flag; 5 new assertions in
+`lib/mj-web.test.js` §4b, verified failing against the old code first.
+
+**Decisions:**
+
+- **The prompt was carried verbatim, not rewritten.** It is a registry
+  entry, and the flags are part of it. The house `--stylize 21` was NOT
+  applied — the artist's own `755` wins, and `buildFullPrompt` keeps it
+  (the config's `--s 21` is correctly dropped because the prompt carries
+  `--raw`).
+- **The pack lives in `assets/mural-prompts/`, not `prompts-inbox/`.** The
+  inbox is the watcher's drop zone — a pack there renders on sight.
+- **`--stylize 755` is kept as written.** It is not the house value, and
+  normalising it would have quietly changed the still.
+
+**Verified end-to-end:**
+
+- Preflight green — the session had gone stale and the token-refresh path
+  fired and recovered it mid-run.
+- Submit: accepted, `matchedBy: feed-command` (the job's own recorded
+  command carried our prose AND our flags), 4 cells.
+- All four cells fetched, luma measured (76.5 / 70.4 / 85.6 / 74.5, none
+  blown), reviewed at full resolution, and `0_0` picked — it is also the
+  exposure-rule pick (closest to the median, no clipping).
+- `npm run test:all` — **1963 assertions / 34 suites, 0 failures.**
+  `test:youtube-poster` (6 failures, missing `~/.youtube-cookies.txt`) is
+  **pre-existing and unrelated** — confirmed by stashing the change and
+  re-running that suite alone; the four suites the `&&` chain skips after
+  it (`agent-hub`, `secrets`, `images-mp4`, `boot`) all pass.
+- `npm run test:secrets` — 9/9. `npm run prompt:check` — 77 packs,
+  778 prompts, 0 violations.
+
+**Open:**
+
+- The still is a single frame with no audio and no cut. The repo's
+  `bin/images-to-mp4.mjs` turns a still set into a clip; one frame is a
+  starting point, not a video.
+- The house `--profile` codes are the artist's moodboard selection, so
+  this still inherits whatever else that selection carries — the same
+  caveat the "Named, Not Owned" packs carry.
+- Unchanged: the `.kai/` durability call, the woody-shaw chart variants,
+  the Vercel custom domain, the MJ cookie jar expiry, the hub board's
+  completion misattribution, a reel's slug still derived from its mutable
+  POST-sheet title.
