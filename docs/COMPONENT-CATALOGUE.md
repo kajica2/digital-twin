@@ -44,7 +44,7 @@ entry below.
   ```html
   <copy-block data-label="install">
   <pre><code># clone the repo
-  git clone https://github.com/kajica2/digital_twin &amp;&amp; cd digital_twin
+  git clone https://github.com/kajica2/digital-twin.git &amp;&amp; cd digital-twin
   ...
   </code></pre>
   </copy-block>

@@ -429,6 +429,22 @@ after the descriptor; the exclusions go in their own field.
 
 The reference is [`docs/SUNO-HUMANIZE.md`](docs/SUNO-HUMANIZE.md).
 
+### Post-submit: humanize a track that is already rendered
+
+```bash
+# one clip
+npm run suno:humanize:post -- --clip <clipId> --suffix raw
+
+# the newest clips in a workspace
+npm run suno:humanize:post -- --workspace <wid> --latest 10 --apply
+```
+
+It re-covers the submitted clip with **its own style** — the paraphrase
+Suno came back with, not the text that was sent — plus the humanize
+layer. The arrangement travels with it.
+
+
+
 ## Run the Temple of Control
 
 Pure client-side — no server, no Python, no build step. Two files:

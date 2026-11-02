@@ -11447,3 +11447,86 @@ BPM, alternating 4/4 and 7/8) and the ensemble survived with it.
   saved-style path.** `lib/suno-style-save.js` writes the library
   styles as they are; there is no `--humanize` on it yet. The mutator
   and the KAI runner both take the layer.
+
+### 2026-11-02 — sprint 0.82 (the post-submit humanize preset)
+
+Asked: *"add it as post submit atile preset"* — take the humanize layer
+and apply it to tracks that have ALREADY been submitted.
+
+**Shipped — `lib/suno-post-humanize.js` +
+`lib/suno-post-humanize.test.js` (24 assertions) +
+`lib/suno-post-humanize-run.js`.**
+
+`npm run suno:humanize:post -- --clip <id> [--suffix raw] [--apply]`
+— one clip, or `--workspace <wid> --latest 10` for the newest ones.
+
+**The finding that shaped it: it humanizes the clip's OWN style, not
+the text we sent.**
+
+MEASURED 2026-11-02: the style in `metadata.tags` is Suno's
+**PARAPHRASE** of what was submitted. A clip sent with
+
+> "Recorded live to two-track in a natural concert hall, authentic room
+> reflections, audible breathing, loose human timing"
+
+came back with
+
+> "raw two-track concert-hall recording with room reflections, audible
+> breaths, tape wobble, bleed, dry close-mic room tone and unquantized
+> timing"
+
+So the post-submit pass humanizes what the track **IS**, not what was
+asked for — which is the right thing, because the paraphrase is what the
+next render is built on. The style it composes is the clip's own
+`metadata.tags`.
+
+**And it is a COVER of the SUBMITTED clip** — `cover_clip_id` names the
+clip that was submitted, not the source underneath it. (A plain
+generation is refused on this account; a cover renders and costs
+nothing.)
+
+**VERIFIED LIVE:** a submitted clip re-covered with the raw layer
+produced **two clips, both `complete`, both covering the submitted
+clip**, credits unchanged (7 → 7).
+
+And the check that matters: **the raw layer came through.** Suno came
+back with "rough imperfect takes leave honest mistakes in" and "rough
+unprocessed takes with honest mistakes left in" — the humanize
+vocabulary survived the render instead of being polished away. The
+arrangement came back verbatim, clock times and movement titles and
+all.
+
+**What the probe cost.** The route to the answer was reading the
+studio's own JS bundle (`0clz7vt3vzhif.js`), because the post-submit
+actions on a clip — `remix_reuse_style`, `remix_cover`, `copy styles to
+clipboard` — are not on any documented endpoint, and the API answers
+`/api/custom-model/create/` with a schema that says "At least 5 unique
+clips are required" (that is the custom-MODEL feature, a persona
+trained on clips — a different thing entirely). One probe created a
+stray empty saved style, which was deleted.
+
+**Two things this settled along the way:**
+
+- `POST /api/generate/v2-web/` validates against a pydantic model and
+  returns the accepted `task` literals in its 422 body — that is
+  ground truth, and `remix` is NOT one of them. The post-submit
+  operation is a `cover`.
+- The clip's own `action_config.actions` is the list of what the studio
+  offers on a submitted clip — 19 actions, including `remix_cover`,
+  `remix_reuse_style`, `create_hook`, `remix_extend`, `masterremix`.
+
+**Verified:** `npm run test:all` — 1949 assertions / 0 failures (up from
+1925). `npm run test:secrets` — 9/9.
+
+**Open:**
+
+- The post-submit pass is a **re-render**, not an edit of the existing
+  audio: it produces a NEW clip that covers the submitted one. Suno's
+  own "Edit" action (an edit of the rendered audio in place) was not
+  found as an endpoint — the action list has `edit_song_details`
+  (metadata only) and `remix_extend` (a new clip).
+- The pass does not yet **compare** before and after. Whether the
+  humanized clip is audibly rawer than its source is a LISTENING
+  question, and the audio is AES256 encrypted at rest — the browser
+  decrypts it, so a plain `ffprobe` cannot read the file. That
+  verification is still open.

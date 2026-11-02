@@ -141,12 +141,61 @@ mutation is built from the same suffix, so the two cannot drift:
 npm run suno:mutate -- --url https://suno.com/song/<uuid> --mutation raw --save-styles --apply
 ```
 
+## Post-submit: humanize a track that is ALREADY rendered
+
+`npm run suno:humanize:post` — take a submitted track and re-cover it
+with its own style plus the raw layer.
+
+```bash
+# one clip
+npm run suno:humanize:post -- --clip <clipId> --suffix raw
+
+# the newest clips in a workspace
+npm run suno:humanize:post -- --workspace <wid> --latest 10 --apply
+
+# a different layer
+npm run suno:humanize:post -- --clip <clipId> --suffix unplugged --apply
+```
+
+**It humanizes the clip's OWN style — the one Suno came back with, not
+the text we sent.**
+
+MEASURED 2026-11-02: the style in `metadata.tags` is Suno's
+**paraphrase** of what was sent. A clip submitted with
+
+> "Recorded live to two-track in a natural concert hall, authentic room
+> reflections, audible breathing, loose human timing"
+
+came back with
+
+> "raw two-track concert-hall recording with room reflections, audible
+> breaths, tape wobble, bleed, dry close-mic room tone and unquantized
+> timing"
+
+So the post-submit pass humanizes what the track **IS**, not what was
+asked for — which is the right thing, because the paraphrase is what
+the next render is built on.
+
+**It is a cover of the SUBMITTED clip**, with `cover_clip_id` naming
+that clip and not the source underneath it. (A plain generation is
+refused on this account; a cover renders and costs nothing.)
+
+**VERIFIED LIVE:** a submitted clip re-covered with the raw layer
+produced two clips, both `complete`, both covering the submitted clip,
+both carrying the raw vocabulary — Suno came back with "rough imperfect
+takes leave honest mistakes in" and "rough unprocessed takes with
+honest mistakes left in". The arrangement came back verbatim, and the
+credits did not move.
+
 ## Files
 
 | file | what it is |
 |---|---|
 | `lib/suno-humanize.js` | the four suffixes, the composition, the overflow rule |
 | `lib/suno-humanize.test.js` | 47 assertions |
+| `lib/suno-post-humanize.js` | the post-submit body and plan |
+| `lib/suno-post-humanize.test.js` | 24 assertions |
+| `lib/suno-post-humanize-run.js` | the runner |
 
 ## Tests
 
