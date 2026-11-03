@@ -12808,3 +12808,15 @@ wrong task. Two In Progress tasks naming the same subject was the
   restrictions). These are limitations, not passing results.
 - Historical Suno credential revocation remains unconfirmed. No credential
   rotation, history rewrite, production merge or deployment was performed.
+
+
+### 2026-11-03 — README screenshot gallery
+
+- Added three browser screenshots of the public deployment: landing page,
+  Twin OS Today dashboard and Mood Frames marketplace. The README identifies
+  the capture date and the Today panel's demo content.
+- Captures visually inspected; image files and relative README links verified.
+  No UI code was changed. This is not a full browser regression-test pass.
+- Observed separately: Songs catalog requests on the public deployment return
+  HTML rather than JSON for the ungenerated song/corpus catalogs. No claim
+  that those catalogs work is implied by this gallery.

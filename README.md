@@ -20,6 +20,15 @@ themselves.
 > from a single stylesheet, re-themed with `?skin=`. See
 > [`DESIGN.md`](DESIGN.md).
 
+## Screenshots
+
+Captured from the public deployment on 3 November 2026. These show the
+interface as served; the Today agenda and pattern statistics are demo content.
+
+| Landing page | Twin OS · Today | Mood Frames marketplace |
+| --- | --- | --- |
+| [![Digital Twin landing page](docs/screenshots/landing.jpg)](docs/screenshots/landing.jpg) | [![Twin OS Today dashboard](docs/screenshots/twin-os-today.jpg)](docs/screenshots/twin-os-today.jpg) | [![Mood Frames marketplace](docs/screenshots/marketplace.jpg)](docs/screenshots/marketplace.jpg) |
+
 ## What this is
 
 A long-running project. The landing page is the public face; the Twin
