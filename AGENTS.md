@@ -12593,7 +12593,94 @@ so existing log consumers keep parsing it. **14 passed / 0 failed.**
   disk.** The LaunchAgents no longer call them, but the shells remain a
   trap for the next reader; they were left in place because deleting
   them is a separate change from the one that made the agents run.
+  **(resolved in sprint 0.91 — both deleted)**
 - Unchanged: the `.kai/` durability call, the woody-shaw chart variants,
   the Vercel custom domain, the MJ cookie jar expiry, the hub board's
   completion misattribution, a reel's slug still derived from its mutable
   POST-sheet title.
+
+### 2026-11-03 — sprint 0.91 (the two shells leave)
+
+Sprint 0.90 made the log rotator and the update check run again, by
+porting them to node — the shell LaunchAgents had died with exit 126
+("Operation not permitted"), because launchd on Sequoia grants
+filesystem access **per binary** and `/bin/bash` has no grant for
+`~/Documents`; `node` does. The ports were shipped; the shells were
+left behind. They were the last two files in `bin/` that no agent
+called, and a second implementation of a thing that has one is a trap
+for the next reader.
+
+**Shipped:**
+
+- **`bin/log-rotate.sh` and `bin/auto-check-updates.sh` deleted**
+  (`git rm`). Both were already dead: the live LaunchAgents point at
+  `~/Library/LaunchAgents/log-rotate-launcher.sh` and
+  `auto-check-updates-launcher.sh`, and those launchers `exec` node
+  against `lib/log-rotate.js` and `lib/auto-check-updates.js`
+  directly. Nothing in the repo or in `~/Library/LaunchAgents`
+  referenced the shells — verified by grep across the tree before the
+  delete, and by the live agents' `last exit code = 0` after it.
+- **The existence assertion in `lib/log-rotate.test.js` flipped, not
+  weakened.** It read "the shell rotator is still present" with the
+  comment *"This assertion exists so a future cleanup removes one
+  deliberately"* — i.e. the assertion was written to be inverted by
+  exactly this change. It now asserts the shell is **absent** and
+  the node one is present. The check count is unchanged (14).
+- **Three stale comments fixed** so the code no longer refers to a
+  file that does not exist: `lib/log-rotate.js` (both the header and
+  the "Why Node at all" paragraph), `lib/auto-check-updates.js`
+  (header), and `lib/agent-hub/lib/log-trim.js` (which explained the
+  TCC exit-126 failure by pointing at the shell rotator's path).
+- **`lib/agent-hub/hub-launch.js`** — the comment that says the
+  launcher is "the only trim path that covers `pids/`" now names
+  `lib/log-rotate.js` rather than the deleted shell.
+- **`docs/CHART-WATCHER.md`** — the Logs section's rotation command
+  now points at `lib/log-rotate.js` (`npm run log:rotate`, or
+  `node lib/log-rotate.js logs/foo.log`) and says why the agent's
+  launcher `exec`s node directly. The section also now states the
+  behavioural difference from the old shell: the node rotator gzips
+  the **content** into `<name>.log.1.gz` and then **truncates the
+  original in place**, so a live writer's `O_APPEND` descriptor stays
+  bound to the same inode instead of being orphaned into a renamed
+  file. The shell renamed the file and gzipped it, which orphaned
+  every open fd.
+
+**Decisions:**
+
+- **Delete rather than keep a shim.** The shells were never a second
+  live path — the node ports were the only path the agents used — so
+  there was no compatibility surface to preserve.
+- **Historical sprint-log entries are not rewritten.** The deletion is
+  recorded here and sprint 0.90's Open bullet is annotated as
+  resolved; the earlier entries that mention the shells stay as they
+  were written, because a log that is edited after the fact is not a
+  log.
+- **No `.kai/` register edit.** The tech-debt list does not reference
+  either shell (TD-001 `lib/mj-web.js`, TD-002 `lib/reel-watcher.js`,
+  TD-003 `lib/midi-export.js`, TD-004
+  `agents/persistent-agent-loop.py`, TD-005 corpus catalog, TD-006
+  corpus search, TD-008 e2e artifacts, TD-009
+  `lib/daily-pipeline.js`/`lib/daily-content.js`), so there is
+  nothing to close.
+
+**Verified:**
+
+- `npm run test:log-rotate` — 14 passed, 0 failed; the flipped check
+  reports `ok the shell rotator is gone and the node one is the only
+  implementation`.
+- `npm run test:all` — exit 0, 42 suites, no failures.
+- `npm run test:secrets` — 9 passed, 0 failed (the one baselined
+  historical finding, `data/suno-cookies.txt` published in an old
+  commit, is unchanged and still needs owner rotation).
+- `launchctl print` for both agents: `com.kaidjuric.digital-twin.log-rotate`
+  (`StartCalendarInterval` 03:00) and
+  `com.kaidjuric.digital-twin.auto-check-updates` (`StartInterval`
+  900) — `last exit code = 0` for both, unaffected by the deletion.
+
+**Open:**
+
+- Unchanged: the `.kai/` durability call, the woody-shaw chart variants,
+  the Vercel custom domain, the MJ cookie jar expiry, the hub board's
+  completion misattribution, a reel's slug still derived from its mutable
+  POST-sheet title.
+- The rotator still sweeps `*.log` only (carried from 0.90).

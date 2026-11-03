@@ -117,11 +117,11 @@ The watcher writes to:
 | `logs/chart-watcher.out.log` | launchd's stdout from `bash bin/chart-watcher.sh` |
 | `logs/chart-watcher.err.log` | launchd's stderr |
 
-Daily rotation at 03:00 is handled by `bin/log-rotate.sh` (also
-shipped in this repo) via the
-`com.kaidjuric.digital-twin.log-rotate` LaunchAgent. Keeps 7
-daily `.gz` rotations, deletes the rest. Not bootstrapped by
-default — install with:
+Daily rotation at 03:00 is handled by `lib/log-rotate.js` (via the
+`com.kaidjuric.digital-twin.log-rotate` LaunchAgent, whose launcher
+`exec`s node directly — launchd on Sequoia cannot read `~/Documents`
+through `/bin/bash`). Keeps 7 daily `.gz` rotations, deletes the
+rest. Not bootstrapped by default — install with:
 
 ```bash
 launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.kaidjuric.digital-twin.log-rotate.plist
@@ -130,9 +130,14 @@ launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.kaidjuric.digital-tw
 Manual rotate:
 
 ```bash
-bin/log-rotate.sh                 # rotate everything in logs/
-bin/log-rotate.sh logs/foo.log    # rotate just one file
+npm run log:rotate                      # rotate everything in logs/
+node lib/log-rotate.js logs/foo.log     # rotate just one file
 ```
+
+The rotator gzips the content into `<name>.log.1.gz` and then
+**truncates the original in place**, so a live writer's append-mode
+file descriptor stays bound to the same inode instead of being
+orphaned into a renamed file.
 
 ## Tests
 
