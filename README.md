@@ -20,6 +20,15 @@ themselves.
 > from a single stylesheet, re-themed with `?skin=`. See
 > [`DESIGN.md`](DESIGN.md).
 
+## Screenshots
+
+Captured from the public deployment on 3 November 2026. These show the
+interface as served; the Today agenda and pattern statistics are demo content.
+
+| Landing page | Twin OS · Today | Mood Frames marketplace |
+| --- | --- | --- |
+| [![Digital Twin landing page](docs/screenshots/landing.jpg)](docs/screenshots/landing.jpg) | [![Twin OS Today dashboard](docs/screenshots/twin-os-today.jpg)](docs/screenshots/twin-os-today.jpg) | [![Mood Frames marketplace](docs/screenshots/marketplace.jpg)](docs/screenshots/marketplace.jpg) |
+
 ## What this is
 
 A long-running project. The landing page is the public face; the Twin
@@ -1047,3 +1056,23 @@ kai-systems visual clothes.
   catalog.
 - **Sprint 3+** — The actual twin. Pattern memory, persistent
   identity, agent fleet. TBD based on what sprint 0-2 reveal.
+
+## Local server security
+
+`npm run serve` binds to `127.0.0.1` by default. LAN access requires an
+explicit `--host` (or `HOST`) setting; only expose it on a trusted network.
+The static server publishes pages, assets, browser modules and the named
+catalog/media directories. It denies dotfiles, cookie/key stores, private
+runtime directories and render-job outputs, including aliases through
+symlinks. Directories without an index return 404 rather than a listing.
+Render-job outputs remain available through their authenticated API route.
+
+Admin credit grants are disabled unless `ADMIN_KEY` is configured. Set a
+unique key in the server environment, outside the repository; the old
+built-in development key is no longer accepted by default. Keep the server
+on loopback for local use. The static Vercel site does not run this API.
+
+Run `npm run test:server-security` for HTTP boundary and cookie-config
+regressions. The check also runs in CI on Node 24 and in `test:all`.
+The historical credential incident remains open until account revocation
+is confirmed; this change does not rotate credentials or rewrite history.

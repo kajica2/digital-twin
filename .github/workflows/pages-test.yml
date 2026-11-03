@@ -32,6 +32,17 @@ permissions:
   deployments: read
 
 jobs:
+  security-regressions:
+    name: Local server security regressions
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test lib/serve-security.test.js
+
   # The repo is PUBLIC, so a cookie committed once is published forever and a
   # later delete cannot take it back. This runs FIRST and on its own, with full
   # history, because that is the only scope in which the question is answerable

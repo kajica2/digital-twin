@@ -12787,3 +12787,36 @@ wrong task. Two In Progress tasks naming the same subject was the
 - Unchanged: the `.kai/` durability call, the woody-shaw chart variants,
   the Vercel custom domain, the MJ cookie jar expiry, a reel's slug still
   derived from its mutable POST-sheet title.
+
+### 2026-11-03 — production security foundation (draft)
+
+- Local HTTP server defaults to loopback and publishes only named public
+  directories/browser modules. Dotfiles, credential stores, private runtime
+  paths and render-job output files are denied, including symlink aliases.
+  Directory listings are disabled; authenticated API downloads are preserved.
+- Admin grants require an explicitly configured ADMIN_KEY; no built-in key.
+- Fixed the secrets guard's five JSON cookie configurations being counted
+  after, rather than included in, the validation loop.
+- Added HTTP regression coverage for private GET/HEAD requests, symlink
+  escapes, public pages/catalogs/ranges, admin grants and job ownership;
+  added config-path regressions and a Node 24 CI job.
+- Verified: new regression tests 3/3, secrets guard 9/0, syntax and diff checks.
+  Broad tests encountered existing platform prerequisites: the lettering
+  suite requires macOS fonts; daily-reels fails its image-size probe here,
+  and YouTube-poster tests depend on an unavailable local cookie jar.
+  Puppeteer landing validation could not launch Chromium (socket/ptrace
+  restrictions). These are limitations, not passing results.
+- Historical Suno credential revocation remains unconfirmed. No credential
+  rotation, history rewrite, production merge or deployment was performed.
+
+
+### 2026-11-03 — README screenshot gallery
+
+- Added three browser screenshots of the public deployment: landing page,
+  Twin OS Today dashboard and Mood Frames marketplace. The README identifies
+  the capture date and the Today panel's demo content.
+- Captures visually inspected; image files and relative README links verified.
+  No UI code was changed. This is not a full browser regression-test pass.
+- Observed separately: Songs catalog requests on the public deployment return
+  HTML rather than JSON for the ungenerated song/corpus catalogs. No claim
+  that those catalogs work is implied by this gallery.
