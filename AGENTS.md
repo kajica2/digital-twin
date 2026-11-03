@@ -12680,7 +12680,110 @@ for the next reader.
 **Open:**
 
 - Unchanged: the `.kai/` durability call, the woody-shaw chart variants,
-  the Vercel custom domain, the MJ cookie jar expiry, the hub board's
-  completion misattribution, a reel's slug still derived from its mutable
-  POST-sheet title.
+  the Vercel custom domain, the MJ cookie jar expiry, a reel's slug still
+  derived from its mutable POST-sheet title.
+  **(the hub board's completion misattribution is resolved in sprint
+  0.92 — ops is now the single verification dispatcher and owns a
+  pending-verification ledger)**
 - The rotator still sweeps `*.log` only (carried from 0.90).
+
+### 2026-11-03 — sprint 0.92 (the hub board stops blaming the wrong task)
+
+A standing open item since 2026-10-23: *"the task board misattributes a
+completion when two In Progress tasks name the same subject."* The check
+agent reports **what it verified** (`result.target`, e.g.
+`agents/TASKS.md`), not which task the request came from — so a
+containment match could move a *different* In Progress task to Done. The
+board is the human view of what the fleet did, so a wrong row is a wrong
+record.
+
+**The discovery that reframed the bug.** The live anomaly was not a
+loose matcher; it was a **routing** fault. The twin used to send
+`Verify: …` straight to the check agent, bypassing ops. The check
+agent's reply therefore arrived at ops with **no pending entry to match
+against**, and ops fell back to legacy subject-containment matching
+against the board's text — which is exactly the path that can pick the
+wrong task. Two In Progress tasks naming the same subject was the
+*symptom*; a verification that ops never knew about was the *cause*.
+
+**Shipped — one dispatcher, one ledger.**
+
+- **The twin no longer talks to the check agent.** The
+  `require('../../lib/check-brain.js')` and the `sendToCheck` helper are
+  **deleted**, not demoted. The twin now sends `Verify task: <task>` to
+  **ops** — the one agent that owns the board.
+- **`lib/agent-hub/lib/ops-brain.js` — the pending-verification
+  ledger** (pure, exported, unit-testable): `emptyPending`,
+  `addPending`, `pendingMatches`, `matchPending`, `takePending`,
+  `completeTaskExact`, `applyVerification`, `parsePending`,
+  `renderPending`, plus `parseVerifyTask` (which recognises a
+  `verify task: …` message and extracts the task text).
+- **`lib/agent-hub/agents/ops/swr-ops.js` — ops is the dispatcher.**
+  `dispatchVerification(task)` derives the request with
+  `checkBrain.verificationRequest(task)`, derives the reply target with
+  `checkBrain.classifyRequest(request).target`, records
+  `{task, request, target, at}` and **persists the ledger before it
+  sends the request** (a fast reply cannot arrive before correlation
+  exists), then sends `Verify: <request>` to check. The ledger lives at
+  `lib/agent-hub/ops/pending.json` and is reloaded in `main()`, so it
+  survives an ops restart.
+- **`applyVerification(board, ledger, subject, passed)`** resolves the
+  reply against the **dispatch**, not the board's text: it takes the
+  matching ledger entry and moves exactly the task that was recorded.
+  With no ledger entry it falls back to the legacy `completeTask`
+  behaviour, so a hand-driven `check <msg>` reply still works.
+- **`.gitignore`** — `lib/agent-hub/*/pending.json` (runtime state, like
+  the pids and the inboxes).
+
+**Decisions:**
+
+- **Ops is the single dispatcher, not a second one.** Two agents sending
+  verifications is how the reply lost its correlation in the first
+  place.
+- **Record before dispatch.** The ledger entry is written *before* the
+  check request leaves, so a reply that arrives in the same tick still
+  finds its entry.
+- **Duplicate targets resolve oldest-first.** `matchPending` uses a
+  strict `>` so a tie keeps the FIRST entry, and check replies are
+  generated in dispatch order.
+- **`completeTaskExact` is a separate function from `completeTask`.**
+  The legacy path ("subject not on the board → push it into Done") is
+  still wanted for hand-driven replies; the ledger path must move
+  *exactly* the recorded task and nothing else. Folding them together
+  would have re-broken the case 0.91 fixed.
+- **The `ops done` path stays confirmatory.** `applyCommand('done')`
+  already moved the task to Done before dispatching the verification, so
+  the later ledger match returns `Already done: X` and adds no stray
+  subject.
+
+**Verified:**
+
+- `node lib/agent-hub/hub.test.js` — **185 passed, 0 failed** (up from
+  139). Two new sections: *5b — the pending-verification ledger* (the
+  pure functions: add, match, take, exact-completion, apply-with-ledger,
+  apply-without-ledger, parse/render round-trip) and *5c — the one-
+  dispatcher routing contract* (the twin sends `Verify task:` to ops and
+  **no longer mentions check**; ops derives the request; the ledger is
+  persisted before the request is sent).
+- **Three guards proved to bite** (mutate → red → restore → 185/0):
+  `if (taken.entry)` → `if (false && taken.entry)` → 177/1;
+  `completeTaskExact` → `completeTask` → 176/2;
+  `parseVerifyTask`'s `if (match) return null;` → 183/2.
+- `npm run test:all` — **exit 0**, 42 suites, no failures (75.01 s).
+- `npm run test:secrets` — 9 passed, 0 failed (the one baselined
+  historical finding is unchanged).
+- **The live round trip, observed** (`lib/agent-hub/ops/logs.txt`):
+  the dispatched task moved to Done **with its full task text**; the
+  same-subject task that was never dispatched (the twin escalated it —
+  no focus keyword) stayed In Progress; **no bare `agents/TASKS.md` Done
+  row** was created — the exact misattribution that was fixed. The
+  ledger emptied to `[]`.
+- The board and the ledger were restored to their pristine state
+  afterwards, and the hub restarted (`agent-hub.sh restart` — launchd's
+  `ensure` does not restart already-alive agents).
+
+**Open:**
+
+- Unchanged: the `.kai/` durability call, the woody-shaw chart variants,
+  the Vercel custom domain, the MJ cookie jar expiry, a reel's slug still
+  derived from its mutable POST-sheet title.

@@ -143,6 +143,7 @@ lib/agent-hub/*/inbox/
 lib/agent-hub/*/commands/
 lib/agent-hub/agents/*/logs.txt
 lib/agent-hub/check/verifications.md
+lib/agent-hub/*/pending.json
 lib/agent-hub/memory/
 
 # Midjourney cookie jars — SECRET (session tokens). Never commit.
