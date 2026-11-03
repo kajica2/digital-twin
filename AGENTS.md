@@ -12787,3 +12787,11 @@ wrong task. Two In Progress tasks naming the same subject was the
 - Unchanged: the `.kai/` durability call, the woody-shaw chart variants,
   the Vercel custom domain, the MJ cookie jar expiry, a reel's slug still
   derived from its mutable POST-sheet title.
+
+
+### 2026-11-03 — repository navigation and product voice
+
+- Added docs/REPOSITORY-GUIDE.md with task-based entry points, existing directory responsibilities, file-move dependency checks, and product voice guidance.
+- Linked the guide from README.md and connected the workspace to Kai Djuric’s musician/inventor/creative-technologist identity.
+- Validation: all seven internal guide links resolve in the checkout. The prescribed npm run e2e was attempted after installing its dependencies, but Chromium could not launch because the environment refused its singleton socket (Operation not permitted). Browser verification remains pending.
+- Scope: documentation and repository navigation. Runtime behaviour and existing module paths are unchanged.
