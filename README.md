@@ -1,5 +1,11 @@
 # digital_twin
 
+## Start here
+
+[Repository guide](docs/REPOSITORY-GUIDE.md) — entry points, module responsibilities, and the product voice.
+
+Digital Twin is the organising side of Kai Djuric’s creative practice: a local-first workspace for music catalogues, media preparation, and repeatable workflows.
+
 **→ Live at [kajica2.github.io/digital-twin/](https://kajica2.github.io/digital-twin/)**
 
 A personal AI twin that knows your stack, your taste, your schedule,
