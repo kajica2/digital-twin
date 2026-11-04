@@ -1,7 +1,46 @@
 {
-  "updatedAt": "2026-11-02T23:24:57.497Z",
-  "count": 23,
+  "updatedAt": "2026-11-04T23:25:13.545Z",
+  "count": 24,
   "collections": [
+    {
+      "date": "2026-11-05",
+      "key": "2026-11-05",
+      "id": "low-tide-radio",
+      "title": "Low Tide Radio",
+      "badge": "deep house",
+      "teaser": "The signal gets better the further out you go.",
+      "aspect": "16:9",
+      "dir": "assets/marketplace/daily/2026-11-05",
+      "plates": [
+        {
+          "file": "frame-01.jpg",
+          "caption": "antenna · shore",
+          "alt": "A radio mast on a wide empty shore at low tide, wet sand leading out to it, flat light.",
+          "prompt": "a radio mast on a wide empty shore at low tide, wet sand leading out to it, flat overcast light, long lens, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "e9eb4d21-8fa2-44b8-90b4-adf3c4ef556d",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-02.jpg",
+          "caption": "receiver · dial",
+          "alt": "A valve receiver lit by its own dial lamp, the tuning needle resting slightly off centre.",
+          "prompt": "a valve radio receiver lit by its own dial lamp, the tuning needle resting slightly off centre, dark room, close-up, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "64519580-0246-492f-81d7-e26960f86e53",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-03.jpg",
+          "caption": "pier · cables",
+          "alt": "A concrete pier running into flat water, cables running along its edge, a lamp at the far end.",
+          "prompt": "a concrete pier running into flat water, cables running along its edge, one lamp at the far end, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "32338688-bca4-440b-9940-21f81df2222b",
+          "width": 1280,
+          "height": 717
+        }
+      ]
+    },
     {
       "date": "2026-11-03",
       "key": "2026-11-03",
