@@ -1,7 +1,46 @@
 {
-  "updatedAt": "2026-11-04T23:25:13.545Z",
-  "count": 24,
+  "updatedAt": "2026-11-05T23:24:40.915Z",
+  "count": 25,
   "collections": [
+    {
+      "date": "2026-11-06",
+      "key": "2026-11-06",
+      "id": "greenhouse-night",
+      "title": "Greenhouse Night",
+      "badge": "soundhealing",
+      "teaser": "Warmth kept alive on purpose, against the dark.",
+      "aspect": "16:9",
+      "dir": "assets/marketplace/daily/2026-11-06",
+      "plates": [
+        {
+          "file": "frame-01.jpg",
+          "caption": "glasshouse · lamp",
+          "alt": "A small glasshouse lit from inside at night, condensation on the panes, dark garden beyond.",
+          "prompt": "a small glasshouse lit from inside at night, condensation on the panes, dark garden beyond, one warm lamp, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "3749cb24-60f3-4e12-b001-247d90e53113",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-02.jpg",
+          "caption": "benches · seedlings",
+          "alt": "Rows of seedling trays on wooden benches under a grow lamp, watering can at the end.",
+          "prompt": "rows of seedling trays on wooden benches under a grow lamp, a watering can at the end of the row, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "8a55116a-76c7-4362-8f01-eb4a2cdc652d",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-03.jpg",
+          "caption": "ivy · pane",
+          "alt": "Ivy pressing against a window pane from outside, lit from within, the leaves half in shadow.",
+          "prompt": "ivy pressing against a window pane from the outside, lit from within so the leaves are half in shadow, close-up, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "5078317a-5d7a-447d-a496-4236c92305cf",
+          "width": 1280,
+          "height": 717
+        }
+      ]
+    },
     {
       "date": "2026-11-05",
       "key": "2026-11-05",
