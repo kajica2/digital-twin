@@ -119,6 +119,40 @@ For a clip that must cut on beats rather than a fixed cadence, the Loopable
 Video Segmenter is the other half
 ([`docs/LOOPABLE-VIDEO-SEGMENTER.md`](LOOPABLE-VIDEO-SEGMENTER.md)).
 
+### From an MJ set to a film
+
+An MJ set stores four cells per prompt (`0_0`…`0_3`) and a `manifest.json`
+that records **which cell was picked** for each frame, plus the camera move, the
+look effects and the sequence grade the cut used. `bin/images-to-mp4.mjs` wants a
+flat, ordered directory of stills and a cut list — `bin/mj-set-frames.mjs` is the
+step in between:
+
+```bash
+# stage the chosen cells, in order, and print the render command
+node bin/mj-set-frames.mjs mj-output/till-you-get-the-light-camera-grid
+
+# …with a track under it (the render is cut to the track)
+node bin/mj-set-frames.mjs mj-output/till-you-get-the-light-camera-grid \
+  --audio "/path/to/track.mp3" --total 254.93 --render
+```
+
+It reads the manifest, copies the chosen cell of each frame into
+`data/mp4/frames/<set>/` as `01-…`, `02-…` (the names sort, and the tool looks
+motions and effects up **by name**, so the order survives), and hands back the
+exact `images-to-mp4` command with the set's `--motions`, `--fx` and `--grade`.
+
+Two things to know when you mux a track:
+
+- **`--total` beats the track's length.** With `--audio` the render is cut to the
+  **shorter** of the video and the audio, so a still set that is shorter than the
+  track gives you a truncated song. Size the set with `--total` (or `--each`) to
+  the track's real length.
+- **An MP3 can lie about its length.** A VBR file with no Xing header makes
+  ffmpeg *estimate* the duration from the bitrate (`Estimating duration from
+  bitrate, this may be inaccurate`) and the estimate can be tens of seconds long.
+  `ffmpeg -i track.mp3 -f null -` prints the length that actually decodes; use
+  that, not `ffprobe`'s header value.
+
 ## Open
 
 ### Look effects

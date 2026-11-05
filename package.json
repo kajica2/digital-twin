@@ -70,6 +70,7 @@
     "test:secrets": "node lib/secrets-guard.test.js",
     "test:images-mp4": "node lib/render/images-to-mp4.test.mjs",
     "images:mp4": "node bin/images-to-mp4.mjs",
+    "mj:frames": "node bin/mj-set-frames.mjs",
     "gumroad:check": "node lib/gumroad.js check",
     "gumroad:plan": "node lib/gumroad.js plan",
     "gumroad:sync": "node lib/gumroad.js sync --apply",
