@@ -143,15 +143,22 @@ exact `images-to-mp4` command with the set's `--motions`, `--fx` and `--grade`.
 
 Two things to know when you mux a track:
 
-- **`--total` beats the track's length.** With `--audio` the render is cut to the
-  **shorter** of the video and the audio, so a still set that is shorter than the
-  track gives you a truncated song. Size the set with `--total` (or `--each`) to
-  the track's real length.
+- **The stills are sized to the track automatically.** With `--audio` and no
+  `--total`/`--each`, the set is cut to the length the track **actually decodes
+  to** — not to a length you guessed. Pass `--total` to override it, and the
+  tool warns when the clip is longer than the song (the render is cut to the
+  shorter of the two, so the song would be truncated).
 - **An MP3 can lie about its length.** A VBR file with no Xing header makes
   ffmpeg *estimate* the duration from the bitrate (`Estimating duration from
-  bitrate, this may be inaccurate`) and the estimate can be tens of seconds long.
-  `ffmpeg -i track.mp3 -f null -` prints the length that actually decodes; use
-  that, not `ffprobe`'s header value.
+  bitrate, this may be inaccurate`) and the estimate can be tens of seconds out —
+  40 s on one real track, 40 s short on another. The tool decodes the file to
+  measure it (`lib/render/audio.mjs`), prints the disagreement, and sizes the
+  stills to the decoded length. `ffmpeg -i track.mp3 -f null -` prints the same
+  number if you want to see it yourself.
+
+The `--dry-run` output is the command that will actually run — the audio input,
+the mapping and `-shortest` included — so the preview can be checked before
+spending a render.
 
 ## Open
 

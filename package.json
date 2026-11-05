@@ -69,6 +69,7 @@
     "test:gumroad": "node lib/gumroad.test.js",
     "test:secrets": "node lib/secrets-guard.test.js",
     "test:images-mp4": "node lib/render/images-to-mp4.test.mjs",
+    "test:audio-track": "node lib/render/audio.test.mjs",
     "images:mp4": "node bin/images-to-mp4.mjs",
     "mj:frames": "node bin/mj-set-frames.mjs",
     "gumroad:check": "node lib/gumroad.js check",

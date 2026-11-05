@@ -36,7 +36,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { collectImages, parseSize, planDurations, SIZE_PRESETS } from '../lib/render/sets.mjs';
-import { renderImagesToMp4 } from '../lib/render/server.mjs';
+import { renderImagesToMp4, withAudio } from '../lib/render/server.mjs';
+import { measureTrack } from '../lib/render/audio.mjs';
 import { DEFAULTS, FX } from '../lib/render/plan.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -166,11 +167,45 @@ try {
   }
   const fx = fxList && fxList.length === 1 ? fxList[0] : fxList;
 
+  // A track's length is measured by DECODING it, not by reading its header:
+  // an MP3 without a Xing header makes ffmpeg estimate the duration from the
+  // bitrate, and the estimate can be tens of seconds out. The render is cut
+  // to the shorter of video and audio, so a still set sized against a wrong
+  // number truncates the song.
+  const audioArg = val('--audio', null);
+  const audioPath = audioArg ? path.resolve(REPO, audioArg) : null;
+  let track = null;
+  if (audioPath) {
+    track = measureTrack(audioPath);
+    if (track.seconds === null) {
+      process.stderr.write(`[images→mp4] could not measure ${audioArg} — the render will be cut to the shorter stream\n`);
+    } else {
+      if (Math.abs(track.headerOffBy) > 0.5) {
+        process.stderr.write(
+          `[images→mp4] ${audioArg}: the header claims ${track.headerSeconds}s, the audio really is ${track.seconds}s `
+          + `— using the decoded length\n`,
+        );
+      }
+    }
+  }
+
+  // The still set covers the whole track unless the operator said otherwise.
+  const totalArg = val('--total', undefined);
+  const eachArg = val('--each', undefined);
+  let total = totalArg;
+  if (total === undefined && eachArg === undefined && track && track.seconds !== null) {
+    total = String(track.seconds);
+  } else if (total !== undefined && track && track.seconds !== null && Number(total) > track.seconds + 0.5) {
+    process.stderr.write(
+      `[images→mp4] the clip is ${Number(total).toFixed(2)}s but ${audioArg} is only ${track.seconds}s — the song will be cut short\n`,
+    );
+  }
+
   const { each } = planDurations({
     count: images.length,
     fps,
-    each: val('--each', 2.5),
-    total: val('--total', undefined),
+    each: eachArg === undefined ? 2.5 : eachArg,
+    total,
     transition: mode === 'crossfade' ? 'crossfade' : 'none',
     fade,
   });
@@ -200,7 +235,7 @@ try {
     container: 'mp4',
     outputName: path.basename(outPath),
     workDir: path.dirname(outPath),
-    audioPath: val('--audio', null) ? path.resolve(REPO, val('--audio')) : null,
+    audioPath,
   };
 
   if (has('--json') || has('--dry-run')) {
@@ -225,6 +260,10 @@ try {
     });
     const args = [...plan.args];
     args[args.length - 1] = outPath;
+    // The audio is spliced in by the executor, so the dry run has to splice
+    // it in too — otherwise the printed command is not the command that
+    // runs, and the one thing the dry run exists to check is exactly that.
+    const finalArgs = audioPath ? withAudio(args, images.length, audioPath) : args;
     const summary = {
       mode,
       size: `${width}x${height}`,
@@ -232,16 +271,19 @@ try {
       count: plan.inputNames.length,
       each: Number(each.toFixed(3)),
       durationSec: Number(plan.totalDuration.toFixed(3)),
+      audio: audioPath,
+      trackSeconds: track ? track.seconds : null,
+      trackHeaderSeconds: track ? track.headerSeconds : null,
       outPath,
       images: plan.inputNames,
       filterComplex: plan.filterComplex,
-      args,
+      args: finalArgs,
     };
     if (has('--json')) {
       process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`);
     } else {
       process.stdout.write(`[images→mp4] ${summary.count} image(s) · ${mode} · ${summary.size} · ${fps}fps · ${summary.durationSec}s\n`);
-      process.stdout.write(`[images→mp4] ffmpeg ${args.map((a) => (/[^\w./:=+-]/.test(a) ? JSON.stringify(a) : a)).join(' ')}\n`);
+      process.stdout.write(`[images→mp4] ffmpeg ${finalArgs.map((a) => (/[^\w./:=+-]/.test(a) ? JSON.stringify(a) : a)).join(' ')}\n`);
     }
     process.exit(0);
   }
