@@ -41,7 +41,12 @@ import puppeteer from 'puppeteer';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 const ART = join(__dirname, 'artifacts', 'twin-os');
-const PORT = 5174; // different from landing.spec.mjs so they don't collide
+// The port is overridable so the spec can run when 5174 is taken by
+// something else on the machine (the other specs in this folder already
+// take PORT; this one used to hardcode it and exited silently when the
+// port was busy — the listen failed, the promise never resolved, and
+// node quit 0 with no output at all).
+const PORT = Number(process.env.PORT) || 5174; // different from landing.spec.mjs so they don't collide
 
 // E2E_URL semantics:
 //   - undefined → local server on :5174 serving pages/twin-os/
@@ -82,6 +87,18 @@ function startServer(rootDir) {
     try {
       const u = new URL(req.url, BASE);
       let p = u.pathname === '/' ? '/pages/twin-os/index.html' : u.pathname;
+      // /api/tts does not exist on a static host. The deployed site
+      // (Vercel) rewrites EVERY path to the landing page with a 200, so
+      // the static server answers the same way here — otherwise the local
+      // run and the deployed run would exercise different code, and the
+      // content-type guard the control relies on would never be tested.
+      if (p === '/api/tts') {
+        const html = '<!doctype html><title>landing</title>';
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.end(html);
+        return;
+      }
       // The server roots at the repo root (as Pages does), so /data/
       // resolves naturally. The explicit branch is kept because the
       // shell fetches ../../data/<x> relative to /pages/twin-os/ and
@@ -144,6 +161,13 @@ async function main() {
     await page.setViewport({ width: 1280, height: 900, deviceScaleFactor: 1 });
 
     const consoleErrors = [];
+    // The Speak exercise below deliberately calls /api/tts, which does not
+    // exist on the static server this spec runs. Chrome logs that 404 as a
+    // console error — and it arrives ASYNCHRONOUSLY, after the request
+    // has already failed, so filtering it out after the fact would race
+    // the log. It is classified here, at the source: the control reporting
+    // an error is not a page fault.
+    const expectedApiErrors = [];
     page.on('pageerror', e => consoleErrors.push(`pageerror: ${e.message}`));
     page.on('console', m => {
         if (m.type() === 'error') {
@@ -157,6 +181,11 @@ async function main() {
             if (/data\/flux\//.test(url) && text.includes('404')) return;
             // Some script tags reference gitignored paths (fallback behavior).
             if (text.includes('404') && text.includes('script')) return;
+            // The Speak control's own call — counted, not failed.
+            if (url.includes('/api/tts')) {
+                expectedApiErrors.push(`console.error: ${text} (${url})`);
+                return;
+            }
             consoleErrors.push(`console.error: ${text} (${url})`);
         }
     });
@@ -245,6 +274,115 @@ async function main() {
     const toggleBtns = await page.$$eval('theme-toggle button', els => els.map(b => b.dataset.value));
     assert(JSON.stringify(toggleBtns) === '["light","system","dark"]', `theme-toggle has 3 buttons: ${JSON.stringify(toggleBtns)}`);
 
+    // --- 6b. Speak control — the twin reads a line back ---
+    //
+    // The control is asserted on its structure, and then EXERCISED: type a
+    // line, press Speak, and check the control reports back. What it
+    // reports depends on the environment, and both answers are correct:
+    //
+    //   - deployed (Vercel rewrites every path to the landing page): the
+    //     body is HTML, not audio, so the control says so;
+    //   - the local static server in this spec: /api/tts does not exist,
+    //     so it answers 404 and the control says so.
+    //
+    // What must hold in BOTH is that the control reports something, the
+    // button comes back (never stuck disabled), and no audio is played.
+    const speak = await page.evaluate(() => {
+      const form = document.querySelector('[data-speak-form]');
+      const input = document.querySelector('[data-speak-input]');
+      const button = document.querySelector('[data-speak-button]');
+      const status = document.querySelector('[data-speak-status]');
+      const player = document.querySelector('[data-speak-player]');
+      return {
+        formInToday: !!(form && form.closest('.panel[data-panel="today"]')),
+        hasInput: !!input,
+        buttonLabel: button ? button.textContent.trim() : null,
+        hasStatus: !!status,
+        hasPlayer: !!player,
+        playerHidden: player ? player.hidden : null,
+      };
+    });
+    assert(speak.formInToday, 'the Speak control lives in the Today panel');
+    assert(speak.hasInput, 'the Speak control has a text field');
+    assert(speak.buttonLabel === 'Speak', `the Speak button reads "Speak" (got ${JSON.stringify(speak.buttonLabel)})`);
+    assert(speak.hasStatus, 'the Speak control has a status line');
+    assert(speak.hasPlayer, 'the Speak control has an audio player');
+    assert(speak.playerHidden === true, 'the audio player starts hidden');
+
+    // Watch the button's disabled state across the call. A double-submit
+    // would spend the API key twice, so the control has to disable the
+    // button while the request is in flight. The states are recorded by
+    // wrapping the property, because the disabled window is too short to
+    // catch by polling.
+    await page.evaluate(() => {
+      const button = document.querySelector('[data-speak-button]');
+      window.__speakDisabledStates = [];
+      const desc = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(button), 'disabled');
+      Object.defineProperty(button, 'disabled', {
+        get() { return desc.get.call(this); },
+        set(value) {
+          window.__speakDisabledStates.push(value);
+          desc.set.call(this, value);
+        },
+        configurable: true,
+      });
+    });
+
+    await page.type('[data-speak-input]', 'The twin is online.');
+    await page.click('[data-speak-button]');
+    // Wait for the control to SETTLE, not just to say something: the
+    // status line reads "Synthesizing…" while the request is still in
+    // flight, so waiting on the status alone would race the button being
+    // re-enabled. The contract is that the button comes back AND the
+    // status is a settled message.
+    await page.waitForFunction(
+      () => {
+        const button = document.querySelector('[data-speak-button]');
+        const status = document.querySelector('[data-speak-status]');
+        if (!button || button.disabled) return false;
+        const text = (status?.textContent || '').trim();
+        return text.length > 0 && text !== 'Synthesizing…';
+      },
+      { timeout: 15000 }
+    ).catch(() => {});
+    const spoke = await page.evaluate(() => {
+      const status = document.querySelector('[data-speak-status]');
+      const button = document.querySelector('[data-speak-button]');
+      const player = document.querySelector('[data-speak-player]');
+      return {
+        status: (status?.textContent || '').trim(),
+        tone: status?.getAttribute('data-tone') || null,
+        buttonEnabled: button ? !button.disabled : null,
+        playerHasSrc: player ? !!player.getAttribute('src') : null,
+        playerHidden: player ? player.hidden : null,
+        disabledStates: window.__speakDisabledStates || [],
+      };
+    });
+    assert(spoke.status.length > 0, `Speak reports back (got ${JSON.stringify(spoke.status)})`);
+    // The status has to be a SETTLED message. "Synthesizing…" would satisfy
+    // "says something" while the request was still in flight, and the
+    // control would be claiming a result it never got.
+    assert(spoke.status !== 'Synthesizing…',
+      `Speak reports a settled result (got ${JSON.stringify(spoke.status)})`);
+    assert(spoke.tone === 'error',
+      `the failure is marked as an error (got tone ${JSON.stringify(spoke.tone)})`);
+    assert(spoke.buttonEnabled === true, 'the Speak button is usable again after the call');
+    // The button is disabled while the request is in flight, so a
+    // double-submit cannot spend the key twice.
+    assert(spoke.disabledStates.includes(true),
+      `the button is disabled during the call (states: ${JSON.stringify(spoke.disabledStates)})`);
+    assert(spoke.disabledStates.includes(false),
+      `the button is re-enabled afterwards (states: ${JSON.stringify(spoke.disabledStates)})`);
+    // The body here is HTML (the deployed rewrite answers every path with
+    // the landing page), so the control must NOT treat it as audio.
+    assert(spoke.playerHasSrc === false, 'a non-audio body is not played');
+    assert(spoke.playerHidden === true, 'the player stays hidden when there is no audio');
+
+    // The /api/tts call is expected to fail in this environment (there is
+    // no API on the static server), and the browser logs that 404 as a
+    // console error. It was classified at the source (see the console
+    // handler above) so it is counted, never failed.
+    log(`(ignored ${expectedApiErrors.length} expected /api/tts error(s) from the exercise above)`);
     // --- 7. data-theme attribute present ---
     const dataTheme = await page.$eval('html', el => el.getAttribute('data-theme'));
     assert(dataTheme === 'light' || dataTheme === 'dark', `data-theme set to ${dataTheme}`);

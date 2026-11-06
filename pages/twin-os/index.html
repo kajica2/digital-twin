@@ -425,6 +425,66 @@
       cursor: not-allowed;
     }
 
+    /* Speak — the twin reads a line back. Same visual language as the
+       agenda form: one field, one button, one status line. */
+    .speak-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .speak-input {
+      flex: 1;
+      appearance: none;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font: inherit;
+      font-size: 14px;
+      color: var(--ink);
+    }
+    .speak-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+    .speak-btn {
+      appearance: none;
+      background: var(--primary);
+      color: #fff;
+      border: 1px solid var(--primary);
+      border-radius: 10px;
+      padding: 10px 18px;
+      font: inherit;
+      font-size: 13.5px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: filter 0.15s ease, transform 0.05s ease;
+    }
+    .speak-btn:hover { filter: brightness(1.05); }
+    .speak-btn:active { transform: translateY(1px); }
+    .speak-btn:disabled {
+      background: var(--bg-warm);
+      color: var(--ink-faint);
+      border-color: var(--line);
+      cursor: not-allowed;
+    }
+    .speak-status {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--ink-faint);
+      margin: 10px 0 0;
+      min-height: 1.2em;
+    }
+    .speak-status[data-tone="error"] { color: var(--accent-3-text); }
+    .speak-player {
+      margin-top: 12px;
+      width: 100%;
+      max-width: 420px;
+    }
+
     /* User-added items — visually distinct from the seeded ones. */
     .agenda-item[data-user="true"] {
       background: var(--primary-soft);
@@ -1046,6 +1106,28 @@
               maxlength="200" />
             <button type="submit" class="agenda-add-btn">Add</button>
           </form>
+        </div>
+
+        <!-- SPEAK — the twin reads a line back, in Mistral's Voxtral voice.
+             The API lives on the local server (POST /api/tts); the page
+             plays what comes back. Without MISTRAL_API_KEY the server
+             answers 503 and the status line says so. -->
+        <div class="panel-section">
+          <h2>Speak</h2>
+          <p class="lede">Type a line and the twin says it back — Voxtral TTS 3, rendered on the local server through <code>POST /api/tts</code>. Nothing is stored.</p>
+          <form class="speak-row" data-speak-form aria-label="Speak a line">
+            <input
+              type="text"
+              class="speak-input"
+              data-speak-input
+              placeholder="Say something…"
+              aria-label="Text to speak"
+              autocomplete="off"
+              maxlength="500" />
+            <button type="submit" class="speak-btn" data-speak-button>Speak</button>
+          </form>
+          <p class="speak-status" data-speak-status role="status" aria-live="polite"></p>
+          <audio class="speak-player" data-speak-player controls preload="none" hidden></audio>
         </div>
 
         <div class="panel-section">
@@ -1965,6 +2047,107 @@
       input.value = '';
       input.focus();
     });
+  })();
+
+  /* ===========================================================
+     Speak — ask the local server for the audio, then play it.
+
+     The page never talks to Mistral itself: the key lives in the
+     server's environment. The server answers with the audio bytes,
+     which become a blob URL on an <audio> element.
+     ============================================================ */
+  (function () {
+    const form   = document.querySelector('[data-speak-form]');
+    const input  = document.querySelector('[data-speak-input]');
+    const button = document.querySelector('[data-speak-button]');
+    const status = document.querySelector('[data-speak-status]');
+    const player = document.querySelector('[data-speak-player]');
+    if (!form || !input || !button || !status || !player) return;
+
+    // The API is served by lib/serve.js from the repo root, so the path is
+    // absolute. On the static deploy (Pages/Vercel) there is no /api/tts at
+    // all — the status line says so instead of failing silently.
+    const API_URL = '/api/tts';
+
+    let objectUrl = null;
+
+    function say(message, tone) {
+      status.textContent = message || '';
+      if (tone) status.setAttribute('data-tone', tone);
+      else status.removeAttribute('data-tone');
+    }
+
+    function releaseAudio() {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+        objectUrl = null;
+      }
+      player.removeAttribute('src');
+      player.hidden = true;
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text) {
+        say('Type something first.', 'error');
+        return;
+      }
+
+      button.disabled = true;
+      say('Synthesizing…');
+
+      let res;
+      try {
+        res = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ text }),
+        });
+      } catch (err) {
+        button.disabled = false;
+        say('The local server is not reachable — is it running?', 'error');
+        return;
+      }
+
+      if (!res.ok) {
+        button.disabled = false;
+        // The server answers errors as JSON { error }. A static deploy
+        // answers 404 with HTML, so fall back to the status line.
+        let message = 'HTTP ' + res.status;
+        try {
+          const body = await res.json();
+          if (body && body.error) message = body.error;
+        } catch (err) { /* not JSON — keep the status line */ }
+        say(message, 'error');
+        return;
+      }
+
+      // The static deploy rewrites every path to the landing page with a
+      // 200, so a 200 alone does not mean "here is the audio" — check the
+      // content type before treating the body as a sound file.
+      const type = (res.headers.get('content-type') || '').split(';')[0].trim();
+      if (!type.startsWith('audio/')) {
+        button.disabled = false;
+        say('The server did not return audio — is the local API running?', 'error');
+        return;
+      }
+
+      const blob = await res.blob();
+      button.disabled = false;
+      releaseAudio();
+      objectUrl = URL.createObjectURL(blob);
+      player.src = objectUrl;
+      player.hidden = false;
+      say('Playing.');
+      try {
+        await player.play();
+      } catch (err) {
+        say('Ready — press play.', 'error');
+      }
+    });
+
+    player.addEventListener('ended', () => say('Done.'));
   })();
 </script>
 </body>

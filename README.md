@@ -39,7 +39,10 @@ For now, what's here:
   JetBrains Mono, warm copper), paired light + dark, WCAG AA in both
   themes.
 - **`pages/twin-os/`** — the Twin OS PWA shell (Today / Songs / Twin
-  panels) with the song catalog surfaced in Songs.
+  panels) with the song catalog surfaced in Songs, and a **Speak**
+  control that reads a line back in Mistral's Voxtral TTS 3 voice
+  (`POST /api/tts` on the local server — see
+  `docs/VOXTRAL-TTS.md`).
 - **`pages/clip-interrogator.html`** — the CLIP Interrogator port
   (image→prompt + image analysis), docs and sibling link from the
   Twin OS Songs panel.
