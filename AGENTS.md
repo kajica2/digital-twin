@@ -12960,3 +12960,54 @@ path resolves outside the tree ✓ ✓). The Treblo **app** API
 (`treblo.com/api/v1/tracks` ✓) is behind **Cloudflare** ✓ — a plain
 request gets a 403 challenge page ✓ — so anything that needs the app's
 library has to go through a real browser ✓ ✓.
+
+### 2026-11-07 — the master suffix, and the Kišna soba reference set
+
+**The master suffix is set** (2026-11-07 ✓):
+
+```
+--seed 1451495020 --sref 667921269 --raw --stylize 21
+```
+
+It lives in `lib/mj-config.json` as `mj.defaultArgs` ✓ (the flags every
+render carries unless the prompt names its own ✓) and in `mj.master.suffix`
+✓ — with the seed ✓, the style reference ✓ and the brief ✓ recorded beside
+it ✓ ✓.
+
+**A real bug the setting exposed ✓.** The prompt builder's guard for the
+style slot knew `--s` but **not `--stylize`** ✗ — and `--stylize` is the
+long spelling of the same parameter ✗. So a prompt asking for
+`--stylize 50` had the master's `--stylize 21` appended after it ✓ and
+**MJ took the last one** ✓: the config silently won ✓ ✓ (the same class
+as the duplicated `--ar` ✓ — PM-2026-09-24-dup-flags ✓). Fixed in
+`lib/mj-submitter.js` ✓ ✓ (the guard now owns both spellings ✓) ✓ and
+pinned by five new assertions ✓ ✓ (`lib/mj-submitter.test.js` ✓ 106 → 111
+✓ ✓).
+
+**The Kišna soba reference set** (`assets/kisna-soba/refs/` ✓):
+the style sheet ✓ + Lea's ✓ + Niko's ✓ + Muka's ✓ + the group ✓ + Zeka ✓ —
+six renders ✓, their **URLs** in `refs.json` ✓ ✓ (the URLs are the working
+part ✓ ✓) ✓. `tools/apply-refs.mjs` rewrites a pack with the `--sref` ✓,
+the `--cref … --cw 100` lock for each character actually in the bullet ✓ ✓,
+and the shared negative tail ✓ ✓ — and drops the old style clause ✓
+(the reference set owns the look now ✓) ✓ ✓.
+
+**The frames.** The bible's Ep. 1 + Ep. 2 ✓ (twelve ✓, the **linocut**
+edit route ✓), the episode song "Ne može biti to" ✓ (twelve ✓), "Nema me u
+meni" ✓ (twelve ✓), and Ep. 16-21 ✓ (eight each ✓, the spoken words kept
+inside the prompt ✓ and `--no text` so nothing is painted on ✓).
+
+**Two looks, on purpose ✓.** The first three sets are edits of the linocut
+still ✓ — the edit route carries the room, the three faces and the print
+texture exactly ✓ ✓. The reference set is the other route ✓ ✓ (a style
+sheet plus character sheets ✓) ✓ and the later episodes use it ✓ ✓.
+Re-rendering the earlier sets in the reference style is a flag change ✓ ✓
+(apply the refs ✓, run the pack ✓) ✓.
+
+**The thumbnail is cell 1 ✓, not cell 0 ✓** — cell 0 of frame 01 has no
+cat in it ✓ ✓ (the brief asks for Muka in the middle ✓ ✓). The repo's rule
+stands ✓: a cell is chosen by looking ✓ ✓ ✓.
+
+**The cuts** (`assets/releases/kisna-soba/` ✓): the Ep. 1 + Ep. 2 cut
+(60 s ✓ ✓ / a dissolve ✓ / a ping-pong loop ✓ ✓) and the two song cuts
+(48 s each ✓ ✓) ✓ — with the contact sheets ✓ and the frames ✓ ✓.

@@ -24,8 +24,8 @@
     },
     "mj": {
         "outputDir": "mj-output",
-        "defaultArgs": "--ar 16:9 --style raw --s 21",
-        "_note_defaultArgs": "Default Midjourney parameters appended when the prompt doesn't specify --ar. All current packs are 16:9 (2026-09-30 rule) so the default now matches. --s 21 since 2026-10-18 per the artist: the literal-photo reference is the goal, stylize is the enemy. An explicit --ar in the prompt file wins; the default's own --ar is stripped (see buildFullPrompt).",
+        "defaultArgs": "--seed 1451495020 --sref 667921269 --raw --stylize 21",
+        "_note_defaultArgs": "The master suffix — the flags every render carries unless the prompt names its own. One seed (1451495020) so a frame can be reproduced; one style reference (667921269) so every render lives in the same look; --raw and --stylize 21 because the literal-photo reference is the goal and the stylize is the enemy (the same --stylize 21 as before, spelled the long way).",
         "generationTimeoutMs": 120000,
         "_note_generationTimeoutMs": "Legacy Discord backend generation timeout (milliseconds).",
         "master": {
@@ -36,7 +36,11 @@
             "brief": "Vizuelni brief Kišna soba Paleta (svi likovi): prigušeno plavo, sivo, krem, toplo žuto od lampe. Nema neon, nema oštrih kontrastova. Linija meka, zaobljena; senke meke. Lea (6) Lice: ovalno, mirne oči (veće, ali ne \"cartoon šok\"), male trepavice, blagi osmeh ili miran izraz. Kosa: srednje smeđa, kratka do ramena, blago talasasta, često za uvo. Telo: vitko, proporcije predškolske (veća glava, kraće noge). Odeća: krem pidžama sa sitnim kišnim kapima; čarape. Rekvizit: ponekad knjiga ili ćebence. Pokret: spor, uredan; kad je ljuta ukršti ruke, ne viče. Niko (4) Lice: okruglije, veće obraze, oči malo šire (radoznalost / \"još malo?\"). Kosa: svetlija, kovrdžava, uvek malo neuredna. Telo: kraće, mekše. Odeća: plava pidžama sa oblacima; jedna čarapa često skliznuta. Rekvizit: plišani zeka \"Zeka\". Pokret: sporiji ustajanje, češće sedeće; kad je uznemiren stegne Zeku, ne trči po sobi. Muka (mačka) Siva, kratka dlaka, bela grudića. Oči: žuto-zelene, poluzatvorene; trepne jednom kad je \"rešenje\". Uši male, rep debeo i spor. Nikad ne priča; jedini \"dijalog\" = treptaj, uvijanje, polagan korak na dasku. Pozicija default: na prozorskoj dasci, silueta na kiši. Kad uteši: uvije se između Lee i Nika, glava na nogama. Zajedno u kadru: Lea levo / Niko desno / Muka gore na prozoru ili u sredini na kraju. Kamera u nivou sedenja na krevetu; malo pokreta kamere.",
             "_note": "THE master prompt for the current MJ work: the visual brief for the rainy room, its palette, and how Lea, Niko and Muka move and are staged. Read from the feed's own full_command (the only trustworthy record) — the job ran with moodboards kgvnzd9 and mgmce5w and profile ub2pnlv, and those moodboards are what carry the 2D-watercolour look into every frame.",
             "_ages": "The brief says Lea 6 and Niko 4. The shot list in assets/mural-prompts/kisna-soba-12.md says Lea 5 and Niko 3. The shot list wins; the discrepancy is recorded here rather than quietly reconciled.",
-            "updatedAt": "2026-11-06"
+            "updatedAt": "2026-11-07",
+            "suffix": "--seed 1451495020 --sref 667921269 --raw --stylize 21",
+            "seed": 1451495020,
+            "styleRef": "667921269",
+            "_note_suffix": "The master's flags, set 2026-11-07: the seed, the style reference, --raw and --stylize 21. A prompt that names its own --sref or --style keeps its own (the config's are stripped, not doubled)."
         }
     },
     "paths": {
