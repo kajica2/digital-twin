@@ -90,6 +90,9 @@ For now, what's here:
   clause that produced it. Built by `lib/mj-contact-sheet.js`.
 - **`lib/songs-indexer.js`** — walks audio dirs, builds
   `data/songs/catalog.json`.
+- **`lib/treblo-upload.js`** — batch-uploads audio files to Treblo's
+  developer API (`POST /v1/uploads`) and writes down every id it gets
+  back. See `docs/TREBLO-UPLOAD.md`.
 - **`lib/audio-splitter/`** — finds the tracks inside a long recording and
   cuts them apart. The room tone on an album rip sits at -44 dBFS, so the
   boundaries are found from the energy profile, not from silence. See
@@ -1098,6 +1101,18 @@ above it, and the ones long enough to be a splice rather than a breath. On the
 Western Serbia recording that is 29 pieces out of 3443.74 s, with every file's
 length verified against the segment it was cut from. Full reference:
 `docs/AUDIO-SPLITTER.md`.
+
+## Upload a batch of tracks to Treblo
+
+```bash
+npm run treblo:upload -- "album-split"/*.mp3
+```
+
+`POST /v1/uploads` with the API key, one multipart `file` per track, and a
+JSON report of every id that came back. Uploads cost no credits — only
+generation does. The key comes from `TREBLO_API_KEY` or
+`~/.treblo-api-key`, never from the command line. Full reference:
+`docs/TREBLO-UPLOAD.md`.
 
 ## What's next
 
