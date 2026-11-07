@@ -221,3 +221,6 @@ data/jobs/job_*/
 # HeartMuLa checkpoints (uv/hf download, 22 GB — the weights live here)
 lib/heartmula/ckpt/
 lib/heartmula/.venv/
+
+# HeartMuLa generations (the released copies live in assets/releases/)
+data/heartmula/
