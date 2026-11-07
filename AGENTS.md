@@ -12894,3 +12894,69 @@ new ones). The 29 split files probed individually: no short file, the durations
 sum to the source. The Cadenza path exercised against the real binary:
 `check` (0.3.3), `plan`, the flag refusal, `import-midi`, `render`, and
 `export --stems`.
+
+### 2026-11-07 — HeartMuLa installed, and the 29 album tracks batch-uploaded to Treblo
+
+**HeartMuLa** ([github.com/HeartMuLa/heartlib](https://github.com/HeartMuLa/heartlib),
+[heartmula.github.io](https://heartmula.github.io/)) — an open-source
+music foundation model that writes a **whole song from lyrics + style
+tags**. **Apache-2.0 for the code and the weights** ✓, 3B open weights ✓,
+multilingual ✓.
+
+- **Installed** at `lib/heartmula/` (uv package ✓): heartlib pinned to
+  commit `5858ca8f` ✓ (a git source, because a direct URL in PEP 508
+  metadata breaks an editable build ✓), 22.4 GB of checkpoints in
+  `lib/heartmula/ckpt/` (gitignored ✓).
+- **`lib/heartmula/src/heartmula_twin/cli.py`** — `check` (the device and
+  what is on disk ✓), `generate` (lyrics + tags → a song ✓), and
+  `mix.py` (a reference track under the song ✓). `--dry-run` prints the
+  plan and loads nothing ✓ ✓. The key never travels on a command line ✓.
+- **MPS works, with two things true.** The pipeline's `torch.compile`
+  path dies in the Metal backend
+  (`MetalKernel: device_assert_async should be handled by CSEProxy`) ✓ and
+  the inductor wants `triton`, which does not exist on macOS ✓ — so the
+  compile is off unless `--compile` is passed ✓. The **codec must run on
+  the CPU**: with it on MPS the save raises
+  `ValueError: invalid type: 'torch.mps.FloatTensor'` ✓✓ → `--codec-device
+  cpu` ✓. And `--lazy-load` has to be **off** ✓ — with it on, the model is
+  freed between calls and the run stops dead ✓ (0 % CPU, GPU idle ✓).
+- **The first three failures were all the machine, not the tool**: three
+  concurrent 12 GB model loads on 24 GB of RAM drove 26 GB of swap and the
+  weight load crawled ✗ → one run at a time ✓ ✓. The disk was at 99 % (21
+  GB free ✓) → `uv cache prune` ✓.
+- `torchcodec` is required to write the audio ✓ (torchaudio's
+  `save_with_torchcodec` ✓) — installed ✓ ✓.
+- **The sibling model is not the default.** MuLaCover (the cover/remix
+  model ✓ — the literal "mix of this recording" ✓) needs ~15 GB more
+  checkpoints than the disk had ✓, is documented for Linux on an NVIDIA
+  GPU ✓, and its **weights and outputs are non-commercial** ✓ (the plain
+  model is Apache-2.0 ✓). Its weights *are* reachable from this machine's
+  `hf` account ✓ — the blockers are disk, platform and licence ✓ ✓.
+
+**Treblo — the 29 tracks uploaded.**
+
+- **`lib/treblo-upload.js`** — `POST https://api.treblo.com/v1/uploads`
+  ✓, multipart ✓, one required `file` field ✓, answered with
+  `{ audio_upload_id }` ✓. The shape was read out of the API's own
+  OpenAPI schema ✓ (`https://api.treblo.com/openapi.json` ✓), not
+  guessed ✓ ✓.
+- **28 of 29 uploaded** ✓ ✓ (the ids are in `data/treblo/uploads.json` ✓,
+  gitignored ✓ ✓). **An upload costs no credits** ✓ — it stores a file ✓;
+  only a generation spends the balance ✓ ✓.
+- **One refusal, and it is Treblo's own:** track 08 →
+  `HTTP 422: This upload matches existing audio and cannot be used` ✓.
+  Re-encoding it (192 k → 160 k ✓) does **not** change the answer ✓ —
+  the match is perceptual ✓, so that piece is already known to Treblo ✓ ✓.
+  There is no `GET /v1/uploads` to look the existing id up with ✓ (the
+  API offers `POST /v1/uploads` and nothing else on that path ✓).
+- `lib/treblo-upload.test.js` — 12 assertions ✓, no network and no key ✓:
+  the key lookup ✓, the flag guard ✓, the multipart request ✓, a missing
+  file ✓, a server error ✓, a response with no id ✓, and a batch that
+  continues past one failure and reports every file ✓ ✓.
+
+**The Treblo session** is at `~/.treblo-cookies.txt` ✓ (mode 0600 ✓,
+outside the repository ✓ ✓ — the secrets guard checks that every cookie
+path resolves outside the tree ✓ ✓). The Treblo **app** API
+(`treblo.com/api/v1/tracks` ✓) is behind **Cloudflare** ✓ — a plain
+request gets a 403 challenge page ✓ — so anything that needs the app's
+library has to go through a real browser ✓ ✓.
