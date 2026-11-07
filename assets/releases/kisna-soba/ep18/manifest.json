@@ -1,0 +1,35 @@
+{
+  "title": "kisna-soba-ep18",
+  "frames": [
+    {
+      "frame": 1,
+      "cell": 0,
+      "taskId": "475f76e2-770b-4e64-907b-0ead70ad57e8",
+      "jobType": "v6-1_raw_diffusion"
+    },
+    {
+      "frame": 3,
+      "cell": 0,
+      "taskId": "8ef8cc66-5468-4280-bc58-f9fc9447514a",
+      "jobType": "v6-1_raw_diffusion"
+    },
+    {
+      "frame": 4,
+      "cell": 0,
+      "taskId": "6d852f53-fe10-41a5-9ae1-426e85230d77",
+      "jobType": "v6-1_raw_diffusion"
+    },
+    {
+      "frame": 5,
+      "cell": 0,
+      "taskId": "2f52c323-a8f7-4bf9-a65c-4d1eea820000",
+      "jobType": "v6-1_raw_diffusion"
+    },
+    {
+      "frame": 8,
+      "cell": 0,
+      "taskId": "46561c30-652c-4b81-b2dc-3b800584bc7b",
+      "jobType": "v8-1_diffusion"
+    }
+  ]
+}
