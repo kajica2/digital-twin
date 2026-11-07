@@ -12814,3 +12814,83 @@ wrong task. Two In Progress tasks naming the same subject was the
 - **The cut.** `kisna-soba-cut.mp4` — 1920×1080, 30 fps, 38.4 s, `yuv420p`/`tv`/`bt709`, per-shot motions (push in, pull back on the distance beats, a pan onto Niko), one `vignette` grade over the whole cut. The dissolve (28.5 s) and the ping-pong loop (70.4 s) stay in `mj-output/kisna-soba-12/`. **The clip is silent** — this story has no track on this machine.
 - **One discrepancy, recorded not reconciled.** The master brief says **Lea 6 and Niko 4**; the shot list says **Lea 5 and Niko 3**. The shot list wins (it is the shot list), and `mj.master._ages` says so rather than leaving the two to disagree quietly.
 - **Elsewhere:** the SWR repo's `main` is green — CI run `42271635568` on the merge commit `d33965e2`, success, after PR #289 merged.
+
+### 2026-11-07 — a Rust DAW the twin can drive, and an album split into its 29 tracks
+
+Two briefs, one session: **find a DAW in Rust with VST that the twin can
+automate**, and **detect the tracks in a 57-minute album and split it**.
+
+**The DAW — Cadenza** (`github.com/Pep3M/cadenza`, v0.3.3, installed per-user
+to `~/.local/bin/cadenza` + `~/Applications/Cadenza.app`).
+
+- **The survey.** Six Rust projects were read at the source level. Cadenza is
+  the only one that is Rust, hosts **CLAP + VST3**, *and* has a scriptable
+  surface (`cadenza render` / `export --stems` / `import-midi`, plus an **MCP
+  server over stdio**). `hlavnjak/resynth-studio` has the best audio analysis
+  (it splits a recording into pitch-stable subtracks) but is GUI-first;
+  `115dkk/vst-audio` is the right headless VST host but is a library, not a
+  DAW; `robbert-vdh/nih-plug` is a plugin framework in maintenance mode.
+  The table is in `docs/CADENZA.md`.
+- **The seam.** `lib/cadenza.js` + `lib/cadenza.test.js` (19 assertions) +
+  `docs/CADENZA.md` + the npm scripts `cadenza:check|render|export|mcp` and
+  `test:cadenza`. Every verb takes `--plan` (print the argv, run nothing) and
+  `--json`; **an unknown flag is refused with exit 2** (proved to bite: the
+  guard mutated → 2 assertions red → restored → green). A secret never
+  travels on the command line — `DEEPSEEK_API_KEY` is mapped onto the
+  `OPENROUTER_API_KEY` the AI producer reads, in the environment.
+- **The pipeline, measured.** The twin's chart MIDI (`lib/midi-export.js`,
+  5 tracks) → `cadenza import-midi` → **4 instrument tracks, 16 notes each** →
+  `cadenza render` → an 8.35 s 48 kHz float WAV plus a JSON mix report (peak,
+  true peak, RMS, LUFS, crest, band energy) → `cadenza export --stems tracks`
+  → the mixdown **and one WAV per part**, each with its own LUFS. That is the
+  twin's "auto split to parts", one command from a chart.
+- **The finding that cost a generation.** Cadenza skipped one of the four
+  parts. The fault was upstream: MusicXML says the *first* note of a chord
+  carries no `chord` attribute and the rest do — mark them all and the part
+  parses as empty, the twin's MIDI export writes a note-less track **without a
+  warning**, and Cadenza skips empty tracks
+  (`crates/midi-io/src/smf_import.rs`: `if track.notes.is_empty() { continue; }`).
+  The lesson: compare the imported track count against the score's parts.
+- Also measured: program changes have no Cadenza equivalent, so every imported
+  track lands on a built-in instrument; and `list-plugins --json` returns `[]`
+  — there are no VST3/CLAP plugins installed on this machine yet, so what was
+  rendered is Cadenza's own instruments.
+
+**The album — 29 tracks out of 3443.74 s.**
+
+- **`lib/audio-splitter/`** (uv package, numpy only): decode → frame (1024 =
+  46.4 ms) → RMS per frame → noise floor (10th percentile) → quiet runs →
+  the ones long enough to be a splice → cut. `npm run audio:split -- <file>`,
+  `--dry-run` to judge the threshold first, `--min-gap` / `--floor-db` to move
+  it. `docs/AUDIO-SPLITTER.md`; tests `test:audio-splitter` (14) and
+  `test:songs-indexer` (5).
+- **Why not `silencedetect`:** the album's room tone sits at **-43.8 dBFS**, so
+  `-45 dB` finds nothing and `-35 dB` finds 109 gaps (the within-piece pauses
+  included). The splice gaps are a distinct population — 28 of them, 3.9-4.6 s,
+  against pauses of 1.0-3.0 s — and 3.5 s separates them cleanly.
+- **The result:** 29 parts, each re-encoded (never stream-copied — a copy that
+  starts mid-frame clicks), tagged `track=n/29`, and listed in a
+  `manifest.json`. The parts' durations sum to **3443.74 s** — the source's
+  length to the millisecond.
+- **The bug the verification caught:** the source carries an attached **mjpeg
+  cover picture**, and without an explicit audio map ffmpeg writes *the cover*
+  — a 0.236 s file. It only bit the **first** cut (a later `-ss` has left the
+  cover behind), so 28 of 29 files were right. Fixed with `-map 0:a:0 -vn`,
+  and every cut is now probed and compared against the segment it was asked
+  for.
+- **Indexed:** `node lib/songs-indexer.js --add … --apply --yes` → 29 entries
+  under the `manual` root in `data/songs/catalog.json`.
+
+**Two fixes found on the way.** The indexer's ID3 reader kept the NUL that
+terminates a text frame (`String.trim()` does not remove a NUL), so every tag
+read from a split file ended in `"\0"` and the panel showed "Track 3/29";
+fixed, pinned by a new `lib/songs-indexer.test.js`, and the indexer is now
+importable. And `lib/ingest.test.js` used `fs.rmdirSync(path, {recursive:true})`,
+removed in Node 16 — `npm run test:all` was **red on main** before this
+session's work and is green after it.
+
+**Verified:** `npm run test:all` → exit 0, every suite green (including the two
+new ones). The 29 split files probed individually: no short file, the durations
+sum to the source. The Cadenza path exercised against the real binary:
+`check` (0.3.3), `plan`, the flag refusal, `import-midi`, `render`, and
+`export --stems`.

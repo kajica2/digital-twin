@@ -166,6 +166,8 @@ lib/clip-interrogator/.venv/
 # uv build artifacts
 lib/clip-interrogator/dist/
 
+# audio-splitter venv (uv-managed, generated)
+lib/audio-splitter/.venv/
 # Loopable Video Segmenter venv (uv-managed, generated)
 lib/loopable-video-segmenter/.venv/
 
