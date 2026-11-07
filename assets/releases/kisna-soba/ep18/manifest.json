@@ -8,6 +8,12 @@
       "jobType": "v6-1_raw_diffusion"
     },
     {
+      "frame": 2,
+      "cell": 0,
+      "taskId": "69578e83-b445-4266-a2e7-79c22169bf1c",
+      "jobType": "v8-2_edit_diffusion"
+    },
+    {
       "frame": 3,
       "cell": 0,
       "taskId": "8ef8cc66-5468-4280-bc58-f9fc9447514a",
@@ -24,6 +30,18 @@
       "cell": 0,
       "taskId": "2f52c323-a8f7-4bf9-a65c-4d1eea820000",
       "jobType": "v6-1_raw_diffusion"
+    },
+    {
+      "frame": 6,
+      "cell": 0,
+      "taskId": "c879f13c-693f-434d-be78-14bdbfc79b32",
+      "jobType": "v8-2_edit_diffusion"
+    },
+    {
+      "frame": 7,
+      "cell": 0,
+      "taskId": "46561c30-652c-4b81-b2dc-3b800584bc7b",
+      "jobType": "v8-2_edit_diffusion"
     },
     {
       "frame": 8,

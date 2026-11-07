@@ -2,6 +2,24 @@
   "title": "kisna-soba-ep20",
   "frames": [
     {
+      "frame": 1,
+      "cell": 0,
+      "taskId": "a44877b8-71a7-4db0-a84f-8f7ab70179b4",
+      "jobType": "v8-2_edit_diffusion"
+    },
+    {
+      "frame": 2,
+      "cell": 0,
+      "taskId": "c17c93e4-c979-45b7-a7d8-6ce2a5da4853",
+      "jobType": "v8-2_edit_diffusion"
+    },
+    {
+      "frame": 3,
+      "cell": 0,
+      "taskId": "92a3102e-b396-4231-b209-a336a3ce8165",
+      "jobType": "v8-2_edit_diffusion"
+    },
+    {
       "frame": 4,
       "cell": 0,
       "taskId": "92a3102e-b396-4231-b209-a336a3ce8165",
