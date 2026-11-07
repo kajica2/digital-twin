@@ -13011,3 +13011,42 @@ stands ✓: a cell is chosen by looking ✓ ✓ ✓.
 **The cuts** (`assets/releases/kisna-soba/` ✓): the Ep. 1 + Ep. 2 cut
 (60 s ✓ ✓ / a dissolve ✓ / a ping-pong loop ✓ ✓) and the two song cuts
 (48 s each ✓ ✓) ✓ — with the contact sheets ✓ and the frames ✓ ✓.
+
+### 2026-11-07 — Ep. 9, Ep. 10 and Ep. 21, and the `--hd` that MJ refuses
+
+**Ep. 9 "Crtež na staklu" (1/2), Ep. 10 (2/2) and Ep. 21** are rendered,
+cut and shipped (`assets/releases/kisna-soba/ep09`, `ep10`, `ep21` ✓ — the
+cut ✓, the contact sheet ✓, the manifest ✓ and the frames ✓ ✓). Ep. 9 and
+Ep. 10 are **one frame per sentence of the beat** ✓ — five each ✓ — with
+the spoken words kept inside the prompt ✓ (the Serbian beat text ✓ and
+`„Vidimo se sutra."` ✓ ✓) and `--no text` so nothing is painted on the
+frame ✓ ✓. Each character in a frame is locked to its reference sheet ✓
+(`--cref … --cw 100` ✓ ✓).
+
+**The refusal, bisected against the live API.** Every frame came back
+refused — the composer logged the text and never asked for a submission
+✓ ✓ — and the queue had room ✓ ✓, so it was the prompt ✓ ✓ not the
+account ✓ ✓. A refusal costs nothing ✓ (no job is queued ✓ ✓), so the
+flags were bisected by probing ✓ ✓:
+
+| suffix | result |
+|---|---|
+| the master, `--hd` included | **refused** |
+| the master without `--hd` | **accepted** |
+| without `--hd` and `--profile` | accepted |
+| without `--hd`, `--profile`, `--sref` | accepted |
+| `--ar 16:9 --raw` only | accepted |
+
+**`--hd` is a v7/v8 flag** ✓ and the v6 line is already high definition ✓
+✓ — so the master's copy is now **dropped when the prompt names `--v 6`**
+✓ ✓ and kept for v8 ✓ ✓ and for no version at all ✓ ✓. Pinned by three
+assertions ✓ ✓ (`lib/mj-submitter.test.js` ✓ 115 → 118 ✓ ✓).
+
+**Two findings worth keeping ✓.** `a13mc1d` (the master's `--profile`
+code ✓) is a **moodboard** in the account's own personalization list ✓
+✓ — and `667921269` (the master's `--sref` ✓) does not appear in it ✓ ✓
+(styles live in their own namespace ✓ ✓). And the reference sheets made
+with a style-sheet URL ✓ (a flat watercolour ✓ ✓) and the frames made
+with the master's style code ✓ (a warmer painterly look ✓ ✓) are **two
+different looks** ✓ ✓ — worth knowing before the two sets are shown
+side by side ✓ ✓.
