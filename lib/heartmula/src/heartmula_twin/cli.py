@@ -225,10 +225,27 @@ def main(argv: Optional[List[str]] = None) -> int:
             # pipeline hands it the latter — soundfile needs the object
             # itself, not its repr.
             data = src.detach().to("cpu").numpy() if hasattr(src, "detach") else _np.asarray(src)
-            if data.ndim == 2 and channels_first:
-                data = data.T
-            target = uri if hasattr(uri, "write") else str(uri)
-            _sf.write(target, data, int(sample_rate), subtype="PCM_16")
+            if data.ndim == 2:
+                # The codec hands the audio channels-first (2, samples); a
+                # writer that expects (samples, channels) then reads the
+                # SAMPLE COUNT as the channel count and libsndfile answers
+                # "Format not recognised". Detect the layout instead of
+                # trusting it.
+                if channels_first or (data.shape[0] <= 8 and data.shape[1] > data.shape[0]):
+                    data = data.T
+                print(f"[heartmula] writing {data.shape[0]} samples x {data.shape[1]} channels "
+                      f"at {int(sample_rate)} Hz", flush=True)
+            # The format is stated, not inferred: soundfile infers it from
+            # the extension, and a path that does not look like a wav (or a
+            # file left behind by a failed run) answers "Format not
+            # recognised" and the song is lost at the last step.
+            if hasattr(uri, "write"):
+                _sf.write(uri, data, int(sample_rate), format="WAV", subtype="PCM_16")
+            else:
+                path = str(uri)
+                if not path.lower().endswith(".wav"):
+                    path = path + ".wav"
+                _sf.write(path, data, int(sample_rate), format="WAV", subtype="PCM_16")
 
         torchaudio.save = _save_with_soundfile
     except Exception:  # noqa: BLE001 - fall back to whatever torchaudio does

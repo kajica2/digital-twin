@@ -79,7 +79,59 @@ it to run at all:
    with the GPU idle. Without it, the model stays resident (about 12 GB of the
    24 GB) and the run proceeds.
 
+## "Based on this reference" — what HeartMuLa can and cannot do
+
+**HeartMuLa itself takes no reference audio.** The 3B release is conditioned on
+**lyrics + style tags**; reference-audio conditioning is still on the upstream
+TODO list, and the model that does it is **MuLaCover** (below). So "generate
+based on this file" is done by **measuring** the reference and feeding the
+measurements in:
+
+```bash
+# 1. measure the reference: tempo, key, brightness, level, length
+python3 - <<'PY'
+import librosa, numpy as np
+y, sr = librosa.load('/Users/.../rado2.wav', sr=22050, mono=True)
+tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
+print('tempo %.1f' % float(np.atleast_1d(tempo)[0]))
+PY
+
+# 2. generate with the measurements as tags
+npm run heartmula:generate -- --lyrics /tmp/instrumental-lyrics.txt \
+    --tags "95 BPM, F sharp major, afro-house, spiritual jazz, percussive drums" \
+    --seconds 90 --out data/heartmula/rado2-based.mp3 --codec-device cpu
+
+# 3. match the tempo exactly (atempo keeps the pitch), extend, and mix
+ffmpeg -i data/heartmula/rado2-based.mp3 -af "atempo=0.5,atempo=1.2592" out.wav
+```
+
+**What the tags actually bought, measured on `rado2.wav`:**
+
+| | reference | generated | after the tempo match |
+|---|---|---|---|
+| tempo | 95.7 BPM | **152.0 BPM** | **95.7 BPM** (atempo) |
+| key | F# major-ish | G# major-ish | G# major-ish — a tone off, and not correctable without a pitch shift |
+| brightness | 1631 Hz | 1558 Hz | — |
+| level | −17.8 dB | −16.2 dB | — |
+| length | 207.0 s | 90.1 s | 207.0 s (loop + tail) |
+
+So the tags carry the **character** (brightness, level, the genre) and not the
+**musical facts** (tempo, key). The tempo can be corrected afterwards; the key
+cannot, without changing what the song sounds like.
+
+## Two bugs the write path had, both found by running it
+
+1. **torchaudio 2.10 needs torchcodec**, and torchcodec's bundled ffmpeg
+   dylibs will not load against a Homebrew ffmpeg 8. The write therefore goes
+   through **soundfile** directly.
+2. **The codec hands the audio channels-first** (2, samples). A writer that
+   expects (samples, channels) then reads the **sample count as the channel
+   count** and libsndfile answers *"Format not recognised"* — the whole song
+   lost at the last step, after eight minutes of generation. The layout is now
+   detected rather than trusted.
+
 ## The sibling model — MuLaCover, and why it is not the default
+
 
 [MuLaCover](https://github.com/HeartMuLa/MuLaCover) is the *cover and remix*
 model: it takes **reference audio** (or melody/chord MIDI) and rewrites it with

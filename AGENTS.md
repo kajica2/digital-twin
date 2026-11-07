@@ -13050,3 +13050,39 @@ with a style-sheet URL ✓ (a flat watercolour ✓ ✓) and the frames made
 with the master's style code ✓ (a warmer painterly look ✓ ✓) are **two
 different looks** ✓ ✓ — worth knowing before the two sets are shown
 side by side ✓ ✓.
+
+### 2026-11-07 — a HeartMuLa track "based on" rado2.wav, and the last-step bugs
+
+**HeartMuLa cannot take a reference audio** — the 3B release is conditioned on
+lyrics + style tags (reference conditioning is still on the upstream TODO);
+the model that does it is **MuLaCover**. So "based on this reference" was done
+by **measuring** it and feeding the measurements in: `rado2.wav` = 207.0 s,
+**95.7 BPM**, F# major-ish (a weak estimate — the chroma correlation is
+−0.07), 1631 Hz centroid, −17.8 dB.
+
+**What the tags bought, measured:**
+
+| | reference | generated | after the match |
+|---|---|---|---|
+| tempo | 95.7 BPM | **152.0 BPM** | **95.7** (atempo keeps the pitch) |
+| key | F# major-ish | G# major-ish | G# — a tone off, and not correctable without a pitch shift |
+| brightness | 1631 Hz | 1558 Hz | — |
+| level | −17.8 dB | −16.2 dB | — |
+| length | 207.0 s | 90.1 s | 207.0 s (loop + tail) |
+
+**The tags carry the character, not the musical facts** — the genre, the
+brightness and the level came through; the tempo and the key did not. The
+tempo is corrected afterwards (atempo, pitch intact); the key cannot be
+corrected without changing what the song sounds like.
+
+**Two bugs at the last step, both found by running it.** torchaudio 2.10 saves
+through **torchcodec** — whose bundled ffmpeg dylibs will not load against a
+Homebrew ffmpeg 8 — so the write goes through **soundfile** directly. And the
+codec hands the audio **channels-first** (2, samples); a writer that expects
+(samples, channels) then reads the **sample count as the channel count** and
+libsndfile answers *"Format not recognised"*: the whole song lost after eight
+minutes of generation. The layout is now detected rather than trusted.
+
+**Shipped** (`assets/releases/rado2/`): `rado2-mix.mp3` — the generated song
+at the reference's tempo and length, mixed under the reference (207.0 s,
+95.7 BPM) — and `rado2-95bpm.wav`, the song alone.
