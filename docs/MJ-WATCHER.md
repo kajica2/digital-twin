@@ -142,12 +142,14 @@ Key settings:
   unless the prompt names its own. Set 2026-11-07 to
 
   ```
-  --seed 1451495020 --sref 667921269 --raw --stylize 21
+  --chaos 5 --ar 16:9 --seed 1451495020 --raw --sref 667921269 --profile a13mc1d --stylize 21 --hd
   ```
 
-  One seed so a frame can be reproduced, one style reference so every
-  render lives in the same look, `--raw` and `--stylize 21` because the
-  literal-photo reference is the goal and the stylize is the enemy. Override
+  Low chaos so the picture stays calm, the house 16:9, one seed so a frame
+  can be reproduced, one style reference and one profile so every render
+  lives in the same look, `--raw` and `--stylize 21` because the
+  literal-photo reference is the goal and the stylize is the enemy, and
+  `--hd`. Override
   per-prompt by naming the flag yourself — and the override *wins*: a
   prompt with its own `--sref`, `--style`, `--raw`, `--s` or `--stylize`
   keeps its own and the master's copy of that slot is dropped, never

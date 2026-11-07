@@ -24,8 +24,8 @@
     },
     "mj": {
         "outputDir": "mj-output",
-        "defaultArgs": "--seed 1451495020 --sref 667921269 --raw --stylize 21",
-        "_note_defaultArgs": "The master suffix — the flags every render carries unless the prompt names its own. One seed (1451495020) so a frame can be reproduced; one style reference (667921269) so every render lives in the same look; --raw and --stylize 21 because the literal-photo reference is the goal and the stylize is the enemy (the same --stylize 21 as before, spelled the long way).",
+        "defaultArgs": "--chaos 5 --ar 16:9 --seed 1451495020 --raw --sref 667921269 --profile a13mc1d --stylize 21 --hd",
+        "_note_defaultArgs": "The master suffix — the flags every render carries unless the prompt names its own. Set 2026-11-07: --chaos 5 (low, so the picture stays calm), --ar 16:9 (the house ratio), one --seed (1451495020) so a frame can be reproduced, one --sref (667921269) and one --profile (a13mc1d) so every render lives in the same look, --raw and --stylize 21 (the literal-photo reference is the goal and the stylize is the enemy) and --hd. A prompt that names its own copy of a flag keeps it: the master's copy of that slot is dropped, never doubled — MJ honours the LAST of a duplicated flag, so a doubled one is a silent override.",
         "generationTimeoutMs": 120000,
         "_note_generationTimeoutMs": "Legacy Discord backend generation timeout (milliseconds).",
         "master": {
@@ -37,10 +37,13 @@
             "_note": "THE master prompt for the current MJ work: the visual brief for the rainy room, its palette, and how Lea, Niko and Muka move and are staged. Read from the feed's own full_command (the only trustworthy record) — the job ran with moodboards kgvnzd9 and mgmce5w and profile ub2pnlv, and those moodboards are what carry the 2D-watercolour look into every frame.",
             "_ages": "The brief says Lea 6 and Niko 4. The shot list in assets/mural-prompts/kisna-soba-12.md says Lea 5 and Niko 3. The shot list wins; the discrepancy is recorded here rather than quietly reconciled.",
             "updatedAt": "2026-11-07",
-            "suffix": "--seed 1451495020 --sref 667921269 --raw --stylize 21",
+            "suffix": "--chaos 5 --ar 16:9 --seed 1451495020 --raw --sref 667921269 --profile a13mc1d --stylize 21 --hd",
             "seed": 1451495020,
             "styleRef": "667921269",
-            "_note_suffix": "The master's flags, set 2026-11-07: the seed, the style reference, --raw and --stylize 21. A prompt that names its own --sref or --style keeps its own (the config's are stripped, not doubled)."
+            "_note_suffix": "The master's flags, set 2026-11-07: --chaos 5 --ar 16:9 --seed 1451495020 --raw --sref 667921269 --profile a13mc1d --stylize 21 --hd. The brief (the Kišna soba visual brief) is unchanged.",
+            "profile": "a13mc1d",
+            "chaos": 5,
+            "hd": true
         }
     },
     "paths": {
