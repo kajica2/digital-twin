@@ -1,0 +1,156 @@
+{
+  "title": "Kišna soba — twelve bedtime frames",
+  "masterJob": "289a0b41-6524-4f96-9705-5c4b0fb3bc6f",
+  "frames": [
+    {
+      "frame": 1,
+      "title": "Kiša na prozoru — uvodni kadar",
+      "file": "01.webp",
+      "cell": 1,
+      "taskId": "727b8091-22cf-4802-a0aa-14760f092b4a",
+      "jobType": "v8-2_diffusion",
+      "aspect": "16:9",
+      "prompt": "Exterior looking through a rain-covered bedroom window at night, large foreground raindrops catching warm lamplight. Inside, Lea, a five-year-old girl with a round face, chestnut-brown chin-length bob, straight bangs and peach pajamas with tiny cream dots, sits beside Niko, a three-year-old boy with round cheeks, tousled dark-brown curls and dusty-blue pajamas, holding a worn oatmeal-colored cloth rabbit with one floppy ear. Muka, a plump short-haired slate-gray cat with a white muzzle, white front paws and amber eyes, rests on the windowsill. One cream knitted blanket on a low wooden bed, warm butter-yellow bedside lamp, rainy indigo night, handmade 2D bedtime animation still, watercolor backgrounds, soft gouache characters, delicate pencil outlines, restrained expressions, spacious composition, muted pastel palette  --no text, watermark, neon --style raw --s 21 --ar 16:9"
+    },
+    {
+      "frame": 2,
+      "title": "Jedno ćebence",
+      "file": "02.webp",
+      "cell": 0,
+      "taskId": "0fe5f220-9f05-4fa6-8b4b-6dc36860eb8e",
+      "jobType": "v8-2_diffusion",
+      "aspect": "16:9",
+      "prompt": "Wide eye-level view of a small cozy bedroom at night. Lea, a five-year-old girl with a round face, chestnut chin-length bob, straight bangs and peach pajamas patterned with tiny cream dots, sits on the left side of a low wooden bed. Niko, a three-year-old boy with round cheeks, tousled dark-brown curls and dusty-blue pajamas, sits on the right, his worn oatmeal cloth rabbit with one floppy ear resting in his lap. A single cream knitted blanket lies across their knees, each child holding one edge. Muka, a plump slate-gray cat with a white muzzle, white front paws and amber eyes, watches from the windowsill. Blue rain-streaked window behind them, warm yellow bedside lamp, gentle domestic stillness, handmade 2D animation, soft gouache and watercolor, fine pencil outlines, uncluttered preschool picture-book composition  --no text, watermark, neon --style raw --s 21 --ar 16:9"
+    },
+    {
+      "frame": 3,
+      "title": "„Moje.“",
+      "file": "03.webp",
+      "cell": 0,
+      "taskId": "c94acd66-9f6c-4d3a-8006-4834562b7ed7",
+      "jobType": "v8-2_diffusion",
+      "aspect": "16:9",
+      "prompt": "Intimate medium shot at mattress height. Niko, a three-year-old boy with round cheeks, tousled dark-brown curls and dusty-blue pajamas, gently pulls the cream knitted blanket toward his chest, lips softly pursed, one arm hugging a worn oatmeal cloth rabbit with one floppy ear. Opposite him sits Lea, a five-year-old girl with a round face, chestnut chin-length bob, straight bangs and peach pajamas with tiny cream dots, quietly holding the other edge. Muka, a plump slate-gray cat with a white muzzle, white paws and amber eyes, is visible on the windowsill behind them. Small believable bedtime disagreement, relaxed bodies, warm yellow lamplight against cool blue rain, handmade 2D animation still, watercolor textures, matte gouache shapes, delicate pencil linework  --no text, watermark, shouting --style raw --s 21 --ar 16:9"
+    },
+    {
+      "frame": 4,
+      "title": "„I moje.“",
+      "file": "04.webp",
+      "cell": 0,
+      "taskId": "0a032be3-09ba-4246-92fa-fe0764534187",
+      "jobType": "v8-2_diffusion",
+      "aspect": "16:9",
+      "prompt": "Medium shot focused on Lea, a five-year-old girl with a round face, chestnut-brown chin-length bob, straight bangs and peach pajamas with tiny cream dots. She draws her edge of a cream knitted blanket closer around her knees, eyebrows slightly lowered, a small stubborn expression. Niko, a three-year-old boy with round cheeks, tousled dark-brown curls and dusty-blue pajamas, holds the opposite edge while clutching his worn oatmeal cloth rabbit with one floppy ear. Muka, a plump slate-gray cat with a white muzzle, white front paws and amber eyes, watches calmly from the blue rainy window. Warm bedside light, soft shadows, quiet emotional storytelling, handmade 2D bedtime animation, watercolor background, gouache characters, fine pencil outlines  --no text, watermark, exaggerated expressions --style raw --s 21 --ar 16:9"
+    },
+    {
+      "frame": 5,
+      "title": "Ćebe između njih",
+      "file": "05.webp",
+      "cell": 0,
+      "taskId": "d2fdbbe4-5367-49c3-affd-84bc958a7413",
+      "jobType": "v8-2_diffusion",
+      "aspect": "16:9",
+      "prompt": "Symmetrical frontal view of two small children sitting apart on a low wooden bed, a cream knitted blanket stretched gently between their hands. On the left, Lea, five years old, round face, chestnut chin-length bob with straight bangs, peach pajamas with tiny cream dots. On the right, Niko, three years old, round cheeks, tousled dark-brown curls, dusty-blue pajamas, a worn oatmeal cloth rabbit with one floppy ear tucked beside his hip. Both children have tiny frowns and lowered shoulders. Muka, a plump slate-gray cat with a white muzzle, white front paws and amber eyes, sits upright on the windowsill between them in the background. Rainy blue window, warm yellow lamp, subtle tension within a peaceful room, handmade watercolor and gouache 2D animation still  --no text, watermark, action lines --style raw --s 21 --ar 16:9"
+    },
+    {
+      "frame": 6,
+      "title": "Niko ostaje nepokriven",
+      "file": "06.webp",
+      "cell": 0,
+      "taskId": "3f4b8d63-afae-44d2-8846-c0584d0f8451",
+      "jobType": "v8-2_diffusion",
+      "aspect": "16:9",
+      "prompt": "Quiet aftermath of a small bedtime disagreement. Lea, a five-year-old girl with a round face, chestnut-brown chin-length bob, straight bangs and peach pajamas with tiny cream dots, sits on the left of a low wooden bed with the entire intact cream knitted blanket gathered over her knees. On the right, Niko, a three-year-old boy with round cheeks, tousled dark-brown curls and dusty-blue pajamas, sits with his knees uncovered, hugging a worn oatmeal cloth rabbit with one floppy ear and looking down. Lea glances toward his uncovered knees. Muka, a plump slate-gray cat with a white muzzle, white front paws and amber eyes, stands on the windowsill, watching. Warm yellow lamp, cool rainy window, generous quiet space between the children, handmade 2D animation, soft watercolor and gouache  --no text, watermark, torn fabric, tears --style raw --s 21 --ar 16:9"
+    },
+    {
+      "frame": 7,
+      "title": "Lea primeti",
+      "file": "07.webp",
+      "cell": 0,
+      "taskId": "e3151861-170a-40d2-9477-3f8b562932f2",
+      "jobType": "v8-2_diffusion",
+      "aspect": "16:9",
+      "prompt": "Medium close-up of Lea, a five-year-old girl with a round face, chestnut-brown chin-length bob, straight bangs and peach pajamas with tiny cream dots, looking thoughtfully from the cream knitted blanket in her hands toward her younger brother. Niko, a three-year-old boy with round cheeks, tousled dark-brown curls and dusty-blue pajamas, sits beside her with uncovered knees, hugging a worn oatmeal cloth rabbit with one floppy ear. Lea's eyebrows soften, her fingers loosen around the blanket. Muka, a plump slate-gray cat with a white muzzle, white front paws and amber eyes, is visible in profile near the rainy window. Intimate understated emotion, warm lamplight on small hands, blue evening shadows, handmade 2D bedtime animation, watercolor paper texture, soft gouache, delicate pencil outlines  --no text, watermark, exaggerated expressions --style raw --s 21 --ar 16:9"
+    },
+    {
+      "frame": 8,
+      "title": "Muka silazi",
+      "file": "08.webp",
+      "cell": 0,
+      "taskId": "8798158f-3525-4e81-89b5-a4529bb579fb",
+      "jobType": "v8-2_diffusion",
+      "aspect": "16:9",
+      "prompt": "Low bedside view of Muka, a plump short-haired slate-gray cat with a white muzzle, white front paws and amber eyes, carefully stepping from a small wooden bedside stool onto the mattress, one white paw pressing into the quilt. Behind her, Lea, a five-year-old girl with a round face, chestnut-brown chin-length bob, straight bangs and peach pajamas with tiny cream dots, holds a gathered cream knitted blanket. Niko, a three-year-old boy with round cheeks, tousled dark-brown curls and dusty-blue pajamas, hugs his worn oatmeal cloth rabbit with one floppy ear. Both children quietly watch the cat approach the empty space between them. Rain-streaked indigo window, warm butter-yellow lamp, tactile bedding, handmade watercolor and gouache 2D animation still, gentle grounded movement  --no text, watermark, motion blur --style raw --s 21 --ar 16:9"
+    },
+    {
+      "frame": 9,
+      "title": "Mali gest",
+      "file": "09.webp",
+      "cell": 0,
+      "taskId": "6e38d0cb-a3af-4098-bae8-e95b27079ef2",
+      "jobType": "v8-2_diffusion",
+      "aspect": "16:9",
+      "prompt": "Medium shot of a small act of kindness. Lea, a five-year-old girl with a round face, chestnut-brown chin-length bob, straight bangs and peach pajamas with tiny cream dots, lifts one corner of the cream knitted blanket and gently lays it across Niko's uncovered knees. Niko, a three-year-old boy with round cheeks, tousled dark-brown curls and dusty-blue pajamas, looks up at her while holding a worn oatmeal cloth rabbit with one floppy ear. Muka, a plump slate-gray cat with a white muzzle, white front paws and amber eyes, sits in the gap between them. Focus on the children's hands and the curved blanket edge, tiny restrained expressions, blue rainy window, warm yellow bedside lamp, handmade 2D bedtime animation, soft gouache, watercolor textures, fine pencil outlines  --no text, watermark, exaggerated smiles --style raw --s 21 --ar 16:9"
+    },
+    {
+      "frame": 10,
+      "title": "Muka u sredini",
+      "file": "10.webp",
+      "cell": 0,
+      "taskId": "c0641129-16ee-42a8-afe5-62c40c7a629b",
+      "jobType": "v8-2_diffusion",
+      "aspect": "16:9",
+      "prompt": "Cozy bedtime thumbnail composition, medium frontal view of two children tucked shoulder to shoulder beneath one cream knitted blanket. Lea, a five-year-old girl with a round face, chestnut-brown chin-length bob, straight bangs and peach pajamas with tiny cream dots, sits on the left with a small contented smile. Niko, a three-year-old boy with round cheeks, tousled dark-brown curls and dusty-blue pajamas, sits on the right, holding a worn oatmeal cloth rabbit with one floppy ear above the blanket. Between them, Muka, a plump slate-gray cat with a white muzzle, white front paws and amber eyes, curls into a soft round shape on top of the blanket. Large blue rain-streaked window behind their heads, warm yellow lamp to one side, clear rounded silhouettes, readable faces, handmade 2D animation, watercolor and matte gouache, peaceful muted colors  --no text, lettering, watermark, neon --style raw --s 21 --ar 16:9"
+    },
+    {
+      "frame": 11,
+      "title": "Gašenje lampe",
+      "file": "11.webp",
+      "cell": 0,
+      "taskId": "69c9e700-1c5b-4727-9c0f-ad5ea032f70c",
+      "jobType": "v8-2_diffusion",
+      "aspect": "16:9",
+      "prompt": "Intimate side view of bedtime winding down. Lea, a five-year-old girl with a round face, chestnut-brown chin-length bob, straight bangs and peach pajamas with tiny cream dots, leans slightly from beneath a shared cream knitted blanket, extending one hand toward the switch on a small wooden bedside lamp. Niko, a three-year-old boy with round cheeks, tousled dark-brown curls and dusty-blue pajamas, lies sleepily on his pillow, holding a worn oatmeal cloth rabbit with one floppy ear. Muka, a plump slate-gray cat with a white muzzle, white front paws and amber eyes half closed, curls on top of the blanket between them. The lamp still glows warm yellow beneath Lea's hovering fingertips, cool blue rainlight fills the rest of the room, handmade 2D bedtime animation, watercolor background, gouache characters, delicate pencil lines  --no text, watermark, neon --style raw --s 21 --ar 16:9"
+    },
+    {
+      "frame": 12,
+      "title": "Laku noć",
+      "file": "12.webp",
+      "cell": 0,
+      "taskId": "a393d417-d0d2-477d-9220-d9eb77d4535e",
+      "jobType": "v8-2_diffusion",
+      "aspect": "16:9",
+      "prompt": "Wide final bedtime frame from the bedroom doorway, a small low wooden bed beneath a rain-streaked window, bedside lamp switched off. Lea, a five-year-old girl with a round face, chestnut-brown chin-length bob, straight bangs and peach pajamas with tiny cream dots visible at the collar, sleeps on the left. Niko, a three-year-old boy with round cheeks, tousled dark-brown curls and dusty-blue pajamas visible at the collar, sleeps on the right, his worn oatmeal cloth rabbit with one floppy ear nestled beside his cheek. Both children share one cream knitted blanket. Muka, a plump slate-gray cat with a white muzzle and white front paws, sleeps curled between them on top of the blanket, her eyes closed. Gentle blue nightlight through the rainy glass, soft readable shadows, peaceful spacious composition, handmade 2D bedtime animation, watercolor paper texture, muted gouache, fine pencil outlines  --no text, watermark, harsh shadows --style raw --s 21 --ar 16:9"
+    }
+  ],
+  "artefacts": {
+    "frames": "assets/releases/kisna-soba/frames/",
+    "cut": "assets/releases/kisna-soba/kisna-soba-cut.mp4",
+    "sheet": "assets/releases/kisna-soba/contact-sheet.png"
+  },
+  "cuts": {
+    "kisna-soba-cut.mp4": {
+      "mode": "kenburns",
+      "each": 3.2,
+      "motions": "zoom-in,zoom-in,zoom-in,zoom-in,zoom-out,pan-left,zoom-in,zoom-in,zoom-in,zoom-out,zoom-in,zoom-out",
+      "grade": "vignette",
+      "seconds": 38.4
+    },
+    "kisna-soba-crossfade.mp4": {
+      "mode": "crossfade",
+      "each": 3.2,
+      "fade": 0.9,
+      "grade": "vignette",
+      "seconds": 28.5,
+      "keptLocal": true
+    },
+    "kisna-soba-loop.mp4": {
+      "mode": "kenburns + ping-pong",
+      "each": 3.2,
+      "grade": "vignette",
+      "seconds": 70.4,
+      "keptLocal": true
+    }
+  },
+  "note": "The three cuts live in mj-output/kisna-soba-12/ (gitignored working product); only the primary cut ships in assets/releases/. The clip is SILENT — this story has no track on this machine."
+}

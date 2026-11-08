@@ -119,6 +119,47 @@ For a clip that must cut on beats rather than a fixed cadence, the Loopable
 Video Segmenter is the other half
 ([`docs/LOOPABLE-VIDEO-SEGMENTER.md`](LOOPABLE-VIDEO-SEGMENTER.md)).
 
+### From an MJ set to a film
+
+An MJ set stores four cells per prompt (`0_0`…`0_3`) and a `manifest.json`
+that records **which cell was picked** for each frame, plus the camera move, the
+look effects and the sequence grade the cut used. `bin/images-to-mp4.mjs` wants a
+flat, ordered directory of stills and a cut list — `bin/mj-set-frames.mjs` is the
+step in between:
+
+```bash
+# stage the chosen cells, in order, and print the render command
+node bin/mj-set-frames.mjs mj-output/till-you-get-the-light-camera-grid
+
+# …with a track under it (the render is cut to the track)
+node bin/mj-set-frames.mjs mj-output/till-you-get-the-light-camera-grid \
+  --audio "/path/to/track.mp3" --total 254.93 --render
+```
+
+It reads the manifest, copies the chosen cell of each frame into
+`data/mp4/frames/<set>/` as `01-…`, `02-…` (the names sort, and the tool looks
+motions and effects up **by name**, so the order survives), and hands back the
+exact `images-to-mp4` command with the set's `--motions`, `--fx` and `--grade`.
+
+Two things to know when you mux a track:
+
+- **The stills are sized to the track automatically.** With `--audio` and no
+  `--total`/`--each`, the set is cut to the length the track **actually decodes
+  to** — not to a length you guessed. Pass `--total` to override it, and the
+  tool warns when the clip is longer than the song (the render is cut to the
+  shorter of the two, so the song would be truncated).
+- **An MP3 can lie about its length.** A VBR file with no Xing header makes
+  ffmpeg *estimate* the duration from the bitrate (`Estimating duration from
+  bitrate, this may be inaccurate`) and the estimate can be tens of seconds out —
+  40 s on one real track, 40 s short on another. The tool decodes the file to
+  measure it (`lib/render/audio.mjs`), prints the disagreement, and sizes the
+  stills to the decoded length. `ffmpeg -i track.mp3 -f null -` prints the same
+  number if you want to see it yourself.
+
+The `--dry-run` output is the command that will actually run — the audio input,
+the mapping and `-shortest` included — so the preview can be checked before
+spending a render.
+
 ## Open
 
 ### Look effects

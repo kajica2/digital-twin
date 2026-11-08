@@ -138,9 +138,29 @@ Key settings:
 - **`chrome.debugPort`** — CDP port (default `9444`). Picked to avoid
   collision with any existing Chrome debug port (`9222`, `9333`).
 
-- **`mj.defaultArgs`** — Default MJ parameters appended when a prompt doesn't
-  include `--ar`, `--style`, etc. Override per-prompt by including them in
-  the prompt text.
+- **`mj.defaultArgs`** — The **master suffix**: the flags every render carries
+  unless the prompt names its own. Set 2026-11-07 to
+
+  ```
+  --chaos 5 --ar 16:9 --seed 1451495020 --raw --sref 667921269 --profile a13mc1d --stylize 21 --hd
+  ```
+
+  Low chaos so the picture stays calm, the house 16:9, one seed so a frame
+  can be reproduced, one style reference and one profile so every render
+  lives in the same look, `--raw` and `--stylize 21` because the
+  literal-photo reference is the goal and the stylize is the enemy, and
+  `--hd`. Override
+  per-prompt by naming the flag yourself — and the override *wins*: a
+  prompt with its own `--sref`, `--style`, `--raw`, `--s` or `--stylize`
+  keeps its own and the master's copy of that slot is dropped, never
+  doubled. (`--stylize` and `--s` are one slot; `--raw` and `--style raw`
+  are one switch. MJ honours the LAST of a duplicated flag, so a doubled
+  one is a silent override — the class of bug the prompt builder's guards
+  exist for.)
+
+- **`mj.master`** — the master *prompt*: the visual brief the current work
+  is made against, with the job it came from, its full text, and the
+  suffix above.
 
 - **`mj.generationTimeoutMs`** — Max wait for MJ to generate (default 120s).
   MJ 4-up grids typically take 30-90s.

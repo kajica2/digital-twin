@@ -1,0 +1,53 @@
+{
+  "title": "kisna-soba-ep21",
+  "frames": [
+    {
+      "frame": 1,
+      "cell": 0,
+      "taskId": "17719c9f-fbb0-4a76-8eb6-dfa82f5def5d",
+      "jobType": "v6-1_raw_diffusion"
+    },
+    {
+      "frame": 2,
+      "cell": 0,
+      "taskId": "2c736813-9169-4e6f-873b-0fc96095f1d0",
+      "jobType": "v6-1_raw_diffusion"
+    },
+    {
+      "frame": 3,
+      "cell": 0,
+      "taskId": "fe9d812d-3310-4fa1-9773-c749c4be2881",
+      "jobType": "v6-1_raw_diffusion"
+    },
+    {
+      "frame": 4,
+      "cell": 0,
+      "taskId": "58ff0236-ce61-4115-b12c-be72a226075b",
+      "jobType": "v6-1_raw_diffusion"
+    },
+    {
+      "frame": 5,
+      "cell": 0,
+      "taskId": "1a73e4bf-7d15-4386-83b6-6d86d34db082",
+      "jobType": "v6-1_raw_diffusion"
+    },
+    {
+      "frame": 6,
+      "cell": 0,
+      "taskId": "e58299c6-d1dc-41a3-a4ec-8132a246582a",
+      "jobType": "v6-1_raw_diffusion"
+    },
+    {
+      "frame": 7,
+      "cell": 1,
+      "taskId": "e0f33566-b121-4636-82b0-f2cdada640bb",
+      "jobType": "v8-2_edit_diffusion"
+    },
+    {
+      "frame": 8,
+      "cell": 0,
+      "taskId": "2eacd5dd-f8bd-4db2-868d-2dcd46682922",
+      "jobType": "v6-1_raw_diffusion"
+    }
+  ]
+}

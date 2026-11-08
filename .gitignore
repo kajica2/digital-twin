@@ -176,6 +176,8 @@ lib/clip-interrogator/.venv/
 # uv build artifacts
 lib/clip-interrogator/dist/
 
+# audio-splitter venv (uv-managed, generated)
+lib/audio-splitter/.venv/
 # Loopable Video Segmenter venv (uv-managed, generated)
 lib/loopable-video-segmenter/.venv/
 
@@ -225,3 +227,10 @@ data/credits.sqlite
 data/credits.sqlite-shm
 data/credits.sqlite-wal
 data/jobs/job_*/
+
+# HeartMuLa checkpoints (uv/hf download, 22 GB — the weights live here)
+lib/heartmula/ckpt/
+lib/heartmula/.venv/
+
+# HeartMuLa generations (the released copies live in assets/releases/)
+data/heartmula/

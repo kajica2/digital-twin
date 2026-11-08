@@ -1,7 +1,163 @@
 {
-  "updatedAt": "2026-11-02T23:24:57.497Z",
-  "count": 23,
+  "updatedAt": "2026-11-07T23:27:09.732Z",
+  "count": 27,
   "collections": [
+    {
+      "date": "2026-11-08",
+      "key": "2026-11-08",
+      "id": "last-ferry",
+      "title": "Last Ferry",
+      "badge": "cyberpunk / hk",
+      "teaser": "The last crossing leaves the city quieter than it found it.",
+      "aspect": "16:9",
+      "dir": "assets/marketplace/daily/2026-11-08",
+      "plates": [
+        {
+          "file": "frame-01.jpg",
+          "caption": "deck · railing",
+          "alt": "The empty back deck of a ferry at night, one railing lamp, the far shore a line of lights in rain.",
+          "prompt": "the empty back deck of a ferry at night, one railing lamp, the far shore a line of lights in rain, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "f676ee62-304e-47b1-acc8-25fcaa68e424",
+          "width": 1280,
+          "height": 716
+        },
+        {
+          "file": "frame-02.jpg",
+          "caption": "bow · wake",
+          "alt": "The bow of a ferry cutting black water, spray lit from the side by the terminal lights behind.",
+          "prompt": "the bow of a ferry cutting black water, spray lit from the side by terminal lights behind, wide lens, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "11812c17-e946-486c-8218-bcdf0c26dd61",
+          "width": 1280,
+          "height": 716
+        },
+        {
+          "file": "frame-03.jpg",
+          "caption": "queue · terminal",
+          "alt": "An almost empty ferry terminal at night, fluorescent tubes overhead, a bench and a departure board.",
+          "prompt": "an almost empty ferry terminal at night, fluorescent tubes overhead, one bench and a blank departure board, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "d2a45188-984b-4c12-bc2e-014a6a480b6f",
+          "width": 1280,
+          "height": 716
+        }
+      ]
+    },
+    {
+      "date": "2026-11-07",
+      "key": "2026-11-07",
+      "id": "one-way-mirror",
+      "title": "One-Way Mirror",
+      "badge": "identity",
+      "teaser": "You can see out. They can see in.",
+      "aspect": "16:9",
+      "dir": "assets/marketplace/daily/2026-11-07",
+      "plates": [
+        {
+          "file": "frame-01.jpg",
+          "caption": "studio · pane",
+          "alt": "A one-way mirror in a dark studio reflecting a lit room behind the viewer, half the reflection is the room itself.",
+          "prompt": "a one-way mirror in a dark studio reflecting a lit room behind the viewer, half the reflection is the room itself, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "cc8cf133-acc4-45fe-9ed3-6cec62a030b0",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-02.jpg",
+          "caption": "booth · light",
+          "alt": "A recording booth with the mic lit from above and the glass between two spaces, one chair empty.",
+          "prompt": "a recording booth with the microphone lit from above, glass between two spaces, one empty chair, small red indicator, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "ef40d4ec-a91e-45d6-9de8-f9742765069b",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-03.jpg",
+          "caption": "screen · ghost",
+          "alt": "A face on a monitor seen through the darker side of a one-way pane, the room behind the glass almost black.",
+          "prompt": "a face on a monitor seen through the darker side of a one-way pane, the room behind the glass almost black, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "89b9715f-2c9e-4e6d-a356-9f8b80b8460e",
+          "width": 1280,
+          "height": 717
+        }
+      ]
+    },
+    {
+      "date": "2026-11-06",
+      "key": "2026-11-06",
+      "id": "greenhouse-night",
+      "title": "Greenhouse Night",
+      "badge": "soundhealing",
+      "teaser": "Warmth kept alive on purpose, against the dark.",
+      "aspect": "16:9",
+      "dir": "assets/marketplace/daily/2026-11-06",
+      "plates": [
+        {
+          "file": "frame-01.jpg",
+          "caption": "glasshouse · lamp",
+          "alt": "A small glasshouse lit from inside at night, condensation on the panes, dark garden beyond.",
+          "prompt": "a small glasshouse lit from inside at night, condensation on the panes, dark garden beyond, one warm lamp, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "3749cb24-60f3-4e12-b001-247d90e53113",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-02.jpg",
+          "caption": "benches · seedlings",
+          "alt": "Rows of seedling trays on wooden benches under a grow lamp, watering can at the end.",
+          "prompt": "rows of seedling trays on wooden benches under a grow lamp, a watering can at the end of the row, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "8a55116a-76c7-4362-8f01-eb4a2cdc652d",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-03.jpg",
+          "caption": "ivy · pane",
+          "alt": "Ivy pressing against a window pane from outside, lit from within, the leaves half in shadow.",
+          "prompt": "ivy pressing against a window pane from the outside, lit from within so the leaves are half in shadow, close-up, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "5078317a-5d7a-447d-a496-4236c92305cf",
+          "width": 1280,
+          "height": 717
+        }
+      ]
+    },
+    {
+      "date": "2026-11-05",
+      "key": "2026-11-05",
+      "id": "low-tide-radio",
+      "title": "Low Tide Radio",
+      "badge": "deep house",
+      "teaser": "The signal gets better the further out you go.",
+      "aspect": "16:9",
+      "dir": "assets/marketplace/daily/2026-11-05",
+      "plates": [
+        {
+          "file": "frame-01.jpg",
+          "caption": "antenna · shore",
+          "alt": "A radio mast on a wide empty shore at low tide, wet sand leading out to it, flat light.",
+          "prompt": "a radio mast on a wide empty shore at low tide, wet sand leading out to it, flat overcast light, long lens, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "e9eb4d21-8fa2-44b8-90b4-adf3c4ef556d",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-02.jpg",
+          "caption": "receiver · dial",
+          "alt": "A valve receiver lit by its own dial lamp, the tuning needle resting slightly off centre.",
+          "prompt": "a valve radio receiver lit by its own dial lamp, the tuning needle resting slightly off centre, dark room, close-up, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "64519580-0246-492f-81d7-e26960f86e53",
+          "width": 1280,
+          "height": 717
+        },
+        {
+          "file": "frame-03.jpg",
+          "caption": "pier · cables",
+          "alt": "A concrete pier running into flat water, cables running along its edge, a lamp at the far end.",
+          "prompt": "a concrete pier running into flat water, cables running along its edge, one lamp at the far end, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "32338688-bca4-440b-9940-21f81df2222b",
+          "width": 1280,
+          "height": 717
+        }
+      ]
+    },
     {
       "date": "2026-11-03",
       "key": "2026-11-03",

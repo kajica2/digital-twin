@@ -1,9 +1,7 @@
 {
     "_note": "Midjourney automation configuration. Two backends: the web app (default) and the legacy Discord bot.",
-
     "engine": "web",
     "_note_engine": "'web' drives midjourney.com/imagine with a headed browser + cookie jar (recommended — no Discord login needed). 'discord' uses the /imagine slash command via the Midjourney Discord bot (legacy; needs a logged-in Discord session in the automation profile).",
-
     "web": {
         "imagineUrl": "https://www.midjourney.com/imagine",
         "cookiesFile": "~/.midjourney-cookies.txt",
@@ -15,26 +13,39 @@
         "acceptTimeoutMs": 240000,
         "_note_acceptTimeoutMs": "How long to wait for a new task to appear after pressing Enter. This is the acceptance signal — a cleared textbox is not. 240s since 2026-10-18: --cref + busy MJ sessions regularly take 150-200s to render the new card; 120s was right at the boundary. Each FAIL burns 2 * ACCEPT_TIMEOUT (initial + retry), so 240s balances wall time against miss rate."
     },
-
     "discord": {
         "channelUrl": "https://discord.com/channels/@me",
         "_note_channelUrl": "The Discord channel URL where the Midjourney bot lives. Defaults to DM with MJ bot. Replace with your server's channel URL. (Personal channel ID scrubbed from this public config 2026-09-30 — the legacy Discord backend is unconfigured anyway.)"
     },
-
     "chrome": {
         "debugPort": 9444,
         "userDataDir": "/tmp/comet-mj-profile",
         "_note_userDataDir": "Legacy Discord backend profile. Launch Comet with this once, sign into Discord, then close. The watcher reuses the profile (cookies persist)."
     },
-
     "mj": {
         "outputDir": "mj-output",
-        "defaultArgs": "--ar 16:9 --style raw --s 21",
-        "_note_defaultArgs": "Default Midjourney parameters appended when the prompt doesn't specify --ar. All current packs are 16:9 (2026-09-30 rule) so the default now matches. --s 21 since 2026-10-18 per the artist: the literal-photo reference is the goal, stylize is the enemy. An explicit --ar in the prompt file wins; the default's own --ar is stripped (see buildFullPrompt).",
+        "defaultArgs": "--chaos 5 --ar 16:9 --seed 1451495020 --raw --sref 667921269 --profile a13mc1d --stylize 21 --hd",
+        "_note_defaultArgs": "The master suffix — the flags every render carries unless the prompt names its own. Set 2026-11-07: --chaos 5 (low, so the picture stays calm), --ar 16:9 (the house ratio), one --seed (1451495020) so a frame can be reproduced, one --sref (667921269) and one --profile (a13mc1d) so every render lives in the same look, --raw and --stylize 21 (the literal-photo reference is the goal and the stylize is the enemy) and --hd. A prompt that names its own copy of a flag keeps it: the master's copy of that slot is dropped, never doubled — MJ honours the LAST of a duplicated flag, so a doubled one is a silent override.",
         "generationTimeoutMs": 120000,
-        "_note_generationTimeoutMs": "Legacy Discord backend generation timeout (milliseconds)."
+        "_note_generationTimeoutMs": "Legacy Discord backend generation timeout (milliseconds).",
+        "master": {
+            "jobId": "289a0b41-6524-4f96-9705-5c4b0fb3bc6f",
+            "index": 1,
+            "jobType": "v8-2_hd_diffusion",
+            "title": "Kišna soba — the master visual brief",
+            "brief": "Vizuelni brief Kišna soba Paleta (svi likovi): prigušeno plavo, sivo, krem, toplo žuto od lampe. Nema neon, nema oštrih kontrastova. Linija meka, zaobljena; senke meke. Lea (6) Lice: ovalno, mirne oči (veće, ali ne \"cartoon šok\"), male trepavice, blagi osmeh ili miran izraz. Kosa: srednje smeđa, kratka do ramena, blago talasasta, često za uvo. Telo: vitko, proporcije predškolske (veća glava, kraće noge). Odeća: krem pidžama sa sitnim kišnim kapima; čarape. Rekvizit: ponekad knjiga ili ćebence. Pokret: spor, uredan; kad je ljuta ukršti ruke, ne viče. Niko (4) Lice: okruglije, veće obraze, oči malo šire (radoznalost / \"još malo?\"). Kosa: svetlija, kovrdžava, uvek malo neuredna. Telo: kraće, mekše. Odeća: plava pidžama sa oblacima; jedna čarapa često skliznuta. Rekvizit: plišani zeka \"Zeka\". Pokret: sporiji ustajanje, češće sedeće; kad je uznemiren stegne Zeku, ne trči po sobi. Muka (mačka) Siva, kratka dlaka, bela grudića. Oči: žuto-zelene, poluzatvorene; trepne jednom kad je \"rešenje\". Uši male, rep debeo i spor. Nikad ne priča; jedini \"dijalog\" = treptaj, uvijanje, polagan korak na dasku. Pozicija default: na prozorskoj dasci, silueta na kiši. Kad uteši: uvije se između Lee i Nika, glava na nogama. Zajedno u kadru: Lea levo / Niko desno / Muka gore na prozoru ili u sredini na kraju. Kamera u nivou sedenja na krevetu; malo pokreta kamere.",
+            "_note": "THE master prompt for the current MJ work: the visual brief for the rainy room, its palette, and how Lea, Niko and Muka move and are staged. Read from the feed's own full_command (the only trustworthy record) — the job ran with moodboards kgvnzd9 and mgmce5w and profile ub2pnlv, and those moodboards are what carry the 2D-watercolour look into every frame.",
+            "_ages": "The brief says Lea 6 and Niko 4. The shot list in assets/mural-prompts/kisna-soba-12.md says Lea 5 and Niko 3. The shot list wins; the discrepancy is recorded here rather than quietly reconciled.",
+            "updatedAt": "2026-11-07",
+            "suffix": "--chaos 5 --ar 16:9 --seed 1451495020 --raw --sref 667921269 --profile a13mc1d --stylize 21 --hd",
+            "seed": 1451495020,
+            "styleRef": "667921269",
+            "_note_suffix": "The master's flags, set 2026-11-07: --chaos 5 --ar 16:9 --seed 1451495020 --raw --sref 667921269 --profile a13mc1d --stylize 21 --hd. The brief (the Kišna soba visual brief) is unchanged.",
+            "profile": "a13mc1d",
+            "chaos": 5,
+            "hd": true
+        }
     },
-
     "paths": {
         "chromeBin": "/Applications/Comet.app/Contents/MacOS/Comet",
         "_note_chromeBin": "Legacy Discord backend browser.",

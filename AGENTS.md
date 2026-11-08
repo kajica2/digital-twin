@@ -13446,6 +13446,16 @@ The three re-wordings worth trying, in order:
 - Unchanged: the `.kai/` durability call, the woody-shaw chart variants,
   the Vercel custom domain, the MJ cookie jar expiry.
 
+### 2026-11-05 — the music video stills: a template set, ten styles, and a path that does not truncate the song
+
+- **The film.** `data/mp4/till-you-get-the-light-camera-grid__srce-kuca.mp4` (615 MB, 1440×1080, 3:35) — the twelve chosen MJ frames from `till-you-get-the-light-camera-grid` cut to `Srce kuca`, with that set's own per-shot motions, per-shot effects and `contrast+vignette` grade. A shareable sibling (`--web.mp4`, 47 MB, 1080×810) is beside it.
+- **The template set.** Midjourney job `5f90ff67-e45a-43ce-9aba-24b46b5fb997` (a `v8-2_edit_diffusion`): a man at an old shop window at night, his reflection layered over the street, 1970s European arthouse, Kodak 500T. Shot in full as `assets/mural-prompts/rhythm-flow-reflection-12.md` → `mj-output/rhythm-flow-reflection-12/` (11 of 12 frames rendered; the low-angle dance frame did not).
+- **Ten styles, one frame.** The brief's ten prompt sets are in `assets/mural-prompts/music-video-style-board-10.md`; nine of them are rendered as a style board in `assets/mj-sheets/style-board-10/` (same frame — the man at the kitchen table — in each look, plus a manifest mapping every tile to its job id). The tenth, **1980s VHS Glitch Noir, is REFUSED by Midjourney** — soft-banned twice (with and without "timestamp overlay"), accepted and never queued. The wording is the trigger, not the account.
+- **The path.** `bin/mj-set-frames.mjs` (+ `npm run mj:frames`) reads a set's manifest, copies the chosen cell of each frame into `data/mp4/frames/<set>/` in order, and prints the exact `images-to-mp4` command with the set's `--motions`, `--fx` and `--grade`. With `--audio` and `--render` it runs the whole path.
+- **Two defects fixed in the tool** (found by using it): the `--dry-run` printed a command **without** the audio input, the mapping and `-shortest` — the one thing a dry run exists to check; and the stills were sized against a track's **header**, which for a VBR MP3 without a Xing header is ffmpeg's *estimate* — 40 s long on `Srce kuca`. `lib/render/audio.mjs` now decodes the track to measure it, prints the disagreement, and sizes the set to the decoded length; `--total` still overrides, and the tool warns when the clip outruns the song.
+- **Tests:** `npm run test:audio-track` 19/19 (the decoded length, a header that lies, the edge cases, and a CLI-level check), `npm run test:images-mp4` 85/85.
+- **Open:** the style board is a selection — the full twelve frames of the chosen treatment still have to be rendered, and the music video's own audio is not in hand (the stills are silent until it is).
+
 ### 2026-11-06 — sprint 0.97 (the thirty looks — a medium registry)
 
 Pasted a list of thirty film stocks and media emulations: *Analog Noir
@@ -13785,6 +13795,16 @@ artist.
   one set.
 - Unchanged: the `.kai/` durability call, the woody-shaw chart
   variants, the Vercel custom domain, the MJ cookie jar expiry.
+
+### 2026-11-06 — the master prompt is set, and the Kišna soba's twelve frames are shot
+
+- **The master.** Midjourney job `289a0b41-6524-4f96-9705-5c4b0fb3bc6f` (index 1) is now the master prompt, recorded in `lib/mj-config.json` under `mj.master` — job id, index, job type, and the full 1,359-character brief, read from the feed's own `full_command` (the only trustworthy record; the job is a plain `v8-2_hd_diffusion` with no attachments, so it is a **brief**, not an identity anchor). It ran with moodboards `kgvnzd9` and `mgmce5w` and profile `ub2pnlv` — and those moodboards are what carry the 2D-watercolour look into every frame.
+- **The set.** `assets/mural-prompts/kisna-soba-12.md` — the user's twelve shots (Lea, five; Niko, three; Muka the cat; one cream knitted blanket), each bullet self-contained because there is no reference picture to carry the characters from frame to frame. **12/12 submitted, 48 cells downloaded**, every frame a `v8-2_diffusion` at 16:9.
+- **The cells, chosen by eye.** Frame 01 takes cell 1 (the only cell genuinely seen *through* the glass); frame 12 takes cell 0 (the lamp is off — cell 1 has it still glowing, which is the wrong beat); the other ten take cell 0. `assets/releases/kisna-soba/` ships the twelve stills, the contact sheet and the primary cut; the manifest records each frame's title, cell, task id and prompt.
+- **The cut.** `kisna-soba-cut.mp4` — 1920×1080, 30 fps, 38.4 s, `yuv420p`/`tv`/`bt709`, per-shot motions (push in, pull back on the distance beats, a pan onto Niko), one `vignette` grade over the whole cut. The dissolve (28.5 s) and the ping-pong loop (70.4 s) stay in `mj-output/kisna-soba-12/`. **The clip is silent** — this story has no track on this machine.
+- **One discrepancy, recorded not reconciled.** The master brief says **Lea 6 and Niko 4**; the shot list says **Lea 5 and Niko 3**. The shot list wins (it is the shot list), and `mj.master._ages` says so rather than leaving the two to disagree quietly.
+- **Elsewhere:** the SWR repo's `main` is green — CI run `42271635568` on the merge commit `d33965e2`, success, after PR #289 merged.
+
 ### 2026-11-07 — sprint 0.99 (a fresh treblo session, and the CDP bug that hid it)
 
 Two pastes came in with no instruction text: a **treblo cookie jar** and
@@ -13933,6 +13953,7 @@ assertion that cannot fail is worse than no test.
   generation.
 - The remaining 238 mp3s in that folder are not split — the paste named
   49, and only those 49 were touched.
+
 ### 2026-11-07 — sprint 0.99.b (a fresh treblo jar, and the row-order bug it exposed)
 
 A second treblo jar arrived, minutes after the first. Installed it — and
@@ -14021,6 +14042,7 @@ edited.
   (`~/.treblo-api-key`) is unaffected.
 - The web-app generation path is still not automated — only the cookie
   installation and the probe are.
+
 ### 2026-11-07 — sprint 0.99.c (upload to treblo — and the 40 MiB wall)
 
 A third batch of media-house mp3s came in (123 unique files, 919 min,
@@ -14130,6 +14152,7 @@ vocal character into the new track.
   manifest; turning them into generations is a separate decision — each
   one costs 100 credits, so 218 references would be 21,800 credits and
   the account has 200.
+
 ### 2026-11-07 — sprint 0.99.d (the upload batch — 218 segments, and the perceptual dedup)
 
 The upload ran to completion while the 422s were diagnosed. Final state:
@@ -14207,3 +14230,275 @@ for a missing file that is not missing.
   `reference_crop_*` / `reference_scale` fields.
 - The session used for the browser path expires at 17:39:55Z; the API
   path is unaffected.
+
+### 2026-11-07 — a Rust DAW the twin can drive, and an album split into its 29 tracks
+
+Two briefs, one session: **find a DAW in Rust with VST that the twin can
+automate**, and **detect the tracks in a 57-minute album and split it**.
+
+**The DAW — Cadenza** (`github.com/Pep3M/cadenza`, v0.3.3, installed per-user
+to `~/.local/bin/cadenza` + `~/Applications/Cadenza.app`).
+
+- **The survey.** Six Rust projects were read at the source level. Cadenza is
+  the only one that is Rust, hosts **CLAP + VST3**, *and* has a scriptable
+  surface (`cadenza render` / `export --stems` / `import-midi`, plus an **MCP
+  server over stdio**). `hlavnjak/resynth-studio` has the best audio analysis
+  (it splits a recording into pitch-stable subtracks) but is GUI-first;
+  `115dkk/vst-audio` is the right headless VST host but is a library, not a
+  DAW; `robbert-vdh/nih-plug` is a plugin framework in maintenance mode.
+  The table is in `docs/CADENZA.md`.
+- **The seam.** `lib/cadenza.js` + `lib/cadenza.test.js` (19 assertions) +
+  `docs/CADENZA.md` + the npm scripts `cadenza:check|render|export|mcp` and
+  `test:cadenza`. Every verb takes `--plan` (print the argv, run nothing) and
+  `--json`; **an unknown flag is refused with exit 2** (proved to bite: the
+  guard mutated → 2 assertions red → restored → green). A secret never
+  travels on the command line — `DEEPSEEK_API_KEY` is mapped onto the
+  `OPENROUTER_API_KEY` the AI producer reads, in the environment.
+- **The pipeline, measured.** The twin's chart MIDI (`lib/midi-export.js`,
+  5 tracks) → `cadenza import-midi` → **4 instrument tracks, 16 notes each** →
+  `cadenza render` → an 8.35 s 48 kHz float WAV plus a JSON mix report (peak,
+  true peak, RMS, LUFS, crest, band energy) → `cadenza export --stems tracks`
+  → the mixdown **and one WAV per part**, each with its own LUFS. That is the
+  twin's "auto split to parts", one command from a chart.
+- **The finding that cost a generation.** Cadenza skipped one of the four
+  parts. The fault was upstream: MusicXML says the *first* note of a chord
+  carries no `chord` attribute and the rest do — mark them all and the part
+  parses as empty, the twin's MIDI export writes a note-less track **without a
+  warning**, and Cadenza skips empty tracks
+  (`crates/midi-io/src/smf_import.rs`: `if track.notes.is_empty() { continue; }`).
+  The lesson: compare the imported track count against the score's parts.
+- Also measured: program changes have no Cadenza equivalent, so every imported
+  track lands on a built-in instrument; and `list-plugins --json` returns `[]`
+  — there are no VST3/CLAP plugins installed on this machine yet, so what was
+  rendered is Cadenza's own instruments.
+
+**The album — 29 tracks out of 3443.74 s.**
+
+- **`lib/audio-splitter/`** (uv package, numpy only): decode → frame (1024 =
+  46.4 ms) → RMS per frame → noise floor (10th percentile) → quiet runs →
+  the ones long enough to be a splice → cut. `npm run audio:split -- <file>`,
+  `--dry-run` to judge the threshold first, `--min-gap` / `--floor-db` to move
+  it. `docs/AUDIO-SPLITTER.md`; tests `test:audio-splitter` (14) and
+  `test:songs-indexer` (5).
+- **Why not `silencedetect`:** the album's room tone sits at **-43.8 dBFS**, so
+  `-45 dB` finds nothing and `-35 dB` finds 109 gaps (the within-piece pauses
+  included). The splice gaps are a distinct population — 28 of them, 3.9-4.6 s,
+  against pauses of 1.0-3.0 s — and 3.5 s separates them cleanly.
+- **The result:** 29 parts, each re-encoded (never stream-copied — a copy that
+  starts mid-frame clicks), tagged `track=n/29`, and listed in a
+  `manifest.json`. The parts' durations sum to **3443.74 s** — the source's
+  length to the millisecond.
+- **The bug the verification caught:** the source carries an attached **mjpeg
+  cover picture**, and without an explicit audio map ffmpeg writes *the cover*
+  — a 0.236 s file. It only bit the **first** cut (a later `-ss` has left the
+  cover behind), so 28 of 29 files were right. Fixed with `-map 0:a:0 -vn`,
+  and every cut is now probed and compared against the segment it was asked
+  for.
+- **Indexed:** `node lib/songs-indexer.js --add … --apply --yes` → 29 entries
+  under the `manual` root in `data/songs/catalog.json`.
+
+**Two fixes found on the way.** The indexer's ID3 reader kept the NUL that
+terminates a text frame (`String.trim()` does not remove a NUL), so every tag
+read from a split file ended in `"\0"` and the panel showed "Track 3/29";
+fixed, pinned by a new `lib/songs-indexer.test.js`, and the indexer is now
+importable. And `lib/ingest.test.js` used `fs.rmdirSync(path, {recursive:true})`,
+removed in Node 16 — `npm run test:all` was **red on main** before this
+session's work and is green after it.
+
+**Verified:** `npm run test:all` → exit 0, every suite green (including the two
+new ones). The 29 split files probed individually: no short file, the durations
+sum to the source. The Cadenza path exercised against the real binary:
+`check` (0.3.3), `plan`, the flag refusal, `import-midi`, `render`, and
+`export --stems`.
+
+### 2026-11-07 — HeartMuLa installed, and the 29 album tracks batch-uploaded to Treblo
+
+**HeartMuLa** ([github.com/HeartMuLa/heartlib](https://github.com/HeartMuLa/heartlib),
+[heartmula.github.io](https://heartmula.github.io/)) — an open-source
+music foundation model that writes a **whole song from lyrics + style
+tags**. **Apache-2.0 for the code and the weights** ✓, 3B open weights ✓,
+multilingual ✓.
+
+- **Installed** at `lib/heartmula/` (uv package ✓): heartlib pinned to
+  commit `5858ca8f` ✓ (a git source, because a direct URL in PEP 508
+  metadata breaks an editable build ✓), 22.4 GB of checkpoints in
+  `lib/heartmula/ckpt/` (gitignored ✓).
+- **`lib/heartmula/src/heartmula_twin/cli.py`** — `check` (the device and
+  what is on disk ✓), `generate` (lyrics + tags → a song ✓), and
+  `mix.py` (a reference track under the song ✓). `--dry-run` prints the
+  plan and loads nothing ✓ ✓. The key never travels on a command line ✓.
+- **MPS works, with two things true.** The pipeline's `torch.compile`
+  path dies in the Metal backend
+  (`MetalKernel: device_assert_async should be handled by CSEProxy`) ✓ and
+  the inductor wants `triton`, which does not exist on macOS ✓ — so the
+  compile is off unless `--compile` is passed ✓. The **codec must run on
+  the CPU**: with it on MPS the save raises
+  `ValueError: invalid type: 'torch.mps.FloatTensor'` ✓✓ → `--codec-device
+  cpu` ✓. And `--lazy-load` has to be **off** ✓ — with it on, the model is
+  freed between calls and the run stops dead ✓ (0 % CPU, GPU idle ✓).
+- **The first three failures were all the machine, not the tool**: three
+  concurrent 12 GB model loads on 24 GB of RAM drove 26 GB of swap and the
+  weight load crawled ✗ → one run at a time ✓ ✓. The disk was at 99 % (21
+  GB free ✓) → `uv cache prune` ✓.
+- `torchcodec` is required to write the audio ✓ (torchaudio's
+  `save_with_torchcodec` ✓) — installed ✓ ✓.
+- **The sibling model is not the default.** MuLaCover (the cover/remix
+  model ✓ — the literal "mix of this recording" ✓) needs ~15 GB more
+  checkpoints than the disk had ✓, is documented for Linux on an NVIDIA
+  GPU ✓, and its **weights and outputs are non-commercial** ✓ (the plain
+  model is Apache-2.0 ✓). Its weights *are* reachable from this machine's
+  `hf` account ✓ — the blockers are disk, platform and licence ✓ ✓.
+
+**Treblo — the 29 tracks uploaded.**
+
+- **`lib/treblo-upload.js`** — `POST https://api.treblo.com/v1/uploads`
+  ✓, multipart ✓, one required `file` field ✓, answered with
+  `{ audio_upload_id }` ✓. The shape was read out of the API's own
+  OpenAPI schema ✓ (`https://api.treblo.com/openapi.json` ✓), not
+  guessed ✓ ✓.
+- **28 of 29 uploaded** ✓ ✓ (the ids are in `data/treblo/uploads.json` ✓,
+  gitignored ✓ ✓). **An upload costs no credits** ✓ — it stores a file ✓;
+  only a generation spends the balance ✓ ✓.
+- **One refusal, and it is Treblo's own:** track 08 →
+  `HTTP 422: This upload matches existing audio and cannot be used` ✓.
+  Re-encoding it (192 k → 160 k ✓) does **not** change the answer ✓ —
+  the match is perceptual ✓, so that piece is already known to Treblo ✓ ✓.
+  There is no `GET /v1/uploads` to look the existing id up with ✓ (the
+  API offers `POST /v1/uploads` and nothing else on that path ✓).
+- `lib/treblo-upload.test.js` — 12 assertions ✓, no network and no key ✓:
+  the key lookup ✓, the flag guard ✓, the multipart request ✓, a missing
+  file ✓, a server error ✓, a response with no id ✓, and a batch that
+  continues past one failure and reports every file ✓ ✓.
+
+**The Treblo session** is at `~/.treblo-cookies.txt` ✓ (mode 0600 ✓,
+outside the repository ✓ ✓ — the secrets guard checks that every cookie
+path resolves outside the tree ✓ ✓). The Treblo **app** API
+(`treblo.com/api/v1/tracks` ✓) is behind **Cloudflare** ✓ — a plain
+request gets a 403 challenge page ✓ — so anything that needs the app's
+library has to go through a real browser ✓ ✓.
+
+### 2026-11-07 — the master suffix, and the Kišna soba reference set
+
+**The master suffix is set** (2026-11-07 ✓):
+
+```
+--seed 1451495020 --sref 667921269 --raw --stylize 21
+```
+
+It lives in `lib/mj-config.json` as `mj.defaultArgs` ✓ (the flags every
+render carries unless the prompt names its own ✓) and in `mj.master.suffix`
+✓ — with the seed ✓, the style reference ✓ and the brief ✓ recorded beside
+it ✓ ✓.
+
+**A real bug the setting exposed ✓.** The prompt builder's guard for the
+style slot knew `--s` but **not `--stylize`** ✗ — and `--stylize` is the
+long spelling of the same parameter ✗. So a prompt asking for
+`--stylize 50` had the master's `--stylize 21` appended after it ✓ and
+**MJ took the last one** ✓: the config silently won ✓ ✓ (the same class
+as the duplicated `--ar` ✓ — PM-2026-09-24-dup-flags ✓). Fixed in
+`lib/mj-submitter.js` ✓ ✓ (the guard now owns both spellings ✓) ✓ and
+pinned by five new assertions ✓ ✓ (`lib/mj-submitter.test.js` ✓ 106 → 111
+✓ ✓).
+
+**The Kišna soba reference set** (`assets/kisna-soba/refs/` ✓):
+the style sheet ✓ + Lea's ✓ + Niko's ✓ + Muka's ✓ + the group ✓ + Zeka ✓ —
+six renders ✓, their **URLs** in `refs.json` ✓ ✓ (the URLs are the working
+part ✓ ✓) ✓. `tools/apply-refs.mjs` rewrites a pack with the `--sref` ✓,
+the `--cref … --cw 100` lock for each character actually in the bullet ✓ ✓,
+and the shared negative tail ✓ ✓ — and drops the old style clause ✓
+(the reference set owns the look now ✓) ✓ ✓.
+
+**The frames.** The bible's Ep. 1 + Ep. 2 ✓ (twelve ✓, the **linocut**
+edit route ✓), the episode song "Ne može biti to" ✓ (twelve ✓), "Nema me u
+meni" ✓ (twelve ✓), and Ep. 16-21 ✓ (eight each ✓, the spoken words kept
+inside the prompt ✓ and `--no text` so nothing is painted on ✓).
+
+**Two looks, on purpose ✓.** The first three sets are edits of the linocut
+still ✓ — the edit route carries the room, the three faces and the print
+texture exactly ✓ ✓. The reference set is the other route ✓ ✓ (a style
+sheet plus character sheets ✓) ✓ and the later episodes use it ✓ ✓.
+Re-rendering the earlier sets in the reference style is a flag change ✓ ✓
+(apply the refs ✓, run the pack ✓) ✓.
+
+**The thumbnail is cell 1 ✓, not cell 0 ✓** — cell 0 of frame 01 has no
+cat in it ✓ ✓ (the brief asks for Muka in the middle ✓ ✓). The repo's rule
+stands ✓: a cell is chosen by looking ✓ ✓ ✓.
+
+**The cuts** (`assets/releases/kisna-soba/` ✓): the Ep. 1 + Ep. 2 cut
+(60 s ✓ ✓ / a dissolve ✓ / a ping-pong loop ✓ ✓) and the two song cuts
+(48 s each ✓ ✓) ✓ — with the contact sheets ✓ and the frames ✓ ✓.
+
+### 2026-11-07 — Ep. 9, Ep. 10 and Ep. 21, and the `--hd` that MJ refuses
+
+**Ep. 9 "Crtež na staklu" (1/2), Ep. 10 (2/2) and Ep. 21** are rendered,
+cut and shipped (`assets/releases/kisna-soba/ep09`, `ep10`, `ep21` ✓ — the
+cut ✓, the contact sheet ✓, the manifest ✓ and the frames ✓ ✓). Ep. 9 and
+Ep. 10 are **one frame per sentence of the beat** ✓ — five each ✓ — with
+the spoken words kept inside the prompt ✓ (the Serbian beat text ✓ and
+`„Vidimo se sutra."` ✓ ✓) and `--no text` so nothing is painted on the
+frame ✓ ✓. Each character in a frame is locked to its reference sheet ✓
+(`--cref … --cw 100` ✓ ✓).
+
+**The refusal, bisected against the live API.** Every frame came back
+refused — the composer logged the text and never asked for a submission
+✓ ✓ — and the queue had room ✓ ✓, so it was the prompt ✓ ✓ not the
+account ✓ ✓. A refusal costs nothing ✓ (no job is queued ✓ ✓), so the
+flags were bisected by probing ✓ ✓:
+
+| suffix | result |
+|---|---|
+| the master, `--hd` included | **refused** |
+| the master without `--hd` | **accepted** |
+| without `--hd` and `--profile` | accepted |
+| without `--hd`, `--profile`, `--sref` | accepted |
+| `--ar 16:9 --raw` only | accepted |
+
+**`--hd` is a v7/v8 flag** ✓ and the v6 line is already high definition ✓
+✓ — so the master's copy is now **dropped when the prompt names `--v 6`**
+✓ ✓ and kept for v8 ✓ ✓ and for no version at all ✓ ✓. Pinned by three
+assertions ✓ ✓ (`lib/mj-submitter.test.js` ✓ 115 → 118 ✓ ✓).
+
+**Two findings worth keeping ✓.** `a13mc1d` (the master's `--profile`
+code ✓) is a **moodboard** in the account's own personalization list ✓
+✓ — and `667921269` (the master's `--sref` ✓) does not appear in it ✓ ✓
+(styles live in their own namespace ✓ ✓). And the reference sheets made
+with a style-sheet URL ✓ (a flat watercolour ✓ ✓) and the frames made
+with the master's style code ✓ (a warmer painterly look ✓ ✓) are **two
+different looks** ✓ ✓ — worth knowing before the two sets are shown
+side by side ✓ ✓.
+
+### 2026-11-07 — a HeartMuLa track "based on" rado2.wav, and the last-step bugs
+
+**HeartMuLa cannot take a reference audio** — the 3B release is conditioned on
+lyrics + style tags (reference conditioning is still on the upstream TODO);
+the model that does it is **MuLaCover**. So "based on this reference" was done
+by **measuring** it and feeding the measurements in: `rado2.wav` = 207.0 s,
+**95.7 BPM**, F# major-ish (a weak estimate — the chroma correlation is
+−0.07), 1631 Hz centroid, −17.8 dB.
+
+**What the tags bought, measured:**
+
+| | reference | generated | after the match |
+|---|---|---|---|
+| tempo | 95.7 BPM | **152.0 BPM** | **95.7** (atempo keeps the pitch) |
+| key | F# major-ish | G# major-ish | G# — a tone off, and not correctable without a pitch shift |
+| brightness | 1631 Hz | 1558 Hz | — |
+| level | −17.8 dB | −16.2 dB | — |
+| length | 207.0 s | 90.1 s | 207.0 s (loop + tail) |
+
+**The tags carry the character, not the musical facts** — the genre, the
+brightness and the level came through; the tempo and the key did not. The
+tempo is corrected afterwards (atempo, pitch intact); the key cannot be
+corrected without changing what the song sounds like.
+
+**Two bugs at the last step, both found by running it.** torchaudio 2.10 saves
+through **torchcodec** — whose bundled ffmpeg dylibs will not load against a
+Homebrew ffmpeg 8 — so the write goes through **soundfile** directly. And the
+codec hands the audio **channels-first** (2, samples); a writer that expects
+(samples, channels) then reads the **sample count as the channel count** and
+libsndfile answers *"Format not recognised"*: the whole song lost after eight
+minutes of generation. The layout is now detected rather than trusted.
+
+**Shipped** (`assets/releases/rado2/`): `rado2-mix.mp3` — the generated song
+at the reference's tempo and length, mixed under the reference (207.0 s,
+95.7 BPM) — and `rado2-95bpm.wav`, the song alone.

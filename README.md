@@ -97,6 +97,17 @@ For now, what's here:
   `docs/MJ-CONSOLE.md`.
 - **`lib/songs-indexer.js`** — walks audio dirs, builds
   `data/songs/catalog.json`.
+- **`lib/treblo-upload.js`** — batch-uploads audio files to Treblo's
+  developer API (`POST /v1/uploads`) and writes down every id it gets
+  back. See `docs/TREBLO-UPLOAD.md`.
+- **`lib/audio-splitter/`** — finds the tracks inside a long recording and
+  cuts them apart. The room tone on an album rip sits at -44 dBFS, so the
+  boundaries are found from the energy profile, not from silence. See
+  `docs/AUDIO-SPLITTER.md`.
+- **`lib/cadenza.js`** — drives [Cadenza](https://github.com/Pep3M/cadenza),
+  the Rust DAW that hosts CLAP/VST3 plugins and speaks an MCP server
+  over stdio. The twin's chart MIDI goes in; a rendered mix and one
+  stem per part come out. See `docs/CADENZA.md`.
 - **`lib/agent-hub/`** — the SWR harness: three live agents (Ops /
   Twin / Check) that coordinate through one-file-per-message inboxes
   and share a task board. Start with `bash lib/agent-hub/agent-hub.sh
@@ -1192,6 +1203,66 @@ pointed at (the `browser-use` landing) was the *craft* reference
 (production polish, paired themes, Web Components, animations,
 accessibility) — and that craft is preserved here, just wearing the
 kai-systems visual clothes.
+
+## Run the Rust DAW (Cadenza)
+
+[Cadenza](https://github.com/Pep3M/cadenza) is an open-source DAW written in Rust
+that hosts **CLAP and VST3** plugins, renders offline, and speaks an **MCP server
+over stdio**. It was the only DAW found in the survey that is Rust, VST-hosting and
+scriptable at once.
+
+```bash
+# install (per-user; the release ships SHA256SUMS and an --uninstall)
+curl -fsSL https://github.com/Pep3M/cadenza/releases/latest/download/install.sh | sh
+
+npm run cadenza:check          # cadenza 0.3.3 — ~/.local/bin/cadenza
+```
+
+The twin's chart pipeline ends in a multi-track MIDI file; Cadenza turns it into
+audio, **one file per part**:
+
+```bash
+node lib/midi-export.js song.musicxml --apply --yes          # → song_Whole/song.mid
+node lib/cadenza.js import-midi song_Whole/song.mid --output song.cdz
+node lib/cadenza.js render song.cdz --output song.wav        # the mix + a JSON report
+node lib/cadenza.js export song.cdz --stems tracks --format wav
+```
+
+`export --stems` writes the mixdown and one WAV per track, each with its own LUFS —
+the twin's "auto split to parts". Every verb takes `--plan` (print the command, run
+nothing) and `--json`, and an unknown flag is refused with exit 2 rather than
+ignored. Full reference: `docs/CADENZA.md`.
+
+## Split a long recording into its tracks
+
+An album that arrives as one 57-minute mp3 — no tags, and the "silence"
+between the pieces sitting at -44 dBFS, where `ffmpeg silencedetect` cannot
+see it — becomes its tracks:
+
+```bash
+npm run audio:setup
+npm run audio:split -- "album.mp3" --dry-run      # detect and report, cut nothing
+npm run audio:split -- "album.mp3"                # cut into album-split/
+node lib/songs-indexer.js --add "album-split"/*.mp3 --apply --yes   # → Songs panel
+```
+
+The boundaries come from the energy profile: the noise floor, the quiet runs
+above it, and the ones long enough to be a splice rather than a breath. On the
+Western Serbia recording that is 29 pieces out of 3443.74 s, with every file's
+length verified against the segment it was cut from. Full reference:
+`docs/AUDIO-SPLITTER.md`.
+
+## Upload a batch of tracks to Treblo
+
+```bash
+npm run treblo:upload -- "album-split"/*.mp3
+```
+
+`POST /v1/uploads` with the API key, one multipart `file` per track, and a
+JSON report of every id that came back. Uploads cost no credits — only
+generation does. The key comes from `TREBLO_API_KEY` or
+`~/.treblo-api-key`, never from the command line. Full reference:
+`docs/TREBLO-UPLOAD.md`.
 
 ## What's next
 

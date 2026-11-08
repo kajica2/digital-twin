@@ -113,7 +113,20 @@ function startServer(repoRoot) {
       res.end(String(e));
     }
   });
-  return new Promise((resolve) => server.listen(PORT, '127.0.0.1', () => resolve(server)));
+  return new Promise((resolve, reject) => {
+    server.once('error', (err) => {
+      if (err && err.code === 'EADDRINUSE') {
+        reject(new Error(
+          `port ${PORT} is already in use — a previous spec is probably still running.\n` +
+          `  either kill it, or run against a server you started yourself:\n` +
+          `    node lib/serve.js --port 5180   &&   PORT=5180 node twin-os-songs.spec.mjs`
+        ));
+        return;
+      }
+      reject(err);
+    });
+    server.listen(PORT, '127.0.0.1', () => resolve(server));
+  });
 }
 
 const log = (msg, color = '\u001b[36m') => console.log(`${color}[songs-e2e]${'\u001b[0m'} ${msg}`);

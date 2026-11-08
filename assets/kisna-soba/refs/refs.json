@@ -1,0 +1,39 @@
+{
+  "note": "The Kišna soba reference set: one style sheet and the character sheets. Every episode frame carries the style sheet as --sref and each character sheet as --cref --cw 100.",
+  "style": {
+    "job": "75a86176-7c74-4ae6-a04c-451c1098d8f9",
+    "url": "https://cdn.midjourney.com/75a86176-7c74-4ae6-a04c-451c1098d8f9/0_0_640_N.webp",
+    "file": "style.jpg",
+    "prompt": "soft 2D preschool animation style, calm bedtime story aesthetic, muted palette of dusky blue, soft grey, cream, and warm yellow lamp light, gentle linework, flat colors with very subtle shading, low contrast, no neon, no harsh shadows, quiet and safe mood, simple shapes, inspired by slow-paced children's picture books --ar 3:2 --style raw --v 6.1"
+  },
+  "lea": {
+    "job": "1bebd671-90f0-4a40-9a2f-5731ce3ff400",
+    "url": "https://cdn.midjourney.com/1bebd671-90f0-4a40-9a2f-5731ce3ff400/0_0_640_N.webp",
+    "file": "lea.jpg",
+    "prompt": "character reference sheet of a 6-year-old preschool girl named Lea, multiple views: front, three-quarter, side profile, "
+  },
+  "niko": {
+    "job": "f8eacfa4-c4fc-4f4f-9bf8-a0a3911c8ebd",
+    "url": "https://cdn.midjourney.com/f8eacfa4-c4fc-4f4f-9bf8-a0a3911c8ebd/0_0_640_N.webp",
+    "file": "niko.jpg",
+    "prompt": "character reference sheet of a 4-year-old preschool boy named Niko, multiple views: front, three-quarter, side profile, "
+  },
+  "muka": {
+    "job": "e90f824f-cf58-4657-b6a1-3647c47ca2fd",
+    "url": "https://cdn.midjourney.com/e90f824f-cf58-4657-b6a1-3647c47ca2fd/0_0_640_N.webp",
+    "file": "muka.jpg",
+    "prompt": "character reference sheet of a small grey short-haired cat named Muka, multiple views: front, three-quarter, side profil"
+  },
+  "group": {
+    "job": "0aa45188-f098-4a24-a1a7-597544476734",
+    "url": "https://cdn.midjourney.com/0aa45188-f098-4a24-a1a7-597544476734/0_0_640_N.webp",
+    "file": "group.jpg",
+    "prompt": "character reference sheet of three characters together: Lea on the left (6-year-old girl, cream raindrop pajamas, brown "
+  },
+  "zeka": {
+    "job": "b83f82f6-20cf-4d57-a279-dc8a61aabdd5",
+    "url": "https://cdn.midjourney.com/b83f82f6-20cf-4d57-a279-dc8a61aabdd5/0_0_640_N.webp",
+    "file": "zeka.jpg",
+    "prompt": "prop reference sheet of a small soft plush bunny named Zeka, multiple views: front, side, back, sitting, slightly worn f"
+  }
+}

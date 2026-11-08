@@ -1,0 +1,15 @@
+{
+  "id": "greenhouse-night",
+  "date": "2026-11-06",
+  "key": "2026-11-06",
+  "title": "Greenhouse Night",
+  "badge": "soundhealing",
+  "teaser": "Warmth kept alive on purpose, against the dark.",
+  "aspect": "16:9",
+  "source": "midjourney",
+  "plates": [
+    "frame-01.jpg",
+    "frame-02.jpg",
+    "frame-03.jpg"
+  ]
+}
