@@ -12795,3 +12795,1415 @@ wrong task. Two In Progress tasks naming the same subject was the
 - Linked the guide from README.md and connected the workspace to Kai Djuric’s musician/inventor/creative-technologist identity.
 - Validation: all seven internal guide links resolve in the checkout. The prescribed npm run e2e was attempted after installing its dependencies, but Chromium could not launch because the environment refused its singleton socket (Operation not permitted). Browser verification remains pending.
 - Scope: documentation and repository navigation. Runtime behaviour and existing module paths are unchanged.
+
+### 2026-11-05 — sprint 0.93 (the NEMA ME U MENI template — one registry, twelve frames)
+
+Asked for one still: *"Extreme close-up of a dark coffee cup and silent
+telephone on a worn wooden table..."*. The frame turned out to be **frame
+02 of a 12-frame master template** the artist pasted in — "NEMA ME U MENI
+— 12 cinematic visual prompts · A fragmented self-portrait · Belgrade ·
+Analog noir" — with a Visual DNA, a "trained character reference", and a
+suffix line that the paste **cut off mid-sentence** ("append this suffix
+to each frame:").
+
+**THE CUT-OFF SUFFIX AND THE CHARACTER REFERENCE CAME FROM THE ACCOUNT'S OWN FEED.**
+
+The account had already run this exact frame three times that night. The
+Midjourney feed (`/api/imagine?user_id=...`, the route `lib/mj-feed.js`
+already uses) carries each job's own `full_command`, so the template's
+missing pieces were recoverable **verbatim** rather than invented:
+
+- the suffix — frame 12's job `b56f42fa` carries
+  `35mm film still, fine grain, muted palette, no text`;
+- the character reference — the studio test job `2c2fd76c` submitted
+  `https://s.mj.run/7ZJU0zgoKBc` (a man in a **red coat** on snowy
+  railway tracks) as `--cref ... --cw 100`.
+
+**THE ACCOUNT REFUSES `--cref`. It ACCEPTS `--edit`.** MEASURED by
+bisection on ONE prompt, three submissions:
+
+| prompt | result |
+|---|---|
+| `--cref <url> --cw 100` | **REFUSED** — logged, never asked for a submission |
+| `--cref <url>` (no `--cw`) | **REFUSED** — so the FLAG is refused, not the pairing |
+| no reference flag | ACCEPTED — job `3367df72` |
+| `--edit <url>` | ACCEPTED — job `333bdfb0`, `v8-2_edit_diffusion` |
+
+The repo's own docs already said reference flags are refused here
+(`docs/MJ-SCENE-PRESETS.md`); this is the first time it was measured on a
+live submission. The error message `lib/mj-web.js` throws named `--edit`
+as a suspect — the exact flag that WORKS — so it **sent the bisection
+the wrong way and cost two generations**. The message is now extracted
+into `parameterRefusalMessage()`, names `--cref` instead, and
+`lib/mj-web.test.js` §9 pins it so it cannot drift back.
+
+**THE IDENTITY CLAUSE IS BUILT AGAINST THE ACTUAL REFERENCE.** The
+reference wears a red coat; no frame in the template wants one. So the
+house clause (`docs/VIDEO-FRAMING.md` §Step 4) gains
+`no red coat and no denim jacket and no leather jacket and no necklace,
+shaved very short haircut`. VERIFIED in the shipped still: the
+background crop carries no red.
+
+**Shipped:**
+
+- `lib/nema-me-u-meni.json` — the registry: 12 frames, 3 acts, the DNA,
+  the identity clause, the flags, the character reference and the flag
+  that carries it.
+- `lib/nema-me-u-meni.js` — loader, composer, pack builder, doc builder.
+  The DNA, the identity clause and the flags are appended to EVERY
+  frame; only the prose changes.
+- `lib/nema-me-u-meni.test.js` — **62 assertions**, all green.
+- `assets/mural-prompts/nema-me-u-meni.md` — the generated 12-frame
+  pack (lint clean, 0 violations).
+- `docs/NEMA-ME-U-MENI.md` — the generated reference.
+- npm: `nema:pack`, `nema:doc`, `nema:list`, `nema:frame`, `test:nema`
+  (+ `test:nema` wired into `test:all`).
+- The still: `mj-output/nema-me-u-meni/frame-02/` — job `333bdfb0`,
+  cell `0_1` (luma 77.9, closest to the median, none blown), 1456×816.
+
+**The pick's reason, not its index:** the cup and the black telephone
+fill the foreground, the man's hand rests motionless on the wood behind
+them, and his figure is barely readable in the background — the brief's
+own words, in one frame.
+
+**Decisions:**
+
+- **The registry is the single source.** The pack and the doc are
+  GENERATED from it. A hand-maintained copy of twelve prompts would
+  have twelve chances to drift from the DNA.
+- **`--edit`, not `--cref`** — measured, not preferred. The registry
+  names the flag (`characterRefFlag`) so the choice is data, not code.
+- **The DNA goes in the prose, not a `--profile`.** The artist dictated
+  flags with no profile; the house moodboard codes would have been a
+  grade nobody asked for. The DNA is palette and texture, and it belongs
+  in the style box.
+- **The artist's `--s 75` beats the config's `--s 21`** — the repo's own
+  composer drops the config's `--s` when the prompt carries its own.
+  Verified in the composed command.
+- **A distance clause stays.** The artist's "Extreme close-up" is kept
+  verbatim; the pack ADDS the camera's place as a separate clause,
+  because a distance is measured to be ignored while an object-in-frame
+  clause lands.
+
+**Verified end-to-end:**
+
+- `npm run test:nema` — 62/62.
+- `npm run test:mj-web` — 100/100 (was 92; +8 for the refusal message,
+  and two existing assertions repointed at the extracted function).
+- `npm run prompt:check` on the generated pack — 12 prompts, 0
+  violations.
+- The composed command, read back from `lib/mj-web.js --dry-run`:
+  one `--ar` last, one `--style raw`, `--s 75`, `--chaos 8`, the
+  `--edit` reference, and no `--cref`.
+- The still: 1456×816 native, cell `0_1`, luma 77.9.
+
+**THE FALSE FAILURE — AND THE FIX THAT CAME WITH IT.**
+
+The `--edit` job's own log contradicted itself: *"accepted as 333bdfb0"*
+but *"0/1 submitted"*. That is a **false failure on the only working
+character-reference path**, and since every frame in this template
+carries `--edit`, all twelve would have reported failure while
+rendering perfectly.
+
+PROBED against the LIVE feed (not read off the code): the job's prose
+matched our prompt exactly (`prose match: true`), `forbid` correctly
+excluded `edit` — and `matchJob` still rejected it:
+
+```
+job_type      : v8-2_edit_diffusion
+isPlainJob    : false
+prose match   : true
+forbid        : [ 'cref', 'oref' ]
+matchJob ok   : false
+matchJob why  : [ 'job_type v8-2_edit_diffusion is not a plain generation' ]
+```
+
+**TWO RULES CONTRADICTED EACH OTHER.** `forbiddenFlags()` deliberately
+drops `edit` from the forbid list when the prompt carries it — "the
+caller asked for it, so do not reject it". But `isPlainJob()` vetoed
+every `edit` job regardless. The second rule won.
+
+**THE FIX, and the hole in the first attempt.** `isPlainJob(job,
+allowed)` now takes the modifiers the PROMPT asked for
+(`askedModifiers()`), so an asked `--edit` is not a false negative.
+The first attempt asserted that the owner's concurrent edit would still
+be rejected — and it was NOT, because **the job type cannot tell our
+edit from the owner's: both are `edit_diffusion`.** The type check was
+never the thing separating them. The **prose** check is, and it is
+unchanged: an owner's edit job carries the owner's prose, so it cannot
+match ours. The test now proves that rather than asserting it.
+
+**VERIFIED against the live feed, after the fix:**
+
+```
+matchJob ok   : true
+matchJob why  : []
+```
+
+**Verified:**
+
+- `npm run test:mj-feed` — 72/72 (was 62; +10 for the asked-modifier
+  rules, including the owner's-edit protection).
+- `npm run test:mj-feed-reconcile` — 43/43.
+- `npm run test:mj-web` — 100/100. `test:mj-submitter` — 106/106.
+- `npm run test:mj` — 24/24. `npm run test:nema` — 62/62.
+
+**Open:**
+
+- **The other 11 frames are not rendered.** The pack is one command
+  (`node lib/mj-web.js --prompt-file assets/mural-prompts/nema-me-u-meni.md
+  --all-prompts`), but 11 generations is a decision for the artist, not
+  a default.
+- ~~**An `--edit` job cannot be matched by the feed gate.**~~ FIXED in
+  the same sprint — see "THE FALSE FAILURE" below.
+- **The other 11 frames' camera-place clauses are authored, not
+  measured** — they name the objects in frame and where the camera
+  stands, per the measured rule, but they have not been rendered and
+  checked.
+
+### 2026-11-05 — sprint 0.94 (SRCE KUCA — twelve shots, and a false softban)
+
+Asked for twelve cinematic shots for a song: **"Srce kuca"** by
+StingingStylists1762 — Serbian, *"Ne diraj tišinu"* (don't disturb the
+silence). Two people at a table who almost-touch and never do. The
+artist dictated the flags, which read like the studio's own
+recent-parameters row:
+
+```
+--chaos 5  --ar 16:9  --raw  --stylize 755  --hd
+--profile brvazka  --profile mhw6dpq  --profile xr39csb
+--profile det21e6  --profile 67lkfw3
+```
+
+**THE FLAGS ARE THE ACCOUNT'S OWN, AND "Help us improve V8" IS NOT AN
+INSTRUCTION.** MEASURED against the live studio page: those values ARE
+the recent-parameters row (chaos 5, stylize 755, hd) plus the account's
+five personalization codes (brvazka = profile #8, mhw6dpq = moodboard #92,
+xr39csb = popart, det21e6 = yellow taxi, 67lkfw3 = kowloon city). "Help us
+improve V8" is nowhere on the page and nowhere in the repo — it is studio
+UI text pasted along with the flags. The five `--profile` lines are FIVE
+separate flags, not one flag with five codes; that is the spelling the
+UI produces and the feed's own job commands agree.
+
+**Shipped:**
+
+- `lib/srce-kuca.json` — the registry: 12 shots, 3 acts, the DNA, the
+  identity clause, the flags.
+- `lib/srce-kuca.js` — loader, composer, pack builder, doc builder.
+- `lib/srce-kuca.test.js` — **65 assertions**, all green.
+- `assets/mural-prompts/srce-kuca.md`, `docs/SRCE-KUCA.md` — generated.
+- npm `srce:pack` / `srce:doc` / `srce:list` / `srce:frame` /
+  `test:srce` (+ `test:srce` wired into `test:all`).
+- The frames: `mj-output/srce_kuca/shots/shot-01.webp` … `shot-12.webp`,
+  each **2944×1648** (the `--hd` engine renders 2× the 1472×816 cell),
+  plus `contact-sheet-12up.png`.
+
+**RENDERED PLAIN, NOT WITH A CHARACTER REFERENCE.** docs/VIDEO-FRAMING.md
+§4, measured: in EDIT mode the reference photo decides the distance and
+every distance clause is disobeyed; in PLAIN mode the camera clause is
+obeyed. These twelve shots are a CAMERA set, so they render plain.
+
+**SEVEN SHOTS CAME BACK OFF-BRIEF, AND TWO WORDING FAUSES CAUSED ALL SEVEN.**
+
+- **THE WORD "camera" IN THE CAMERA CLAUSE RENDERS A LITERAL CAMERA.**
+  Shot 11 came back as a camera body on a table. The clause said "the
+  camera outside the doorway looking in". Fix: name the PLACE ("seen
+  from the doorway"), never the word "camera".
+- **FILM-STOCK WORDS IN THE PROSE RENDER A FILM STRIP.** Shots 06, 07, 09
+  and 10 came back with a black film-strip border and "KODAK 400"
+  lettering down one edge. Fix: keep the TEXTURE in the DNA clause and
+  take the film-stock nouns out of the prose, and name ONE light source
+  so the frame has something to light.
+
+Those seven were re-worded and re-rendered (7 generations); the five that
+landed were not re-spent.
+
+**THE MOODBOARDS CARRY THE GRADE, AND THE GRADE IS NOT WHAT THE LYRIC
+WANTS.** Measured on shot 07, four flag variants, one prompt
+(`mj-output/srce_kuca/moodboard-probe/`, with `comparison.png`):
+
+| variant | luma | chroma-dev | what it looks like |
+|---|---|---|---|
+| all five profiles (the artist's) | 79.0 | 8.7 | teal, cluttered, neon-lit interior |
+| **no `--profile` at all** | 73.1 | 10.0 | warm amber, busy diner, **no border** |
+| four profiles (popart out) | 78.9 | 9.0 | border still present |
+| four profiles (kowloon-city out) | 81.4 | 8.1 | border still present |
+
+So the finding is sharper than "the moodboards add a border". **The
+moodboards are what make these frames neon and crowded at all** — the
+artist's own grade and the ungraded render are both busy, bright
+interiors, not the dark 1970s room the lyric describes. Dropping the
+codes removes the film-strip border but does NOT produce the intended
+room; it produces a different wrong room (warm amber, busier still).
+
+That is a FINDING, not a failure: the grade the artist asked for is the
+grade these frames carry, and it fights the song's imagery. The
+remedy is a prose change (a darker, emptier room) or a different grade
+— not a flag the artist did not ask for.
+
+And the border is not one code's signature: dropping popart left it,
+dropping kowloon-city left it. It is the moodboard STYLE meeting a
+receding room.
+
+**A SCREEN THAT DID NOT WORK WAS DELETED, NOT SHIPPED.** `lib/border.py`
+measured the film-strip border as "outer edges darker than the centre".
+Validated against cells confirmed by eye, it does NOT discriminate: a
+visually clean cell scored 54.7 and a visibly bordered one scored 16.0.
+It was measuring natural vignetting, not the strip. Deleted — a screen
+that does not work is worse than no screen.
+
+**THE MEASUREMENT SCREEN IS NOT ENOUGH, AND THAT IS THE RULE WORKING.**
+The median-luma pick chose the wrong cell on shots 05, 07, 10 and 12; the
+CONTENT check found the right one every time. This is the shot-registry
+rule exactly (SKILL.md Rule 6): measurement SCREENS, the eye DECIDES.
+
+**THE FALSE SOFTBAN — a real bug, now fixed.** Two jobs were reported
+soft-banned (`0ea9a30f`, `e40d76ac`, both the same shot) and were IN THE
+FEED as `v8-2_hd_diffusion` with their cells rendered. A softban is
+DEFINED by the absence of a feed entry, so the feed decides — the submit
+response's `softban` flag is not the authority, and it is set on ordinary
+submissions too.
+
+`lib/mj-web.js` now asks the feed before declaring a softban
+(`findJobInFeed`). Before this, the tool threw away frames that already
+existed AND sent the operator re-writing a prompt that needed no change.
+`lib/mj-web.test.js` §10 pins it: a flagged job that IS in the feed is
+not a softban; one that is NOT still is; and with no feed to ask, the
+flag stands (the safe direction).
+
+**AND THE `--profile` WARNING WAS A PARSER BUG — the artist's own grade
+looked like the app's injection.**
+
+Every one of the twelve jobs printed "the account's personalization was
+applied (--profile brvazka)". Two things were wrong with that:
+
+1. **The parser only ever read the FIRST `--profile` group.** The pack
+   carries FIVE separate `--profile` flags, one per moodboard; the regex
+   matched one group and stopped. So the tool saw `--profile brvazka`
+   and nothing else — which is why every job named the same single code.
+2. **The warning could not tell "the app injected a profile" from "the
+   artist asked for one".** The repo already names this false-failure
+   class for `--no-personalize` (see `profileIdsIn`): a prompt carrying
+   the artist's OWN `--profile` would be failed for using the house
+   grade. The warning path had the same bug, and under
+   `--no-personalize` this pack would have failed all twelve jobs for
+   the grade the artist asked for.
+
+Both fixed: `profileIdsIn` now reads EVERY `--profile` group (still
+stopping at the next flag), and the personalization check compares the
+job's ids against the ids the PROMPT asked for — only the difference is
+reported. The artist's own grade is now stated once, quietly, instead of
+twelve times.
+
+**THE "SOFTBAN" REPORTS WERE A RENDER STILL IN FLIGHT — AND I GOT IT
+WRONG TWICE BEFORE GETTING IT RIGHT.**
+
+The obvious reading of a softban is the one the repo already documents
+(MEASURED 2026-10-26): Midjourney accepts the request, sets
+`softban: true`, and never queues the job. The tell is that no feed
+entry appears and the CDN 404s every cell forever.
+
+But on 2026-11-05 SEVEN jobs were reported soft-banned and EVERY ONE
+OF THEM RENDERED. The evidence, all six fetched and verified:
+
+| job | flags | reported | the truth |
+|---|---|---|---|
+| `0ba2e6cc` | all five | soft-banned | 4 cells, 2.2–2.7 MB each |
+| `a0194859` | brvazka only | soft-banned | 4 cells, 1.9–2.6 MB each |
+| `a67e1105` | four moodboards | soft-banned | 4 cells, 1.3–1.8 MB each |
+| `6ca6a2e0` | brvazka only | soft-banned | 4 cells, 1.9–2.6 MB each |
+| `e3fcb84f` | four moodboards | soft-banned | 4 cells, 1.3–1.8 MB each |
+| `640cb078` | all five | soft-banned | 4 cells, 2.2–2.5 MB each |
+
+THE 404s WERE THE RENDER STILL IN FLIGHT. The submitter waited 90
+seconds for the cells; these renders took longer, and at 90 seconds
+every cell still answered 404 — so "not served yet" was read as
+"never served".
+
+**TWO WRONG CONCLUSIONS ON THE WAY, both recorded here because the
+reasoning is the lesson:**
+
+1. **"The CDN serves cells on a short lifetime."** Believed, because
+   job `640cb078`'s cells were fetched successfully and then answered
+   404 minutes later. Both things are true — the cells DO expire — but
+   expiry was the wrong explanation for a 404 seen seconds after a
+   submission.
+2. **"These jobs were queued but never rendered."** Also wrong. They
+   rendered; nobody looked at the cells again long enough.
+
+**THE FIX, and the rule.** A softban is defined by NO FEED ENTRY. The
+feed entry was there every single time. So the feed is the authority
+for "was this job accepted and queued", and the CDN is the authority
+for "are the pixels there YET" — and the second question needs a
+generous window, not a quick probe.
+
+`lib/mj-web.js` now checks both: the feed entry (`findJobInFeed`) and
+the cells (`waitForCells`, given **4 × the generation timeout** — 480 s
+by default, because a render that takes ten minutes must not be called
+a softban at ninety seconds). A flagged job that is in the feed AND has
+cells served is reported as rendered; one that is in the feed with no
+cells after the long wait is still reported as a softban.
+`lib/mj-web.test.js` §10 covers all three cases (feed + cells / feed
+only / neither).
+
+**WHAT THIS MEANS FOR THE SET.** Seven of the shot-07 wordings that
+were "refused" were fine all along, and the shot-07 wording churn was
+partly chasing a phantom. The registry carries the wording that was
+MEASURED to render.
+
+**THE EMPTY-ROOM IDEA WAS RIGHT, AND THE WORDING CHURN WAS A PHANTOM.**
+Shot 07 was rewritten as "An almost bare room at night … nothing else in
+the room, the darkness reaching the edges of the picture" and reported
+as refused. It was NOT refused — that job (`0ba2e6cc`) rendered, four
+cells and all (see the table above). Three alternative wordings were
+submitted while chasing it, and they rendered too.
+
+So the empty-room prose was fine all along, and the shot-07 churn was
+partly a chase after a softban report that was never true. The registry
+carries variant A's wording — the one MEASURED to render, and the one
+shot 07 ships from — and the other two variants are on disk under
+`mj-output/srce_kuca/probe-shot07-variants/`.
+
+**Verified:**
+
+- `npm run test:srce` — 65/65. `npm run test:mj-web` — 117/117 (was
+  100; +8 for the softban, +5 for the profile grade, +4 for the cell
+  check). `npm run test:mj-feed` — 72/72.
+  `npm run test:nema` — 62/62. `npm run test:prompt-lint` — 53/53.
+- `npm run prompt:check` — 85 packs, 831 prompts, 0 violations.
+- Regenerating the pack and doc from the registry reproduces them
+  byte-identically — the registry really is the single source. (It also
+  revealed the committed pack still held the OLD wording for the seven
+  rewritten shots: the generated files were stale, and regenerating
+  fixed them.)
+- Every shipped frame is 2944×1648, fetched from the CDN's un-suffixed
+  path (the preview the feed names is 1141×640 — a different, smaller
+  file).
+
+**Open:**
+
+- **The frames read cooler and greener than "1970s European arthouse"**
+  because the moodboards pull that way. The artist asked for those five
+  codes, so they stayed — but dropping one is the obvious next test, and
+  two were already probed.
+- **The film-strip border still appears on SOME cells of the receding
+  -room shots.** Every shot has at least one clean cell, and the clean
+  one is shipped, but the border is not eliminated — it is dodged.
+
+### 2026-11-05 — sprint 0.95 (sixteen frames — the set re-sequenced to the lyric)
+
+Asked: *"create 16 frames mj"* for **Srce kuca**, with the full lyric.
+
+**THE ORDER IS THE LYRIC'S, AND THAT CHANGED THE SET.** Sixteen frames is
+not twelve plus four appended — the shots are re-sequenced to the song's
+own sections, and the four new beats are placed where the song puts
+them:
+
+| act | section | shots |
+|---|---|---|
+| I | verse 1 — the room, the glass, the thing she does not say | 01–03 |
+| II | chorus 1 — the silence, the night that will not pass | 04–06 |
+| III | verse 2 — his absence, the moving, the laugh, the things he holds | 07–11 |
+| IV | chorus 2 + bridge — what they made | 12–14 |
+| V | final chorus — it is late, come here | 15–16 |
+
+**THE TWELVE EXISTING RENDERS ARE KEPT, NOT RE-SPENT.** They were
+re-sequenced into the new order; only FOUR new beats were submitted:
+
+- **02 KO ZNA ŠTA MISLIŠ** — her hand pushing her hair, mouth open as if
+  about to say something and not saying it.
+- **05 NEKA NOĆ NE PROLAZI** — the window, the same dark street outside,
+  the lit windows opposite unchanged.
+- **07 JA VEĆ NISAM TU** — the empty chair, his coat gone from it, his
+  keys left on the table, the lamp still burning over nothing.
+- **10 TI ME PITAŠ NEŠTO** — her question, his laugh, him head down.
+
+**THE MEASURED WORDING RULES, APPLIED TO THE FOUR NEW SHOTS.** No
+"camera" in the camera clause (it renders a literal camera — MEASURED
+2026-11-05, shot 11 came back as a camera body). No film-stock nouns in
+the prose (they render a film strip with KODAK lettering down one edge).
+One light source named per shot. Objects named, because objects land.
+
+**THE CONTENT CHECK BEAT THE LUMA SCREEN AGAIN — TWICE.**
+
+| shot | median-luma pick | content pick | why |
+|---|---|---|---|
+| 02 | `0_3` (89.6) | **`0_2`** → then **`0_0`** | `0_2` had the right gesture but was BLOWN at 101.6 luma; `0_0` has the same gesture at 88.3 — hand in her hair, eyes off-frame, mouth closed and unsaid |
+| 10 | `0_1` (81.3) | **`0_2`** | `0_1` read as her looking down; `0_2` has her leaning in with her mouth open mid-question and him beyond with his head down |
+
+The luma screen caught what the eye would have missed on 02 (a blown
+frame), and the eye caught what the luma screen could not (the right
+gesture on 10). Both checks were needed; neither alone was sufficient.
+Rule 6 of the `generative-shot-registry` skill says exactly this —
+measurement SCREENS, content CONFIRMS.
+
+**THE REGISTRY NOW RECORDS THE PICKED CELL FOR EVERY SHOT** (`cell` per
+frame), so the set is reproducible rather than a folder of files. The doc
+carries it too, and regenerates byte-identically from the registry.
+
+**Shipped:**
+
+- `lib/srce-kuca.json` — 16 frames, 5 acts, the picked cell per frame.
+- `lib/srce-kuca.js` — the generator; the doc title and the cell note
+  are now derived from the registry, not hardcoded ("the twelve shots"
+  was a stale literal until this sprint).
+- `lib/srce-kuca.test.js` — **85 assertions** (was 65): the sixteen, the
+  five acts, the lyric order, and the four new beats checked against the
+  measured wording rules (names a light source · no "camera" in the
+  camera clause · no film-stock noun in the prose).
+- `assets/mural-prompts/srce-kuca.md` — 16 prompts, lint clean.
+- `docs/SRCE-KUCA.md` — 16 shot sections, each with its picked cell.
+- `mj-output/srce_kuca/shots/shot-01.webp` … `shot-16.webp` — all
+  **2944×1648**, all under 90 luma (min 64.7, max 89.6, median 84.1),
+  plus `contact-sheet-16up.png`.
+
+**Verified end-to-end:**
+
+- 4/4 new beats submitted and accepted (`74cc8fa0`, `8758fadc`,
+  `125c2af9`, `709f091e`), all cells fetched at native resolution.
+- `npm run test:srce` — 85/85. `npm run test:mj-web` — 117/117.
+  `node lib/prompt-lint.js assets/mural-prompts/srce-kuca.md` — 16
+  prompts, 0 violations.
+- All 16 shot renders measured, all reviewed by eye, all 2944×1648.
+- The 16-up contact sheet reviewed as a set: one grade, one grain, the
+  same two figures and the same table across the arc.
+
+**Open:**
+
+- The frames read cooler and greener than "1970s European arthouse" —
+  the moodboards pull that way and the artist asked for those codes, so
+  they stayed.
+- The film-strip border still appears on SOME cells of the receding-room
+  shots. Every shot has a clean cell and that is what ships, so the
+  border is dodged rather than eliminated.
+
+### 2026-11-05 — sprint 0.96 (the camera grid — the same twelve beats, twelve cameras)
+
+Asked: *"generate multiple camera anfkles stills for one music video"* — with
+the full "Nema Me U Meni" lyric pasted in.
+
+**THE PASTE WAS THE MASTER TEMPLATE, NOT A NEW SONG.** The lyric is
+"Nema Me U Meni", and `lib/nema-me-u-meni.json` already holds it: 12 frames,
+each quoting these exact lines, rendered with an `--edit` character
+reference. So the ask was not a new set — it was the **camera-grid
+variant**: the same twelve beats, each shot from a different camera
+position. The repo's own house grid (docs/VIDEO-FRAMING.md §4) names the
+twelve positions, so those were used, one per beat, each used exactly once.
+
+**Shipped:**
+
+- **`lib/nema-me-u-meni-camera-grid.json`** — the registry: 12 beats × 12
+  camera positions, the beats/lyrics/DNA/grade borrowed from the master
+  template byte-for-byte.
+- **`lib/nema-me-u-meni-camera-grid.js`** — composer (`pack`/`doc`/`list`/
+  `frame`).
+- **`lib/nema-me-u-meni-camera-grid.test.js`** — **84 assertions**, all
+  green (75 authored + 9 pinning the render result).
+- **`assets/mural-prompts/nema-me-u-meni-camera-grid.md`** +
+  **`docs/NEMA-ME-U-MENI-CAMERA-GRID.md`** — generated, lint clean
+  (12 prompts, 0 violations).
+- npm `nema-grid:pack|doc|list|frame`, `test:nema-grid` (in `test:all`).
+- The frames: `mj-output/nema-me-u-meni-camera-grid/`, 12 jobs,
+  `v8-2_hd_diffusion`, 16:9, 2944×1648, 4 cells each.
+
+**THE SET RENDERS PLAIN — NO ATTACHMENT.** Measured (docs/VIDEO-FRAMING.md
+§4): in edit mode the reference photograph decides the distance, and every
+distance clause in the five-way test was disobeyed. The camera is the
+point of this set, so it carries no `--edit` and no `--cref`; the identity
+clause is still carried so the wardrobe reads the same in all twelve.
+
+**THE TEMPLATE'S OWN DISTANCE WORDS WERE REMOVED FROM THE BORROWED PROSE.**
+The template writes "wide static shot of", "extreme close-up of", "vast
+wide shot". A distance clause is measured to be ignored — and worse, it
+would FIGHT the grid's own camera (beat 05 is a whip pan and the
+template's prose for it says "vast wide shot"). The scene facts stayed;
+the framing belongs to the camera clause, which names the camera's PLACE
+and what is IN the picture from there — and never the word "camera",
+which renders a literal camera body (measured 2026-11-05).
+
+**12/12 SUBMITTED, ZERO REFUSALS.** ~2 min/frame with `--hd`.
+
+**THE CONTENT CHECK TOOK FOUR TOOLS, AND TWO OF THEM WERE WRONG.**
+
+The eye-check needs a vision provider and none is configured on this
+machine (`hermes setup` was never run for `task=vision`), so the check
+had to be built. Three instruments were tried:
+
+1. **CLIP** — FAILED, and the failure was instructive. Against a control
+   (a DOCUMENTED extreme close-up) it scored "wide establishing" or
+   "motion blur" in all four cells and never ranked the macro first. The
+   cause was the VOCABULARY: phrases that named TECHNIQUES ("a motion
+   blurred pan") are generic attractors, and CLIP-ViT at 224px cannot
+   resolve macro-vs-wide from a technique word. Rephrasing to describe
+   the FRAMING with scene content ("only a coffee cup and a telephone
+   handset, cropped very close") fixed the control — and then the same
+   frame ranked its assigned camera 1st in one formulation and 6th in
+   another. **The scene text dominates the score.** CLIP was dropped as a
+   verdict and kept only as a screen.
+2. **A GEOMETRY CHECK** — measuring the camera from the PIXELS: roll from
+   the dominant gradient orientation, motion blur from the orientation of
+   the high-frequency energy, symmetry from mirror correlation, depth of
+   field from where the detail concentrates. Each detector was validated
+   against SYNTHETIC truth (a generated image rolled by a known angle),
+   which caught two real bugs: the roll detector measured deviation from
+   the PEAK instead of from the AXIS (a frame rolled 30° measured 2.6°),
+   and the blur metric indexed a broadcast row with a 2-D mask.
+3. **THE EYE** — reached by pointing the browser harness at the MJ
+   backend's own Chrome (`BU_CDP_URL=http://127.0.0.1:9444`), which
+   bypasses the `chrome://inspect` permission popup entirely. Then the
+   contact sheets were downscaled to 900px JPEGs (the 2944px WebPs made
+   `Page.captureScreenshot` time out) and looked at.
+
+**THE GEOMETRY IS A SCREEN, NOT A VERDICT — AND IT DISAGREED WITH THE EYE.**
+It confirms the front-on frame (mirror correlation 0.847 against ~0.3
+everywhere else) and misses the whip pan and the macro that the eye sees
+plainly. Its roll detector found a **12.3° roll in frame 08's cell 0_2** —
+a genuinely rolled frame, in the WRONG beat. So the two disagreeing is
+information, not noise.
+
+**NINE OF THE TWELVE CAMERAS LANDED.** The eye check, on the picked cell:
+
+| frame | camera | verdict |
+|---|---|---|
+| 01 | wide establishing | **landed** — the man and the table small at the far end, past the door frame |
+| 02 | macro | **landed** — cup and handset filling the foreground, shallow focus |
+| 03 | high angle | **MISSED** — the three doorways came back at EYE LEVEL |
+| 04 | low angle | **landed** — the facade rising, the lit window small and high |
+| 05 | whip pan | **landed** — the street smeared sideways, one sharp figure dead centre |
+| 06 | over the shoulder | **landed** — his head and shoulder in the near edge |
+| 07 | profile | **landed** — clean profile against the crossing's red |
+| 08 | top-down flat lay | **MISSED** — the tabletop came back OBLIQUE |
+| 09 | dutch tilt | **MISSED** — the floor and the sofa are all LEVEL |
+| 10 | long lens | **landed** — the flugelhorn large, the doorway pulled close behind |
+| 11 | from behind | **landed** — his back and the tubing in the near edge |
+| 12 | front-on, centred | **landed** — dead centre, the geometry agrees |
+
+**THE THREE MISSES ARE ALL "THE CAMERA CAME BACK LEVEL".** The high
+angle, the top-down and the dutch tilt are three DIFFERENT ways of saying
+"the picture is not square to the world", and all three failed the same
+way. That is the finding: **MJ treats "seen from above" and "running
+diagonally" as SCENE FRAMING, not as camera geometry.** A clause naming
+an object in the frame lands (the floor and the sofa running diagonally
+DID name objects); the clause naming the camera's ORIENTATION did not.
+The three re-wordings worth trying, in order:
+
+1. **The high angle** — name the surface, not the angle: "the man and the
+   bed seen from the landing above, the floor plan visible, the three
+   doorways as rectangles below". The house rule (an object in the frame
+   lands) says name what is IN the picture.
+2. **The top-down** — "the packet and the glass on the flat top of the
+   table, the table's square edge running across the picture, the
+   pavement beyond the barrier at the top of the frame" — the flat-lay
+   needs a FLAT SURFACE with a visible edge.
+3. **The dutch tilt** — the roll cannot be asked for in prose at all; it
+   is a TRANSFORM. Per docs/VIDEO-FRAMING.md §3, the cut does what the
+   still cannot: a 10–15° roll is a renderer's job, not a prompt's. So
+   the frame should be shot LEVEL and the roll applied in the cut.
+
+**Decisions:**
+
+- **The registry carries the picked cell AND the verdict per frame**, so
+  the set is reproducible rather than a folder of files, and so a re-render
+  that improves or breaks it shows up in the diff.
+- **The pack and the doc are GENERATED from the registry** — never
+  hand-copied. The regeneration reproduces them byte-identically.
+- **The three misses are SHIPPED, not hidden.** The set is 9/12, and the
+  doc says which three and why. A frame that did not land is a fact
+  about the set; hiding it would make the registry lie.
+- **`--hd` was added to the template's flags** — this is a VIDEO set and
+  the house camera-grid pack and the artist's most recent set both carry
+  it. It doubles the render and changes nothing else.
+- **package.json was edited BYTE-SURGICALLY.** The file is in an
+  unmerged state from another branch; a `JSON.parse` → `JSON.stringify`
+  round-trip reformatted the whole thing (4-space indent, de-escaped
+  `\u2014`) — the exact failure the repo's sprint-0.89 note warns about.
+  The edits went in as 6 changed lines with `patch`.
+
+**Verified end-to-end:**
+
+- `npm run test:nema-grid` — 84/84.
+- `npm run test:all` — exit 0, no regressions.
+- `npm run prompt:check` — 12 prompts, 0 violations.
+- 12/12 jobs accepted, 4 cells each, native 2944×1648, all ffprobe-clean.
+- The luma screen: 5 of the 12 frames had blown cells excluded.
+- The eye check: 9/12 landed, each verdict with its reason, pinned by the
+  test suite.
+
+**Open:**
+
+- **Three cameras did not land** (high angle, top-down, dutch tilt) and
+  the re-wordings above are AUTHORED, not measured. A re-render would
+  cost 3 generations and is the artist's call.
+- **The dutch tilt probably does not belong in the prompt at all** — the
+  cut owns it. That is a change to the grid's shape, not to a word.
+- **No vision provider is configured on this machine**, so every content
+  check has to go through the CDP path. `hermes setup` → configure
+  `auxiliary.vision` would make it one call.
+- **The three ways of shooting a picture that is not square to the
+  world failed the same way.** That is worth more than the three frames:
+  if a future set needs a high angle, a flat lay or a tilt, expect the
+  same result.
+- Unchanged: the `.kai/` durability call, the woody-shaw chart variants,
+  the Vercel custom domain, the MJ cookie jar expiry.
+
+### 2026-11-06 — sprint 0.97 (the thirty looks — a medium registry)
+
+Pasted a list of thirty film stocks and media emulations: *Analog Noir
+1970s European Arthouse*, *VHS Glitch Noir*, *B&W 16mm Grunge*, *Film Noir
+1940s*, *CCTV Surveillance*, *Thermal / Infrared*, *Tape Loop / Feedback*,
+and twenty-four more. Per the repo's convention for a pasted preset list
+(skill `generative-shot-registry`), that is a **registry**, not thirty
+renders.
+
+**A LOOK IS A THIRD THING, AND THE DISTINCTION IS LOAD-BEARING.** The
+skill's Rule 0 separates four kinds: a scene preset is a picture, a style
+preset is a finished style text for a style field, a shot plan is a
+sequence, and a camera grid is one beat per camera. This list is none of
+the first three — it is the **MEDIUM**: the stock, the tape, the sensor,
+expressed as palette and texture. The look does not say WHAT is in the
+frame; it says WHAT IT WAS FILMED ON. So it gets its own registry rather
+than being folded into `lib/mj-scene-presets.json`, because a scene
+preset's prose and a look's prose are consumed differently.
+
+**Shipped:**
+
+- **`lib/mj-look-presets.json`** — the registry: 30 looks in the artist's
+  own order, each with `slug`, `name`, `group`, `era`, `medium`,
+  `bestFor`, `ar`, `stock`, `cast`, `texture`, `palette`, the artist's
+  VERBATIM `descriptor`, and a `cut` recipe. 7 groups: 35mm film (12),
+  16mm film (5), small gauge and instant (2), analog and early digital
+  video (5), surveillance and thermal (2), club realism (2), contemporary
+  digital (2).
+- **`lib/mj-look-presets.js`** — loader, composer, pack builder, cut
+  planner, doc builder, CLI. Pure Node, no deps.
+- **`lib/mj-look-presets.test.js`** — **582 assertions**, all green.
+- **`docs/MJ-LOOK-PRESETS.md`** — generated reference.
+- **`data/look-presets/look-presets.md`** — the generated pack (a build
+  product; gitignored, same rule as `data/scene-presets/`).
+- npm: `mj:looks`, `mj:looks:pack`, `mj:looks:doc`, `mj:looks:list`,
+  `mj:looks:cut`, `test:mj-look-presets` (wired into `test:all`).
+
+**THE STOCK IS DATA, AND THE COMPOSER OFFERS TWO PROJECTIONS.** MEASURED
+2026-11-05 on the SRCE KUCA set: a prose naming a film stock ("faded
+35mm film", "Kodak 400") came back with a black film-strip border and
+stock lettering down one edge — **on four of seven shots**. The stock is
+the most evocative word in a look and the most likely to summon a
+film-strip graphic. So the registry keeps `stock` as a FIELD and the
+composer projects it two ways:
+
+```
+style       — "<stock>, <cast>, <palette>, <texture>"   (look plates, covers)
+styleScene  — "<cast>, <palette>, <texture>"             (safe in a scene)
+```
+
+`--no-stock` is the second projection. The artist's verbatim `descriptor`
+is kept in the registry as the source of truth for WHAT the look is, and
+`--verbatim` composes from it.
+
+**THREE OF THE THIRTY CARRIED CAMERA INSTRUCTIONS, AND THEY WERE WRONG.**
+The artist's own words contain camera language: "wide shots" (Soviet
+post-punk), "tilted angles" (German Expressionist), "fixed high-angle"
+(CCTV), "ENG zoom" (Betacam). But those words are the description of what
+the medium LOOKS like, not an instruction the camera obeys — and the
+measured rules say the camera ignores exactly that kind of clause:
+
+- a **DISTANCE** clause is ignored (docs/VIDEO-FRAMING.md §5);
+- an **ORIENTATION** clause is ignored — the high angle, the top-down and
+  the dutch tilt all came back LEVEL (2026-11-05, the camera grid);
+- a **MOVE** belongs to the CUT, not the prose (§3).
+
+So the renderable fields were rewritten camera-free and the camera
+language moved into `caveat`, where it is documentation rather than
+instruction: "bleak industrial spaces, brutalist concrete, heavy grain,
+distant figures" instead of "wide shots"; "distorted sets, hard shadows,
+skewed architecture" instead of "tilted angles". The VERBATIM descriptor
+still carries the artist's words, because that field is the source of
+truth and not the renderable one.
+
+**THE SAME REASONING REACHED THE ANCHOR SUBJECT.** The pack renders the
+same subject in all thirty so the looks are comparable side by side. Its
+first draft said "the whole body visible" — a DISTANCE clause, which the
+anchor would have pasted into every one of the thirty prompts, teaching
+the model a distance the cut owns. Replaced with "the figure alone in the
+picture".
+
+**THE TWO LOOKS WHOSE TEXT *IS* THE LOOK SET `allowText`.** The VHS
+timestamp and the CCTV timecode burn-in are TEXT, so the house `no text`
+negation would contradict the very medium being asked for. Those two looks
+carry `allowText: true` and the negation is omitted for them — and only
+them. The negation is asserted on every other look.
+
+**THE CUT PLAN REFUSES A MIXED-RATIO SET.** The looks carry their NATIVE
+ratios (21:9 for the four anamorphic ones, 4:3 for the eight video ones,
+1:1 for the instant one, 16:9 for the other seventeen), because the ratio
+IS part of the medium. The renderer takes ONE `--size` for a whole cut, so
+a plan spanning several ratios is REFUSED rather than silently scaled —
+the same rule the scene-preset registry follows, with the filter named
+`--ar-filter` for the cut and `--ar` for the pack's override, so the two
+meanings never collide.
+
+**A CLI CRASH WAS A USER ERROR, NOT A BUG.** The mixed-ratio refusal
+originally printed a stack trace. A registry error is the INVOCATION
+being wrong, so it now prints one line and exits 2, like the rest of the
+repo's CLIs. A stack trace there reads like a bug in the tool.
+
+**FOUR REAL BUGS FOUND WHILE BUILDING IT, ALL IN THE NEW CODE:**
+
+1. The doc rendered ``## 35mm film (`undefined`)`` — the group label
+   builder read `g.group` where the group's own id is `g.id`. Every
+   section header was wrong.
+2. The test passed `null` as the ratio to `buildFullPrompt`, which
+   silently substituted the CONFIG's 16:9 for a look's own 21:9. The real
+   submitter path passes `p.ar` explicitly (`lib/mj-web.js` does exactly
+   this) because `extractPrompts` strips `--ar` off the text and surfaces
+   it separately — the test was not exercising the real call shape.
+3. The distinctness assertion ran on the `stock` FIELD rather than the
+   COMPOSED OPENING. Two looks may legitimately share a medium (four are
+   35mm, eight are "16mm"), so the field is not where the distinctness
+   has to hold — the composed opening is, because that is what the
+   acceptance matcher reads. The composed openings are distinct at 40, 48
+   and 64 characters (30/30 at each), which is the sprint-0.32 excerpt
+   trap answered.
+4. `--ar` meant two different things to `--pack` and `--cut-plan`.
+
+**Decisions:**
+
+- **A separate registry, not an extension of the scene registry.** Different
+  input (a medium, not a picture), different consumer (a style clause,
+  not a scene prose), different output (a look plate, not a shot). Same
+  reasoning as the watchers being separate files.
+- **The native ratio is data.** The 21:9 anamorphic and the 4:3 video
+  looks are not "16:9 with a mood" — the frame shape is part of what the
+  medium IS, and flattening it would misrepresent the look.
+- **The camera-free rewrite is a correction, not a sanitisation.** The
+  artist's words are preserved in `descriptor`; the RENDERABLE fields are
+  what the camera can obey.
+- **The pack is a build product.** `data/look-presets/` is gitignored,
+  the registry is tracked — the same rule as `data/scene-presets/`.
+- **No generation was spent.** The pack lands in `data/`, never in
+  `prompts-inbox/` by default, because that directory is the MJ watcher's
+  drop zone and a pack there is rendered on sight — 30 generations for
+  nobody. `--inbox` is the explicit opt-in.
+
+**Verified end-to-end:**
+
+- `npm run test:mj-look-presets` — **582 passed, 0 failed**.
+- `npm run test:all` — every suite green **except** `test:youtube-poster`,
+  which fails on a missing local credential jar (`~/.youtube-cookies.txt`)
+  and reproduces identically with this sprint's changes stashed. Both of
+  its files are byte-identical to HEAD. The `&&` chain's tail was run by
+  hand and is green (agent-hub, improve-loop, secrets, images-mp4, boot,
+  log-rotate, auto-check-updates).
+- `npm run prompt:check` — **100 packs, 1015 prompts, 0 violations**; the
+  new pack is inside that count.
+- The four ratio cut plans (16:9 / 4:3 / 21:9 / 1:1) were each fed to the
+  renderer's own `buildRenderPlan` and accepted — the filter graphs build
+  (3879 / 1854 / 1195 / 191 chars) and the durations are 51s / 24s / 12s
+  / 3s.
+- The pack round-trips through the submitter's own parser: 30 prompts,
+  each with its own ratio, each composed to exactly one `--ar`, last.
+- `npm run test:mj-scene-presets`, `test:mj-submitter`,
+  `test:mj-prompt-generator`, `test:mj-web`, `test:prompt-lint` and
+  `test:secrets` — green, no regressions.
+- Hygiene: no absolute filesystem paths in any new file.
+
+**Open:**
+
+- **No look has been rendered.** The registry is authored, not measured —
+  the 30 palettes and textures are the artist's words decomposed, and
+  which of them MJ actually honours is untested. A sweep is one command
+  (`node lib/mj-look-presets.js --pack --inbox`) and 30 generations, and
+  it is the artist's call.
+- **The stock-free projection (`--no-stock`) is untested against MJ.** It
+  is the escape hatch for the film-strip border, and whether dropping the
+  stock preserves enough of the look is a measurement, not a guess.
+- **The `caveat` field is documentation only.** Nothing renders it. A
+  future pack could carry the caveats as blockquotes, but the watcher
+  ignores blockquotes, so they would need another channel.
+- Unchanged: the `.kai/` durability call, the woody-shaw chart variants,
+  the Vercel custom domain, the MJ cookie jar expiry.
+
+### 2026-11-06 — sprint 0.98 (the twelve frames — and "set as style prompt" measured)
+
+Asked: *"set as style prompt"* for job
+`c6403638-a132-4a68-8f2f-26bb4cca9f45`, then pasted a twelve-frame
+storyboard ("THE WATCHED MAN" — a man under observation, analog-noir
+Belgrade, one consistent figure, three acts).
+
+**THE STYLE REFERENCE ALREADY EXISTED. THE ASK WAS TO FIND IT, NOT
+TO MINT IT.**
+
+Four probes, each answering the question the previous one raised:
+
+1. **There is NO server route for a style reference.** Thirteen
+   candidate paths, asked of the live account in ONE sweep from inside
+   the page: all 404. The CONTROL route `/api/imagine` answered
+   **400** — so the probe itself worked, and the 404s are findings
+   rather than a broken session. (The repo already learned that a 404
+   is a discovery: `/api/characters` answered the same way.)
+2. **Every `--sref` this account uses is a URL** — read off the feed's
+   own `full_command` across 200 jobs: seven jobs carry an
+   `s.mj.run/<code>` link, three distinct URLs.
+3. **The artist's job ALREADY carried it**:
+   `--ar 16:9 --sref https://s.mj.run/cATLXOMsR-o --profile ub2pnlv
+   --v 8.2`.
+4. **The studio's per-image button renders that reference as its
+   thumbnail** — `title="Style Reference (--sref)"`, `alt="https://
+   s.mj.run/cATLXOMsR-o"`, class `cursor-copy`. So the control
+   **COPIES** the reference; it does not mint one.
+
+**THE ROUTE CAME FROM WATCHING THE PAGE THAT USES THE FEATURE.** Guessing
+route names is a bad search; loading `/style-creator` and reading its
+network traffic is a complete one. It revealed
+`GET /api/explore-styles-likes` → twenty style references, each with a
+numeric `formatted_sref` and `type: "style"`. Those are the studio's
+own generated styles — not the artist's job. The artist's is the URL.
+
+**THREE FALSE NEGATIVES, EACH NEEDING A DIFFERENT INSTRUMENT.**
+
+| the observation | the wrong conclusion | what resolved it |
+|---|---|---|
+| pressing `Style Reference` did nothing | the feature does not exist | the COMPOSER's control shares the prefix; the image's is `Style Reference (--sref)` |
+| the press made zero requests | the action is inert | a synthetic `.click()` is not a user gesture; the control copies to the CLIPBOARD |
+| the clipboard was unchanged | the copy failed | it needs a real gesture — the sentinel test proved the clipboard was never written |
+
+**THE PROMPT'S OWN COMMAND IS THE ANSWER KEY** — the repo's rule from
+the truncated-template incident, applied again. The artist's style
+reference was recoverable from the account's own feed rather than
+invented.
+
+**AND THE `--profile` WAS DELIBERATELY LEFT OUT.** Measured across 200
+feed jobs: `--v 8.2` on 164, `--ar 16:9` on 101, `--stylize 21` on 89,
+`--profile kgvnzd9` on 33 — and `--profile ub2pnlv` on **six**. Six of
+two hundred is not an account default; it is a deliberate grade on that
+one job. The repo's own docs record that the account's personalization
+applies to every generation by default, so a code that rides on one job
+is a CHOICE. **Pinning a default into a registry pins an accident.**
+
+**Shipped:**
+
+- `lib/watched-man.json` — the registry: 12 frames, 3 acts, the DNA,
+  the identity clause, the measured style reference, the measured
+  flags, and a per-frame `light` clause (one source each).
+- `lib/watched-man.js` — loader, composer, pack builder, doc builder,
+  CLI.
+- `lib/watched-man.test.js` — **318 assertions**, green.
+- `assets/mural-prompts/watched-man.md` + `docs/WATCHED-MAN.md` —
+  generated, never hand-copied.
+- `docs/MJ-STYLE-REFERENCE.md` — the whole measurement, with the route
+  sweep, the feed readings and the three false negatives.
+- `tools/mj-style-*.js` (11 tools) + `tools/mj-feed-flags.js` —
+  the probes, each answering one question.
+- `tools/write-registry-artifacts.js` — writes a registry's generated
+  artifacts and VERIFIES them (prompt count, the submitter's own
+  parser reading them back, the identity lint). It exists because a
+  shell redirect is an unparseable inline payload to the agent's
+  command parser, so the artifacts could not be generated from a
+  session at all.
+- `tools/show-composed.js` + `tools/verify-composed-flags.js` — print
+  and CHECK the exact command Midjourney would receive.
+- `tools/watched-man-mutations.js` — the mutation check.
+- npm: `watched-man:pack|doc|list|frame|show`,
+  `test:watched-man`, `test:watched-man-mutations` (+ `test:watched-man`
+  wired into `test:all`).
+
+**THE TEST WAS PROVED TO BITE — AND TWO MUTATIONS SURVIVED THE FIRST
+VERSION.** The repo's rule is that an assertion which cannot fail is
+worse than no test, so thirteen mutations are run against the suite in
+a scratch directory (the repo's source is never edited). The first
+pass: **11/13 caught**. The two survivors were real gaps:
+
+- *the DNA swapped for the identity clause* — both clauses would still
+  be "present", so the swap slipped through. Now asserted: the two
+  clauses are different strings, and the identity clause appears
+  EXACTLY ONCE per frame.
+- *the prose names a camera* — the check was `/\ba camera\b/`, which
+  missed "a security camera". Now `/\bcameras?\b/` over the PROSE
+  only (the camera CLAUSE is allowed to say where the camera stands).
+
+**13/13 caught** after the fixes, and the baseline is asserted green
+before any mutation runs.
+
+**THE COMPOSED COMMANDS ARE VERIFIED, NOT ASSUMED.** All twelve, read
+through the submitter's own parser and the composer's own function:
+one `--ar` (16:9), LAST; one `--sref`; and the config's `--style raw
+--s 21` **dropped** — the prompt carries `--raw`, so it owns the style
+slot, and a second `--s` would let the config silently override the
+artist.
+
+**Decisions:**
+
+- **The style reference is a URL, not a numeric id.** Both forms work
+  in `--sref`, but the artist's own job uses the URL and the studio's
+  numeric ids are its own generated styles.
+- **The set renders PLAIN** — no `--edit` attachment. Measured
+  (docs/VIDEO-FRAMING.md §4): in edit mode the attachment decides the
+  distance and every distance clause is disobeyed. This set is about
+  where the camera IS, so the style reference conditions the look and
+  nothing else.
+- **The camera clauses carry no distance and no orientation.** Both are
+  measured to be ignored; frame 03 asks for the high angle by naming
+  the SURFACE ("seen from the landing above … the floor plan visible,
+  the corridor's doorways as rectangles below"), which is the
+  measured remedy for the one orientation that can be asked for.
+- **No `cell` is recorded** — the frames are unrendered, so a cell
+  would be a guess. The field is `null` and the doc says so.
+- **The generated artifacts are written by a Node writer, not a shell
+  redirect**, because the redirect cannot be run from a session.
+
+**Verified end-to-end:**
+
+- `npm run test:watched-man` — **318 passed, 0 failed**.
+- `npm run test:watched-man-mutations` — **13/13 mutations caught**,
+  baseline green.
+- `node tools/verify-composed-flags.js assets/mural-prompts/watched-man.md`
+  — **12/12 commands** satisfy the flag contract.
+- `npm run prompt:check` — **102 packs, 1057 prompts, 0 violations**
+  (the new pack is inside that count).
+- `npm run test:all` — green except `test:youtube-poster`, which
+  fails on a missing local credential jar (`~/.youtube-cookies.txt`)
+  and reproduces identically with this sprint's changes stashed; both
+  its files are byte-identical to HEAD. The `&&` chain's tail was run
+  by hand and is green (agent-hub, improve-loop, secrets, images-mp4,
+  boot, log-rotate, auto-check-updates).
+- The artifacts regenerate byte-identically from the registry.
+- The pack round-trips through the submitter's own parser (12 prompts
+  read back) and the composer's own function.
+- Hygiene: no absolute filesystem paths in any new file.
+
+**Open:**
+
+- **No frame is rendered.** The pack is ready and verified; one
+  command renders the twelve. That is the artist's call.
+- **The style reference was FOUND, not MINTED.** If the artist wants
+  a NEW style minted from a specific cell, the API has no route — it
+  is the studio's UI, and the account's own generated styles are what
+  it mints.
+- **`--profile` stays unpinned in every registry built this session.**
+  If the artist decides `ub2pnlv` IS the house grade, it belongs in
+  `lib/mj-config.json` — not in a registry, because a registry pins
+  one set.
+- Unchanged: the `.kai/` durability call, the woody-shaw chart
+  variants, the Vercel custom domain, the MJ cookie jar expiry.
+### 2026-11-07 — sprint 0.99 (a fresh treblo session, and the CDP bug that hid it)
+
+Two pastes came in with no instruction text: a **treblo cookie jar** and
+**three lists of mp3 paths** out of `~/Music/Downloaded by MediaHuman/`.
+Both had direct precedent in this repo, so both were read first.
+
+**THE JAR WAS EXPIRED.** The installed one decoded to
+`expires_at 2026-11-05T23:45:30Z` — **-141447 s** in the past. The
+pasted one decoded to `2026-11-07T15:53:19Z`, ~49 minutes of life.
+Installed to `~/.treblo-cookies.txt` (0600, old jar kept as
+`.bak-20261107`).
+
+**THE AUDIO LIST WAS THE 7-MINUTE SPLIT, APPLIED TO 49 MORE FILES.** The
+paste names 49 mp3s in the exact folder where the 2026-11-06 split
+landed (`Традиционална музика Западне Србије 1 _ 7min segments/`).
+Split all 49 with the same recipe — stream copy, `-reset_timestamps 1`,
+folder `<basename> _ 7min segments`, parts `part-NN.mp3`.
+
+- **49/49 split, 61 parts, 0 failures.** 225.1 min of audio.
+- Verified independently (re-probed every part from disk): 0 problems,
+  every part mp3/44.1 kHz/stereo, every non-final part 420.00 s ±0.08 s,
+  **max drift vs source 0.081 s**, median 0.000 s, 5/49 sets above one
+  mp3 frame (26 ms). Originals untouched (287 mp3s still in place).
+
+**AND THEN THE TOOLING FELL OVER — FOR A REASON THAT WAS NOT CHROME.**
+
+`tools/treblo-web.js` could not talk to the browser at all: every call
+answered `Invalid parameters`. The docs claimed this was Chrome
+refusing `Network.setCookie`. It was not.
+
+**THE BUG: A CDP `call()` THAT DROPPED ITS PARAMS.**
+
+```js
+const call = (method, { params = {}, ms = 30000 } = {}) => …   // WRONG
+```
+
+Every caller passed the CDP params in that slot, so the params were
+destructured as if they were an options object — `params` was always
+`{}` and the real arguments were **dropped on the floor**. Chrome then
+rejected every call that needed them, while `Page.enable` (no params)
+passed, so a smoke test looked green.
+
+| symptom | what it really was |
+|---|---|
+| "Network.setCookie refuses EVERY parameter set" | the params never arrived |
+| "a flat cookie does nothing — only the chunked pair works" | the flat cookie was tried against a broken transport |
+| "so the cookie is set from the page instead" | `document.cookie` — the workaround that made the real cause invisible |
+
+**THE FIXED SIGNATURE MATCHES THE REST OF THE REPO**
+(`lib/mj-submitter.js` → `CDPClient.send(method, params)`):
+
+```js
+const call = (method, params = {}, { ms = 30000 } = {}) => …   // RIGHT
+```
+
+A CDP error now also **names the method**, because a bare "Invalid
+parameters" hides *which* call was rejected — that is what made this
+expensive to find.
+
+**MEASURED, ONCE THE PARAMS ARRIVED.** Four trials, one browser, one jar,
+each with the previous trial's cookies deleted first:
+
+| trial | result |
+|---|---|
+| `Network.setCookie` FLAT (access_token) | cookie set, app renders **signed-out** ("Log in") |
+| `Network.setCookie` CHUNKED (`.0`+`.1`) | cookie set, app renders **signed-out** — *because the flat cookie was still in the profile* |
+| `Network.setCookie` CHUNKED, after deleting the candidates | app renders **signed-in** — "You have Treblo Pro", and it calls `/api/v1/users/me/*` |
+| flat base64 blob | `Network.setCookie: Sanitizing cookie failed` |
+
+**THE STALE FLAT COOKIE SHADOWS THE CHUNKED PAIR.** The app reads the
+flat name when both are present, so installing the pair on a profile
+that still carries an old flat `sb-db-auth-token` renders the app
+signed-out — with a perfectly valid session installed. `installSession()`
+now deletes `sb-db-auth-token`, `.0` and `.1` (on both domain forms)
+**before** installing the pair.
+
+**THE SIGNED-IN SIGNAL WAS ALSO BACKWARDS.** The old probe reported
+`hasSignedIn: /sign in|log in/i.test(text)` — i.e. it reported
+signed-in when it found "Log in". The answer is the **presence** of
+`You have Treblo Pro` and the **absence** of the sign-in link.
+
+**Shipped:**
+
+- **`tools/treblo-web.js`** — the `call()` signature fixed; the CDP error
+  names the method; new `sessionCookieChunks()` (reads the chunked
+  cookies verbatim) and `installSession()` (delete-then-install);
+  `cmdProbe` now uses the chunked install and asserts the real signal,
+  exiting **3** when signed out instead of always 0.
+- **`tools/treblo-cookie-set.js`** — rewritten onto the shared
+  `installSession()`; same signed-in assertion, same exit contract.
+- **`lib/treblo-web.test.js`** — **13 assertions**, no browser and no
+  credentials. The chunk reader (verbatim values, index order, ignores
+  the flow-verifier and posthog cookies, throws when there is no chunked
+  session), the join-then-decode path, and the **regression pins** for
+  the CDP signature, the named error, and the delete-before-install
+  order. Wired into `test:all` as `test:treblo-web`.
+- **`docs/TREBLO.md`** — the disproven claims corrected, the shadowing
+  measurement, the fixed signature, and the new commands.
+
+**THE TEST WAS PROVED TO BITE.** Four mutations of the fixed code — the
+old signature, the unnamed error, the removed delete, and the reordered
+delete-then-install — are **all caught** (4/4), run in a scratch
+directory so the repo's source is never edited. The repo's rule: an
+assertion that cannot fail is worse than no test.
+
+**Verified end-to-end:**
+
+- `npm run test:treblo` — **52/52** (unchanged).
+- `npm run test:treblo-web` — **13/13**.
+- `node tools/treblo-web.js --port 9445 probe` — **signed in: true**,
+  exit 0, page shows "You have Treblo Pro".
+- `node tools/treblo-cookie-set.js --port 9445` — **signed in: true**,
+  exit 0.
+- `npm run treblo:credits` — **300 credits** (the API key path is
+  unaffected; it never used the browser).
+- No regressions: `test:srce`, `test:mj-web`, `test:prompt-lint`,
+  `test:secrets` all green.
+- Hygiene: no absolute filesystem paths in any new file; the
+  `package.json` edit is **two changed lines** (surgical `patch`, not a
+  `JSON.parse` → `JSON.stringify` round-trip — the repo's own rule about
+  reformatting an unmerged config).
+
+**Decisions:**
+
+- **The jar is installed with a backup, not overwritten blind.** The old
+  jar is kept at `~/.treblo-cookies.txt.bak-20261107`. It was expired,
+  so nothing was lost, but a session jar is the kind of file that is
+  worth being able to put back.
+- **The audio split writes NEW folders and never touches the source.**
+  Same convention as the 2026-11-06 run, and the reason the originals
+  are still 287 intact mp3s.
+- **The treblo browser tools keep their own ports.** The MJ backend owns
+  `:9444`; the Chrome that was up is on `:9445`. Both treblo tools take
+  `--port`, and the default stays `:9444` for compatibility.
+- **`npm run treblo:web` still points at the cookie-set tool**, which now
+  reports the real answer, so the npm alias and the CLI agree.
+
+**Open:**
+
+- **The session expires.** The pasted jar carried ~49 minutes of life
+  when it arrived; the whole browser path is only good until
+  `2026-11-07T15:53:19Z`. A fresh export is needed for the next run.
+  The API path (`~/.treblo-api-key`) is unaffected.
+- **The web-app generation path is still not automated.** Only the cookie
+  installation and the probe are; the API path is what runs a
+  generation.
+- The remaining 238 mp3s in that folder are not split — the paste named
+  49, and only those 49 were touched.
+### 2026-11-07 — sprint 0.99.b (a fresh treblo jar, and the row-order bug it exposed)
+
+A second treblo jar arrived, minutes after the first. Installed it — and
+it had a **different shape**, which surfaced a latent bug in the reader.
+
+**THE JAR CARRIED TWO SESSIONS.** The export held the chunked pair on
+BOTH domains, with different values:
+
+| domain | expires_at | state |
+|---|---|---|
+| `.treblo.com` | `2026-11-07T15:53:19Z` | **expired** (-49 min) |
+| `treblo.com` | `2026-11-07T17:39:55Z` | **valid** (+58 min) |
+
+**THE READER PICKED BY ROW ORDER, NOT BY VALIDITY.** The old
+`sessionToken()` kept one value per chunk INDEX in a Map and let the
+last row win. So it took whichever session happened to be listed last.
+This export listed the valid one last, so it worked — by luck.
+
+MEASURED, by reordering the rows of the real jar:
+
+| jar row order | old reader | fixed reader |
+|---|---|---|
+| valid session last | valid | valid |
+| **expired session last** | **expired** | valid |
+
+**THE FIX: GROUP PER DOMAIN, DECODE EACH, PICK BY EXPIRY.**
+
+- `readSessionGroups(file)` — the chunked cookies grouped by domain.
+- `decodeSession(chunks)` — one group joined and decoded, or `null`.
+- `bestSession(file)` — every group decoded, the one with the LATEST
+  `expires_at` wins.
+- `sessionToken()` and `sessionCookieChunks()` both go through it, so
+  **the token the tool reports and the cookies it installs can never
+  disagree** — that mismatch would have been a third way to fail.
+
+**Shipped:**
+
+- **`tools/treblo-web.js`** — the four functions above; `bestSession`
+  and `readSessionGroups` exported.
+- **`lib/treblo-web.test.js`** — 13 → **18 assertions**. Five new ones
+  cover the multi-session jar: the later expiry wins, **the pick does
+  not depend on the row order**, the installed cookies and the reported
+  token are the same session, the older session never leaks into the
+  installed cookies, and `bestSession` reports which domain won.
+- **`docs/TREBLO.md`** — the multi-session finding, the two-row-order
+  table, and the updated assertion/mutation counts.
+
+**THE SUITE STILL BITES — NOW SIX MUTATIONS.** The two new ones:
+
+| mutation | caught by |
+|---|---|
+| the session is picked by ROW ORDER again | "the pick does NOT depend on the ROW ORDER" |
+| the chunk groups are keyed by INDEX again | "the pick does NOT depend on the ROW ORDER" |
+
+**6/6 caught**, run in a scratch directory; the repo's source is never
+edited.
+
+**Verified end-to-end:**
+
+- `npm run test:treblo-web` — **18/18**.
+- `npm run test:treblo` — **52/52** (unchanged).
+- `node tools/treblo-web.js --port 9445 probe` — **signed in: true**,
+  exit 0, "You have Treblo Pro".
+- `node tools/treblo-cookie-set.js --port 9445` — **signed in: true**,
+  exit 0.
+- `npm run treblo:credits` — **300 credits**.
+- The installed jar is `treblo.com`'s session (the valid one), chosen by
+  expiry; the old jar is kept at `~/.treblo-cookies.txt.bak-20261107b`.
+
+**Decisions:**
+
+- **The valid session wins even when it is listed FIRST.** That is the
+  whole point of the fix, and it is the case the old code got wrong.
+- **`sessionCookieChunks()` reconstructs the winner's blob and checks
+  it.** If the chunk values ever stop reconstructing the session that was
+  decoded, the tool throws rather than installing a mismatched pair.
+- **The old jar is kept.** Two backups now exist (`.bak-20261107`,
+  `.bak-20261107b`); both are expired sessions, so nothing is lost, but
+  a session jar is the kind of file worth being able to put back.
+
+**Open:**
+
+- **The session expires at 2026-11-07T17:39:55Z** — about 55 minutes
+  from the install. The browser path is only good until then; a fresh
+  export is needed for the next run. The API path
+  (`~/.treblo-api-key`) is unaffected.
+- The web-app generation path is still not automated — only the cookie
+  installation and the probe are.
+### 2026-11-07 — sprint 0.99.c (upload to treblo — and the 40 MiB wall)
+
+A third batch of media-house mp3s came in (123 unique files, 919 min,
+1.27 GB) with the instruction **"upload to treblo"**.
+
+**THE 7-MINUTE SPLIT WENT FIRST, BECAUSE THE UPLOAD HAS A SIZE LIMIT.**
+75 of the 123 were new; split them with the same recipe (stream copy,
+420 s segments) — **75/75, 148 parts, 0 failures**. The folder now holds
+**125 segment sets / 218 parts / 1.3 GB**, and every one of the 218
+parts is under the upload limit.
+
+**THE UPLOAD ENDPOINT WAS NOT IN THE DOCS — IT WAS IN THE OPENAPI SPEC.**
+`https://api.treblo.com/openapi.json` answers 200 and documents **15
+routes**. Ten are the generation family; one is the upload:
+
+```
+POST /v1/uploads
+  summary: "Store an audio file for use as audio_upload_id in
+            extend/inpaint/reference requests."
+  body:    multipart/form-data, field `file` (binary)
+  200:    { "audio_upload_id": "<uuid4>" }
+```
+
+And `audio_upload_id` is a first-class field on
+`/v1/generations/v3/{reference,extend,inpaint}` — so an upload is how
+you get **your** audio into the model instead of describing it.
+
+**AN UPLOAD COSTS NO CREDITS.** Measured: balance 300 before, 300
+after. Only a GENERATION spends credits (100 per v3 task).
+
+**THE SIZE LIMIT IS EXACTLY 40 MiB — AND THE FIRST PROBE LIED.**
+
+| probe | result | what it really measured |
+|---|---|---|
+| 179 MB real file | timed out | the upload was slow, not rejected |
+| 103 MB real file | HTTP 413 | **the limit** |
+| 32 MB of ZERO-FILLED bytes | HTTP **500** | NOT the limit — the server validates the CONTENT first, and zeros are not audio |
+
+So the first bisect with a synthetic blob was measuring the wrong
+thing: 500, not 413. The bisect only became real with **truncated
+REAL audio**:
+
+| bytes | result |
+|---|---|
+| 39 MiB | HTTP 200 |
+| 40 MiB (41,943,040) | HTTP 200 |
+| **40 MiB + 1 byte** | **HTTP 413** `{"detail":"Uploaded file exceeds 40MB"}` |
+
+**A 413 IS CLOUDFLARE, NOT THE API** — the whole body is already sent
+when the rejection comes back. So the tool refuses an over-limit file
+BEFORE sending it, and prints the ffmpeg line that splits it.
+
+**THE UPLOAD → REFERENCE CHAIN WAS PROVED END TO END, ON THE ATTACHED
+FILE** (`MAČVO MOJA VREDNIJA SI OD SUVOGA ZLATA - TV EMISIJA.mp3`,
+30.2 MB, 21:55):
+
+1. upload → `audio_upload_id` `1cf16d41-a85e-4773-8722-7a1125dbca3c`
+   (13.8 s, 0 credits);
+2. `POST /v1/generations/v3/reference` with that id → **HTTP 200**,
+   task `d93d383e-526a-4974-8792-975284975f73`;
+3. status ladder → `TRANSCRIBE_STAGE_1/2/3` → `TASK_SENT` →
+   `GENERATING` → **SUCCESS** (~4 min);
+4. `GET /v1/generations/:id` → 1 song → downloaded 2.80 MB mp3;
+5. measured: 183.67 s, mp3 44.1 kHz stereo, mean **-17.1 dB**, max
+   0.0 dB — real audio, not silence;
+6. credits: **300 → 200**, i.e. the generation cost exactly 100 and
+   the upload cost nothing.
+
+The render's speech-band energy ratio (1.51) sits close to the
+source's (1.82), so `reference_mode: "cover"` carried the source's
+vocal character into the new track.
+
+**Shipped:**
+
+- **`tools/treblo-upload.js`** — the uploader. `POST /v1/uploads`,
+  multipart `file`, keeps the returned `audio_upload_id`. Writes
+  `data/treblo/uploads/uploads.json` with each file's id, sha256, size
+  and set name, **rewritten after EVERY file** so an interrupted run
+  keeps the ids it already earned. Flags: `--out <dir>`,
+  `--manifest <name>`, `--dry-run`, `--only-new` (skips by sha256).
+  Refuses a file over 40 MiB before sending it.
+- **`npm run treblo:upload`**.
+- **`docs/TREBLO.md`** — the upload route, the reference request, the
+  40 MiB limit with the bisect table, the free-upload measurement, and
+  the end-to-end proof.
+
+**Decisions:**
+
+- **The segments are uploaded, not the sources.** Every 7-minute part is
+  under the limit; the hour-long originals are not, and a 179 MB upload
+  did not finish in ten minutes. Uploading the parts is both legal and
+  fast.
+- **The manifest is a build product** — `data/treblo/` is gitignored,
+  and the manifest holds absolute home paths, so it stays local.
+- **One reference generation was spent** (100 credits) to prove the
+  chain. That is the only way to know the uploaded id is actually
+  consumable; the account has 200 left.
+
+**Open:**
+
+- **The batch is still running.** 218 segments, ~10 per 90 s. The
+  manifest is written after every file, so a re-run resumes.
+- **Only `cover` mode was tested.** `reference_mode: "style"` and the
+  `reference_crop_start` / `reference_crop_end` / `reference_scale`
+  fields are documented but unmeasured.
+- **The uploaded audio is not yet used in a batch.** The ids are in the
+  manifest; turning them into generations is a separate decision — each
+  one costs 100 credits, so 218 references would be 21,800 credits and
+  the account has 200.
+### 2026-11-07 — sprint 0.99.d (the upload batch — 218 segments, and the perceptual dedup)
+
+The upload ran to completion while the 422s were diagnosed. Final state:
+**218/218 segments accounted for, 206 with an `audio_upload_id`, 12
+already held by the account, 0 credits spent.**
+
+**THE 12 REFUSALS WERE NOT A BYTE MATCH AND NOT A FILENAME MATCH.**
+`HTTP 422 {"detail":"This upload matches existing audio and cannot be
+used."}` — four probes settled it:
+
+| probe | result |
+|---|---|
+| the same bytes, renamed | **422** |
+| the same audio, re-encoded 128k (different bytes) | **422** |
+| a file ACCEPTED earlier in this same batch, renamed | **200** |
+| the same refused file again | **422** (stable, not transient) |
+
+So the server **hears** the audio — the match is perceptual. And the
+dedup set is NOT this batch's own uploads: a file uploaded twenty
+minutes earlier re-uploads fine. **The account already held those
+twelve recordings from before.** All twelve are `part-00` — which is
+what the FIRST upload of a set looks like, and these twelve sets were
+the ones the artist had already put on the account.
+
+The tool now treats that 422 as **"already held"**, not as a failure:
+the entry is written with `audioUploadId: null` and `alreadyHeld: true`,
+and the run exits 0. A refusal that means "the audio is already there"
+is not an error — reporting it as one would send the operator hunting
+for a missing file that is not missing.
+
+**TWO REAL BUGS FOUND WHILE FIXING THAT**, both in the new tool:
+
+1. **A counter was named `fail` where the code declared `failed`** — the
+   catch block threw `ReferenceError: fail is not defined` and the run
+   died on the FIRST 422 instead of recording it. Found by running the
+   tool against a real refused file, not by reading it.
+2. **The manifest write assumed the output directory existed.** The
+   happy path created it before writing; the new 422 path wrote
+   without creating it, so the record of the refusal was lost —
+   `ENOENT` on the manifest. Same lesson as the reel watcher's
+   overwrite bug: the two paths into a file must both create it.
+
+**Verified end-to-end:**
+
+- `data/treblo/uploads/uploads.json` — **218 entries**, one per segment:
+  **206 with an id, 12 `alreadyHeld`**, 125 distinct sets, 1345.7 MB.
+- Every segment on disk is in the manifest — **0 missing**.
+- Credits after the whole batch: **200** (unchanged by the uploads; the
+  100 spent was the reference generation).
+- `npm run treblo:credits` → 200.
+- The 422 path: exit **0**, one line, manifest entry written.
+- The over-limit path: refuses before sending, prints the ffmpeg split
+  line, exit 3.
+- Bad input (missing file) → exit 2; no args → exit 2 with usage.
+- `npm run test:treblo` **52/52**, `npm run test:treblo-web` **18/18**.
+- No absolute filesystem paths in any new file; `data/treblo/` is
+  gitignored, so the manifest (which carries home paths) stays local.
+
+**Decisions:**
+
+- **The manifest records the refusals too.** A manifest with only the
+  successes would hide the fact that twelve sets are already on the
+  account — and that is a fact worth keeping, because it means those
+  recordings can be referenced without another upload.
+- **The uploads were the free part.** 1.35 GB onto the account for 0
+  credits. The expensive part is turning them into generations: 100
+  credits each, and the account has 200.
+
+**Open:**
+
+- **The 206 ids are not yet used.** Turning them into reference
+  generations is a separate decision — 206 × 100 credits is far beyond
+  the 200 in the account, so it has to be a deliberate subset.
+- **`reference_mode: "style"` is untested**, as are the
+  `reference_crop_*` / `reference_scale` fields.
+- The session used for the browser path expires at 17:39:55Z; the API
+  path is unaffected.

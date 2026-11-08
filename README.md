@@ -88,6 +88,13 @@ For now, what's here:
 - **`pages/mj-sheets.html`** — the Midjourney comparison sheet: one
   brief rendered at twelve camera angles, each tile labelled with the
   clause that produced it. Built by `lib/mj-contact-sheet.js`.
+- **`pages/mj-console.html`** — the Midjourney console: write a prompt,
+  see the exact command the submitter will send, save it to a local
+  library, and export the library as a prompt pack the watcher reads.
+  The composer and the linter are the SAME modules the Node side runs
+  (`lib/mj-flags.js`, `lib/prompt-lint-core.js`), so the command on
+  screen is the command that gets sent. Reference in
+  `docs/MJ-CONSOLE.md`.
 - **`lib/songs-indexer.js`** — walks audio dirs, builds
   `data/songs/catalog.json`.
 - **`lib/agent-hub/`** — the SWR harness: three live agents (Ops /
@@ -325,6 +332,116 @@ camera's **distance** is not written in the prompt (a clause naming an
 object in the frame lands; one naming a distance does not), and no
 preset carries a flag (the engine and the house style live in
 `lib/mj-config.json`).
+
+## Run the look presets
+
+A second, separate registry — `lib/mj-look-presets.json` — for the
+**artist's own thirty film stocks and media emulations**: Analog Noir 1970s
+European Arthouse, VHS Glitch Noir, B&W 16mm Grunge, Italian Giallo, Neon
+Noir, Dogme 95, Betacam Newsraw, CCTV Surveillance, Thermal/Infrared,
+Technicolor Melodrama, and the rest, in the artist's order and wording.
+
+This is the **LOOK** kind of preset — the *medium*, not a picture. It gets
+its own registry because the input, the consumer and the output all differ
+from the scene registry's.
+
+```bash
+# the registry
+npm run look-presets:list
+
+# one look's exact prompt, no rendering
+npm run look-presets:show -- neon-noir-1980s
+
+# the same look with the film stock dropped — safe to paste into a scene,
+# because a prose naming a stock comes back with a film-strip border
+npm run look-presets:show -- film-noir-1940s --no-stock
+
+# the artist's own wording, unchanged
+npm run look-presets:show -- film-noir-1940s --verbatim
+
+# the generated pack and reference
+npm run look-presets:pack
+npm run look-presets:doc
+
+# the cut plan — a cut is ONE aspect ratio, and the looks carry their
+# native ones (21:9 anamorphic, 4:3 video, 1:1 instant)
+npm run look-presets:cut -- --ar-filter=16:9
+
+# the 30-up comparison sheet — one chosen cell per look, captioned
+# with the look's name. Needs the cells on disk.
+node tools/look-sheet.js <pack-dir> --out look-sheet.png
+```
+
+Four rules the looks follow, all measured on this account:
+
+- **The stock is data, and the composer offers two projections.** Naming a
+  film stock in a prose came back with a black film-strip border and stock
+  lettering down one edge (4 of 7 shots). So `--show` names the stock for a
+  look plate, and `--no-stock` drops it and carries the colour consequence
+  instead — safe to paste into a scene. `--verbatim` gives the artist's own
+  wording, unchanged.
+- **Never say the same thing twice.** The anchor subject is pasted into
+  every prompt, so appending its clauses blindly made most prompts say
+  "a wooden chair in the middle of the floor" *twice* — and the first
+  eight submissions came back 5 refused / 2 accepted, with the refusals
+  being exactly the duplicated ones. A clause is now appended only when
+  the opening does not already name its subject.
+- **Served cells are the authority, not the feed.** Midjourney publishes a
+  feed card when a job is *queued*, not when it renders, so a feed miss is
+  not proof of failure — and the submitter was throwing away frames that
+  had already rendered. It now asks the CDN directly before declaring a
+  softban.
+- **No look carries a flag.** The engine and the house style live in
+  `lib/mj-config.json`; the reference flags are refused on this account.
+
+The registry is the source of truth — the pack and the doc regenerate
+byte-identically from it, and the cut recipes are asserted against the
+renderer's own effect table (`lib/render/plan.mjs`), because an invented
+effect name is a crash at render time rather than a warning.
+
+The rendered set, the per-look cell picks and the measurement behind them
+are in `docs/MJ-LOOK-PRESETS.md`.
+
+## Run the Watched Man storyboard
+
+A twelve-frame storyboard registry — `lib/watched-man.json` — built
+from the artist's own storyboard for a music video, carrying the
+artist's **own style reference** as a `--sref`.
+
+```bash
+# the registry
+npm run watched-man:list
+
+# one frame's exact composed prompt
+npm run watched-man:frame -- 7
+
+# the generated pack and reference
+npm run watched-man:pack
+
+# the exact command Midjourney would receive — one --ar, last, no
+# duplicated flags
+npm run watched-man:show
+```
+
+**"Set as style prompt" is a `--sref` URL, and the answer was already
+in the account.** Measured: there is *no* server route for a style
+reference (thirteen candidates 404 while the control answered), every
+`--sref` this account uses is an `s.mj.run` link, and the artist's job
+already carried `--sref https://s.mj.run/cATLXOMsR-o`. The studio's
+per-image button labelled `Style Reference (--sref)` renders that
+reference as its thumbnail — so the control COPIES it rather than
+minting one. The whole measurement is in
+[`docs/MJ-STYLE-REFERENCE.md`](docs/MJ-STYLE-REFERENCE.md).
+
+Two rules the registry follows, both measured:
+
+- **No `--profile` is pinned.** The source job carries
+  `--profile ub2pnlv`, but that code rides on only six of two hundred
+  feed jobs — it is a deliberate grade on that one job, not the
+  account's default. Pinning a default pins an accident.
+- **No camera distance and no camera orientation.** Both are measured
+  to be ignored; the camera clause names the camera's *place* and the
+  objects that must be in the picture.
 
 ## Run the Suno mutator
 
@@ -719,6 +836,37 @@ cookie jar lives outside the repo at `~/.suno-cookies.txt`.
 
 Reference: [`docs/SUNO-FETCH.md`](docs/SUNO-FETCH.md).
 
+## Generate with Treblo
+
+Treblo turns a song idea into a finished track. The API key lives
+outside the repo at `~/.treblo-api-key`; mint one at
+`treblo.com/developers/account` → **API Keys**.
+
+```bash
+# print the request and the credit balance — spends nothing
+npm run treblo:credits
+
+# one generation, downloaded and probed
+npm run treblo:run -- --prompt "a slow modal jazz trio, brushed drums" \
+  --out data/treblo/run --format mp3 --bitrate 256
+
+# a VOICE-ONLY track: the voice-vs-music dial is balance_strength
+npm run treblo:run -- --prompt "Voice-only audiobook, sage male voice, deep and unhurried, voice alone, no music" \
+  --balance 0.95 --format mp3 --bitrate 256 --out data/treblo/voice-only
+```
+
+`balance_strength` is the field that makes a spoken track: the default
+0.7 still writes and arranges music, and at 0.95 the voice dominates and
+the arrangement drops away. Every generation costs 100 credits, and the
+song URLs expire — so the audio is downloaded before the run is called
+done.
+
+Two voice-only audiobook tracks are already rendered (Stages 3 and 8 of
+a hermetic initiation sequence) under `data/treblo/voice-only/`, each
+verified as continuous speech by pitch and voiced-frame density rather
+than by eye. The audio masters are gitignored; the recipe and the
+measured parameters are in [`docs/TREBLO.md`](docs/TREBLO.md).
+
 ## Run the SWR harness
 
 Three agents — **Ops** (orchestrator), **Twin** (voice and focus) and
@@ -826,6 +974,7 @@ npm run e2e:temple
 npm run e2e:skin
 npm run e2e:tools-instagram
 npm run e2e:mj-sheets
+npm run e2e:mj-console
 ```
 
 > **Why the same root locally and on the deploy?** A local harness
@@ -857,6 +1006,7 @@ digital_twin/
 │   ├── agent-dashboard.html   # agent-loop live view (regenerated by the loop)
 │   ├── how-to.html            # operator's manual for the whole repo
 │   ├── mj-sheets.html         # the Midjourney comparison sheet (12-up)
+│   ├── mj-console.html        # the Midjourney console (compose + save + export)
 │   └── twin-os/              # the Twin OS PWA shell (Today / Songs / Twin)
 ├── lib/                      # pure-Node tooling + browser components
 │   ├── boot.js               # login boot core: update → server → open Twin OS
