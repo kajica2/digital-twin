@@ -1,0 +1,125 @@
+{
+    "_note": "NEMA ME U MENI — the master prompt template for the 12-frame music video. The artist's own text, recovered from the brief and from the account's own job history (2026-11-04). ONE registry: the pack, the doc and the test are generated from it, never hand-copied.",
+
+    "id": "nema-me-u-meni",
+    "title": "Nema Me U Meni",
+    "subtitle": "12 cinematic visual prompts · A fragmented self-portrait · Belgrade · Analog noir",
+    "concept": "A man moves through an ordinary day, but his presence seems slightly disconnected from the world around him. Nothing supernatural happens. The strangeness comes from reflections, empty space, repeated gestures, imperfect framing, and the feeling that time is moving without him.",
+    "figure": "One consistent male figure throughout all 12 frames, using your trained character reference. He doesn't need to dominate the composition. Sometimes he appears as a reflection, a silhouette, or a tiny figure in a large environment.",
+
+    "visualDna": "1970s European arthouse cinema, faded Kodak 500T, tobacco browns, dirty teal, nicotine yellow, winter gray, soft halation, analog grain, practical light, natural imperfections, unposed documentary realism, 35mm anamorphic",
+    "_note_visualDna": "The DNA is PALETTE and TEXTURE. The template says to append it to every frame, so it lives in the prose — the flags the artist dictated carry no --profile, and the house moodboard codes would have been a grade the artist did not ask for.",
+
+    "dnaProse": "1970s European arthouse, faded Kodak 500T, tobacco browns and dirty teal, nicotine yellow and winter gray, soft halation, analog grain, practical light, unposed documentary realism, 35mm anamorphic",
+
+    "characterRef": "https://s.mj.run/7ZJU0zgoKBc",
+    "_note_characterRef": "MEASURED from the account's own feed (2026-11-04): the artist's 'trained character reference' is this image — a man in a red coat on snowy railway tracks. The studio test job 2c2fd76c submitted it as '--cref ... --cw 100'. The negations in the identity clause exist because the reference carries a red coat, which no frame in this template wants.",
+
+    "characterRefFlag": "--edit",
+    "_note_characterRefFlag": "MEASURED 2026-11-04, by bisection on ONE prompt — four submissions: (1) '--cref <url> --cw 100' REFUSED; (2) '--cref <url>' with no --cw REFUSED (so the FLAG is refused, not the pairing); (3) no reference flag ACCEPTED (job 3367df72); (4) '--edit <url>' ACCEPTED (job 333bdfb0, v8-2_edit_diffusion). So the reference rides as --edit on this account. The repo's own docs already said reference flags are refused here (docs/MJ-SCENE-PRESETS.md).",
+
+    "identity": "no red coat and no denim jacket and no leather jacket and no necklace, shaved very short haircut",
+    "_note_identity": "The house identity clause (docs/VIDEO-FRAMING.md §Step 4), rebuilt against the ACTUAL reference: the reference wears a red coat, so the clause denies it. 'shaved very short haircut' is kept — it matches the reference and is a positive claim.",
+
+    "suffix": "no text",
+    "_note_suffix": "The template's cut-off line is 'append this suffix to each frame:'. MEASURED: the artist's own frame-12 job (b56f42fa, 2026-11-04 22:59) carries the suffix '35mm film still, fine grain, muted palette, no text'. The DNA clause above already carries the texture, so only the functional negation is appended here — no duplicated grain.",
+
+    "flags": "--ar 16:9 --style raw --s 75 --chaos 8",
+    "_note_flags": "The artist's own flags, dictated for this work. The repo's config default is '--ar 16:9 --style raw --s 21', and buildFullPrompt drops the config's --s when the prompt carries its own — so --s 75 survives verbatim (verified in the composed command).",
+
+    "characterWeight": 100,
+    "_note_characterWeight": "The studio test used --cw 100. MJ's default is also 100; stated so the composed command is explicit.",
+
+    "acts": [
+        { "id": "act-1", "title": "ACT I — THE ROOM", "frames": [1, 2, 3, 4] },
+        { "id": "act-2", "title": "ACT II — THE CITY", "frames": [5, 6, 7, 8] },
+        { "id": "act-3", "title": "ACT III — THE SOUND RETURNS", "frames": [9, 10, 11, 12] }
+    ],
+
+    "frames": [
+        {
+            "n": 1,
+            "slug": "opet-isto-jutro",
+            "title": "OPET ISTO JUTRO",
+            "quote": "Isti prozor, isti zid.",
+            "prose": "Wide static shot of a modest Belgrade apartment at dawn, one man seated at a small kitchen table with his back to the camera, untouched coffee, cracked plaster, pale gray window light, enormous empty wall occupying most of the composition, quiet repetition, faded 35mm film, imperfect natural exposure, observational European cinema."
+        },
+        {
+            "n": 2,
+            "slug": "nema-nista-novo",
+            "title": "NEMA NIŠTA NOVO",
+            "quote": "Telefon na stolu, nema ništa novo.",
+            "prose": "Extreme close-up of a dark coffee cup and silent telephone on a worn wooden table, a man's hand resting motionless beside them, his blurred seated figure barely visible in the background, weak morning light cutting across the surface, coffee rings and dust, shallow focus, intimate domestic stillness, unpolished analog film."
+        },
+        {
+            "n": 3,
+            "slug": "pa-sam-seo-ponovo",
+            "title": "PA SAM SEO PONOVO",
+            "quote": "Hteo sam da krenem, pa sam seo ponovo.",
+            "prose": "Long shot through three open doorways of an old apartment, a lone man seated on the edge of a bed, wearing his outdoor jacket but still inside, shoes already on, one hand holding keys, body leaning forward without moving, oppressive architectural symmetry, cold daylight from a distant room, subtle motion blur, imperfect composition."
+        },
+        {
+            "n": 4,
+            "slug": "nesto-nije-isto",
+            "title": "NEŠTO NIJE ISTO",
+            "quote": "Samo... nešto nije isto.",
+            "prose": "View from outside an old residential building toward a single illuminated window, one man's silhouette standing inside, surrounding apartment windows show fragments of ordinary life, laundry and balconies, distant gray winter sky, warm indoor light separated from the cold exterior, imperfect telephoto framing, subdued melancholy without theatrical sadness."
+        },
+        {
+            "n": 5,
+            "slug": "nema-me-ni-tu",
+            "title": "NEMA ME NI TU",
+            "quote": "Negde sam se ostavio na pogrešnom putu.",
+            "prose": "Vast wide shot of a gray Belgrade intersection, a single man standing motionless near the middle while pedestrians pass as elongated motion-blurred ghosts, aging socialist architecture, tangled tram wires, damp pavement, restrained urban colors, the human figure small and displaced by the scale of the city, slow shutter documentary realism."
+        },
+        {
+            "n": 6,
+            "slug": "druga-verzija",
+            "title": "DRUGA VERZIJA",
+            "quote": "Neka druga verzija isto ime čuje.",
+            "prose": "Medium-wide view of a man looking at his reflection in an old shop window, glass overlays his face with passing traffic and pale buildings, reflected face slightly misaligned from his physical position through natural double exposure, layered identities without digital effects, faded commercial signs, fluorescent interior, unsettling but completely believable."
+        },
+        {
+            "n": 7,
+            "slug": "ista-misao",
+            "title": "ISTA MISAO",
+            "quote": "Na svakom semaforu stane ista misao.",
+            "prose": "Low-angle street-level shot of a solitary man waiting at a red pedestrian crossing, blurred cars passing behind him, the red signal reflected in wet asphalt, distant bus passengers visible through fogged windows, figure framed off-center and partially obscured by an out-of-focus pole, subdued gray-green palette, quiet urban dislocation."
+        },
+        {
+            "n": 8,
+            "slug": "vreme-ide-preglasno",
+            "title": "VREME IDE PREGLASNO",
+            "quote": "Kupio sam cigare, pa ih nisam palio.",
+            "prose": "Intimate medium shot at a deserted outdoor café, a man holding an unopened cigarette packet between his fingers, no smoke, untouched glass of water, busy people passing beyond the café barrier in soft blur, late-afternoon light, a wall clock visible through a window, exhausted stillness against the city's movement, grainy imperfect 35mm frame."
+        },
+        {
+            "n": 9,
+            "slug": "samo-veceras",
+            "title": "Samo VEČERAS",
+            "quote": "Ja bih malo mira. Ne zauvek. Samo večeras.",
+            "prose": "Almost entirely dark apartment, one man sitting on the floor beside an old sofa, small tungsten lamp illuminating only part of his face and hands, surrounding darkness swallowing the room, a distant streetlight visible through curtains, no tears or dramatic expression, the quiet physical weight of a long day, natural shadow, subtle 16mm grain."
+        },
+        {
+            "n": 10,
+            "slug": "treba-samo-da-zasviram",
+            "title": "TREBA SAMO DA ZASVIRAM",
+            "quote": "Možda... treba samo da zasviram.",
+            "prose": "A worn brass flugelhorn resting on an old wooden chair in a nearly empty rehearsal room, a man standing quietly in the distant doorway, weak tungsten light catching scratches and fingerprints on the instrument, cables on the floor, cracked acoustic plaster, fragile suspended moment before the first note, tactile film grain, no glamour."
+        },
+        {
+            "n": 11,
+            "slug": "melodija-koja-ne-da-mira",
+            "title": "MELODIJA KOJA NE DA MIRA",
+            "quote": "16-bar flugelhorn solo — fragile, unresolved.",
+            "prose": "A lone musician playing flugelhorn in a dark rehearsal room, filmed from behind and slightly to the side, instrument bell almost disappearing into shadow, one soft tungsten lamp in the distance, a second empty chair nearby, body language intimate and unperformed, subtle breath movement, no stage, no audience, no spotlight, melancholic handmade cinema."
+        },
+        {
+            "n": 12,
+            "slug": "samo-malo-drugaciji",
+            "title": "Samo MALO DRUGAČIJI",
+            "quote": "I možda... možda sam tu.",
+            "prose": "Wide still shot from an apartment rooftop at the first pale light of morning, one man standing near the edge looking across the rooftops of Belgrade, flugelhorn hanging loosely from one hand, subtle warm light beginning to appear behind gray buildings, vast unoccupied sky, no triumphant sunrise, no dramatic resolution, ordinary quiet presence, slight film weave and natural grain."
+        }
+    ]
+}

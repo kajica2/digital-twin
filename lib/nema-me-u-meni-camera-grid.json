@@ -1,0 +1,272 @@
+{
+    "_note": "NEMA ME U MENI — THE CAMERA GRID. The same twelve beats as the master template (lib/nema-me-u-meni.json), each one shot from a DIFFERENT CAMERA POSITION. ONE registry: the pack, the doc and the test are generated from it, never hand-copied.",
+    "_note_relationship": "This set does not replace the master template — it re-shoots it. The beats, the lyrics, the DNA, the flags and the identity clause are the template's, carried over. THE VARIABLE IS THE CAMERA: twelve beats, twelve camera positions, one per beat.",
+    "id": "nema-me-u-meni-camera-grid",
+    "title": "Nema Me U Meni — the camera grid",
+    "subtitle": "12 cinematic shots · Twelve beats, twelve cameras · Belgrade · Analog noir",
+    "artist": "StingingStylists1762",
+    "concept": "The same song, the same man, the same twelve moments — but each moment seen from a different place a camera can stand. The beats come from the master template; the cameras are the grid. Together they teach where a camera can be, one beat at a time.",
+    "sourceRegistry": "nema-me-u-meni",
+    "_note_sourceRegistry": "The master template's own beats, lyrics and prose. The camera grid borrows the SCENE from each beat and replaces the template's camera instruction with the grid's position — so the two sets are recognisably the same film, shot differently.",
+    "visualDna": "1970s European arthouse cinema, faded Kodak 500T, tobacco browns, dirty teal, nicotine yellow, winter gray, soft halation, analog grain, practical light, natural imperfections, unposed documentary realism, 35mm anamorphic",
+    "_note_visualDna": "The master template's DNA, byte for byte. It is what makes these twelve read as the same film as the template's twelve, and as the same film as SRCE KUCA.",
+    "dnaProse": "1970s European arthouse, faded Kodak 500T, tobacco browns and dirty teal, nicotine yellow and winter gray, soft halation, analog grain, practical light, unposed documentary realism, 35mm anamorphic",
+    "_note_dnaProse": "The DNA is PALETTE and TEXTURE, so it goes in the prose (the style box) and it is appended to every frame verbatim. The prose itself therefore carries NO film-stock nouns — measured 2026-11-05: a prose that names the stock ('faded 35mm film', 'Kodak 400') can come back with a film-strip border and stock lettering down one edge. The texture lives here, once, and the prose names the SCENE.",
+    "flags": "--ar 16:9 --style raw --s 75 --chaos 8 --hd",
+    "_note_flags": "The master template's own flags (--ar 16:9 --style raw --s 75 --chaos 8), carried verbatim — the camera grid is the same film re-shot, so it inherits the template's grade. `--hd` is added because this is a VIDEO set and the house camera-grid pack (till-you-get-the-light-camera-grid-12) and the artist's most recent set (SRCE KUCA) both carry it; it doubles the render (2944x1648) and changes nothing else. buildFullPrompt resolves each flag exactly once, so the config's `--s 21` is dropped and the artist's 75 survives.",
+    "suffix": "no text",
+    "_note_suffix": "The house negation, so signage and lettering stay out of a frame the layout will put type into.",
+    "identity": "no red coat and no denim jacket and no leather jacket and no necklace, shaved very short haircut",
+    "_note_identity": "The master template's identity clause, verbatim. This set renders PLAIN, so there is no attachment whose wardrobe needs denying — but the clause is kept so the wardrobe reads the same in all twelve and the grid is continuous with the template. A negative cannot remove the anchor; it can only keep the set consistent.",
+    "renderPlain": true,
+    "_note_renderPlain": "MEASURED, docs/VIDEO-FRAMING.md §4: in EDIT mode the reference photograph decides the distance and the height, and EVERY distance clause in the five-way test was disobeyed. In PLAIN mode the camera clause is obeyed — the wide, the high angle, the dutch tilt, the macro, the profile, the top-down, the long lens and the whip pan all landed in the frames they were written for. The camera IS the point of this set, so it renders plain and carries NO --edit and NO --cref.",
+    "cameras": [
+        {
+            "n": 1,
+            "name": "the wide establishing shot",
+            "note": "the room and the man small inside it"
+        },
+        {
+            "n": 2,
+            "name": "the low angle, from the floor",
+            "note": "the facade rising above the picture"
+        },
+        {
+            "n": 3,
+            "name": "the high angle, from above",
+            "note": "looked straight down on the man"
+        },
+        {
+            "n": 4,
+            "name": "the dutch tilt, the horizon rolled",
+            "note": "the floor and the sofa running diagonally"
+        },
+        {
+            "n": 5,
+            "name": "the macro, the objects filling the picture",
+            "note": "a few centimetres from the surface"
+        },
+        {
+            "n": 6,
+            "name": "over the shoulder",
+            "note": "his shoulder in the near edge, the rest beyond"
+        },
+        {
+            "n": 7,
+            "name": "the profile, side on",
+            "note": "the face flat against the light"
+        },
+        {
+            "n": 8,
+            "name": "the top-down flat lay",
+            "note": "the tabletop seen straight down"
+        },
+        {
+            "n": 9,
+            "name": "the long lens, the space compressed",
+            "note": "the far end pulled close to the near"
+        },
+        {
+            "n": 10,
+            "name": "the whip pan, the body blurred",
+            "note": "the street smeared sideways, one thing sharp"
+        },
+        {
+            "n": 11,
+            "name": "from behind, following",
+            "note": "the back in the near edge, the room beyond"
+        },
+        {
+            "n": 12,
+            "name": "front on, symmetric, dead centre",
+            "note": "the man dead centre, level on both sides"
+        }
+    ],
+    "_note_cameras": "The house grid from docs/VIDEO-FRAMING.md §4 — the same twelve positions the till-you-get-the-light camera grid uses. Each is used ONCE, so the set teaches the whole vocabulary rather than repeating a favourite.",
+    "acts": [
+        {
+            "id": "act-1",
+            "title": "ACT I — THE ROOM",
+            "frames": [
+                1,
+                2,
+                3,
+                4
+            ]
+        },
+        {
+            "id": "act-2",
+            "title": "ACT II — THE CITY",
+            "frames": [
+                5,
+                6,
+                7,
+                8
+            ]
+        },
+        {
+            "id": "act-3",
+            "title": "ACT III — THE SOUND RETURNS",
+            "frames": [
+                9,
+                10,
+                11,
+                12
+            ]
+        }
+    ],
+    "_note_acts": "The master template's act structure. The grid re-shoots the beats; it does not re-sequence them.",
+    "frames": [
+        {
+            "n": 1,
+            "slug": "opet-isto-jutro",
+            "title": "OPET ISTO JUTRO",
+            "quote": "Isti prozor, isti zid.",
+            "cameraN": 1,
+            "prose": "A modest Belgrade apartment at dawn, one man seated with his back turned at a small kitchen table, untouched coffee, cracked plaster, an enormous bare wall filling most of the room, pale gray window light the only source, quiet repetition, imperfect natural exposure, observational European cinema.",
+            "camera": "the man and the table small at the far end of the room, the bare wall filling the rest of the picture, seen from the doorway across the room",
+            "cell": "0_0",
+            "cameraLanded": "confirmed",
+            "cameraReason": "the man and the kitchen table small at the far end of the room, seen across the room past the door frame — the establishing wide, with the bare wall and the window holding the light"
+        },
+        {
+            "n": 2,
+            "slug": "nema-nista-novo",
+            "title": "NEMA NIŠTA NOVO",
+            "quote": "Telefon na stolu, nema ništa novo.",
+            "cameraN": 5,
+            "prose": "A dark coffee cup and a silent telephone on a worn wooden table, a man's hand resting motionless beside them, his blurred seated figure barely readable behind, coffee rings and dust, weak morning light cutting across the surface, intimate domestic stillness, unpolished grain.",
+            "camera": "the rim of the cup and the telephone's handset filling the whole picture, the hand just entering the edge, seen from a few centimetres above the tabletop",
+            "cell": "0_2",
+            "cameraLanded": "confirmed",
+            "cameraReason": "the cup and the telephone handset fill the foreground on the worn wood, the hand just entering the frame — the macro, and the shallow focus is right"
+        },
+        {
+            "n": 3,
+            "slug": "pa-sam-seo-ponovo",
+            "title": "PA SAM SEO PONOVO",
+            "quote": "Hteo sam da krenem, pa sam seo ponovo.",
+            "cameraN": 3,
+            "prose": "An old apartment seen through three open doorways, a lone man seated on the edge of a bed still in his outdoor jacket, shoes already on, one hand holding keys, his body leaning forward without moving, cold daylight from a distant room, oppressive architectural symmetry, imperfect composition.",
+            "camera": "looked straight down on the man and the bed, the three door frames crossing the edges of the picture around him",
+            "cell": "0_2",
+            "cameraLanded": "not-confirmed",
+            "cameraReason": "NONE OF THE FOUR CELLS CARRIED IT — the three doorways came back at EYE LEVEL in every take, so this is not a picking problem: the job never found the high angle"
+        },
+        {
+            "n": 4,
+            "slug": "nesto-nije-isto",
+            "title": "NEŠTO NIJE ISTO",
+            "quote": "Samo... nešto nije isto.",
+            "cameraN": 2,
+            "prose": "An old residential building, a single illuminated window high on the facade, one man's silhouette standing inside it, laundry and balconies on the surrounding windows, distant gray winter sky, warm indoor light separated from the cold exterior, subdued melancholy without theatrical sadness.",
+            "camera": "the facade rising above the picture, the lit window small and high, the man a silhouette inside it, seen from the pavement at the foot of the building",
+            "cell": "0_1",
+            "cameraLanded": "confirmed",
+            "cameraReason": "the facade rising above the picture with the lit window small and high, the man a silhouette in it, seen from the pavement at the foot of the building — the low angle landed"
+        },
+        {
+            "n": 5,
+            "slug": "nema-me-ni-tu",
+            "title": "NEMA ME NI TU",
+            "quote": "Negde sam se ostavio na pogrešnom putu.",
+            "cameraN": 10,
+            "prose": "A gray Belgrade intersection, a single man standing motionless near the middle, pedestrians stretching past him as elongated motion-blurred ghosts, aging socialist architecture, tangled tram wires, damp pavement, flat gray daylight the only light, the human figure small and displaced by the scale of the city, slow shutter documentary realism.",
+            "camera": "the whole street smeared sideways into streaks, one sharp figure caught crossing the middle of the picture, seen from the far kerb at the moment the street swings past him",
+            "cell": "0_0",
+            "cameraLanded": "confirmed",
+            "cameraReason": "the whole street smeared sideways into streaks with one sharp figure dead centre and the ghosts of the pedestrians stretched across the wet road — the whip pan is unmistakable"
+        },
+        {
+            "n": 6,
+            "slug": "druga-verzija",
+            "title": "DRUGA VERZIJA",
+            "quote": "Neka druga verzija isto ime čuje.",
+            "cameraN": 6,
+            "prose": "A man looking at his reflection in an old shop window, the glass overlaying his face with passing traffic and pale buildings, the reflected face slightly misaligned from his physical position, layered identities without digital effects, faded commercial signs, fluorescent interior, unsettling but completely believable.",
+            "camera": "his shoulder and the side of his head in the near edge of the picture, his reflection in the glass filling the rest, seen from just behind and to one side",
+            "cell": "0_3",
+            "cameraLanded": "confirmed",
+            "cameraReason": "his head and shoulder in the near edge with his reflection in the shop glass filling the rest — over the shoulder, the shoulder really is in the foreground"
+        },
+        {
+            "n": 7,
+            "slug": "ista-misao",
+            "title": "ISTA MISAO",
+            "quote": "Na svakom semaforu stane ista misao.",
+            "cameraN": 7,
+            "prose": "A solitary man waiting at a pedestrian crossing, blurred cars passing behind him, distant bus passengers visible through fogged windows, subdued gray-green palette, quiet urban dislocation, the red signal the only light, its colour lying on the wet asphalt.",
+            "camera": "his face flat against the crossing's red, the traffic behind him soft, seen from the side, level with his own eyes",
+            "cell": "0_2",
+            "cameraLanded": "confirmed",
+            "cameraReason": "the man in clean profile against the crossing, the traffic behind him soft, the red signal behind his head — the profile landed"
+        },
+        {
+            "n": 8,
+            "slug": "vreme-ide-preglasno",
+            "title": "VREME IDE PREGLASNO",
+            "quote": "Kupio sam cigare, pa ih nisam palio.",
+            "cameraN": 8,
+            "prose": "A deserted outdoor café table, an unopened packet of cigarettes and an untouched glass of water standing on it, a man's hand just arriving at the edge of the table, the busy street beyond the barrier only a blur, late-afternoon light, exhausted stillness against the city's movement.",
+            "camera": "the packet and the glass lying flat on the tabletop, the table's edge and the hand at one side, seen straight down from directly above",
+            "cell": "0_1",
+            "cameraLanded": "not-confirmed",
+            "cameraReason": "NONE OF THE FOUR CELLS CARRIED IT — every take is at TABLE LEVEL with the packet and the glass standing on the surface; the flat-lay never arrived"
+        },
+        {
+            "n": 9,
+            "slug": "samo-veceras",
+            "title": "Samo VEČERAS",
+            "quote": "Ja bih malo mira. Ne zauvek. Samo večeras.",
+            "cameraN": 4,
+            "prose": "An almost entirely dark apartment, one man sitting on the floor beside an old sofa, a small tungsten lamp lighting only part of his face and hands, the surrounding darkness swallowing the room, no tears and no dramatic expression, the quiet physical weight of a long day, natural shadow.",
+            "camera": "the floor and the sofa running diagonally across the picture, the man and the lamp tipped over to one side, seen from the level of the floor",
+            "cell": "0_0",
+            "cameraLanded": "not-confirmed",
+            "cameraReason": "NONE OF THE FOUR CELLS CARRIED IT — every take is level, the floorboards running straight across the frame. Checked at full size: a thumbnail reads as tilted, and it is not"
+        },
+        {
+            "n": 10,
+            "slug": "treba-samo-da-zasviram",
+            "title": "TREBA SAMO DA ZASVIRAM",
+            "quote": "Možda... treba samo da zasviram.",
+            "cameraN": 9,
+            "prose": "A worn brass flugelhorn resting on an old wooden chair in a nearly empty rehearsal room, a man standing quietly in the distant doorway, weak tungsten light catching scratches and fingerprints on the instrument, cables on the floor, cracked acoustic plaster, a fragile suspended moment before the first note, tactile grain, no glamour.",
+            "camera": "the flugelhorn large in the near half of the picture, the doorway and the man in it pulled close behind, the room flattened between them, seen from the far end of the room",
+            "cell": "0_1",
+            "cameraLanded": "confirmed",
+            "cameraReason": "the flugelhorn large in the near half with the doorway and the man in it pulled close behind — the long lens flattened the room exactly as asked"
+        },
+        {
+            "n": 11,
+            "slug": "melodija-koja-ne-da-mira",
+            "title": "MELODIJA KOJA NE DA MIRA",
+            "quote": "16-bar flugelhorn solo — fragile, unresolved.",
+            "cameraN": 11,
+            "prose": "A lone musician playing flugelhorn in a dark rehearsal room, the instrument bell almost disappearing into shadow, one soft tungsten lamp in the distance, a second empty chair nearby, body language intimate and unperformed, subtle breath movement, no stage, no audience, no spotlight, melancholic handmade cinema.",
+            "camera": "the player's back and the tubing of the instrument filling the near edge of the picture, the dark room and the distant lamp opening away beyond him, seen from directly behind",
+            "cell": "0_0",
+            "cameraLanded": "confirmed",
+            "cameraReason": "the player seen from directly behind, his back and the instrument tubing in the near edge, the dark room and the distant lamp opening away beyond him — from behind landed"
+        },
+        {
+            "n": 12,
+            "slug": "samo-malo-drugaciji",
+            "title": "Samo MALO DRUGAČIJI",
+            "quote": "I možda... možda sam tu.",
+            "cameraN": 12,
+            "prose": "An apartment rooftop at the first pale light of morning, one man standing near the edge looking across the rooftops of Belgrade, a flugelhorn hanging loosely from one hand, subtle warm light beginning to appear behind gray buildings, a vast unoccupied sky, no triumphant sunrise, no dramatic resolution, ordinary quiet presence, slight film weave and natural grain.",
+            "camera": "the man dead centre in the picture, the rooftops running level on both sides of him, the sky filling the top half, seen from straight in front at his eye level",
+            "cell": "0_0",
+            "cameraLanded": "confirmed",
+            "cameraReason": "the man dead centre with the rooftops running level on both sides and the sky above — the front-on symmetrical frame, and the geometry agrees (mirror correlation 0.847 against ~0.3 for every other frame)"
+        }
+    ],
+    "_note_frames": "THE BEATS ARE THE TEMPLATE'S. Each frame's prose is the template's scene with the template's CAMERA INSTRUCTION REMOVED — 'wide static shot of', 'extreme close-up of', 'long shot through', 'low-angle street-level shot of', 'view from outside', 'medium-wide view of', 'intimate medium shot at', 'almost entirely dark', 'wide still shot from'. Those words name a DISTANCE, and a distance clause is measured to be ignored (docs/VIDEO-FRAMING.md §1, Step 2) — worse, they would FIGHT the grid's own camera, since beat 05 is a whip pan and its template prose says 'vast wide shot'. So the scene facts stay and the framing belongs to the camera clause, which names the camera's PLACE and what is IN the picture from there.",
+    "_note_camera_clause": "THE CAMERA CLAUSE NAMES THE PLACE, NEVER THE WORD 'CAMERA'. MEASURED 2026-11-05: a camera clause that says 'the camera outside the doorway looking in' came back as a CAMERA BODY on a table — the word rendered as an object. So every clause says where the picture is TAKEN FROM ('seen from the doorway', 'seen from directly behind', 'looked straight down on') and what fills the frame from there. And a clause naming an OBJECT IN THE FRAME lands, where a clause naming a DISTANCE does not — so each clause names both the place and the objects.",
+    "_note_one_light": "ONE KEY LIGHT PER FRAME. Measured 2026-11-05: two lights muddy the read and the frame's whole job is often that one source. Each frame names exactly one — window light, morning light, cold daylight from a distant room, the lit window, flat gray daylight, fluorescent interior, the red signal, late-afternoon light, a tungsten lamp, weak tungsten light, one soft tungsten lamp, the first pale light of morning.",
+    "_note_cells": "THE PICKED CELL per shot — the 4-up grid is four different takes. The cell is the LUMA SCREEN pick (closest to the median, never blown; 5 of the 12 frames had blown cells excluded). THE CONTENT CONFIRMATION IS NOT DONE for most frames — see cameraLanded.",
+    "_note_cameraLanded": "WHETHER THE ASSIGNED CAMERA LANDED — decided BY THE EYE, on the picked cell (docs/VIDEO-FRAMING.md §1 Rule 6: measurement SCREENS the cells, content CONFIRMS the pick). THE THREE MISSES WERE CHECKED IN ALL FOUR CELLS, and the camera was in NONE of them — so they are not picking failures, the jobs never found the camera. The geometry check (tools/geometry-check.js) independently confirms the front-on frame (mirror correlation 0.847 vs ~0.3 everywhere else) and its roll detector found a real 12.3-degree roll in frame 08 cell 0_2 — a rolled frame, in the wrong beat.",
+    "_note_geometry": "THE GEOMETRY CHECK IS A SCREEN, NOT A VERDICT. It confirms the front-on frame (CAM 12) and misses the whip pan (CAM 10) and the macro (CAM 05) that the eye sees plainly. Its roll detector found a 12.3-degree roll in frame 08 cell 0_2 — a rolled frame, in the wrong beat. So: measurement screens, the eye decides, and the two disagreeing is information rather than noise.",
+    "_note_clip": "THE CLIP CROSS-CHECK. CLIP-ViT-L/14 scored every frame against its own assigned camera phrase. Its RANK is noisy (the same frame ranked its assigned camera 1st in one formulation and 6th in another — the scene text dominates), but its PROBABILITY separates cleanly: the three missed frames score p <= 0.023 and the nine landed frames score p >= 0.030, with NO OVERLAP. The three lowest probabilities are frames 08, 03 and 09 — exactly the three the eye called missed. So the two independent instruments agree on WHICH frames missed, and the eye decides the rest."
+}
