@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+    <!-- Design tokens live in the skin, not in this page. See DESIGN.md. -->
+    <link rel="stylesheet" href="../assets/skins/house.css" data-skin-stylesheet>
+    <script src="../lib/skin.js"></script>
+    <script src="../lib/theme.js" data-theme-key="mjc-theme"></script>
+
+    <!-- The shared rules. The console composes prompts with the SAME code
+         the submitter runs (lib/mj-flags.js) and lints with the SAME rule
+         the repo's linter enforces (lib/prompt-lint-core.js). A second
+         copy in the browser would be a second source of truth: the
+         console could show one command while the submitter sent another. -->
+    <script src="../lib/mj-flags.js"></script>
+    <script src="../lib/prompt-lint-core.js"></script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="The Midjourney console — write a prompt, see the exact command the submitter will send, save it to a local library, and export the library as a prompt pack for the watcher.">
+<title>MJ Console — Digital Twin</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2314120e'/%3E%3Ctext x='16' y='22' font-family='Georgia' font-size='16' fill='%23d9913f' text-anchor='middle'%3EC%3C/text%3E%3C/svg%3E">
+<script>
+  // no-flash theme bootstrap
+  (function () {
+    var t = localStorage.getItem("mjc-theme");
+    if (t === "dark" || (!t && matchMedia("(prefers-color-scheme: dark)").matches)) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  })();
+</script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font-family: var(--sans); line-height: 1.55; }
+  a { color: var(--accent); }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px 80px; }
+
+  header.hero { padding: 40px 0 20px; border-bottom: 1px solid var(--line); }
+  .kicker { font-family: var(--mono); font-size: 12px; letter-spacing: .12em;
+            text-transform: uppercase; color: var(--ink-2); }
+  h1 { font-family: var(--serif); font-size: 40px; margin: 8px 0 6px; letter-spacing: -0.01em; }
+  h1 em { font-style: italic; color: var(--accent); }
+  .lede { color: var(--ink-2); max-width: 68ch; margin-top: 10px; }
+
+  .banner { border: 1px solid var(--warn); border-left-width: 4px; border-radius: 8px;
+            padding: 12px 15px; background: var(--surface); margin: 18px 0 0;
+            font-size: 13.5px; color: var(--ink-2); }
+  .banner b { color: var(--warn); }
+  .banner[hidden] { display: none; }
+
+  .cols { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+          gap: 26px; margin-top: 30px; align-items: start; }
+  @media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--surface); border: 1px solid var(--line);
+           border-radius: 12px; padding: 20px; }
+  .panel h2 { font-family: var(--serif); font-size: 21px; margin: 0 0 4px; }
+  .panel .hint { color: var(--ink-2); font-size: 13px; margin: 0 0 16px; }
+
+  label { display: block; font-family: var(--mono); font-size: 10.5px;
+          letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2);
+          margin-bottom: 6px; }
+  input[type="text"], textarea, select {
+    width: 100%; font-family: var(--mono); font-size: 13px; padding: 9px 11px;
+    background: var(--bg); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 6px;
+  }
+  textarea { min-height: 132px; resize: vertical; line-height: 1.5; }
+  input[type="text"]:focus, textarea:focus, select:focus {
+    outline: 2px solid var(--accent); outline-offset: 1px; }
+  .field { margin-bottom: 15px; }
+  .row { display: flex; gap: 12px; }
+  .row > * { flex: 1; }
+
+  .btn { font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em;
+         text-transform: uppercase; padding: 9px 15px; border-radius: 99px;
+         border: 1px solid var(--line); background: var(--surface); color: var(--ink-2);
+         cursor: pointer; text-decoration: none; display: inline-block; }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { opacity: .9; color: #fff; }
+  .btn.danger:hover { border-color: var(--warn); color: var(--warn); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btnrow { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+
+  /* the composed command — the thing the submitter will actually send */
+  .cmd { background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+         padding: 13px 14px; font-family: var(--mono); font-size: 12.5px;
+         color: var(--ink); word-break: break-word; min-height: 54px; }
+  .cmd.empty { color: var(--ink-2); font-style: italic; }
+  .cmd .flag { color: var(--accent); }
+
+  .flagrow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .chip { font-family: var(--mono); font-size: 10.5px; letter-spacing: .04em;
+          text-transform: uppercase; padding: 2px 9px; border: 1px solid var(--line);
+          border-radius: 99px; color: var(--ink-2); }
+  .chip.ok { border-color: var(--accent); color: var(--accent); }
+  .chip.bad { border-color: var(--warn); color: var(--warn); }
+
+  .lint { margin-top: 12px; font-size: 13px; border-radius: 8px; padding: 10px 13px;
+          border: 1px solid var(--warn); background: var(--surface); color: var(--ink-2); }
+  .lint b { color: var(--warn); }
+  .lint[hidden] { display: none; }
+  .lint.ok { border-color: var(--accent-2); }
+  .lint.ok b { color: var(--accent-2); }
+
+  .status { font-family: var(--mono); font-size: 11.5px; margin-top: 10px;
+            min-height: 18px; color: var(--ink-2); }
+  .status.err { color: var(--warn); }
+  .status.ok { color: var(--accent-2); }
+
+  /* the library */
+  .libctl { display: flex; gap: 9px; align-items: center; margin-bottom: 14px; }
+  .libctl input[type="search"] { flex: 1; }
+  .liblist { display: grid; gap: 9px; max-height: 560px; overflow-y: auto; }
+  .item { border: 1px solid var(--line); border-radius: 9px; padding: 12px 13px;
+          background: var(--bg); }
+  .item .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+  .item .title { font-family: var(--serif); font-size: 15.5px; }
+  .item .ratio { font-family: var(--mono); font-size: 10.5px; color: var(--accent);
+                 border: 1px solid var(--line); border-radius: 99px; padding: 1px 8px; }
+  .item .text { font-family: var(--mono); font-size: 11.5px; color: var(--ink-2);
+                margin-top: 6px; word-break: break-word; }
+  .item .acts { display: flex; gap: 6px; margin-top: 9px; flex-wrap: wrap; }
+  .item .acts button { font-family: var(--mono); font-size: 10px; letter-spacing: .05em;
+                       text-transform: uppercase; padding: 3px 9px; border-radius: 99px;
+                       border: 1px solid var(--line); background: var(--surface);
+                       color: var(--ink-2); cursor: pointer; }
+  .item .acts button:hover { border-color: var(--accent); color: var(--accent); }
+  .item .acts button.del:hover { border-color: var(--warn); color: var(--warn); }
+  .empty { color: var(--ink-2); font-size: 13.5px; padding: 22px 0; text-align: center; }
+
+  .pack { margin-top: 18px; }
+  .pack pre { background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+              padding: 13px 14px; font-family: var(--mono); font-size: 11.5px;
+              overflow-x: auto; white-space: pre-wrap; word-break: break-word;
+              color: var(--ink); margin: 0; max-height: 260px; overflow-y: auto; }
+
+  footer { margin-top: 54px; padding-top: 18px; border-top: 1px solid var(--line);
+           color: var(--ink-2); font-size: 12.5px; }
+  footer a { color: var(--accent); }
+  code { font-family: var(--mono); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="kicker">Digital twin · Midjourney</div>
+    <h1>The <em>console</em></h1>
+    <p class="lede">
+      Write a prompt, see the exact command the submitter will send, save it to a
+      library you can come back to, and export the library as a prompt pack the
+      watcher already knows how to read.
+    </p>
+    <div class="btnrow">
+      <button class="btn" id="themeBtn" aria-label="Toggle light and dark theme">Toggle theme</button>
+      <a class="btn" href="./midjourney-dashboard.html">Run dashboard</a>
+    </div>
+    <div class="banner" id="apiBanner" hidden>
+      <b>The server API is not reachable.</b>
+      The composer and the linter still work — they run in this browser — but saving
+      to the library needs the local server: <code>npm run serve</code> (or the
+      launchd server on <code>:5173</code>).
+    </div>
+  </header>
+
+  <div class="cols">
+
+    <!-- ================= composer ================= -->
+    <section class="panel" aria-labelledby="composerHead">
+      <h2 id="composerHead">Compose</h2>
+      <p class="hint">The composed command is what gets sent — one <code>--ar</code>, last.</p>
+
+      <div class="field">
+        <label for="pTitle">Title</label>
+        <input type="text" id="pTitle" placeholder="What this prompt is" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label for="pText">Prompt</label>
+        <textarea id="pText" placeholder="a trumpet player alone on a stage at dawn, one overhead light, the room empty behind him"></textarea>
+      </div>
+
+      <div class="row field">
+        <div>
+          <label for="pAr">Ratio</label>
+          <select id="pAr">
+            <option value="16:9">16:9</option>
+            <option value="3:4">3:4</option>
+            <option value="9:16">9:16</option>
+            <option value="1:1">1:1</option>
+            <option value="21:9">21:9</option>
+            <option value="4:3">4:3</option>
+            <option value="2:3">2:3</option>
+            <option value="">none</option>
+          </select>
+        </div>
+        <div>
+          <label for="pTags">Tags</label>
+          <input type="text" id="pTags" placeholder="jazz, dawn" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="pNotes">Notes (optional)</label>
+        <input type="text" id="pNotes" placeholder="why this one works" autocomplete="off">
+      </div>
+
+      <label>Composed command</label>
+      <div class="cmd empty" id="cmdOut">Type a prompt to see the command.</div>
+      <div class="flagrow" id="flagChips"></div>
+
+      <div class="lint" id="lintOut" hidden></div>
+
+      <div class="btnrow">
+        <button class="btn primary" id="saveBtn">Save to library</button>
+        <button class="btn" id="copyBtn">Copy command</button>
+        <button class="btn" id="clearBtn">Clear</button>
+      </div>
+      <div class="status" id="saveStatus"></div>
+    </section>
+
+    <!-- ================= library ================= -->
+    <section class="panel" aria-labelledby="libraryHead">
+      <h2 id="libraryHead">Library</h2>
+      <p class="hint">Saved on this machine, in <code>data/mj/prompts.json</code>.</p>
+
+      <div class="libctl">
+        <input type="search" id="libSearch" placeholder="Search titles, prompts, tags…" aria-label="Search the library">
+        <button class="btn" id="packBtn">Export pack</button>
+      </div>
+
+      <div class="liblist" id="libList"></div>
+
+      <div class="pack" id="packBox" hidden>
+        <label for="packOut">Prompt pack</label>
+        <pre id="packOut"></pre>
+        <div class="btnrow">
+          <button class="btn" id="copyPackBtn">Copy pack</button>
+          <button class="btn" id="closePackBtn">Close</button>
+        </div>
+        <p class="hint" style="margin-top:10px">
+          This is the format <code>lib/mj-watcher.js</code> reads. Save it as a
+          <code>.md</code> file and drop it in <code>prompts-inbox/</code>.
+        </p>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    Composes with <code>lib/mj-flags.js</code> · lints with
+    <code>lib/prompt-lint-core.js</code> · library at
+    <code>data/mj/prompts.json</code> ·
+    <a href="./midjourney-dashboard.html">run dashboard</a> ·
+    <a href="./">twin</a>
+  </footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (s) { return document.querySelector(s); };
+  var esc = function (s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  };
+
+  // The house defaults — read from lib/mj-config.json, the SAME file the
+  // submitter reads. NOT hardcoded: the config's defaultArgs are an
+  // artistic choice that changes (--s 21 replaced the style block on
+  // 2026-10-18), and a copy in this page would go stale and compose a
+  // different command than the submitter sends. That is the one bug this
+  // console exists to prevent.
+  //
+  // The config is a static file, so this works on the deployed site too.
+  var DEFAULT_ARGS = '';
+  var configLoaded = false;
+
+  var state = {
+    defaults: DEFAULT_ARGS,
+    prompts: [],
+    api: false,
+    filter: ''
+  };
+
+  // ------------------------------------------------------------------
+  // The composer — the SHARED rules, not a copy.
+  // ------------------------------------------------------------------
+  function compose(text, ar) {
+    var split = MJFlags.splitAr(text || '');
+    var ratio = split.ar || ar || null;
+    return {
+      prompt: split.text,
+      ar: ratio,
+      composed: MJFlags.buildFullPrompt(split.text, ratio, state.defaults),
+      violations: PromptLint.findViolations(split.text)
+    };
+  }
+
+  // Render the composed command with the flags tinted, so the eye can
+  // pick out the parameters from the prose.
+  function cmdHtml(composed) {
+    return esc(composed).replace(/(--[a-zA-Z][\w-]*)/g, '<span class="flag">$1</span>');
+  }
+
+  function renderCmd() {
+    var text = $('#pText').value;
+    var ar = $('#pAr').value;
+    var out = $('#cmdOut');
+    var chips = $('#flagChips');
+    var lint = $('#lintOut');
+
+    if (!text.trim()) {
+      out.className = 'cmd empty';
+      out.textContent = 'Type a prompt to see the command.';
+      chips.innerHTML = '';
+      lint.hidden = true;
+      return null;
+    }
+
+    var c = compose(text, ar);
+    out.className = 'cmd';
+    out.innerHTML = cmdHtml(c.composed);
+
+    // The parameter chips: the ratio, and the defaults in force.
+    var chipsHtml = '';
+    if (c.ar) chipsHtml += '<span class="chip ok">--ar ' + esc(c.ar) + '</span>';
+    else chipsHtml += '<span class="chip">no ratio</span>';
+    chipsHtml += configLoaded
+      ? '<span class="chip">defaults: ' + esc(state.defaults || 'none') + '</span>'
+      : '<span class="chip bad">defaults not loaded</span>';
+    chips.innerHTML = chipsHtml;
+
+    if (c.violations.length) {
+      lint.hidden = false;
+      lint.className = 'lint';
+      lint.innerHTML = '<b>The prompt names the subject\'s identity ("' +
+        esc(c.violations[0].match) + '").</b> Describe the scene — light, lens, ' +
+        'wardrobe, gesture — and leave the person to the reference photo. ' +
+        'This prompt cannot be saved until it is reworded.';
+    } else {
+      lint.hidden = false;
+      lint.className = 'lint ok';
+      lint.innerHTML = '<b>Clean.</b> No identity claim in the prompt.';
+    }
+
+    return c;
+  }
+
+  // ------------------------------------------------------------------
+  // The library
+  // ------------------------------------------------------------------
+  function matches(p) {
+    if (!state.filter) return true;
+    var q = state.filter;
+    return (p.title || '').toLowerCase().indexOf(q) !== -1
+      || (p.prompt || '').toLowerCase().indexOf(q) !== -1
+      || (p.tags || []).join(' ').toLowerCase().indexOf(q) !== -1;
+  }
+
+  function renderLib() {
+    var host = $('#libList');
+    var shown = state.prompts.filter(matches);
+    if (!state.prompts.length) {
+      host.innerHTML = '<div class="empty" id="libEmpty">No saved prompts yet.<br>' +
+        'Write one on the left and save it.</div>';
+      return;
+    }
+    if (!shown.length) {
+      host.innerHTML = '<div class="empty" id="libEmpty">Nothing matches that search.</div>';
+      return;
+    }
+    host.innerHTML = shown.map(function (p) {
+      return '<article class="item" data-id="' + esc(p.id) + '">' +
+        '<div class="top">' +
+          '<span class="title">' + esc(p.title) + '</span>' +
+          (p.ar ? '<span class="ratio">' + esc(p.ar) + '</span>' : '') +
+        '</div>' +
+        '<div class="text">' + esc(p.composed || p.prompt) + '</div>' +
+        (p.tags && p.tags.length
+          ? '<div class="flagrow">' + p.tags.map(function (t) {
+              return '<span class="chip">' + esc(t) + '</span>'; }).join('') + '</div>'
+          : '') +
+        '<div class="acts">' +
+          '<button data-act="use">Use</button>' +
+          '<button data-act="copy">Copy</button>' +
+          '<button data-act="pack">Pack</button>' +
+          '<button data-act="del" class="del">Delete</button>' +
+        '</div>' +
+      '</article>';
+    }).join('');
+  }
+
+  function setStatus(msg, kind) {
+    var el = $('#saveStatus');
+    el.textContent = msg || '';
+    el.className = 'status' + (kind ? ' ' + kind : '');
+  }
+
+  function copyText(text) {
+    // navigator.clipboard rejects on insecure origins; the execCommand
+    // fallback guarantees a click never throws.
+    var done = function () { setStatus('Copied.', 'ok'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { legacyCopy(text, done); });
+    } else {
+      legacyCopy(text, done);
+    }
+  }
+
+  function legacyCopy(text, done) {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      done();
+    } catch (e) {
+      setStatus('Could not copy — select the text manually.', 'err');
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // The API
+  // ------------------------------------------------------------------
+  function api(path, options) {
+    return fetch(path, Object.assign({
+      headers: { 'Content-Type': 'application/json' }
+    }, options || {})).then(function (res) {
+      return res.json().catch(function () { return {}; }).then(function (body) {
+        return { ok: res.ok, status: res.status, body: body };
+      });
+    });
+  }
+
+  function loadLibrary() {
+    return api('/api/mj/prompts').then(function (r) {
+      if (!r.ok) {
+        state.api = false;
+        $('#apiBanner').hidden = false;
+        renderLib();
+        return;
+      }
+      state.api = true;
+      $('#apiBanner').hidden = true;
+      state.prompts = (r.body && r.body.prompts) || [];
+      renderLib();
+    }).catch(function () {
+      state.api = false;
+      $('#apiBanner').hidden = false;
+      renderLib();
+    });
+  }
+
+  function savePrompt() {
+    var c = renderCmd();
+    if (!c) { setStatus('Nothing to save — write a prompt first.', 'err'); return; }
+    if (c.violations.length) {
+      setStatus('Fix the identity wording before saving.', 'err');
+      return;
+    }
+    var title = $('#pTitle').value.trim();
+    if (!title) {
+      setStatus('Give it a title so you can find it later.', 'err');
+      $('#pTitle').focus();
+      return;
+    }
+    var btn = $('#saveBtn');
+    btn.disabled = true;
+    setStatus('Saving…');
+    api('/api/mj/prompts', {
+      method: 'POST',
+      body: JSON.stringify({
+        title: title,
+        prompt: c.prompt,
+        ar: c.ar,
+        tags: $('#pTags').value,
+        notes: $('#pNotes').value
+      })
+    }).then(function (r) {
+      btn.disabled = false;
+      if (!r.ok) {
+        setStatus((r.body && r.body.error) || 'Could not save.', 'err');
+        return;
+      }
+      state.prompts.push(r.body.prompt);
+      renderLib();
+      setStatus('Saved as "' + r.body.prompt.title + '".', 'ok');
+      $('#pTitle').value = '';
+      $('#pTags').value = '';
+      $('#pNotes').value = '';
+      renderCmd();
+    }).catch(function (e) {
+      btn.disabled = false;
+      setStatus('Could not save: ' + (e && e.message ? e.message : 'unknown error'), 'err');
+    });
+  }
+
+  function removePrompt(id) {
+    api('/api/mj/prompts/' + encodeURIComponent(id), { method: 'DELETE' })
+      .then(function (r) {
+        if (!r.ok) {
+          setStatus((r.body && r.body.error) || 'Could not delete.', 'err');
+          return;
+        }
+        state.prompts = state.prompts.filter(function (p) { return p.id !== id; });
+        renderLib();
+        setStatus('Deleted.', 'ok');
+      })
+      .catch(function (e) {
+        setStatus('Could not delete: ' + (e && e.message ? e.message : 'unknown error'), 'err');
+      });
+  }
+
+  function showPack(ids) {
+    var url = '/api/mj/pack?title=' + encodeURIComponent('Saved prompts');
+    if (ids && ids.length) url += '&ids=' + encodeURIComponent(ids.join(','));
+    api(url).then(function (r) {
+      if (!r.ok) {
+        setStatus((r.body && r.body.error) || 'Could not build the pack.', 'err');
+        return;
+      }
+      $('#packOut').textContent = r.body.pack;
+      $('#packBox').hidden = false;
+      $('#packBox').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }).catch(function (e) {
+      setStatus('Could not build the pack: ' + (e && e.message ? e.message : 'unknown error'), 'err');
+    });
+  }
+
+  // ------------------------------------------------------------------
+  // Events
+  // ------------------------------------------------------------------
+  $('#pText').addEventListener('input', renderCmd);
+  $('#pAr').addEventListener('change', renderCmd);
+  $('#saveBtn').addEventListener('click', savePrompt);
+  $('#copyBtn').addEventListener('click', function () {
+    var c = renderCmd();
+    if (!c) { setStatus('Nothing to copy.', 'err'); return; }
+    copyText(c.composed);
+  });
+  $('#clearBtn').addEventListener('click', function () {
+    $('#pTitle').value = '';
+    $('#pText').value = '';
+    $('#pTags').value = '';
+    $('#pNotes').value = '';
+    $('#pAr').value = '16:9';
+    renderCmd();
+    setStatus('');
+  });
+  $('#libSearch').addEventListener('input', function (e) {
+    state.filter = e.target.value.trim().toLowerCase();
+    renderLib();
+  });
+  $('#packBtn').addEventListener('click', function () { showPack(null); });
+  $('#copyPackBtn').addEventListener('click', function () {
+    copyText($('#packOut').textContent);
+  });
+  $('#closePackBtn').addEventListener('click', function () {
+    $('#packBox').hidden = true;
+  });
+
+  $('#libList').addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-act]');
+    if (!btn) return;
+    var item = btn.closest('.item');
+    if (!item) return;
+    var id = item.getAttribute('data-id');
+    var p = state.prompts.filter(function (x) { return x.id === id; })[0];
+    if (!p) return;
+    var act = btn.getAttribute('data-act');
+    if (act === 'use') {
+      $('#pTitle').value = p.title;
+      $('#pText').value = p.prompt;
+      $('#pTags').value = (p.tags || []).join(', ');
+      $('#pNotes').value = p.notes || '';
+      $('#pAr').value = p.ar || '';
+      renderCmd();
+      setStatus('Loaded "' + p.title + '" into the composer.', 'ok');
+      $('#pText').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if (act === 'copy') {
+      copyText(p.composed || p.prompt);
+    } else if (act === 'pack') {
+      showPack([p.id]);
+    } else if (act === 'del') {
+      removePrompt(p.id);
+    }
+  });
+
+  $('#themeBtn').addEventListener('click', function () {
+    var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    if (window.DTTheme) DTTheme.set(next);
+  });
+
+  // ------------------------------------------------------------------
+  // Boot
+  // ------------------------------------------------------------------
+
+  // The house defaults come from lib/mj-config.json. Until it loads, the
+  // composer shows the prompt with no defaults appended — and says so —
+  // rather than showing a guess.
+  function loadConfig() {
+    return fetch('../lib/mj-config.json', { cache: 'no-store' })
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (cfg) {
+        state.defaults = (cfg && cfg.mj && cfg.mj.defaultArgs) || '';
+        configLoaded = true;
+        renderCmd();
+      })
+      .catch(function () {
+        configLoaded = false;
+        state.defaults = '';
+        renderCmd();
+        setStatus('Could not read lib/mj-config.json — composing without the house defaults.', 'err');
+      });
+  }
+
+  renderCmd();
+  renderLib();
+  loadConfig();
+  loadLibrary();
+})();
+</script>
+</body>
+</html>
