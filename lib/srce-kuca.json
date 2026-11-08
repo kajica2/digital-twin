@@ -1,0 +1,215 @@
+{
+    "_note": "SRCE KUCA — the sixteen shots for the song. ONE registry: the pack, the doc and the test are generated from it, never hand-copied.",
+    "id": "srce-kuca",
+    "title": "Srce kuca",
+    "subtitle": "16 cinematic shots · A heartbeat · Two people, one table · Analog noir",
+    "artist": "StingingStylists1762",
+    "concept": "The song is about two people at a table who keep almost-touching and never do. 'Ne diraj tišinu' — do not disturb the silence. The shots are a slow, close, uneventful evening: a glass of wine, a chair, a lamp, a hand that stops a centimetre short. Nothing dramatic happens. The tension is in the distance the camera never closes.",
+    "visualDna": "1970s European arthouse cinema, faded Kodak 500T, tobacco browns, dirty teal, nicotine yellow, winter gray, soft halation, analog grain, practical light, natural imperfections, unposed documentary realism, 35mm anamorphic",
+    "_note_visualDna": "The same house DNA as the NEMA ME U MENI template — one film language across the artist's work. The DNA is PALETTE and TEXTURE and it goes in the prose, not a --profile, because the artist dictated the profile codes separately.",
+    "dnaProse": "1970s European arthouse, faded Kodak 500T, tobacco browns and dirty teal, nicotine yellow and winter gray, soft halation, analog grain, practical light, unposed documentary realism, 35mm anamorphic",
+    "flags": "--chaos 5 --ar 16:9 --raw --stylize 755 --hd --profile brvazka --profile mhw6dpq --profile xr39csb --profile det21e6 --profile 67lkfw3",
+    "_note_flags": "The artist's own flags, dictated for this set. MEASURED 2026-11-04 against the live studio page: these are the RECENT-PARAMETERS row's own values (chaos 5, stylize 755, hd) plus the account's five personalization codes (brvazka = profile #8, mhw6dpq = moodboard #92, xr39csb = popart, det21e6 = yellow taxi, 67lkfw3 = kowloon city). Five separate --profile lines, NOT one --profile with five codes — that is the spelling the studio's own UI produces, and the feed's job commands agree. buildFullPrompt strips the config's --style/--s/--ar when the prompt carries its own, so the config default never competes.",
+    "suffix": "no text",
+    "_note_suffix": "The house negation, so signage and lettering stay out of a frame the layout will put type into.",
+    "identity": "no denim jacket and no leather jacket and no necklace, shaved very short haircut",
+    "_note_identity": "The house identity clause (docs/VIDEO-FRAMING.md §Step 4). This set renders PLAIN — no --edit attachment — because the camera is the point (docs/VIDEO-FRAMING.md §4: in edit mode the reference decides the distance, in plain mode the camera clause is obeyed). So there is no character reference to deny a coat for.",
+    "renderPlain": true,
+    "_note_renderPlain": "MEASURED, docs/VIDEO-FRAMING.md §4: with an --edit attachment every distance clause is disobeyed; without one the camera clause lands. Twelve shots whose subject is WHERE THE CAMERA IS must render plain.",
+    "acts": [
+        {
+            "id": "act-1",
+            "title": "ACT I — THE ROOM (verse 1)",
+            "frames": [
+                1,
+                2,
+                3
+            ]
+        },
+        {
+            "id": "act-2",
+            "title": "ACT II — THE SILENCE (chorus 1)",
+            "frames": [
+                4,
+                5,
+                6
+            ]
+        },
+        {
+            "id": "act-3",
+            "title": "ACT III — THE ABSENCE (verse 2)",
+            "frames": [
+                7,
+                8,
+                9,
+                10,
+                11
+            ]
+        },
+        {
+            "id": "act-4",
+            "title": "ACT IV — THE STAYING (chorus 2 · bridge)",
+            "frames": [
+                12,
+                13,
+                14
+            ]
+        },
+        {
+            "id": "act-5",
+            "title": "ACT V — THE LAST (final chorus)",
+            "frames": [
+                15,
+                16
+            ]
+        }
+    ],
+    "frames": [
+        {
+            "n": 1,
+            "slug": "opet-si-tu",
+            "title": "OPET SI TU",
+            "lyric": "Opet si tu / Kao da nisi / Gledaš kroz mene",
+            "prose": "Wide static shot of a small kitchen table at night in a Belgrade flat, a woman seated on one side and a man on the other, a single low lamp between them, both turned slightly away, the room dark past the lamp's reach, quiet repetition, faded 35mm film, imperfect natural exposure, observational European cinema.",
+            "camera": "both figures small in the frame with the lamp between them, the camera square on at the height of the table",
+            "cell": "0_0"
+        },
+        {
+            "n": 2,
+            "slug": "ko-zna-sta-mislis",
+            "title": "KO ZNA ŠTA MISLIŠ",
+            "lyric": "Ko zna šta misliš / Pomeriš kosu / Nešto bi rekla / Pa samo ćutiš / Kao da čeKAŠ",
+            "prose": "A woman at a kitchen table lifting her hand to push her hair back from her face, her mouth just open as if about to say something and not saying it, one lamp low beside her, the wall behind her bare, her eyes on someone just out of the picture",
+            "camera": "her hand and the side of her face in the near half of the picture, seen from just below and to one side, the lamp catching the edge of her hair",
+            "cell": "0_0"
+        },
+        {
+            "n": 3,
+            "slug": "na-stolu-casa",
+            "title": "NA STOLU ČAŠA",
+            "lyric": "Na stolu čaša / Još malo vina / Među nama / Ta stara tišina",
+            "prose": "Close on a half-full wine glass standing on a worn kitchen table, the wine catching the one lamp's light, the table scarred and marked with old rings, a second glass out of focus beyond it, nothing else moving, grainy imperfect 35mm frame.",
+            "camera": "the glass filling the lower half of the picture, the camera down at the level of the tabletop",
+            "cell": "0_0"
+        },
+        {
+            "n": 4,
+            "slug": "ne-diraj-tisinu",
+            "title": "NE DIRAJ TIŠINU",
+            "lyric": "Ne diraj tišinu, / ne diraj, ne diraj",
+            "prose": "Two hands resting on a table, one hand just reaching towards the other and stopping a centimetre short, the fingers loose and unmoving, weak lamp light across the knuckles, the rest of the room black, the near hand sharp and the far hand soft, intimate domestic stillness, unpolished analog film.",
+            "camera": "the two hands filling the frame, the camera low and square to the edge of the table",
+            "cell": "0_0"
+        },
+        {
+            "n": 5,
+            "slug": "neka-noc-ne-prolazi",
+            "title": "NEKA NOĆ NE PROLAZI",
+            "lyric": "Neka sve ostane tu, / neka noć ne prolazi",
+            "prose": "A window in a dark flat at night, the glass showing the same dark street outside, a thin curtain hanging still against the frame, the windows of the building opposite lit and unchanged, no movement in the room behind the camera",
+            "camera": "the window filling the frame, seen square on to the glass, the lit windows opposite small and far away",
+            "cell": "0_3"
+        },
+        {
+            "n": 6,
+            "slug": "tako-blizu-tako-daleko",
+            "title": "TAKO BLIZU, TAKO DALEKO",
+            "lyric": "Tako blizu, tako daleko, / ali opet tu si sa mnom",
+            "prose": "A man and a woman seated opposite each other at a kitchen table, a small lamp standing between them, her face turned towards him and his turned away, a wine glass in front of each, the bare wall behind them, both sitting perfectly still, neither speaking, the lamp the only light in the room",
+            "camera": "her shoulder and the side of her face in the near half of the picture, him beyond her at the far side of the table, seen from just behind and above her shoulder",
+            "cell": "0_0"
+        },
+        {
+            "n": 7,
+            "slug": "ja-vec-nisam-tu",
+            "title": "JA VEĆ NISAM TU",
+            "lyric": "Ne diraj tišinu / Kad mi to treba / Ja već nisam tu",
+            "prose": "An empty chair pushed back from a kitchen table, a man's coat gone from the back of it, a set of keys left on the table beside a wine glass, one lamp still burning on the table over nothing, the room around the chair bare",
+            "camera": "the empty chair in the near half of the picture with the keys on the table beyond it, seen from just above the table edge",
+            "cell": "0_1"
+        },
+        {
+            "n": 8,
+            "slug": "kuca-sv-jetlo",
+            "title": "KUĆA SVJETLO",
+            "lyric": "Kažeš da sam čudo / Da me nema često",
+            "prose": "A hallway in an old flat, one bare bulb burning above a doorway at the far end, the door frame standing open, the wall beside it carrying the shadow of two people standing close together, the ceiling low, the floor bare boards, one warm pool of light and everything else unlit",
+            "camera": "the open doorway at the far end of the hallway, the door frame crossing the edges of the picture, the hallway tilted so the floor runs diagonally",
+            "cell": "0_0"
+        },
+        {
+            "n": 9,
+            "slug": "samo-menjam-mesto",
+            "title": "SAMO MENJAM MESTO",
+            "lyric": "Samo menjam mesto / Neke stvari traju",
+            "prose": "Seen straight down from above onto a kitchen table, a man seated alone on one side of it, his coat still on, one hand holding a set of keys he has not put down, the empty chair opposite him, a wine glass and a plate untouched, a small lamp burning at the edge of the table",
+            "camera": "the table filling the whole picture from directly overhead, the man small beneath it, the tabletop seen flat",
+            "cell": "0_3"
+        },
+        {
+            "n": 10,
+            "slug": "ti-me-pitas-nesto",
+            "title": "TI ME PITAŠ NEŠTO",
+            "lyric": "Ti me pitaš nešto / I ja se samo smejem",
+            "prose": "A woman leaning across a kitchen table with her mouth open in the middle of a question, a man opposite her with his head down and his shoulders moving as he laughs, one lamp between them, a wine glass untouched in front of him",
+            "camera": "the two of them across the table, her near and him beyond, seen from the side of the table at the height of her shoulder",
+            "cell": "0_2"
+        },
+        {
+            "n": 11,
+            "slug": "sve-sto-imam",
+            "title": "SVE ŠTO IMAM",
+            "lyric": "Sve što imam / S tobom bih držao u ruci / A opet te tražim / U svakom tom zvuku",
+            "prose": "Close on a man's hands cupped around a wine glass, the glass barely held and the wine still, his thumb moving once along the rim, a woman's hand entering the edge of the frame and stopping, weak tungsten light catching the glass and the wet ring it leaves, tactile film grain, no glamour.",
+            "camera": "the hands and the glass filling the picture, the camera down at the level of the table and slightly to the side",
+            "cell": "0_3"
+        },
+        {
+            "n": 12,
+            "slug": "tako-blizu-tako-daleko-2",
+            "title": "TAKO BLIZU, TAKO DALEKO",
+            "lyric": "Tako blizu, tako daleko, / ali opet tu si sa mnom",
+            "prose": "Seen from a doorway into an almost bare room at night, a man and a woman seated at a table at the far end with a single lamp burning between them, the walls bare and the floor bare, nothing else in the room, the darkness reaching the edges of the picture, the pair small and far off",
+            "camera": "the pair small at the far end of the room seen from the doorway, the bare room between them and the camera",
+            "cell": "0_1"
+        },
+        {
+            "n": 13,
+            "slug": "u-ovom-nasem-vremenu",
+            "title": "U OVOM NAŠEM VREMENU",
+            "lyric": "U ovom našem vremenu / U ovom našem prostoru / Nema drugih stvari / Samo ti i ja",
+            "prose": "A kitchen at night, a table at the far end of it with two people seated there, one lamp on the table between them, the room almost empty, the floor bare, the darkness reaching the far corners",
+            "camera": "the two people small at the far end of the room, the length of the kitchen between them and the camera, the lamp the only light",
+            "cell": "0_3"
+        },
+        {
+            "n": 14,
+            "slug": "tacno-ti-i-ja",
+            "title": "TAČNO TI I JA",
+            "lyric": "Nema drugih stvari / Samo ti i ja",
+            "prose": "A man and a woman standing close together, a small lamp on a table behind them throwing their two shadows onto the wall, the lamp flaring between their faces, their hands almost meeting, the rest of the room unlit, the wall behind them the only thing lit",
+            "camera": "the two shadows thrown onto the wall filling the picture, the pair seen from behind and slightly to one side",
+            "cell": "0_0"
+        },
+        {
+            "n": 15,
+            "slug": "sada-je-vrijeme",
+            "title": "SADA JE VRIJEME",
+            "lyric": "Sada je vreme, sada je kasno / Dođi, da bude jasnije",
+            "prose": "A woman in the near foreground with her back to us, her shoulder and the back of her head filling one edge of the picture, a man across the table lifting his wine glass a few centimetres and then holding it there, a lamp between them, the bare wall behind him, the space between them empty",
+            "camera": "her shoulder along the near edge of the picture and him beyond her across the table, seen from just behind her",
+            "cell": "0_0"
+        },
+        {
+            "n": 16,
+            "slug": "ne-diraj-tisinu-2",
+            "title": "NE DIRAJ TIŠINU",
+            "lyric": "Ne diraj tišinu, / ne diraj, ne diraj / Neka sve ostane tu, / neka noć ne prolazi",
+            "prose": "Extreme close-up of two wine glasses standing almost touching on the worn kitchen table, one of them still half full, weak lamp light on the rim of the nearer glass, the room behind them dissolved into shadow, the surface of the table holding the reflection of both, a last look, intimate domestic stillness, unpolished analog film, faded 35mm film, imperfect natural exposure.",
+            "camera": "the two glasses filling the frame and the room gone behind them, the camera down at the level of the tabletop",
+            "cell": "0_1"
+        }
+    ],
+    "_note_order": "THE ORDER IS THE LYRIC'S. Sixteen frames is not twelve plus four appended — the set is re-sequenced to the song's sections (verse 1 · chorus 1 · verse 2 · chorus 2 · bridge · final chorus) and the four new beats are placed where the song puts them.",
+    "_note_cells": "THE PICKED CELL per shot — the 4-up grid is four different takes, and measurement SCREENS (median luma, nothing blown) while the eye DECIDES on content."
+}
