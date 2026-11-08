@@ -281,7 +281,7 @@
         <div class="hero-badge">User Guide · sprint 0.20</div>
         <h1>How to run <em>everything</em>.</h1>
         <p class="hero-desc">
-            One repo, fourteen pages, four live watchers, zero frameworks. This page is the
+            One repo, fifteen pages, four live watchers, zero frameworks. This page is the
             operator's manual: how to serve the site, use the Twin OS, run the CLIP
             Interrogator and Refael, drive the chart pipeline and song indexer, run the
             tests, and understand what the LaunchAgents are doing on this machine.
@@ -331,6 +331,7 @@ node lib/serve.js --port 5180
                 <tr><td><code>pages/agent-dashboard.html</code></td><td>Live view of the persistent agent loop — <code>run</code> rewrites it on pause/exit and every 10 iterations; <code>dashboard --out</code> by hand.</td></tr>
                 <tr><td><code>pages/marketplace.html</code></td><td>Mood-frame listing — eight music-video stills, three studio extras, twelve cover studies and ten System Error plates in the house sound-tones, each with its marketplace blurb, plus the Daily Frames section the nightly run fills.</td></tr>
                 <tr><td><code>pages/mj-sheets.html</code></td><td>Midjourney comparison sheet — one brief rendered at twelve camera angles, each tile labelled with the clause that produced it. Built by <code>lib/mj-contact-sheet.js</code>; reference: <a href="../docs/MJ-CONTACT-SHEET.md">docs/MJ-CONTACT-SHEET.md</a>.</td></tr>
+                <tr><td><code>pages/mj-console.html</code></td><td>Midjourney console — write a prompt, see the exact command the submitter sends, save it to a local library, export it as a prompt pack. Composes and lints with the SAME modules the Node side runs, so the on-screen command is the command that gets sent. Reference: <a href="../docs/MJ-CONSOLE.md">docs/MJ-CONSOLE.md</a>.</td></tr>
                 <tr><td><code>pages/temple-of-control.html</code></td><td>Three temperature sliders (heat / breath / glow) driving a meditation visual; MIDI-driven, pluggable on any page via <code>lib/meditate-temperature.js</code>.</td></tr>
                 <tr><td><code>pages/floating-toolset.html</code></td><td>The floating toolset — a draggable TODAY / NOW PLAYING / CODE / PATTERNS panel; drop-in on any page via <code>lib/floating-toolset.js</code>. Reference: <a href="../docs/FLOATING-TOOLSET.md">docs/FLOATING-TOOLSET.md</a>.</td></tr>
                 <tr><td><code>pages/integrations.html</code></td><td>Connect external services — enter API keys and cookies for Midjourney, Instagram, YouTube. Styled like Desktop Commander's welcome page.</td></tr>

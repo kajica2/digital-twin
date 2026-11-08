@@ -213,6 +213,7 @@ jobs:
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node integrations.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node mj-dashboard.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node mj-sheets.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node mj-console.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node persona-social-pack.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node skin.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node tools-instagram.spec.mjs
@@ -242,6 +243,7 @@ jobs:
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node integrations.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node mj-dashboard.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node mj-sheets.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && node mj-console.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node persona-social-pack.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node skin.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node tools-instagram.spec.mjs
