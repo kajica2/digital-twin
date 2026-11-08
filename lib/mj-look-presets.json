@@ -1,0 +1,840 @@
+{
+    "_note": "MJ LOOK PRESETS — thirty film/format/emulation looks, one per entry. The registry is canonical: the pack and the doc are GENERATED from it, never hand-copied.",
+    "_note_what_this_is": "A LOOK is the era, the stock and the texture of the IMAGE — not the scene and not the subject. The existing lib/mj-scene-presets.json holds SCENES (a physical event, a light, a frame); this file holds the LOOK that is laid over a scene. A scene preset and a look preset are different objects and they live in different files.",
+    "_note_test_method": "THE TEST IS A COMPARISON, NOT A SHOWCASE. Every entry renders the SAME anchor subject, so the only variable across the thirty is the look. That is what makes the sheet a test: any difference between two cells is the look's doing. The anchor subject was chosen to be neutral — a figure, a wall, a light source — so a look cannot be credited for the subject it happens to be handed.",
+    "id": "mj-look-presets",
+    "title": "MJ Look Presets",
+    "subtitle": "30 film, video-tape and emulation looks · one anchor subject · a comparison sheet",
+    "ar": "16:9",
+    "anchor": "A man in a dark overcoat stands alone in a bare room beside a single window, a wooden chair in the middle of the floor, dust in the air",
+    "_note_anchor": "THE ANCHOR SUBJECT. One figure, one chair, one window, bare walls — deliberately plain. Every look renders this, so the sheet compares the looks and not the subjects. It is also neutral enough that no look can be credited for a subject it happened to be handed: there is no neon sign to justify a neon preset, no wet street for the rain look, no period costume for a 1940s look.",
+    "_note_anchor_clauses": "The anchor is stored as a LIST of clauses, not one sentence, because the pack needs to REORDER them per prompt. The subject is shared by all thirty, so every prompt would open with the same words — and a shared prefix collapses the acceptance matcher's excerpt, which is how N prompts get attributed to a few task ids (measured 2026-09-24 → 2026-11-05). The composer rotates the opening clause, so each prompt still renders the SAME scene but starts differently.",
+    "anchorClauses": [
+        "A man in a dark overcoat stands alone in a bare room",
+        "beside a single window",
+        "a wooden chair in the middle of the floor",
+        "dust in the air"
+    ],
+    "_note_openings": "EACH PRESET GETS ITS OWN OPENING PHRASE. The subject is shared by all thirty, so a fixed clause order would open every prompt with the same words — and a shared prefix collapses the acceptance matcher's excerpt, which is how N prompts get attributed to a few task ids (measured 2026-09-24 → 2026-11-05). Rotating four clauses was tried first and produced only FOUR distinct openings, which is not enough for thirty. So each preset carries a short, distinct opening that names the same scene from a different angle, and the rest of the anchor follows it.",
+    "openings": [
+        "A man in a dark overcoat stands alone in a bare room",
+        "In a bare room, a window throws one pale rectangle of light",
+        "A wooden chair stands alone in the middle of an empty floor",
+        "Dust hangs in the air of a bare room",
+        "One man, one room, one chair, and a single window",
+        "A man in a dark overcoat waits beside a window",
+        "A chair sits in the middle of a bare room, unoccupied",
+        "Pale window light falls across a dusty empty room",
+        "A figure in a dark coat stands at the edge of a window's light",
+        "An empty room with a chair and a tall window",
+        "A tall window and a standing man in a bare room",
+        "Dust drifts through the light from a single window",
+        "A man in a dark overcoat waits in the half-lit space beside a window in a bare room",
+        "A wooden chair stands in front of a bare wall",
+        "A wide bare room with one man at its far side",
+        "A dim room, a chair, and the grey rectangle of a window",
+        "One figure in a dark coat beside a chair and a single window, dust in the air",
+        "A bare room seen past the shoulder of a dark coat",
+        "A man in a long dark coat, seen from the side of the chair",
+        "A chair and a figure in a room with one small window",
+        "A tall window, and a man in a dark overcoat standing with his back to it in a bare room",
+        "A single window in a bare wall, and a man in a dark overcoat beneath it",
+        "A dusty room, a chair, and one man in a long coat",
+        "A figure waits beside a window in an otherwise empty room",
+        "A man in a dark overcoat, and the chair behind him",
+        "The chair is empty, the window is not",
+        "A man stands in a bare room as the light changes",
+        "A window and a chair and a man, all in a bare room",
+        "A lone figure in a long coat, in a room with nothing else",
+        "A man, a chair and a window in a bare room, dust in the air"
+    ],
+    "suffix": "no text",
+    "_note_suffix": "The house negation — signage and lettering stay out, so a look like CCTV or Betacam does not spend its budget on text.",
+    "flags": "--style raw --s 21 --ar 16:9",
+    "_note_flags": "The house values, stated explicitly so the composed prompt carries exactly one --ar and one --s. The house value is --s 21 (the artist: \"the literal-photo reference is the goal, stylize is the enemy\"). Per the registry rules, a LOOK PRESET carries no flags of its own — the pack owns them. `--ar` IS LAST ON PURPOSE: Midjourney honours the LAST occurrence of a duplicated flag (the bug class this repo has hit three times), so the ratio goes at the end.",
+    "presets": [
+        {
+            "n": 1,
+            "slug": "analog-noir-1970s",
+            "name": "Analog Noir 1970s European Arthouse",
+            "descriptor": "faded Kodak 500T, tobacco browns and dirty teal, nicotine yellow and winter gray, soft halation, analog grain, 35mm anamorphic, documentary realism",
+            "family": "film-analog",
+            "tags": [
+                "film grain",
+                "halation",
+                "35mm anamorphic"
+            ],
+            "ar": "21:9",
+            "cut": {
+                "motion": "zoom-in",
+                "fx": "grain+vignette",
+                "grade": "warm+vignette",
+                "transition": "crossfade",
+                "each": 3
+            },
+            "stock": "faded Kodak 500T",
+            "styleScene": "tobacco browns and dirty teal, nicotine yellow and winter gray, soft halation, analog grain, 35mm anamorphic, documentary realism",
+            "style": "faded Kodak 500T, tobacco browns and dirty teal, nicotine yellow and winter gray, soft halation, analog grain, 35mm anamorphic, documentary realism",
+            "cell": "0_1",
+            "cellLuma": 66.6,
+            "allCellsBlown": false
+        },
+        {
+            "n": 2,
+            "slug": "vhs-glitch-noir-1980s",
+            "name": "VHS Glitch Noir 1980s",
+            "descriptor": "degraded VHS tape, scanlines, chroma noise, a burnt-in timestamp, neon bleed, tracking errors, soft analog smear",
+            "family": "video-tape",
+            "tags": [
+                "scanlines",
+                "chroma noise",
+                "tracking error"
+            ],
+            "ar": "4:3",
+            "cut": {
+                "motion": "zoom-in",
+                "fx": "vhs+chroma",
+                "grade": "vhs+flicker",
+                "transition": "crossfade",
+                "each": 3
+            },
+            "stock": "degraded VHS tape",
+            "styleScene": "scanlines, chroma noise, a burnt-in timestamp, neon bleed, tracking errors, soft analog smear",
+            "style": "degraded VHS tape, scanlines, chroma noise, a burnt-in timestamp, neon bleed, tracking errors, soft analog smear",
+            "cell": "0_2",
+            "cellLuma": 50.7,
+            "allCellsBlown": false
+        },
+        {
+            "n": 3,
+            "slug": "bw-16mm-grunge-1990s",
+            "name": "B&W 16mm Grunge 1990s",
+            "descriptor": "high-contrast black and white, heavy 16mm grain, handheld framing, available natural light, blown highlights and blocked shadows",
+            "family": "film-analog",
+            "tags": [
+                "black and white",
+                "16mm grain",
+                "handheld"
+            ],
+            "ar": "16:9",
+            "cut": {
+                "motion": "zoom-in",
+                "fx": "grain-heavy+contrast",
+                "grade": "contrast+grain",
+                "transition": "none",
+                "each": 3
+            },
+            "stock": "high-contrast black and white",
+            "styleScene": "heavy 16mm grain, handheld framing, available natural light, blown highlights and blocked shadows",
+            "style": "high-contrast black and white, heavy 16mm grain, handheld framing, available natural light, blown highlights and blocked shadows",
+            "cell": "0_1",
+            "cellLuma": 55.6,
+            "allCellsBlown": false
+        },
+        {
+            "n": 4,
+            "slug": "french-new-wave-1960s",
+            "name": "French New Wave 1960s",
+            "descriptor": "handheld 16mm, jump-cut framing, available natural light, faded black and white or washed-out color, informal snapshot composition",
+            "family": "film-analog",
+            "tags": [
+                "handheld",
+                "16mm",
+                "jump cut"
+            ],
+            "ar": "16:9",
+            "cut": {
+                "motion": "zoom-out",
+                "fx": "grain",
+                "grade": "contrast",
+                "transition": "none",
+                "each": 2
+            },
+            "stock": "handheld 16mm",
+            "styleScene": "jump-cut framing, available natural light, faded black and white or washed-out color, informal snapshot composition",
+            "style": "handheld 16mm, jump-cut framing, available natural light, faded black and white or washed-out color, informal snapshot composition",
+            "cell": "0_2",
+            "cellLuma": 80.9,
+            "allCellsBlown": false
+        },
+        {
+            "n": 5,
+            "slug": "italian-giallo-1970s",
+            "name": "Italian Giallo 1970s",
+            "descriptor": "saturated color, deep stylized shadows, colored gel lighting, wide-angle lens, lurid 70s thriller palette",
+            "family": "film-analog",
+            "tags": [
+                "saturated color",
+                "gel lighting",
+                "wide angle"
+            ],
+            "ar": "16:9",
+            "cut": {
+                "motion": "zoom-in",
+                "fx": "chroma+grain",
+                "grade": "contrast+warm",
+                "transition": "crossfade",
+                "each": 3
+            },
+            "stock": "saturated color",
+            "styleScene": "deep stylized shadows, colored gel lighting, wide-angle lens, lurid 70s thriller palette",
+            "style": "saturated color, deep stylized shadows, colored gel lighting, wide-angle lens, lurid 70s thriller palette",
+            "cell": "0_1",
+            "cellLuma": 62.9,
+            "allCellsBlown": false
+        },
+        {
+            "n": 6,
+            "slug": "neon-noir-1980s",
+            "name": "Neon Noir 1980s",
+            "descriptor": "rain-slicked street, magenta and cyan neon, thick fog, horizontal anamorphic flares, glossy black reflections",
+            "family": "film-analog",
+            "tags": [
+                "neon",
+                "anamorphic flare",
+                "wet reflection"
+            ],
+            "ar": "21:9",
+            "cut": {
+                "motion": "zoom-in",
+                "fx": "chroma+grain",
+                "grade": "cold+contrast",
+                "transition": "crossfade",
+                "each": 3
+            },
+            "stock": "rain-slicked street",
+            "styleScene": "magenta and cyan neon, thick fog, horizontal anamorphic flares, glossy black reflections",
+            "style": "rain-slicked street, magenta and cyan neon, thick fog, horizontal anamorphic flares, glossy black reflections",
+            "cell": "0_2",
+            "cellLuma": 69.2,
+            "allCellsBlown": false
+        },
+        {
+            "n": 7,
+            "slug": "dogme-95",
+            "name": "Dogme 95",
+            "descriptor": "available natural light only, handheld camera, desaturated muted color, unstyled and raw, no artificial lighting",
+            "family": "digital-documentary",
+            "tags": [
+                "handheld",
+                "desaturated",
+                "natural light"
+            ],
+            "ar": "16:9",
+            "cut": {
+                "motion": "zoom-out",
+                "fx": "grain",
+                "grade": "none",
+                "transition": "none",
+                "each": 4
+            },
+            "stock": "available natural light only",
+            "styleScene": "handheld camera, desaturated muted color, unstyled and raw, no artificial lighting",
+            "style": "available natural light only, handheld camera, desaturated muted color, unstyled and raw, no artificial lighting",
+            "cell": "0_0",
+            "cellLuma": 61.4,
+            "allCellsBlown": false
+        },
+        {
+            "n": 8,
+            "slug": "digital-lofi-2000s",
+            "name": "Digital Lo-Fi 2000s",
+            "descriptor": "webcam and MiniDV quality, blocky pixelation, compression artifacts, flat unflattering light, low resolution",
+            "family": "digital-video",
+            "tags": [
+                "pixelation",
+                "compression artifact",
+                "flat light"
+            ],
+            "ar": "4:3",
+            "cut": {
+                "motion": "zoom-in",
+                "fx": "smear+grain",
+                "grade": "none",
+                "transition": "none",
+                "each": 2
+            },
+            "stock": "webcam and MiniDV quality",
+            "styleScene": "blocky pixelation, compression artifacts, flat unflattering light, low resolution",
+            "style": "webcam and MiniDV quality, blocky pixelation, compression artifacts, flat unflattering light, low resolution",
+            "cell": "0_1",
+            "cellLuma": 89,
+            "allCellsBlown": false
+        },
+        {
+            "n": 9,
+            "slug": "british-kitchen-sink-1960s",
+            "name": "British Kitchen Sink 1960s",
+            "descriptor": "social realism, black and white, flat overcast light, cramped 16mm framing of ordinary rooms",
+            "family": "film-analog",
+            "tags": [
+                "black and white",
+                "social realism",
+                "flat light"
+            ],
+            "ar": "16:9",
+            "cut": {
+                "motion": "zoom-out",
+                "fx": "grain",
+                "grade": "contrast",
+                "transition": "none",
+                "each": 4
+            },
+            "stock": "social realism",
+            "styleScene": "black and white, flat overcast light, cramped 16mm framing of ordinary rooms",
+            "style": "social realism, black and white, flat overcast light, cramped 16mm framing of ordinary rooms",
+            "cell": "0_0",
+            "cellLuma": 68.2,
+            "allCellsBlown": false
+        },
+        {
+            "n": 10,
+            "slug": "american-new-hollywood-1970s",
+            "name": "American New Hollywood 1970s",
+            "descriptor": "grainy color, long lenses, muted warm tones, 35mm anamorphic, golden late-afternoon light",
+            "family": "film-analog",
+            "tags": [
+                "long lens",
+                "muted color",
+                "35mm anamorphic"
+            ],
+            "ar": "21:9",
+            "cut": {
+                "motion": "zoom-in",
+                "fx": "grain+vignette",
+                "grade": "warm",
+                "transition": "crossfade",
+                "each": 4
+            },
+            "stock": "grainy color",
+            "styleScene": "long lenses, muted warm tones, 35mm anamorphic, golden late-afternoon light",
+            "style": "grainy color, long lenses, muted warm tones, 35mm anamorphic, golden late-afternoon light",
+            "cell": "0_0",
+            "cellLuma": 65.1,
+            "allCellsBlown": false
+        },
+        {
+            "n": 11,
+            "slug": "soviet-post-punk-1980s",
+            "name": "Soviet Post-Punk 1980s",
+            "descriptor": "bleak industrial gray, cold blue-green colors, brutalist concrete, wide distant shots, coarse grain",
+            "family": "film-analog",
+            "tags": [
+                "cold palette",
+                "brutalist",
+                "wide shot"
+            ],
+            "ar": "16:9",
+            "cut": {
+                "motion": "none",
+                "fx": "grain-heavy",
+                "grade": "cold",
+                "transition": "none",
+                "each": 5
+            },
+            "stock": "bleak industrial gray",
+            "styleScene": "cold blue-green colors, brutalist concrete, wide distant shots, coarse grain",
+            "style": "bleak industrial gray, cold blue-green colors, brutalist concrete, wide distant shots, coarse grain",
+            "cell": "0_3",
+            "cellLuma": 82,
+            "allCellsBlown": false
+        },
+        {
+            "n": 12,
+            "slug": "super-8-memory",
+            "name": "Super 8 Memory",
+            "descriptor": "small-gauge home movie, soft focus, warm faded color, gate weave, light leaks across the frame",
+            "family": "film-analog",
+            "tags": [
+                "small gauge",
+                "light leak",
+                "gate weave"
+            ],
+            "ar": "16:9",
+            "cut": {
+                "motion": "zoom-in",
+                "fx": "grain-heavy+vignette",
+                "grade": "warm+flicker",
+                "transition": "crossfade",
+                "each": 4
+            },
+            "stock": "small-gauge home movie",
+            "styleScene": "soft focus, warm faded color, gate weave, light leaks across the frame",
+            "style": "small-gauge home movie, soft focus, warm faded color, gate weave, light leaks across the frame",
+            "cell": "0_0",
+            "cellLuma": 71.2,
+            "allCellsBlown": false
+        },
+        {
+            "n": 13,
+            "slug": "betacam-newsraw",
+            "name": "Betacam Newsraw",
+            "descriptor": "80s and 90s broadcast ENG tape, low contrast, chroma bleed, harsh on-camera zoom, visible tape noise",
+            "family": "video-tape",
+            "tags": [
+                "low contrast",
+                "chroma bleed",
+                "ENG zoom"
+            ],
+            "ar": "4:3",
+            "cut": {
+                "motion": "zoom-in",
+                "fx": "chroma+grain",
+                "grade": "contrast",
+                "transition": "none",
+                "each": 3
+            },
+            "stock": "80s and 90s broadcast ENG tape",
+            "styleScene": "low contrast, chroma bleed, harsh on-camera zoom, visible tape noise",
+            "style": "80s and 90s broadcast ENG tape, low contrast, chroma bleed, harsh on-camera zoom, visible tape noise",
+            "cell": "0_0",
+            "cellLuma": 63,
+            "allCellsBlown": false
+        },
+        {
+            "n": 14,
+            "slug": "minidv-y2k",
+            "name": "MiniDV Y2K",
+            "descriptor": "early consumer digital video, 4:3 frame, hard sharp edges, compression blocking, on-camera flash",
+            "family": "digital-video",
+            "tags": [
+                "4:3",
+                "compression",
+                "on-camera flash"
+            ],
+            "ar": "4:3",
+            "cut": {
+                "motion": "zoom-in",
+                "fx": "sharpen+grain",
+                "grade": "none",
+                "transition": "none",
+                "each": 2
+            },
+            "stock": "early consumer digital video",
+            "styleScene": "4:3 frame, hard sharp edges, compression blocking, on-camera flash",
+            "style": "early consumer digital video, 4:3 frame, hard sharp edges, compression blocking, on-camera flash",
+            "cell": "0_1",
+            "cellLuma": 73.3,
+            "allCellsBlown": false
+        },
+        {
+            "n": 15,
+            "slug": "cctv-surveillance",
+            "name": "CCTV Surveillance",
+            "descriptor": "fixed high-angle surveillance view, burnt-in timecode, infrared green monochrome, very wide lens, motion ghosting",
+            "family": "surveillance",
+            "tags": [
+                "high angle",
+                "timecode",
+                "IR green"
+            ],
+            "ar": "4:3",
+            "cut": {
+                "motion": "none",
+                "fx": "grain-heavy+vignette",
+                "grade": "contrast",
+                "transition": "none",
+                "each": 5
+            },
+            "stock": "fixed high-angle surveillance view",
+            "styleScene": "burnt-in timecode, infrared green monochrome, very wide lens, motion ghosting",
+            "style": "fixed high-angle surveillance view, burnt-in timecode, infrared green monochrome, very wide lens, motion ghosting",
+            "cell": "0_1",
+            "cellLuma": 73.7,
+            "allCellsBlown": false
+        },
+        {
+            "n": 16,
+            "slug": "thermal-infrared",
+            "name": "Thermal / Infrared",
+            "descriptor": "false-color thermal imaging, heat bloom around the body, stark silhouettes, surveillance aesthetic",
+            "family": "surveillance",
+            "tags": [
+                "false color",
+                "heat bloom",
+                "silhouette"
+            ],
+            "ar": "16:9",
+            "cut": {
+                "motion": "none",
+                "fx": "grain-heavy",
+                "grade": "contrast",
+                "transition": "none",
+                "each": 5
+            },
+            "stock": "false-color thermal imaging",
+            "styleScene": "heat bloom around the body, stark silhouettes, surveillance aesthetic",
+            "style": "false-color thermal imaging, heat bloom around the body, stark silhouettes, surveillance aesthetic",
+            "cell": "0_2",
+            "cellLuma": 41.4,
+            "allCellsBlown": false
+        },
+        {
+            "n": 17,
+            "slug": "bleach-bypass-war",
+            "name": "Bleach Bypass War",
+            "descriptor": "desaturated silver, crushed blacks, harsh contrast, gritty 35mm war photography",
+            "family": "film-analog",
+            "tags": [
+                "desaturated silver",
+                "crushed blacks",
+                "harsh contrast"
+            ],
+            "ar": "16:9",
+            "cut": {
+                "motion": "zoom-in",
+                "fx": "grain-heavy+contrast",
+                "grade": "contrast",
+                "transition": "crossfade",
+                "each": 3
+            },
+            "stock": "desaturated silver",
+            "styleScene": "crushed blacks, harsh contrast, gritty 35mm war photography",
+            "style": "desaturated silver, crushed blacks, harsh contrast, gritty 35mm war photography",
+            "cell": "0_0",
+            "cellLuma": 65.2,
+            "allCellsBlown": false
+        },
+        {
+            "n": 18,
+            "slug": "cross-process-crush",
+            "name": "Cross-Process Crush",
+            "descriptor": "shifted cyan and magenta, blown highlights, expired film color, chemical color cast",
+            "family": "film-analog",
+            "tags": [
+                "cyan magenta shift",
+                "blown highlights",
+                "expired film"
+            ],
+            "ar": "16:9",
+            "cut": {
+                "motion": "zoom-in",
+                "fx": "chroma+flicker",
+                "grade": "contrast",
+                "transition": "crossfade",
+                "each": 3
+            },
+            "stock": "shifted cyan and magenta",
+            "styleScene": "blown highlights, expired film color, chemical color cast",
+            "style": "shifted cyan and magenta, blown highlights, expired film color, chemical color cast",
+            "cell": "0_1",
+            "cellLuma": 78.8,
+            "allCellsBlown": false
+        },
+        {
+            "n": 19,
+            "slug": "expired-polaroid",
+            "name": "Expired Polaroid",
+            "descriptor": "instant film with its white borders, soft rounded edges, chemical stains, low contrast, faded uneven color",
+            "family": "film-analog",
+            "tags": [
+                "instant film border",
+                "chemical stain",
+                "low contrast"
+            ],
+            "ar": "1:1",
+            "cut": {
+                "motion": "none",
+                "fx": "grain-heavy+vignette",
+                "grade": "warm",
+                "transition": "none",
+                "each": 4
+            },
+            "stock": "instant film with its white borders",
+            "styleScene": "soft rounded edges, chemical stains, low contrast, faded uneven color",
+            "style": "instant film with its white borders, soft rounded edges, chemical stains, low contrast, faded uneven color",
+            "cell": "0_3",
+            "cellLuma": 111,
+            "allCellsBlown": true
+        },
+        {
+            "n": 20,
+            "slug": "technicolor-melodrama",
+            "name": "Technicolor Melodrama",
+            "descriptor": "saturated primaries, glossy studio lighting, soft focus, rich 35mm Technicolor color",
+            "family": "film-analog",
+            "tags": [
+                "saturated primaries",
+                "studio light",
+                "soft focus"
+            ],
+            "ar": "16:9",
+            "cut": {
+                "motion": "zoom-in",
+                "fx": "vignette+grain",
+                "grade": "warm+contrast",
+                "transition": "crossfade",
+                "each": 4
+            },
+            "stock": "saturated primaries",
+            "styleScene": "glossy studio lighting, soft focus, rich 35mm Technicolor color",
+            "style": "saturated primaries, glossy studio lighting, soft focus, rich 35mm Technicolor color",
+            "cell": "0_0",
+            "cellLuma": 64.9,
+            "allCellsBlown": false
+        },
+        {
+            "n": 21,
+            "slug": "film-noir-1940s",
+            "name": "Film Noir 1940s",
+            "descriptor": "hard key light, venetian blind shadows across the wall, black and white, 35mm, smoke in the air",
+            "family": "film-analog",
+            "tags": [
+                "hard key",
+                "venetian shadows",
+                "black and white"
+            ],
+            "ar": "16:9",
+            "cut": {
+                "motion": "zoom-in",
+                "fx": "grain+vignette",
+                "grade": "contrast",
+                "transition": "crossfade",
+                "each": 3
+            },
+            "stock": "hard key light",
+            "styleScene": "venetian blind shadows across the wall, black and white, 35mm, smoke in the air",
+            "style": "hard key light, venetian blind shadows across the wall, black and white, 35mm, smoke in the air",
+            "cell": "0_0",
+            "cellLuma": 86.2,
+            "allCellsBlown": false
+        },
+        {
+            "n": 22,
+            "slug": "german-expressionist",
+            "name": "German Expressionist",
+            "descriptor": "distorted stage sets, hard angular shadows, tilted camera angles, black and white, stark chiaroscuro",
+            "family": "film-analog",
+            "tags": [
+                "tilted angle",
+                "hard shadow",
+                "chiaroscuro"
+            ],
+            "ar": "16:9",
+            "cut": {
+                "motion": "zoom-in",
+                "fx": "grain-heavy+contrast",
+                "grade": "contrast",
+                "transition": "none",
+                "each": 3
+            },
+            "stock": "distorted stage sets",
+            "styleScene": "hard angular shadows, tilted camera angles, black and white, stark chiaroscuro",
+            "style": "distorted stage sets, hard angular shadows, tilted camera angles, black and white, stark chiaroscuro",
+            "cell": "0_1",
+            "cellLuma": 48.1,
+            "allCellsBlown": false
+        },
+        {
+            "n": 23,
+            "slug": "brutalist-concrete",
+            "name": "Brutalist Concrete",
+            "descriptor": "gray palette, wide-angle lens, flat overcast sky, raw concrete textures, 35mm",
+            "family": "film-analog",
+            "tags": [
+                "gray palette",
+                "wide angle",
+                "concrete"
+            ],
+            "ar": "16:9",
+            "cut": {
+                "motion": "none",
+                "fx": "grain",
+                "grade": "cold",
+                "transition": "none",
+                "each": 5
+            },
+            "stock": "gray palette",
+            "styleScene": "wide-angle lens, flat overcast sky, raw concrete textures, 35mm",
+            "style": "gray palette, wide-angle lens, flat overcast sky, raw concrete textures, 35mm",
+            "cell": "0_1",
+            "cellLuma": 71.8,
+            "allCellsBlown": false
+        },
+        {
+            "n": 24,
+            "slug": "desert-mirage",
+            "name": "Desert Mirage",
+            "descriptor": "heat haze rippling above pale sand, bleached color, long lens compression, slow drifting dust",
+            "family": "film-analog",
+            "tags": [
+                "heat haze",
+                "bleached",
+                "long lens"
+            ],
+            "ar": "21:9",
+            "cut": {
+                "motion": "pan-left",
+                "fx": "blur+grain",
+                "grade": "warm",
+                "transition": "crossfade",
+                "each": 5
+            },
+            "stock": "heat haze rippling above pale sand",
+            "styleScene": "bleached color, long lens compression, slow drifting dust",
+            "style": "heat haze rippling above pale sand, bleached color, long lens compression, slow drifting dust",
+            "cell": "0_2",
+            "cellLuma": 95.9,
+            "allCellsBlown": true
+        },
+        {
+            "n": 25,
+            "slug": "rain-soaked-city",
+            "name": "Rain-Soaked City",
+            "descriptor": "wet black asphalt, umbrella lights reflected in the road, muted teal and orange, anamorphic",
+            "family": "film-analog",
+            "tags": [
+                "wet asphalt",
+                "teal and orange",
+                "anamorphic"
+            ],
+            "ar": "21:9",
+            "cut": {
+                "motion": "pan-left",
+                "fx": "chroma+grain",
+                "grade": "cold",
+                "transition": "crossfade",
+                "each": 4
+            },
+            "stock": "wet black asphalt",
+            "styleScene": "umbrella lights reflected in the road, muted teal and orange, anamorphic",
+            "style": "wet black asphalt, umbrella lights reflected in the road, muted teal and orange, anamorphic",
+            "cell": "0_0",
+            "cellLuma": 37.3,
+            "allCellsBlown": false
+        },
+        {
+            "n": 26,
+            "slug": "warehouse-rave",
+            "name": "Warehouse Rave",
+            "descriptor": "strobe flash, heavy haze, hard backlight, wide lens, heavy motion blur",
+            "family": "digital-video",
+            "tags": [
+                "strobe",
+                "haze",
+                "motion blur"
+            ],
+            "ar": "16:9",
+            "cut": {
+                "motion": "zoom-in",
+                "fx": "flicker+chroma",
+                "grade": "contrast",
+                "transition": "none",
+                "each": 2
+            },
+            "stock": "strobe flash",
+            "styleScene": "heavy haze, hard backlight, wide lens, heavy motion blur",
+            "style": "strobe flash, heavy haze, hard backlight, wide lens, heavy motion blur",
+            "cell": "0_0",
+            "cellLuma": 67,
+            "allCellsBlown": false
+        },
+        {
+            "n": 27,
+            "slug": "rooftop-dawn",
+            "name": "Rooftop Dawn",
+            "descriptor": "soft gray dawn light, a silhouette against the sky, long lens, grain, a slow reveal",
+            "family": "film-analog",
+            "tags": [
+                "gray dawn",
+                "silhouette",
+                "long lens"
+            ],
+            "ar": "21:9",
+            "cut": {
+                "motion": "zoom-out",
+                "fx": "grain+vignette",
+                "grade": "warm",
+                "transition": "crossfade",
+                "each": 5
+            },
+            "stock": "soft gray dawn light",
+            "styleScene": "a silhouette against the sky, long lens, grain, a slow reveal",
+            "style": "soft gray dawn light, a silhouette against the sky, long lens, grain, a slow reveal",
+            "cell": "0_1",
+            "cellLuma": 49.7,
+            "allCellsBlown": false
+        },
+        {
+            "n": 28,
+            "slug": "club-toilet-realism",
+            "name": "Club Toilet Realism",
+            "descriptor": "harsh fluorescent green, flash photography, cramped composition, raw unflattering documentary realism",
+            "family": "digital-documentary",
+            "tags": [
+                "fluorescent green",
+                "flash",
+                "cramped"
+            ],
+            "ar": "16:9",
+            "cut": {
+                "motion": "zoom-in",
+                "fx": "flicker+grain",
+                "grade": "cold",
+                "transition": "none",
+                "each": 2
+            },
+            "stock": "harsh fluorescent green",
+            "styleScene": "flash photography, cramped composition, raw unflattering documentary realism",
+            "style": "harsh fluorescent green, flash photography, cramped composition, raw unflattering documentary realism",
+            "cell": "0_1",
+            "cellLuma": 60.1,
+            "allCellsBlown": false
+        },
+        {
+            "n": 29,
+            "slug": "pastoral-overcast",
+            "name": "Pastoral Overcast",
+            "descriptor": "soft gray fields, muted green, available natural light, 16mm, unhurried and still",
+            "family": "film-analog",
+            "tags": [
+                "muted green",
+                "overcast",
+                "16mm"
+            ],
+            "ar": "16:9",
+            "cut": {
+                "motion": "pan-left",
+                "fx": "grain",
+                "grade": "none",
+                "transition": "crossfade",
+                "each": 5
+            },
+            "stock": "soft gray fields",
+            "styleScene": "muted green, available natural light, 16mm, unhurried and still",
+            "style": "soft gray fields, muted green, available natural light, 16mm, unhurried and still",
+            "cell": "0_2",
+            "cellLuma": 85.7,
+            "allCellsBlown": false
+        },
+        {
+            "n": 30,
+            "slug": "tape-loop-feedback",
+            "name": "Tape Loop / Feedback",
+            "descriptor": "analog video feedback, scanlines, color bars, repeating glitch loops, analog tracking noise",
+            "family": "video-tape",
+            "tags": [
+                "video feedback",
+                "color bars",
+                "glitch loop"
+            ],
+            "ar": "4:3",
+            "cut": {
+                "motion": "zoom-in",
+                "fx": "vhs+flicker",
+                "grade": "vhs",
+                "transition": "crossfade",
+                "each": 3
+            },
+            "stock": "analog video feedback",
+            "styleScene": "scanlines, color bars, repeating glitch loops, analog tracking noise",
+            "style": "analog video feedback, scanlines, color bars, repeating glitch loops, analog tracking noise",
+            "cell": "0_1",
+            "cellLuma": 75.2,
+            "allCellsBlown": false
+        }
+    ],
+    "_note_families": "The families are the useful grouping for a user choosing a look: film-analog (14), video-tape (3), digital-video (2), digital-documentary (2), surveillance (2). Nothing depends on the family — it is documentation.",
+    "_note_ratios": "Each look carries its NATIVE ratio — the frame shape is part of what the medium IS. A cut is ONE ratio (the renderer takes one --size for a whole cut), so a plan spanning several ratios is REFUSED rather than silently scaled. The pack's --ar overrides the ratio for a look plate; the cut plan's --ar-filter selects which looks may share a cut.",
+    "_note_rendered": "THE RENDERED SET. Every look was rendered from the same anchor subject, so any difference between two frames is the LOOK's doing. Each entry carries the cell the measurement screen picked (the one closest to the median luma, never a blown one over 90) and that cell's luma. TWO LOOKS HAVE EVERY CELL BLOWN (19 Expired Polaroid, 24 Desert Mirage) — for those the sheet shows the LEAST-blown cell and says so, because an overexposed frame IS the look in both cases."
+}
