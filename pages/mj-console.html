@@ -431,20 +431,39 @@
 
   // ------------------------------------------------------------------
   // The API
+  //
+  // `ok` means "the server answered with the API's own JSON", NOT
+  // merely "the HTTP status was 2xx". On a static host the SPA
+  // fallback answers EVERY path with 200 and the landing page's HTML,
+  // so a status-only check says the API is alive when it is not — and
+  // the console then tries to save into a library that does not exist.
+  //
+  // So the response must PARSE as the library's JSON. Measured
+  // 2026-11-08 against the deployed Vercel URL: GET /api/mj/prompts
+  // → 200 text/html (the SPA fallback), POST → 405.
   // ------------------------------------------------------------------
   function api(path, options) {
     return fetch(path, Object.assign({
       headers: { 'Content-Type': 'application/json' }
     }, options || {})).then(function (res) {
+      var ct = (res.headers.get('content-type') || '').toLowerCase();
+      var isJson = ct.indexOf('application/json') !== -1;
       return res.json().catch(function () { return {}; }).then(function (body) {
-        return { ok: res.ok, status: res.status, body: body };
+        return {
+          ok: res.ok && isJson,
+          status: res.status,
+          body: body,
+          // `isApi` is the honest signal: the host answered with the
+          // API's JSON rather than a static fallback page.
+          isApi: isJson
+        };
       });
     });
   }
 
   function loadLibrary() {
     return api('/api/mj/prompts').then(function (r) {
-      if (!r.ok) {
+      if (!r.ok || !Array.isArray(r.body.prompts)) {
         state.api = false;
         $('#apiBanner').hidden = false;
         renderLib();
@@ -452,7 +471,7 @@
       }
       state.api = true;
       $('#apiBanner').hidden = true;
-      state.prompts = (r.body && r.body.prompts) || [];
+      state.prompts = r.body.prompts;
       renderLib();
     }).catch(function () {
       state.api = false;

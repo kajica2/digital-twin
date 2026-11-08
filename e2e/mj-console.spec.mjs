@@ -189,10 +189,25 @@ function check(name, ok, detail = '') {
   await new Promise((r) => setTimeout(r, 400));
 
   // --- the library: save, find, remove ---
+  //
+  // The probe must NOT trust `r.ok` alone. On a static host the SPA
+  // fallback answers ANY path with 200 and the landing page's HTML, so
+  // `r.ok` is true while there is no API at all — and then the POST
+  // below fails with 405 and the whole save flow collapses. The check
+  // is therefore: does the response PARSE as the library's JSON?
+  //
+  // (Measured 2026-11-08 against the deployed Vercel URL: GET
+  // /api/mj/prompts → 200 text/html (the SPA fallback), POST → 405.
+  // The old `r.ok` probe said the API was alive; the JSON probe says
+  // it is not, and the spec takes the graceful-degradation path.)
   const apiAlive = await page.evaluate(async () => {
     try {
       const r = await fetch('/api/mj/prompts');
-      return r.ok;
+      if (!r.ok) return false;
+      const ct = (r.headers.get('content-type') || '').toLowerCase();
+      if (!ct.includes('application/json')) return false;
+      const body = await r.json();
+      return !!(body && Array.isArray(body.prompts));
     } catch { return false; }
   });
 
