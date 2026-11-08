@@ -1,7 +1,46 @@
 {
-  "updatedAt": "2026-11-07T23:27:09.732Z",
-  "count": 27,
+  "updatedAt": "2026-11-08T23:21:20.200Z",
+  "count": 28,
   "collections": [
+    {
+      "date": "2026-11-09",
+      "key": "2026-11-09",
+      "id": "sodium-hour",
+      "title": "Sodium Hour",
+      "badge": "cyberpunk / hk",
+      "teaser": "The streetlights know the hour better than the clock does.",
+      "aspect": "16:9",
+      "dir": "assets/marketplace/daily/2026-11-09",
+      "plates": [
+        {
+          "file": "frame-01.jpg",
+          "caption": "parking deck · last lamp",
+          "alt": "An empty multi-storey parking deck at night, one sodium lamp burning at the far end, wet concrete holding its reflection, city haze beyond.",
+          "prompt": "an empty multi-storey parking deck at night, one sodium lamp burning at the far end as the only key light, wet concrete holding a thin reflection, low camera on the level, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "ea7af10e-8840-43fc-92dd-2623e4265761",
+          "width": 1280,
+          "height": 716
+        },
+        {
+          "file": "frame-02.jpg",
+          "caption": "noodle stall · steam",
+          "alt": "A closed food stall under a covered walkway, steam still rising into one yellow lamp, shutters down, no people.",
+          "prompt": "a closed food stall under a covered walkway, steam still rising into one yellow lamp, metal shutters down, no people, 35mm film still, deep shadows, fine grain, muted palette, no text",
+          "taskId": "d6bfa7a1-df1b-4929-9e56-06fb3a995b0d",
+          "width": 1280,
+          "height": 716
+        },
+        {
+          "file": "frame-03.jpg",
+          "caption": "flyover · crossing",
+          "alt": "A figure in a long coat crossing an empty flyover at night, haze, a single lamp overhead, unlit road ahead.",
+          "prompt": "a lone figure in a long coat crossing an empty elevated flyover at night, city haze, a single overhead lamp as only key light, the road ahead unlit, 35mm film still, fine grain, muted palette, no text",
+          "taskId": "c6e629e2-306a-4ab2-9173-7a40f90f0604",
+          "width": 1280,
+          "height": 716
+        }
+      ]
+    },
     {
       "date": "2026-11-08",
       "key": "2026-11-08",
