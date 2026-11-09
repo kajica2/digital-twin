@@ -2077,6 +2077,53 @@ question the code asks ✓ ✓. Both of them were scanning for a pronoun
 ✓ ✓, so they agreed with each other ✓ ✓ and were both wrong ✓ ✓.
 
 
+### 2026-11-09 — sprint 0.107 (the codec was on the wrong device)
+
+The four songs generated **nothing** ✓ ✓. Three of them "ran" for 25
+minutes each ✓ ✓ and the audio directory stayed empty ✓ ✓ — and the
+script moved on to the next song either way ✓ ✓, so a failure looked
+like patience ✓ ✓.
+
+**The codec was the bottleneck ✓ ✓.** The pipeline runs the 3B model
+on MPS (the generation ✓ ✓) and the codec — the flow-matching decoder
+that turns the model's tokens back into audio ✓ ✓ — wherever it is
+told ✓ ✓. On MPS the codec **did not finish** ✓ ✓: the same 40 s of
+audio spent **11 minutes and counting** ✓ ✓ with the child process
+idle ✓ ✓, and the full-length runs wrote nothing at all ✓ ✓.
+
+With `--codec-device cpu` the same request finishes in about **two
+minutes** ✓ ✓ — 500/500 codec steps in **1:26** ✓ ✓, then two 10-step
+passes ✓ ✓ — and the repo's own working rado2 run used the same flag
+✓ ✓. So the model still runs on the GPU where it belongs ✓ ✓, and only
+the decoder moves ✓ ✓.
+
+**Measured on the 40 s probe ✓ ✓:** 40.080 s ✓ ✓, 48 kHz stereo ✓ ✓,
+MP3 256 kbps ✓ ✓, RMS **-18.1 dB** ✓ ✓, peak **+0.03 dB** ✓ ✓. Real
+audio ✓ ✓, not silence ✓ ✓.
+
+**A song that writes nothing now STOPS the run ✓ ✓.** The old script
+printed "NO FILE" and carried on ✓ ✓ ✓ — which is how three failures
+read as three slow successes ✓ ✓.
+
+**The lesson ✓ ✓** — the same one the render taught earlier in this
+sprint ✓ ✓: on a 24 GB machine the device that *feels* right is not
+the device that **finishes** ✓ ✓. The memory pressure and the swap
+thrash were the render's problem ✓ ✓; the codec's device is the music's
+✓ ✓.
+
+**`bin/keep-it-up-pipeline.sh` ✓ ✓** — the rest of the work, unattended
+✓ ✓: wait for the music ✓ ✓, render the frames with `--skip-existing`
+✓ ✓, assemble the film ✓ ✓. Each stage checks the one before it ✓ ✓,
+and it stops on the first failure rather than carrying on with a broken
+input ✓ ✓ — a film with 63 frames and 4 songs is not a film ✓ ✓.
+
+**The renderer's output was checked by eye ✓ ✓** (a probe frame ✓ ✓):
+a trumpeter alone on a dark stage ✓ ✓, one amber worklight from above
+✓ ✓, deep shadow ✓ ✓, the floor catching the light back ✓ ✓,
+teal-and-amber ✓ ✓, real grain ✓ ✓, **no text** ✓ ✓. A usable film
+still ✓ ✓ ✓.
+
+
 > **Note on numbering (added at merge).** The sprints below were
 > numbered 0.17–0.25a on the branch that produced them. `main` had
 > independently published 0.17–0.21 (CLIP Interrogator, Refael MP4
