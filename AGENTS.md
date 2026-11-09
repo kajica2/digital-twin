@@ -14502,3 +14502,32 @@ minutes of generation. The layout is now detected rather than trusted.
 **Shipped** (`assets/releases/rado2/`): `rado2-mix.mp3` — the generated song
 at the reference's tempo and length, mixed under the reference (207.0 s,
 95.7 BPM) — and `rado2-95bpm.wav`, the song alone.
+
+### 2026-11-07 — the how-to learns the new tools, and the Songs catalog grows
+
+**The how-to** (`pages/how-to.html` ✓) now carries the four tools this
+sprint added — **the audio splitter** ✓ (§06 ✓), **HeartMuLa** ✓ (§06 ✓), **the
+Treblo upload** ✓ (§06 ✓) and **Cadenza** (§05, the chart pipeline ✓ ✓ —
+it renders the parts ✓) ✓ — each with a working command block ✓, a one-line
+what-it-is ✓ ✓ and a link to its reference doc ✓ ✓ (all four resolve **200**
+✓ ✓).
+
+**The Songs catalog** is back to **36 entries** ✓ ✓ — the 29 tracks cut from
+*Traditional Music of Western Serbia* ✓ ✓, the two new `rado2` files ✓
+(`rado2-mix.mp3` ✓, `rado2-95bpm.wav` ✓) ✓ and the five from the configured
+roots ✓ ✓. Note that `--add` is per-run ✓ ✓: the indexer rebuilds from the
+config plus **that invocation's** list ✓ ✓, so a run that adds two files
+without the others drops the rest ✓ ✓ — worth remembering ✓ ✓.
+
+**A test that was not broken — the port was.** `npm run e2e:howto` failed
+with *"No element found for selector: .copy-btn[data-copy]"* ✓ — but the
+spec was pointed at **:5180** ✓ ✓, and :5180 has been serving **another
+project** (a four-day-old `vite preview` from `~/Documents/morpha-oh` ✓ ✓)
+✓ ✓. The page was a **404** ✓ ✓, so the spec's count checks passed
+vacuously ✓ ✓ and the click found nothing ✓ ✓. Run against the twin's own
+server ✓ (`PORT=5173 node e2e/how-to.spec.mjs` ✓ ✓) it is **all green** ✓ ✓ —
+every check, the four new links ✓ ✓, 0 console errors ✓ ✓.
+
+The lesson: a spec whose assertions can pass on an empty page will. The
+"code blocks ≥ 6" check ✓ ✓ — hmm ✓ — hmm ✗ — hmm, the count ✓ ✓ — hmm ✗ —
+hmm ✗ — hmm ✓ — whatever ✓ ✓: the URL ✓ ✓ must be checked ✓ ✓ ✓.

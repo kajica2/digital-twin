@@ -417,7 +417,19 @@ npm run clip:interrogate -- path/to/image.jpg --model vit-l --mode fast --json</
             <li>Engraving conventions live in <span class="inline-code">docs/COLTRANE-SHAW-ENGRAVING.md</span> — post-bop/modal jazz rules (staff order, Trane slurs, Shaw pops, don't over-notate drums).</li>
         </ul>
 
+        <h3>Render the parts in a DAW (Cadenza)</h3>
+        <p>Cadenza is an open-source DAW written in Rust that hosts <strong>CLAP and VST3</strong> plugins and speaks an MCP server over stdio — the twin can drive it:</p>
+        <div class="code-block"><button class="copy-btn" data-copy>copy</button><pre><code># install (per-user; the release ships SHA256SUMS and an --uninstall)
+curl -fsSL https://github.com/Pep3M/cadenza/releases/latest/download/install.sh | sh
+
+npm run cadenza:check
+node lib/cadenza.js import-midi song_Whole/song.mid --output song.cdz
+node lib/cadenza.js render song.cdz --output song.wav     # the mix + a JSON report
+node lib/cadenza.js export song.cdz --stems tracks --format wav   # one file per part</code></pre></div>
+        <p class="dim">Every verb takes <span class="inline-code">--plan</span> (print the command, run nothing) and <span class="inline-code">--json</span>; an unknown flag is refused with exit 2. Reference: <a href="../docs/CADENZA.md">docs/CADENZA.md</a>.</p>
+
         <h3>Watched inbox (the zero-touch path)</h3>
+
         <div class="code-block"><button class="copy-btn" data-copy>copy</button><pre><code>cp new-chart.musicxml chart-inbox/
 # the chart-watcher LaunchAgent (live) picks it up within ~2s,
 # exports the full package, moves the input to chart-inbox/processed/,
@@ -442,7 +454,30 @@ npm run index-songs          # writes data/songs/catalog.json
         <div class="callout">
             <strong>Catalog still empty?</strong> The default config points at the AGENTS.md-named dirs, which contain no audio. Edit <span class="inline-code">lib/sources.config.json</span>, re-run <span class="inline-code">npm run index-songs</span>. The Songs panel shows the configured roots in its empty state so you know what to fix.
         </div>
+
+        <h3>Split a long recording into its tracks</h3>
+        <p>An album that arrives as one 57-minute mp3 — no tags, and the silence between the pieces at &minus;44 dBFS, where <span class="inline-code">silencedetect</span> cannot see it — becomes its tracks:</p>
+        <div class="code-block"><button class="copy-btn" data-copy>copy</button><pre><code>npm run audio:setup
+npm run audio:split -- "album.mp3" --dry-run   # detect and report, cut nothing
+npm run audio:split -- "album.mp3"             # cut into album-split/
+node lib/songs-indexer.js --add "album-split"/*.mp3 --apply --yes</code></pre></div>
+        <p class="dim">The boundaries come from the energy profile: the noise floor, the quiet runs above it, and the ones long enough to be a splice. Reference: <a href="../docs/AUDIO-SPLITTER.md">docs/AUDIO-SPLITTER.md</a>.</p>
+
+        <h3>Write the music locally — HeartMuLa</h3>
+        <p>HeartMuLa is an open-source (Apache-2.0, code and weights) music model that writes a whole song from lyrics + style tags. It runs on this machine:</p>
+        <div class="code-block"><button class="copy-btn" data-copy>copy</button><pre><code>npm run heartmula:setup
+npm run heartmula:check
+npm run heartmula:generate -- --lyrics song.txt \
+    --tags "95 BPM, spiritual jazz, flugelhorn" --seconds 90 \
+    --out data/heartmula/song.mp3 --codec-device cpu</code></pre></div>
+        <p class="dim">It takes no reference audio — a reference is <em>measured</em> (tempo, key, brightness, level) and the measurements go in as tags; the tempo is corrected afterwards with <span class="inline-code">atempo</span>, the key cannot be. Reference: <a href="../docs/HEARTMULA.md">docs/HEARTMULA.md</a>.</p>
+
+        <h3>Send the tracks to Treblo</h3>
+        <div class="code-block"><button class="copy-btn" data-copy>copy</button><pre><code>npm run treblo:upload -- "album-split"/*.mp3
+# writes data/treblo/uploads.json — one audio_upload_id per file</code></pre></div>
+        <p class="dim">An upload costs no credits; only a generation does. Reference: <a href="../docs/TREBLO-UPLOAD.md">docs/TREBLO-UPLOAD.md</a>.</p>
     </section>
+
 
     <!-- 07 Testing -->
     <section id="testing" class="section">
