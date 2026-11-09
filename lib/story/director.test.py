@@ -141,6 +141,59 @@ def test_fx_plan():
     eq(plan_fx(0, 'grain'), [], "no shots, no looks")
 
 
+def test_versions_use_different_frames():
+    print("versions — each cut takes a different frame of the same line")
+    lines = [{'display': 'one', 'query': 'q'}]
+    matrix = [[0.9], [0.8], [0.7]]
+    frames = [frame('a.png'), frame('b.png'), frame('c.png')]
+
+    first = Director(lines, threshold=0.1, rank=0)
+    matches, _u, _t = first.match(frames, matrix)
+    second = Director(lines, threshold=0.1, rank=1)
+    matches2, _u2, _t2 = second.match(frames, matrix)
+
+    eq(matches[0]['frame']['path'], 'a.png', "version one takes the best frame")
+    eq(matches2[0]['frame']['path'], 'b.png', "version two takes the second")
+    check(matches[0]['frame']['path'] != matches2[0]['frame']['path'],
+          "the two versions share no picture")
+
+
+def test_evolution_orders_by_the_characters_own_path():
+    print("evolution — the shots move in small steps, not in lyric order")
+    lines = [{'display': 'one', 'query': 'q'}]
+    # three frames on a line: the second is closest to the first, the
+    # third is furthest away. The lyric order puts the far one in the
+    # middle; the evolution must not.
+    # the SCORES put the far frame second — the lyric order jumps; the
+    # evolution must not.
+    matrix = [[0.9], [0.86], [0.88]]
+    frames = [frame('near.png'), frame('mid.png'), frame('far.png')]
+    d = Director(lines, threshold=0.1, per_line=3)
+    matches, _u, _t = d.match(frames, matrix)
+    plan = {'shots': matches, 'track': None, 'fade': 0.0, 'fx': 'grain'}
+
+    # embeddings: near and mid are close, far is on the other side
+    embeddings = [[1.0, 0.0], [0.9, 0.44], [0.0, 1.0]]
+    order = {'near.png': 0, 'mid.png': 1, 'far.png': 2}
+    for shot in matches:
+        shot['index'] = order[shot['frame']['path']]
+
+    before = d.path_distance(plan['shots'], embeddings)
+    evolved = d.evolve(plan, embeddings, start_index=0)
+    after = d.path_distance(evolved['shots'], embeddings)
+    check(after is not None and before is not None, "the travel is measured both ways")
+    check(after < before, "the evolution travels less than the lyric order (%.3f < %.3f)"
+          % (after, before))
+    eq(evolved['shots'][0]['frame']['path'], 'near.png', "the evolution starts where it was told")
+
+
+def test_path_distance_is_none_without_embeddings():
+    print("evolution — no embeddings, no claim")
+    d = Director(['one'])
+    eq(d.path_distance([{'frame': frame('a.png')}], []), None,
+       "without embeddings the travel is not measured")
+
+
 def test_lines_loader():
     print("lines — the loader reads both shapes")
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test-fixtures-lines.tsv')
@@ -182,7 +235,11 @@ def main():
     for test in (test_hamming, test_technical_rejects, test_duplicate_collapse,
                  test_match_assigns_each_frame_once,
                  test_match_reports_a_gap_rather_than_a_wrong_frame,
-                 test_match_keeps_per_line_frames, test_motions_do_not_repeat,
+                 test_match_keeps_per_line_frames,
+                 test_versions_use_different_frames,
+                 test_evolution_orders_by_the_characters_own_path,
+                 test_path_distance_is_none_without_embeddings,
+                 test_motions_do_not_repeat,
                  test_fx_plan, test_lines_loader, test_cutlist_is_what_the_renderer_reads):
         test()
     print()

@@ -7,7 +7,11 @@ to it over stdin/stdout as JSON so the director itself stays stdlib-only.
 
     echo '{"images": ["a.jpg"], "lines": ["a doorway"]}' | python clip_score.py
 
--> {"matrix": [[0.24]], "model": "ViT-H-14", "seconds": 3.1}
+-> {"matrix": [[0.24]], "embeddings": [[...]], "model": "ViT-H-14", "seconds": 3.1}
+
+The embeddings are the normalised image vectors. They are what the
+director's EVOLUTION ordering walks through: the shot order that moves
+through the character's states one small step at a time.
 
 The numbers are CLIP cosine similarities: 1.0 is identical, 0.0 is unrelated.
 They RANK; they do not measure. A director that treats a similarity as a
@@ -64,6 +68,7 @@ def main():
 
     print(json.dumps({
         'matrix': matrix,
+        'embeddings': [[round(float(v), 6) for v in row] for row in (feats.tolist() if feats is not None else [])],
         'model': model_name,
         'seconds': round(time.time() - started, 2),
     }))

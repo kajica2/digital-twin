@@ -14973,3 +14973,57 @@ AAC from the track ✓ ✓, 1.2 s dissolves ✓ ✓, one vignette grade ✓ ✓.
 **Open:** the crack detector finds QUIET passages ✓, not every structural
 break ✓ — a track that changes gear without going quiet is not cracked
 by it ✓ ✓.
+
+### 2026-11-09 — three versions, and the evolution of the character
+
+Asked: *always make 3 different versions of the video using different
+images for each; also one video goes through the evolution of the
+character* ✓ ✓.
+
+**The director now cuts three ways by default** ✓ ✓ (`--versions 3` ✓):
+version one takes each lyric line's **best** frame ✓, version two its
+**second** ✓, version three its **third** ✓ ✓ — so the three films share
+**no picture** ✓ ✓ (verified: the pairwise intersections are empty ✓ ✓).
+Each version is its own cut list (`<name>.v1.json`, `.v2.json`,
+`.v3.json` ✓ ✓) and its own film ✓ ✓.
+
+**The evolution** ✓ ✓ — version three is re-ordered so the character
+moves through his states one small step at a time, instead of following
+the song's word order ✓ ✓. The order is a **nearest-neighbour walk
+through the CLIP embedding space** ✓ ✓ — a measurement of how close two
+frames look ✓, not a preference about what should come next ✓ ✓.
+
+**And the claim is measured, not asserted** ✓ ✓: the travel along the
+shot order is printed for both ✓ ✓ —
+
+> the picture travels 1.792 in CLIP space over the cut
+> (the lyric order travels 2.693 — the evolution is smoother)
+
+— a **third less** travel ✓ ✓, because the character never jumps ✓ ✓.
+
+**The three films** (`~/Desktop/november8-v1.mp4`, `-v2`, `-v3` ✓ ✓):
+159.17 s each ✓ ✓ — the song's own length ✓ ✓ — 9 shots each ✓ ✓, 1.2 s
+dissolves ✓ ✓, 1920×1080 / 30 fps / `yuv420p` / `tv` ✓ ✓. The largest
+frame-to-frame step is 5.6–6.3× the median ✓ ✓ — no jump anywhere ✓ ✓.
+
+**Three defects this work exposed, all fixed at the source** ✓ ✓:
+
+1. **The CLIP matrix was indexed by the survivors, not by the frames it
+   was measured on** ✓ ✓ — a rejected frame or a collapsed duplicate
+   shifted every score below it ✓ ✓, silently and wrongly ✓ ✓. Each
+   frame now carries its row ✓ ✓ and the matrix is re-indexed ✓ ✓.
+2. **The shot lengths were capped** ✓ ✓ — with nine shots over a 159 s
+   song, the 12 s cap silently ate the difference ✓ ✓ and the film came
+   up 50 s short ✓ ✓ — the music cut off ✓ ✓. There is no upper cap ✓ ✓:
+   the boundaries are spread over the track ✓ ✓, so the lengths are
+   already even ✓ ✓.
+3. **The last shot was one fade too long** ✓ ✓ — every shot shares a
+   dissolve with the next one except the last ✓ ✓, which has nobody to
+   overlap with ✓ ✓ and ends exactly with the song ✓ ✓. The film is now
+   159.20 s against a 159.196 s track ✓ ✓.
+
+**Also:** the CLIP scorer returns the image embeddings ✓ ✓ (the evolution
+walks through them ✓ ✓), the cut list carries the travel measurement ✓ ✓,
+and `lib/story/director.test.py` grew to **54 checks** ✓ ✓ — the three
+versions share no picture ✓ ✓, the evolution travels less than the lyric
+order ✓ ✓, and without embeddings no travel is claimed ✓ ✓ ✓.

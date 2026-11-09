@@ -72,6 +72,36 @@ camera move per shot cycles push / pull / pan and never repeats itself
 twice in a row. The look per shot comes from `FX` in `lib/render/plan.mjs`;
 the grade is one pass over the joined cut.
 
+## Three versions, always
+
+`--versions 3` (the default) makes three cuts of the same song, and
+**they share no picture**:
+
+- **version 1** takes each lyric line's best frame,
+- **version 2** takes its second,
+- **version 3** takes its third — and is then re-ordered into the
+  **evolution of the character**,
+- **version 3, the evolution** — the shots are re-ordered so the
+  character moves through his states one small step at a time instead of
+  following the song's word order. The order is a nearest-neighbour walk
+  through the CLIP embedding space, and the claim is measured: the
+  version's travel is printed next to the lyric order's.
+
+Measured on *November 8 — Geometric Shadow Box*: the lyric order travels
+**2.693** in CLIP space across the cut; the evolution travels **1.792**
+— a third less, because the character never jumps.
+
+Each version is its own cut list (`<name>.v1.json`, `.v2.json`,
+`.v3.json`) and its own film:
+
+```bash
+python3 lib/story/director.py --frames <dir> --lines <song>.lines.tsv \
+  --track <song>.wav --per-line 1 --versions 3 --cutlist /tmp/song.json
+node bin/cut-list-to-mp4.mjs /tmp/song.v1.json --out v1.mp4
+node bin/cut-list-to-mp4.mjs /tmp/song.v2.json --out v2.mp4
+node bin/cut-list-to-mp4.mjs /tmp/song.v3.json --out v3.mp4
+```
+
 ## The lines file
 
 A plain `.txt` is one lyric line per line. A `.tsv` is
@@ -140,7 +170,10 @@ camera move.
   skipped and the frames are taken in file order.
 - **One image per line per cell.** The Midjourney 4-up gives four takes
   per beat; the director keeps the best-scoring of them (and the others
-  are cut) unless `--per-line` says otherwise.
+  are cut) unless `--per-line` says otherwise. With `--versions 3` each
+  version takes a different rank of each line, so the three films share
+  no picture — but a line with fewer frames than the version number runs
+  short and reports the gap.
 - **The beat grid is an energy envelope.** It finds the pulse of the
   track; it does not know the downbeat. A track with a half-time feel
   will be cut on the eighth notes.

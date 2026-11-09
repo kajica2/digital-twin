@@ -374,12 +374,15 @@ def durations_on_grid(count, track_path=None, minimum=1.2, maximum=12.0, fade=0.
         for index in range(len(cuts) + 1):
             start = cuts[index - 1] if index > 0 else 0.0
             end = cuts[index] if index < len(cuts) else seconds
-            length = max(minimum, end - start + fade)
+            # Every shot but the last shares a dissolve with the next one,
+            # so it is one fade longer; the last shot has nobody to
+            # overlap with and ends exactly with the song. No upper cap
+            # either: the shots have to cover the track, and a cap would
+            # silently eat the difference and cut the music off.
+            length = end - start
             if index < len(cuts):
-                length = min(maximum, length)
-            # The last shot is not capped: it is the ending, and it has to
-            # reach the end of the song or the film comes up short.
-            out.append(length)
+                length += fade
+            out.append(max(minimum, length))
         return out
 
     each = (seconds + (count - 1) * fade) / float(count)
@@ -400,7 +403,7 @@ class Director:
 
     def __init__(self, lines, threshold=0.18, blur_max=BLUR_MAX,
                  yavg_min=YAVG_MIN, yavg_max=YAVG_MAX, spread_min=SPREAD_MIN,
-                 dup_bits=DUP_BITS, root=None, per_line=1):
+                 dup_bits=DUP_BITS, root=None, per_line=1, rank=0):
         self.lines = []
         for line in lines or []:
             if isinstance(line, dict):
@@ -422,6 +425,9 @@ class Director:
         # How many frames one lyric line may keep. One is a slideshow; three
         # is a film. The frames that do not make the count are cut.
         self.per_line = max(1, int(per_line))
+        # Which of a line's frames THIS version uses: 0 is the best, 1 the
+        # second, 2 the third. The versions therefore share no picture.
+        self.rank = max(0, int(rank))
         self._spare = []
 
     # -- measurement --------------------------------------------------------
@@ -518,15 +524,24 @@ class Director:
         claimed = set()
         for line_index, line in enumerate(lines):
             kept = []
-            for frame_index in owned[line_index]:
+            for position, frame_index in enumerate(owned[line_index]):
                 score = scores_for_line[line_index][frame_index]
-                if len(kept) < self.per_line and score >= self.threshold:
+                # The VERSION picks the rank: version one takes the line's
+                # best frame, version two its second, version three its
+                # third — so the three versions share no picture.
+                wanted = (position >= self.rank
+                          and position < self.rank + self.per_line)
+                if wanted and score >= self.threshold and len(kept) < self.per_line:
                     kept.append(frame_index)
                     claimed.add(frame_index)
                 else:
-                    reason = ('a runner-up — %d frame(s) already carry this line'
-                               % self.per_line if len(kept) >= self.per_line
-                               else 'below the threshold (%.3f)' % score)
+                    if position < self.rank:
+                        reason = 'kept by an earlier version'
+                    elif position >= self.rank + self.per_line:
+                        reason = ('a runner-up — %d frame(s) already carry this line'
+                                  % self.per_line)
+                    else:
+                        reason = 'below the threshold (%.3f)' % score
                     self._spare.append({'path': frames[frame_index]['path'], 'reason': reason})
             if not kept:
                 matches.append({'line': line['display'], 'query': line['query'],
@@ -539,6 +554,7 @@ class Director:
                     'line': line['display'],
                     'query': line['query'],
                     'frame': frames[frame_index],
+                    'index': frames[frame_index].get('index'),
                     'score': scores_for_line[line_index][frame_index],
                 })
 
@@ -553,6 +569,12 @@ class Director:
              grade='vignette', transition='none', fade=0.6):
         """The whole decision, in one pass. Returns a plan dict."""
         frames = self.measure(candidates)
+        # The CLIP matrix was measured on the CANDIDATE list, so every
+        # frame carries its row. Rejecting a frame or collapsing a
+        # duplicate removes a row, and a matrix indexed by the survivors
+        # would score the wrong picture — silently, and wrongly.
+        for index, frame in enumerate(frames):
+            frame['index'] = index
         self._spare = []
 
         rejected = []
@@ -580,7 +602,10 @@ class Director:
                     })
 
         if matrix:
-            matches, unmatched, taken = self.match(unique, matrix)
+            rows = [frame['index'] for frame in unique]
+            aligned = [[matrix[row][column] for column in range(len(self.lines))]
+                       for row in rows]
+            matches, unmatched, taken = self.match(unique, aligned)
             spare_paths = {item['path'] for item in self._spare}
             for frame in unmatched:
                 if frame['path'] in spare_paths:
@@ -622,6 +647,114 @@ class Director:
         plan['fxs'] = plan_fx(len(shots), fx)
         return plan
 
+    # -- the evolution -------------------------------------------------------
+
+    def path_distance(self, shots, embeddings):
+        """How far the picture travels from shot to shot, in CLIP space.
+
+        The sum of `1 - closeness` along the shot order. A small number
+        means the film moves in small steps — the character changes
+        gradually. It is the measurement the evolution version claims, and
+        it is reported for the lyric order too, so the claim can be
+        checked rather than believed.
+        """
+        vectors = []
+        for shot in shots:
+            index = shot.get('index')
+            if index is None or index >= len(embeddings):
+                return None
+            vectors.append(embeddings[index])
+        if len(vectors) < 2:
+            return None
+        total = 0.0
+        for i in range(1, len(vectors)):
+            total += 1.0 - sum(a * b for a, b in zip(vectors[i - 1], vectors[i]))
+        return round(total, 4)
+
+    def evolve(self, plan, embeddings, start_index=0):
+        """Re-order the shots into the character's EVOLUTION.
+
+        The lyric order is the SONG's order. The evolution is the
+        CHARACTER's order: the shot after a shot is the one that looks
+        most like it, so the character moves through his states one small
+        step at a time instead of jumping.
+
+        The path is a nearest-neighbour walk through the CLIP embedding
+        space, starting at the shot that best carries the first line. It
+        is a MEASUREMENT of how close two frames look — not a preference
+        about what should come next — and the walk's total distance is
+        reported, so the claim can be checked.
+        """
+        shots = [s for s in plan['shots'] if s.get('frame')]
+        if len(shots) < 3 or not embeddings:
+            return plan
+
+        vectors = []
+        for shot in shots:
+            index = shot.get('index')
+            vectors.append(embeddings[index] if index is not None and index < len(embeddings) else None)
+        if any(v is None for v in vectors):
+            return plan
+
+        def closeness(a, b):
+            return sum(x * y for x, y in zip(vectors[a], vectors[b]))
+
+        order = [start_index]
+        remaining = set(range(len(shots))) - {start_index}
+        while remaining:
+            current = order[-1]
+            nxt = min(remaining, key=lambda i: -closeness(current, i))
+            order.append(nxt)
+            remaining.discard(nxt)
+
+        distance = 0.0
+        for index in range(1, len(order)):
+            distance += 1.0 - closeness(order[index - 1], order[index])
+
+        original = list(plan['shots'])
+        plan['shots'] = [original[position] for position in order]
+        plan['evolution'] = {
+            'order': order,
+            'pathDistance': round(distance, 4),
+            'meanStep': round(distance / max(1, len(order) - 1), 4),
+        }
+        # The durations follow the new order: the shot lengths are the
+        # song's, the sequence is the character's.
+        plan['durations'] = durations_on_grid(len(plan['shots']), plan.get('track'),
+                                             fade=plan.get('fade', 0.6))
+        plan['motions'] = plan_motions(len(plan['shots']))
+        plan['fxs'] = plan_fx(len(plan['shots']), plan.get('fx', 'grain'))
+        for shot, duration in zip(plan['shots'], plan['durations']):
+            shot['duration'] = duration
+        return plan
+
+    # -- the versions --------------------------------------------------------
+
+    def plan_versions(self, candidates, matrix=None, embeddings=None, track_path=None,
+                      versions=3, fx='grain', grade='vignette', transition='none',
+                      fade=0.6):
+        """The same song, cut three ways.
+
+        Version one takes each line's best frame, version two its second,
+        version three its third — so the three versions share NO picture ✓.
+        The last version is then re-ordered into the character's EVOLUTION
+        (see `evolve`): the shots move through his states one small step
+        at a time instead of following the song's word order ✓ ✓.
+        """
+        plans = []
+        for index in range(max(1, int(versions))):
+            self.rank = index
+            plan = self.plan(candidates, matrix, track_path=track_path, fx=fx,
+                             grade=grade, transition=transition, fade=fade)
+            plans.append(plan)
+        if embeddings and len(plans) > 1:
+            lyric_distance = self.path_distance(plans[0]['shots'], embeddings)
+            plans[0]['pathDistance'] = lyric_distance
+            plans[-1] = self.evolve(plans[-1], embeddings)
+            plans[-1]['lyricPathDistance'] = lyric_distance
+            plans[-1]['pathDistance'] = self.path_distance(plans[-1]['shots'], embeddings)
+        return plans
+
     # -- reporting ----------------------------------------------------------
 
     def label(self, path):
@@ -650,6 +783,14 @@ class Director:
                     lines.append('      %-52s %s' % (gap['line'], gap.get('reason', '')))
                 else:
                     lines.append('      %s' % gap)
+        if plan.get('pathDistance') is not None:
+            lines.append('  the picture travels %.3f in CLIP space over the cut'
+                         % plan['pathDistance'])
+            if plan.get('lyricPathDistance') is not None:
+                lines.append('  (the lyric order travels %.3f — the evolution is %s)'
+                             % (plan['lyricPathDistance'],
+                                'smoother' if plan['pathDistance'] < plan['lyricPathDistance']
+                                else 'not smoother'))
         if plan['rejected']:
             lines.append('  cut —')
             for item in plan['rejected']:
@@ -699,6 +840,8 @@ def write_cutlist(path, plan, images=None):
         'transition': plan['transition'],
         'fade': plan.get('fade', 0.6),
         'track': plan['track'],
+        'pathDistance': plan.get('pathDistance'),
+        'lyricPathDistance': plan.get('lyricPathDistance'),
         'shots': [{
             'line': s['line'],
             'query': s.get('query'),
@@ -716,15 +859,16 @@ def write_cutlist(path, plan, images=None):
 # CLIP, when it is available
 # --------------------------------------------------------------------------
 
-def clip_matrix(images, lines, python=None, timeout=1800):
-    """The images x lines similarity matrix, or None when CLIP is absent.
+def clip_scores(images, lines, python=None, timeout=1800):
+    """The similarity matrix and the image embeddings, or (None, None).
 
     The scoring runs in the clip-interrogator venv — the only interpreter
     on this machine with torch and the ViT-H weights — and is spoken to
-    over stdin/stdout as JSON.
+    over stdin/stdout as JSON. The embeddings are the normalised image
+    vectors: the evolution ordering walks through them.
     """
     if not images or not lines:
-        return None
+        return None, None
     script = os.path.join(REPO, 'lib', 'story', 'clip_score.py')
     if python is None:
         python = os.path.join(REPO, 'lib', 'clip-interrogator', '.venv', 'bin', 'python')
@@ -737,9 +881,15 @@ def clip_matrix(images, lines, python=None, timeout=1800):
             capture_output=True, timeout=timeout,
         )
         payload = json.loads(out.stdout.decode('utf8', 'replace'))
-        return payload.get('matrix')
+        return payload.get('matrix'), payload.get('embeddings')
     except (OSError, ValueError, subprocess.SubprocessError):
-        return None
+        return None, None
+
+
+def clip_matrix(images, lines, python=None, timeout=1800):
+    """The images x lines similarity matrix, or None when CLIP is absent."""
+    matrix, _embeddings = clip_scores(images, lines, python=python, timeout=timeout)
+    return matrix
 
 
 def load_lines(path):
@@ -783,6 +933,9 @@ def main():
     parser.add_argument('--threshold', type=float, default=0.18)
     parser.add_argument('--per-line', type=int, default=1,
                         help='frames each lyric line may keep')
+    parser.add_argument('--versions', type=int, default=3,
+                        help='how many cuts to make; each uses different frames '
+                             'and the last follows the character\'s evolution')
     parser.add_argument('--transition', default='none', choices=['none', 'crossfade'],
                         help='how one shot gives way to the next; crossfade is the smooth one')
     parser.add_argument('--fade', type=float, default=0.9,
@@ -802,16 +955,38 @@ def main():
 
     director = Director(lines, threshold=args.threshold, root=os.path.abspath(args.frames),
                         per_line=args.per_line)
-    matrix = clip_matrix(frames, queries)
-    plan = director.plan(frames, matrix, track_path=args.track,
-                         transition=args.transition, fade=args.fade)
-    if args.cutlist:
-        write_cutlist(args.cutlist, plan)
-    if args.json:
-        print(json.dumps({'shots': plan['shots'], 'rejected': plan['rejected'],
-                          'gaps': plan['gaps']}, indent=2, default=str))
+    matrix, embeddings = clip_scores(frames, queries)
+
+    if args.versions > 1:
+        plans = director.plan_versions(frames, matrix, embeddings=embeddings,
+                                       track_path=args.track, versions=args.versions,
+                                       transition=args.transition, fade=args.fade)
     else:
-        print(director.report(plan))
+        plans = [director.plan(frames, matrix, track_path=args.track,
+                               transition=args.transition, fade=args.fade)]
+
+    written = []
+    for index, plan in enumerate(plans, start=1):
+        if args.cutlist:
+            path = args.cutlist
+            if args.versions > 1:
+                stem, ext = os.path.splitext(args.cutlist)
+                path = '%s.v%d%s' % (stem, index, ext or '.json')
+            write_cutlist(path, plan)
+            written.append(path)
+        if args.json:
+            print(json.dumps({'version': index, 'shots': plan['shots'],
+                              'rejected': plan['rejected'], 'gaps': plan['gaps'],
+                              'evolution': plan.get('evolution')}, indent=2, default=str))
+        else:
+            if len(plans) > 1:
+                print('\n=== version %d%s ===' % (index, ' — the evolution' if plan.get('evolution') else ''))
+            print(director.report(plan))
+
+    if written:
+        print('\ncut lists:')
+        for path in written:
+            print('  %s' % path)
     return 0
 
 
