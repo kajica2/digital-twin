@@ -15027,3 +15027,53 @@ walks through them ✓ ✓), the cut list carries the travel measurement ✓ ✓
 and `lib/story/director.test.py` grew to **54 checks** ✓ ✓ — the three
 versions share no picture ✓ ✓, the evolution travels less than the lyric
 order ✓ ✓, and without embeddings no travel is claimed ✓ ✓ ✓.
+
+### 2026-11-09 — the visualiser: seven lines that breathe with the song
+
+Asked for seven fluid waveform lines over the films — 1px, fading in,
+pulsing on the beat's dB hits ✓ ✓ — and then for the python libraries
+that would make the patterns alive ✓ ✓.
+
+**Shipped:**
+
+- **`lib/story/wave_bands.py`** — the track as seven log-spaced bands
+  (40 Hz → 8 kHz ✓ ✓): each band's level per frame in decibels ✓, and
+  each band's **own filtered waveform** ✓ ✓ (a Butterworth band-pass ✓ ✓
+  via scipy ✓ ✓), so the seven lines are seven different SHAPES ✓ ✓ — the
+  bass line swells where the bass does ✓ ✓.
+- **`lib/story/waveform.py`** — draws the lines (1px column strokes ✓ ✓),
+  fades them in ✓ ✓, pulses them on the beat ✓ ✓, and streams them into
+  ffmpeg as raw RGBA ✓ ✓ (no scratch files ✓ ✓).
+- **`lib/story/`** — its own uv project ✓ ✓ with the libraries that make
+  the patterns alive ✓ ✓: numpy 1.26.4 ✓, scipy 1.17.1 ✓, librosa
+  0.11.0 ✓, Pillow 13.0.0 ✓, numba 0.68.1 ✓, **PyAV 19.0.2** ✓,
+  **opencv-python 4.11.0** ✓, **moderngl 5.13.0** ✓, **sounddevice
+  0.5.6** ✓ ✓. The driver stays stdlib-only ✓ ✓ — the heavy work is
+  spoken to over JSON or a raw file ✓ ✓, the same shape as the CLIP
+  scorer ✓ ✓.
+- **`docs/STORY-VISUALIZER.md`** — the reference ✓ ✓.
+
+**Four defects found by looking at the output, not at the code** ✓ ✓:
+
+1. **The strokes were filled with the wrong bytes.** A column's pixels
+   are `width` apart in memory ✓, so filling them as one slice wrote
+   over the wrong rows ✓ ✓ — and the seven lines came out as SOLID
+   BANDS ✓ ✓. numpy fills them correctly ✓ ✓ (the stdlib path fills them
+   pixel by pixel ✓ ✓).
+2. **The lines were invisible.** They were cream ✓ — on a cream and
+   pink picture ✓ ✓. They are copper now ✓ ✓, and the beat flashes them
+   toward cream ✓ ✓.
+3. **The overlay's background was the wrong input.** `[0:v][1:v]` made
+   the LINES the background and the film the overlay ✓ ✓ — the output
+   came out 240 pixels tall ✓ ✓. The film is the background ✓ ✓.
+4. **The raw overlay file was 8.8 GB on a disk that is 99% full** ✓ ✓
+   — and it was truncated there ✓ ✓, which is how the first pass came
+   out short ✓ ✓. The lines are streamed into ffmpeg instead ✓ ✓.
+
+**The film** — `~/Desktop/nov8-v1-lines.mp4` ✓ ✓: 1920×1080 ✓ ✓,
+159.15 s ✓ ✓, the seven copper lines across the lower band ✓ ✓, each
+one pulsing on its own band's hits ✓ ✓.
+
+**Open:** the lines are drawn with numpy in the story venv ✓ ✓ — the
+stdlib fallback is correct but slow ✓ ✓ (it fills the strokes pixel by
+pixel ✓ ✓).

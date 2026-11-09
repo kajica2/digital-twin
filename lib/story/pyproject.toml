@@ -1,0 +1,40 @@
+[project]
+name = "digital-twin-story"
+version = "0.1.0"
+description = "The twin's visualizer — frequency bands, beat hits and waveform lines for the music videos (lib/story)."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = { text = "MIT" }
+dependencies = [
+    # The analysis. numpy + scipy carry the STFT that splits the track
+    # into the seven bands the lines draw; librosa brings proper beat and
+    # onset tracking (the stdlib fallback in director.py only finds the
+    # pulse, not the downbeat).
+    "numpy>=1.26,<2",
+    "scipy>=1.11",
+    "librosa>=0.10",
+    # The drawing. Pillow draws the lines far faster than bytearray
+    # slicing; numba compiles the per-frame column maths.
+    "pillow>=10.0",
+    "numba>=0.60",
+    # The video. PyAV decodes and encodes frames in process, frame
+    # accurate, with numpy interop — the raw-RGBA pipe through the
+    # ffmpeg CLI is the fallback, not the best way.
+    "av>=13.0",
+    # The motion. OpenCV's optical flow is how a pan can follow the
+    # picture instead of sliding over it — the difference between a
+    # camera move and a scroll.
+    "opencv-python>=4.9",
+    # The live visualiser. moderngl draws the overlay on the GPU;
+    # sounddevice brings a live input so the same code can react to a
+    # room instead of a file.
+    "moderngl>=5.8",
+    "sounddevice>=0.4.6",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["story"]
