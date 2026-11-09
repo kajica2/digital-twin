@@ -58,14 +58,25 @@ for slug in $SONGS; do
   else
     echo ""
     echo "== generating $slug (${SECS}s) =="
+    # --codec-device cpu. The MPS codec is the bottleneck and it does
+    # not finish: the same 40 s of audio spent 11 minutes and counting
+    # with the child process idle, and the full-length runs wrote
+    # nothing at all. On the CPU the same request finishes in about
+    # two minutes (500/500 codec steps in 1:26).
+    rm -f "$OUT"
     npm run --silent heartmula:generate -- \
       --lyrics "$LYR" --tags "$(cat "$TAG")" \
-      --seconds "$SECS" --out "$OUT" 2>&1 | tail -8
+      --seconds "$SECS" --out "$OUT" --codec-device cpu 2>&1 | tail -4
     if [ -f "$OUT" ]; then
       GOT="$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$OUT" 2>/dev/null)"
       printf '   -> %s  %.1fs (asked for %ss)\n' "$OUT" "${GOT:-0}" "$SECS"
     else
-      echo "   -> NO FILE"
+      # A song that does not write a file STOPS the run. The first
+      # version moved on to the next song either way, so three songs
+      # "ran" and the audio directory stayed empty — a failure that
+      # looked like patience.
+      echo "   -> NO FILE — the generation failed. Stopping."
+      exit 1
     fi
   fi
 done
