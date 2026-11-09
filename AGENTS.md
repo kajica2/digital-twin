@@ -14798,3 +14798,44 @@ lyric's beat ✓ ✓ and the man is the same man in all twelve ✓ ✓ ✓.
 move per shot ✓ ✓), `find-your-flow-crossfade.mp4` ✓ (41.4 s ✓) and
 `find-your-flow-loop.mp4` ✓ (88.0 s ✓) — all 1920×1080 / 30 fps /
 `yuv420p` / `tv` ✓ ✓ ✓.
+
+### 2026-11-09 — "Breath Forgets the Count": twelve frames, and one beat locked tight
+
+**The wide read** — `assets/mural-prompts/breath-forgets-the-count-12.md` ✓
+— twelve frames, one per beat, in the master's look and with the artist's
+own photograph as the identity anchor (the master's `--edit` is today's ✓
+✓). 12/12 accepted ✓ ✓. The lyric's argument is the arc: the count
+slipping before the downbeat ✓, the hinge swinging the current into the
+tongue ✓, the handle already gone ✓, the note already in the pocket ✓, the
+chalk line crossing the break and refusing to stop ✓, the plain mask on the
+tilted floor ✓, the fold that will not take under a wall of clocks ✓, the
+room keeping the beat without him ✓, his own reflection arriving late ✓,
+the uninvited door and the swapped coat ✓, over becoming under ✓, and the
+crossing at dawn with neither foot moving ✓ ✓ — **flow still deciding** ✓ ✓.
+
+**The tight read** — `assets/mural-prompts/door-slides-the-sentence-in-5.md`
+✓ — the same method applied to **one** beat ✓ ✓ ("Door I didn't open
+slides the rest of the sentence in" ✓ ✓): the same man, the same door, the
+same band of daylight, at five distances ✓ ✓ — the wide ✓, the middle ✓,
+the near ✓, the close ✓ (the hand and the light on the floor — read at
+full size ✓ ✓), the held ✓ ✓. 5/5 accepted ✓ ✓.
+
+**The rule that made the five work ✓ ✓:** a distance clause lands when it
+is written as **what is in the frame and what is not** ✓ ✓ — "the frame
+from his knees up" ✓, "nothing in the frame but the hand, the light and
+the floor" ✓ ✓ — and not as a lens name ✓ ✗. The same principle as the
+camera grid ✓ (sprint 0.76 ✓ ✓), now applied inside one scene ✓ ✓ ✓.
+
+**The cuts** ✓ — twelve: `count-cut.mp4` ✓ (48.0 s ✓, a different move per
+shot ✓ ✓), `count-crossfade.mp4` ✓ (41.4 s ✓), `count-loop.mp4` ✓ (88.0 s
+✓ ✓). Five: `door-cut.mp4` ✓ (15.0 s ✓), `door-crossfade.mp4` ✓ (12.6 s
+✓), `door-loop.mp4` ✓ (24.0 s ✓ ✓). All 1920×1080 / 30 fps / `yuv420p` /
+`tv` ✓ ✓ ✓.
+
+**No audio** ✓ — the song was not generated ✓ ✓. One command cuts either
+set to a track ✓ ✓:
+
+```bash
+node bin/images-to-mp4.mjs mj-output/breath-forgets-the-count-12/frames \
+  --audio <track> --mode cut --size 1920x1080 --each 4 --motions …
+```
