@@ -39,21 +39,42 @@ const FRAMES = path.resolve(REPO, val('--frames', 'assets/flux2/keep-it-up/frame
 const AUDIO = path.resolve(REPO, val('--audio', 'assets/keep-it-up/audio'));
 const OUT = path.resolve(REPO, val('--out', 'assets/keep-it-up/keep-it-up.mp4'));
 const MANIFEST = path.resolve(REPO, val('--manifest', 'assets/flux2/keep-it-up/manifest.json'));
-const EACH = Number(val('--each', '2.0'));
+// --each is per song UNLESS the operator overrides it: the four songs
+// are not the same length, so one value for all four cannot be right.
+// Too long and the shots hold for nine seconds; too short and the music
+// is cut off.
+const EACH_OVERRIDE = val('--each', undefined);
 const FADE = Number(val('--fade', '0.6'));
 const SIZE = val('--size', '16:9');
 const DRY = has('--dry-run');
 
 const log = m => process.stdout.write(`${m}\n`);
 
-// The planned length of a section: N frames of `each` seconds, less the
-// crossfade overlap at each join. The renderer works this out the same
-// way, so the two agree.
-function plannedSeconds(section) {
+// The shot length for a section: the song's own length, spread over
+// its frames, less the crossfade overlap at each join.
+//
+//   N frames of `each` seconds, overlapping by `fade` at each join,
+//   cover: N * each - (N - 1) * fade
+//
+// so: each = (songSeconds + (N - 1) * fade) / N
+//
+// The renderer works this out the same way, so the two agree.
+function eachFor(section) {
+  if (EACH_OVERRIDE !== undefined) return Number(EACH_OVERRIDE);
+  const n = section.frames.length;
+  if (!n) return 2.0;
+  const seconds = section.audio ? durationOf(section.audio) : null;
+  if (!seconds) return 2.0;
+  const fade = Math.min(FADE, (seconds / n) * 0.5);
+  return Math.max(0.5, (seconds + (n - 1) * fade) / n);
+}
+
+// The planned length of a section with a given shot length.
+function plannedSeconds(section, each) {
   const n = section.frames.length;
   if (!n) return 0;
-  const fade = Math.min(FADE, (EACH * 0.5));
-  return Math.max(0, n * EACH - (n - 1) * fade);
+  const fade = Math.min(FADE, (each * 0.5));
+  return Math.max(0, n * each - (n - 1) * fade);
 }
 
 // A file's duration, measured.
@@ -104,8 +125,12 @@ for (const s of songs) {
 log(`KEEP IT UP — assembling ${sections.length} sections`);
 for (const s of sections) {
   const flag = s.frames.length === s.expected ? ' ' : '-';
+  const each = eachFor(s);
+  const covered = plannedSeconds(s, each);
+  const song = s.audio ? durationOf(s.audio) : null;
   log(`  ${flag} ${s.slug.padEnd(22)} ${String(s.frames.length).padStart(2)}/${s.expected} frames` +
-      `  ${s.audio ? path.basename(s.audio) : 'NO AUDIO'}`);
+      `  ${each.toFixed(2)}s/shot  covers ${covered.toFixed(1)}s` +
+      `  ${song !== null ? `of a ${song.toFixed(1)}s song` : 'NO AUDIO'}`);
 }
 if (missingFrames) log(`  ${missingFrames} frame(s) missing — the render is still going`);
 if (missingAudio) log(`  ${missingAudio} song(s) have no audio yet`);
@@ -124,9 +149,10 @@ for (const s of sections) {
   fs.mkdirSync(dir, { recursive: true });
   for (const f of s.frames) fs.symlinkSync(f, path.join(dir, path.basename(f)));
   const out = path.join(tmp, `${s.slug}.mp4`);
+  const each = eachFor(s);
   const args = [
     path.join(REPO, 'bin/images-to-mp4.mjs'), dir,
-    '--mode', 'crossfade', '--size', SIZE, '--each', String(EACH),
+    '--mode', 'crossfade', '--size', SIZE, '--each', String(each),
     '--fade', String(FADE), '--out', out,
   ];
   if (s.audio) args.push('--audio', s.audio);
@@ -158,7 +184,7 @@ for (const s of sections) {
   let finalClip = out;
   if (!s.audio) {
     const silent = path.join(tmp, `${s.slug}.silent.m4a`);
-    const seconds = plannedSeconds(s);
+    const seconds = plannedSeconds(s, eachFor(s));
     const made = spawnSync('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi',
       '-i', 'anullsrc=channel_layout=stereo:sample_rate=48000',
       '-t', String(seconds), '-c:a', 'aac', '-b:a', '192k', silent],
