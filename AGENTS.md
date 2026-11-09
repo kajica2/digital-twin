@@ -14716,3 +14716,41 @@ stay 16:9 ✓ ✓ ✓).
 
 `lib/mj-submitter.test.js` → **121 pass** ✓ ✓ (the master's ratio, its
 look-first order ✓, and the one-of-each assertions ✓ ✓) ✓.
+
+### 2026-11-09 — "Find Your Flow": the frames, and a dead style code
+
+**The pack** — `assets/mural-prompts/find-your-flow-12.md` ✓ — twelve frames
+from the lyric ✓: the hum at dawn ✓, the cold cup on the sill ✓, the avenue in
+morning light ✓, the hallway ✓, the neighbours' guitar through the wall ✓, the
+ragged-and-sweet playing ✓, "I'm alone" on the empty street ✓, the flow ✓,
+the brother on the phone ✓, two rooms on one line ✓, the worn fingers on the
+strings ✓, and the groove in the middle of the avenue ✓ ✓.
+
+**Three things had to be fixed before anything rendered ✓✓ — all three were
+found by running it, not by reading it ✓✓:**
+
+1. **A blockquote beside a bullet does NOT survive the pack parser** ✓ — the
+   label is folded into the prompt that follows it ✓ ✓, and the prompt then
+   reads *"… --hd > 02 · VERSE — 'Probably gone cold on the sill'"* ✓ ✓ —
+   which Midjourney refuses ✓ ✓. The frame labels live in the
+   **frontmatter** (`frame-sections:` ✓) instead ✓ ✓. The dry run is the
+   cheap check ✓: print the composed prompt ✓ and read it ✓ ✓.
+2. **The artist's `--edit` assets have expired** ✓ — the `s.mj.run` URLs from
+   October no longer resolve ✓ ✓, and **every** prompt naming them is refused
+   ✓ ✓ (MJ logs the text and never asks for a submission ✓ ✓). The frames
+   are rendered plain ✓ — the man is a lean man in his thirties ✓ — and the
+   pack says so ✓ ✓.
+3. **`--sref 667921269` no longer resolves either** ✓ — and that one was
+   nearly invisible ✓ ✓, because the **same command that worked at 03:32 was
+   refused at 11:00** ✓ ✓ ✓. The control was the working job's own text,
+   fetched from the feed ✓ ✓ (`tools/mj-feed-probe.mjs` ✓ ✓): refused with
+   the codes ✓ ✓, **accepted without them** ✓ ✓ ✓. The master suffix now
+   drops the dead style code ✓ ✓ — the look travels in the suffix's
+   **prose** ✓ ✓ (the linocut sentence ✓ ✓), which is what the look was
+   doing there anyway ✓ ✓, and the account's `--profile a13mc1d` stays ✓ ✓
+   (the web app injects it whether or not a prompt asks ✓ ✓).
+
+**The lesson worth keeping** ✓ ✓: when everything is refused, **the first
+question is whether it is the prompt at all** ✓ ✓ — and the cheapest control
+is a command that is **known to have worked** ✓ ✓, submitted verbatim ✓ ✓ ✓.
+A refusal costs nothing (no job is queued ✓ ✓), so the bisection is free ✓ ✓.

@@ -24,7 +24,7 @@
     },
     "mj": {
         "outputDir": "mj-output",
-        "defaultArgs": "handmade 2D bedtime animation still, linocut print texture, deep blue and warm red ink on cream paper, no text --chaos 5 --ar 1:1 --raw --sref 667921269 --profile a13mc1d --stylize 21 --hd",
+        "defaultArgs": "handmade 2D bedtime animation still, linocut print texture, deep blue and warm red ink on cream paper, no text --chaos 5 --ar 1:1 --raw --profile a13mc1d --stylize 21 --hd",
         "_note_defaultArgs": "The master suffix — what every render carries unless the prompt names its own. It LEADS with the look (a handmade 2D bedtime-animation still: linocut print texture, deep blue and warm red ink on cream paper, no text), then the flags: low chaos so the picture stays calm, the house ratio, --raw and --stylize 21 (the literal-photo reference is the goal and the stylize is the enemy), one style reference (667921269) and one profile (a13mc1d) so every render lives in the same world, and --hd. A prompt that names its own copy of a flag keeps it: the master's copy of that slot is dropped, never doubled — MJ honours the LAST of a duplicated flag, so a doubled one is a silent override.",
         "generationTimeoutMs": 120000,
         "_note_generationTimeoutMs": "Legacy Discord backend generation timeout (milliseconds).",
@@ -37,16 +37,17 @@
             "_note": "THE master prompt for the current MJ work: the visual brief for the rainy room, its palette, and how Lea, Niko and Muka move and are staged. Read from the feed's own full_command (the only trustworthy record) — the job ran with moodboards kgvnzd9 and mgmce5w and profile ub2pnlv, and those moodboards are what carry the 2D-watercolour look into every frame.",
             "_ages": "The brief says Lea 6 and Niko 4. The shot list in assets/mural-prompts/kisna-soba-12.md says Lea 5 and Niko 3. The shot list wins; the discrepancy is recorded here rather than quietly reconciled.",
             "updatedAt": "2026-11-09",
-            "suffix": "handmade 2D bedtime animation still, linocut print texture, deep blue and warm red ink on cream paper, no text --chaos 5 --ar 1:1 --raw --sref 667921269 --profile a13mc1d --stylize 21 --hd",
+            "suffix": "handmade 2D bedtime animation still, linocut print texture, deep blue and warm red ink on cream paper, no text --chaos 5 --ar 1:1 --raw --profile a13mc1d --stylize 21 --hd",
             "seed": null,
-            "styleRef": "667921269",
+            "styleRef": null,
             "_note_suffix": "The master's flags and look, set 2026-11-09. The suffix leads with the LOOK because the scene belongs first in the prompt: the pack's prose is the subject, and the master follows it. The ratio is 1:1 — the square of the reference frame. A prompt that names its own --ar keeps it (the master is the default, not a rule), and --hd is dropped when the prompt names the v6 line, because MJ refuses that combination.",
             "profile": "a13mc1d",
             "chaos": 5,
             "hd": true,
             "style": "handmade 2D bedtime animation still, linocut print texture, deep blue and warm red ink on cream paper, no text",
             "ar": "1:1",
-            "stylize": 21
+            "stylize": 21,
+            "_note_styleRef": "The --sref code 667921269 no longer resolves — Midjourney refuses EVERY prompt that names it (proved: a command that worked at 03:32 was refused at 11:00 with the identical text). The look now travels in the suffix's PROSE — the linocut sentence — and the account's own --profile (a13mc1d) stays, because the web app injects it whether or not a prompt asks."
         }
     },
     "paths": {
