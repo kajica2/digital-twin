@@ -11,6 +11,8 @@ Digital Twin is Kai Djuric's local-first creative workspace: a place to organise
 | Learn the operator workflow | [How-to guide](../pages/how-to.html) |
 | Understand the shared visual language | [Design contract](../DESIGN.md) |
 | Change or review this repository | [Agent and contributor context](../AGENTS.md) |
+| Route which model does the work | [Agent plan](AGENT-PLAN.md) |
+| Choose how to start on a prompt | [Agentic first behaviour](AGENTIC-FIRST-BEHAVIOUR.md) |
 | Understand the social worker | [Social engine](SOCIAL-ENGINE.md) |
 | Understand media conversion | [Media toolchain](MEDIA-TOOLCHAIN.md) |
 
