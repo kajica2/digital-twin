@@ -93,20 +93,60 @@ symptom is "Cadenza imported 3 of 4 parts"; the fault is upstream, in the MusicX
 built-in instrument ("pick the instrument or preset instead" — Cadenza's own warning).
 So what you hear is Cadenza's built-ins until a track is re-pointed at a plugin.
 
-## Plugins
+## Plugins — free mastering chain (Linux)
 
-There are **no VST3/CLAP plugins installed on this machine** — `list-plugins --json`
-returns `[]`, and the render above is Cadenza's built-in instruments
-(`poly_synth`, `electric_piano`, `drum_machine`, and the built-in EQ/compressor/
-reverb/delay). To add one: install the plugin, then
+The original free mastering shortlist (Tokyo Dawn **Kotelnikov**, VladG **Limiter
+6 GE**, **Youlean** Loudness Meter, and the TBProAudio successors) ships **Win/Mac
+only** — there are no Linux builds. On this host the free chain is therefore
+**TDR Nova** (dynamic EQ) plus the **LSP Plugins** suite (EQ / compressor /
+limiter / loudness / spectrum), both of which install as Linux VST3/CLAP under
+`~/.vst3` and `~/.clap`.
+
+| Plugin | Role | Linux? |
+|--------|------|--------|
+| TDR Kotelnikov | Mastering compressor | No (Win/Mac) |
+| VladG Limiter 6 GE | Brickwall limiter | No (Win/Mac) |
+| Youlean Loudness Meter | LUFS metering | No (Win/Mac) |
+| TBProAudio (various) | Metering / dynamics | No (Win/Mac) |
+| **TDR Nova** | Dynamic EQ | **Yes** (`~/.vst3/TDR Nova.vst3`) |
+| **LSP Plugins** | EQ / Comp / Limiter / Loudness / Spectrum | **Yes** (`~/.vst3` + `~/.clap`) |
+
+**Recommended master-bus order**
+
+1. **TDR Nova** — dynamic EQ / surgical cleanup
+2. **LSP Parametric Equalizer x16 Stereo** — tonal balance
+3. **LSP Compressor Stereo** (or **Multiband Compressor Stereo x8**) — glue
+4. **LSP Limiter Stereo** — ceiling
+5. **LSP Loudness Compensator Stereo** + **LSP Spectrum Analyzer** — level match and visual check
+
+After a scan this machine reports **397** catalog entries (199 VST3 + 198 CLAP).
+
+**Install**
+
+```bash
+# TDR Nova (VST3 tarball from Tokyo Dawn Labs)
+mkdir -p ~/.vst3
+# unpack the Linux VST3 into ~/.vst3/TDR\ Nova.vst3
+
+# LSP Plugins 1.2.37 (Linux .7z from lsp-plug.in)
+mkdir -p ~/.vst3 ~/.clap
+# unpack lsp-plugins.vst3 → ~/.vst3/
+# unpack lsp-plugins.clap → ~/.clap/
+# keep liblsp-r3d-glx-lib.so next to each bundle
+```
+
+**Scan / list**
 
 ```bash
 node lib/cadenza.js scan-plugins --json
-node lib/cadenza.js list-plugins --json -q <name>
+node lib/cadenza.js list-plugins --json -q Nova
+node lib/cadenza.js list-plugins --json -q LSP
 ```
 
 `scan-plugins` loads each plugin in a separate helper process, so a plugin that
-crashes is blocklisted instead of taking the catalog down.
+crashes is blocklisted instead of taking the catalog down. Renders that do not
+insert these plugins still use Cadenza's built-ins (`poly_synth`,
+`electric_piano`, `drum_machine`, and the built-in EQ/compressor/reverb/delay).
 
 ## The AI verbs, and where the key goes
 
