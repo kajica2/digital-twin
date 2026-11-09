@@ -1244,9 +1244,10 @@ nothing) and `--json`, and an unknown flag is refused with exit 2 rather than
 ignored. Full reference: `docs/CADENZA.md`.
 
 On Linux the free mastering chain is **TDR Nova** + **LSP Plugins** (EQ → Comp →
-Limiter → Loudness/Spectrum). The Win/Mac shortlist (Kotelnikov, Limiter 6 GE,
-Youlean) has no Linux builds, so those are not installed here — see
-`docs/CADENZA.md` § Plugins.
+Limiter). Loudness Compensator and Spectrum Analyzer are for monitoring / A-B
+listening only — keep them off the export bus. The Win/Mac shortlist
+(Kotelnikov, Limiter 6 GE, Youlean) has no Linux builds, so those are not
+installed here — see `docs/CADENZA.md` § Plugins.
 
 ## Split a long recording into its tracks
 

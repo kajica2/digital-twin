@@ -111,13 +111,19 @@ limiter / loudness / spectrum), both of which install as Linux VST3/CLAP under
 | **TDR Nova** | Dynamic EQ | **Yes** (`~/.vst3/TDR Nova.vst3`) |
 | **LSP Plugins** | EQ / Comp / Limiter / Loudness / Spectrum | **Yes** (`~/.vst3` + `~/.clap`) |
 
-**Recommended master-bus order**
+**Recommended master-bus order (export / render path)**
 
 1. **TDR Nova** — dynamic EQ / surgical cleanup
 2. **LSP Parametric Equalizer x16 Stereo** — tonal balance
 3. **LSP Compressor Stereo** (or **Multiband Compressor Stereo x8**) — glue
-4. **LSP Limiter Stereo** — ceiling
-5. **LSP Loudness Compensator Stereo** + **LSP Spectrum Analyzer** — level match and visual check
+4. **LSP Limiter Stereo** — ceiling (last on the export bus)
+
+**Monitoring only (not on the export bus):** **LSP Loudness Compensator
+Stereo** and **LSP Spectrum Analyzer** are for A-B listening while mixing —
+level-matched playback and a visual check. Do **not** insert the Loudness
+Compensator after the limiter on the render path: it applies
+playback-dependent EQ and gain, which changes the tonal balance of the
+exported master and can push peaks above the limiter ceiling.
 
 After a scan this machine reports **397** catalog entries (199 VST3 + 198 CLAP).
 
