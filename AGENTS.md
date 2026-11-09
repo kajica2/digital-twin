@@ -14587,12 +14587,18 @@ a real stem separation ✓ ✓ would give ✓ ✓.
 mix, instrumentalled ✓ ✓) and `rado2-95bpm-p2-instrumental.wav` ✓ (the song
 alone ✓ ✓) ✓ ✓.
 
-**The proper route is running.** HeartMuLa's pipeline takes no
-`instrumental` flag ✓ — it is conditioned on lyrics + tags ✓ ✓, so an
-instrumental is an **empty lyric** ✓ ✓ (which is how the first rado2 pass
-was made ✓ ✓) ✓. A second pass is running with the tags sharpened ✓ ✓
-("instrumental, no vocals, no singing" ✓ ✓) ✓ ✓ — because the empty lyric
-alone did not stop the model from singing ✓ ✓ ✓.
+**The proper route was tried and it does not work.** HeartMuLa's pipeline
+takes no `instrumental` flag — it is conditioned on lyrics + tags, so an
+instrumental is an **empty lyric** (which is how the first rado2 pass was
+made). A second pass was generated with the tags sharpened ("instrumental,
+no vocals, no singing") — and **it still sings**: the mid/side ratio stayed
+at **-10.5 dB** (the first pass: -9.4 dB), i.e. the voice is still
+sitting in the middle of the mix.
+
+**So the strip is the way** — and the second take is the better
+accompaniment (its side signal is 4 dB louder), so the shipped
+instrumental is built from it: shifted two semitones, stripped, extended to
+the reference's 207.0 s and mixed with the reference.
 
 ### 2026-11-07 — connected to Treblo
 
