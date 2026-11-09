@@ -15334,3 +15334,100 @@ recognised by this build ✓ ✓ (it is `-fps_mode passthrough` ✓ ✓).
 
 **Next:** the library's clips into the reel watcher ✓ ✓, so a cut becomes a
 reel ✓ ✓. Then a second picture layer blended rather than composited ✓ ✓.
+
+### 2026-11-09 — sprint 0.102 (the descriptions — video and music, at three lengths)
+
+The copy for the videos and the music, rendered at three lengths from one
+set of facts. Every number in it was measured off the actual files ✓ ✓.
+
+**Shipped:**
+
+- **`lib/descriptions.js`** — the copy. `pitch` (one line) ✓ ✓,
+  `musicDescription` (~300 chars, a track page) ✓ ✓, `longDescription`
+  (~1,200, a video) ✓ ✓, `videoDescription` (the long form + hashtags)
+  ✓ ✓, and `cutDescription` for one cut of the film series ✓ ✓.
+- **`lib/descriptions.test.js`** — **130 checks** ✓ ✓, pure Node, no network
+  and no model. Wired into `npm run test:all` ✓ ✓.
+- **`docs/DESCRIPTIONS.md`** — the reference ✓ ✓.
+- **npm** — `descriptions`, `test:descriptions` ✓ ✓.
+
+**Why one file ✓ ✓** — a YouTube description is 800 characters of room ✓ ✓,
+a track page shows ~300 ✓ ✓, a streaming bio is 160 ✓ ✓. Writing those
+three separately means they drift ✓ ✓ and a listener who reads one and
+then sees another finds a different song ✓ ✓. So: one set of facts per
+work ✓ ✓, rendered at three lengths ✓ ✓.
+
+**Every number is measured ✓ ✓.** The copy states figures ✓ ✓, so the
+figures live in a `facts` block ✓ ✓ and the test checks that **every
+number in the prose is a number in the facts** ✓ ✓ — a figure typed by
+hand into a sentence is a figure nothing verifies ✓ ✓.
+
+Measured off the actual files ✓ ✓:
+
+| | Geometric Shadow Box | Find Your Flow |
+|---|---|---|
+| length | 159.2 s | 196.6 s |
+| tempo | 117 BPM | 110 BPM |
+| spectral centroid | 219 Hz | 265 Hz |
+| energy below 250 Hz | 94% | 96% |
+| dynamic range (10th → 95th pct) | **40.3 dB** | **16.9 dB** |
+
+That last row is the whole difference between the two records ✓ ✓ and it
+is why they get different descriptions ✓ ✓: **40.3 dB** is a huge gap
+between quiet and loud — the Shadow Box starts in a room with something
+happening behind you and about two minutes in the floor gives way ✓ ✓.
+**16.9 dB** is a record that holds a level and walks ✓ ✓.
+
+Also measured ✓ ✓: the video's own audio against the master ✓ ✓ —
+correlation **0.9999** ✓ ✓, difference **−48.9 dBFS** ✓ ✓ (codec noise
+only) ✓ ✓ — so the film carries the track unmodified ✓ ✓ and the film's
+description can honestly describe the music ✓ ✓. And the third cut's
+CLIP travel: the picture travels **1.79** over the cut where the lyric
+order would have travelled **2.69** ✓ ✓.
+
+**Five defects the test caught, all fixed at the source ✓ ✓:**
+
+1. **The CLIP measurement appeared TWICE in the third cut ✓ ✓** — once as
+   the cut's own line and again inside the shared paragraph ✓ ✓. The
+   shared paragraph no longer carries it ✓ ✓; the cut does ✓ ✓.
+2. **Every cut described ALL THREE films ✓ ✓** — a viewer of the second
+   film does not need to know what the third one is ✓ ✓. Each cut now
+   leads with its own difference and says which cut of three it is ✓ ✓.
+3. **The copy rounded 40.3 dB to "40 dB" ✓ ✓** — the test caught the
+   lossy number ✓ ✓ and the copy now states the measurement ✓ ✓.
+4. **`videoDescription()` crashed on a rendered entry ✓ ✓** — it wanted
+   `.body` and the rendered entry has none ✓ ✓. It now resolves the work
+   by id ✓ ✓.
+5. **The short music description dropped the dynamic range ✓ ✓** — which
+   is exactly what tells the two records apart ✓ ✓. With it gone, both
+   tracks read as "dark" ✓ ✓ and the difference was invisible ✓ ✓.
+
+**Also fixed:** a duplicate `downtempo` tag in the Shadow Box's list ✓ ✓.
+
+**The rules the test enforces ✓ ✓:**
+
+- No duplicate tag ✓ ✓.
+- No duplicate sentence ✓ ✓.
+- No measurement outside its own cut ✓ ✓ — the first cut does not claim
+  the third cut's numbers ✓ ✓.
+- **No engagement bait** ✓ ✓ — "viral", "you won't believe", "part 1 of
+  999", "#fyp" ✓ ✓. The audience reads it as spam ✓ ✓ and the algorithm
+  buries it ✓ ✓.
+- The process is named ✓ ✓ — Midjourney for the frames ✓ ✓, a Python
+  director that measured every frame for softness and near-duplication
+  before selecting ✓ ✓, Pillow for the overlay ✓ ✓, ffmpeg for the
+  composite ✓ ✓. A creative teenager is here for HOW ✓ ✓.
+- Every work credits the label ✓ ✓.
+
+**Verified:** `npm run test:descriptions` → **130/130** ✓ ✓. The negative
+control was run ✓ ✓ — reintroducing the duplicate measurement fails **3**
+checks ✓ ✓ and passes again once restored ✓ ✓.
+
+**Open:**
+
+- **The YouTube upload is still blocked** ✓ ✓ — see the next entry ✓ ✓.
+- **No per-platform variants** beyond the three lengths ✓ ✓ — Instagram
+  and TikTok want different copy again ✓ ✓.
+
+**Next:** the YouTube upload ✓ ✓ — the session is refreshed ✓ ✓ and the
+poster tool is proven ✓ ✓, but the cookie injection has to be fixed ✓ ✓.
