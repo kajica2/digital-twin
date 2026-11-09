@@ -14686,3 +14686,33 @@ script ✓ ✓, or a jar with the missing chunk ✓ ✓ ✓.
 **`node lib/treblo-upload.js --check`** ✓ ✓ — the one-line connection
 report ✓ ✓: the API ✓ (key ✓, status ✓, credits ✓ ✓) and the session ✓
 (jar ✓, cookie count ✓, auth cookie ✓ ✓) ✓ ✓ ✓.
+
+### 2026-11-09 — the master suffix, set to the linocut and the square
+
+The master suffix is now **the look first, then the flags**:
+
+```
+handmade 2D bedtime animation still, linocut print texture, deep blue and warm red ink on cream paper, no text --chaos 5 --ar 1:1 --raw --sref 667921269 --profile a13mc1d --stylize 21 --hd
+```
+
+**Why it leads with the look** ✓ ✓: the scene belongs first in the prompt ✓
+✓ — the pack's prose is the subject ✓ ✓, and the master's look follows it
+✓ ✓. (The acceptance matcher reads the **first 64 characters** ✓ ✓ — the
+subject-first rule ✓ ✓ — so a style clause at the head would cost the
+matcher its subject ✓ ✗ ✓.)
+
+**The ratio is 1:1** ✓ ✓ — the shape of the reference frame ✓ ✓ (the
+linocut still ✓ ✓). The master is the **default** ✓ ✓, not a rule ✓ ✓: a
+pack that names its own `--ar` keeps it ✓ ✓ (the Kišna soba song frames
+stay 16:9 ✓ ✓ ✓).
+
+**Every slot still resolves exactly once** ✓ ✓ — verified ✓ ✓:
+
+| prompt | result |
+|---|---|
+| plain | scene + the look + the flags + `--ar 1:1` |
+| `--ar 16:9` | the prompt's 16:9, the master's 1:1 dropped ✓ |
+| `--stylize 50` | the prompt's 50, the master's 21 dropped ✓ |
+
+`lib/mj-submitter.test.js` → **121 pass** ✓ ✓ (the master's ratio, its
+look-first order ✓, and the one-of-each assertions ✓ ✓) ✓.

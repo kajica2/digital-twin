@@ -142,14 +142,15 @@ Key settings:
   unless the prompt names its own. Set 2026-11-07 to
 
   ```
-  --chaos 5 --ar 16:9 --seed 1451495020 --raw --sref 667921269 --profile a13mc1d --stylize 21 --hd
+  handmade 2D bedtime animation still, linocut print texture, deep blue and warm red ink on cream paper, no text --chaos 5 --ar 1:1 --raw --sref 667921269 --profile a13mc1d --stylize 21 --hd
   ```
 
-  Low chaos so the picture stays calm, the house 16:9, one seed so a frame
-  can be reproduced, one style reference and one profile so every render
-  lives in the same look, `--raw` and `--stylize 21` because the
-  literal-photo reference is the goal and the stylize is the enemy, and
-  `--hd`. Override
+  It **leads with the look** — the scene belongs first in the prompt, the
+  master follows it ✓. Then: low chaos so the picture stays calm, the
+  square ratio (1:1 — the shape of the reference frame), `--raw` and
+  `--stylize 21` because the literal-photo reference is the goal and the
+  stylize is the enemy, one style reference and one profile so every
+  render lives in the same world, and `--hd`. Override
   per-prompt by naming the flag yourself — and the override *wins*: a
   prompt with its own `--sref`, `--style`, `--raw`, `--s` or `--stylize`
   keeps its own and the master's copy of that slot is dropped, never
