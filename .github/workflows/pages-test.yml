@@ -51,7 +51,10 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          # Node ≥22.5 — doctor.mjs MIN_NODE_MAJOR and node:sqlite
+          # (DatabaseSync) both require it. Node 20 fails serve.js
+          # health checks with "No such built-in module: node:sqlite".
+          node-version: '22'
 
       - name: Guard tracked files, ignore rules, cookie-jar paths and history
         run: node lib/secrets-guard.test.js
@@ -76,7 +79,8 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          # Node ≥22.5 — same reason as the secrets job above.
+          node-version: '22'
 
       - name: Install e2e dependencies
         run: cd e2e && npm install
@@ -210,6 +214,7 @@ jobs:
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node marketplace.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node temple-of-control.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node floating-toolset.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node tool-dashboards.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node integrations.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node mj-dashboard.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node mj-sheets.spec.mjs
@@ -240,6 +245,7 @@ jobs:
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node marketplace.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node temple-of-control.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node floating-toolset.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node tool-dashboards.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node integrations.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node mj-dashboard.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node mj-sheets.spec.mjs
