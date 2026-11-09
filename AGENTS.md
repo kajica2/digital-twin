@@ -1942,6 +1942,141 @@ per-song frame directories are symlinks into the render output ✓ ✓.
   prints the fix ✓ ✓.
 
 
+### 2026-11-09 — sprint 0.105 (the four songs, prepared and generating)
+
+The frames need a soundtrack, and the soundtrack needs the lyrics in
+the shape the generator takes ✓ ✓.
+
+**`lib/keep-it-up-songs.js` ✓ ✓** — splits the source text into the
+generator's two inputs ✓ ✓, one pair per song ✓ ✓:
+
+```
+assets/keep-it-up/audio/lyrics/<slug>.txt
+assets/keep-it-up/audio/tags/<slug>.txt
+```
+
+**Three decisions ✓ ✓:**
+
+- **The production notes become TAGS ✓ ✓.** A note like "[Deep
+  electric bass, light fragmented acoustic drums, sparse piano, dark
+  trombone harmonies, open trumpet solo]" describes HOW to play the
+  section ✓ ✓, so it belongs in the tags ✓ ✓ — and it is a
+  comma-separated LIST ✓ ✓, so each instrument is its own tag ✓ ✓.
+  Flattening the commas made one enormous tag the model would read as
+  a single instruction ✓ ✓.
+- **The section markers are normalised ✓ ✓.** The source writes "[Intro
+  — Spoken]", "[Verse 1]", "[Pre-Chorus — Half-spoken]", "[Final
+  Chorus]" ✓ ✓; the generator knows a small set of names ✓ ✓, so the
+  qualifiers — which are production notes too — travel with the tags ✓ ✓.
+- **The check is the point ✓ ✓.** A splitter that silently drops a line
+  is a disaster you cannot hear ✓ ✓, so the check verifies that EVERY
+  lyric line appears in **that song's** output ✓ ✓ — per song, not
+  globally ✓ ✓ (comparing every song against every source line reports
+  song 1 as missing song 2's words ✓ ✓).
+
+**Two things the first version got wrong ✓ ✓**, both caught by the
+check and then by reading the output ✓ ✓:
+
+- Song 1's header is **BARE** ✓ ✓ — "KEEP IT UP" on line 1 ✓ ✓, with no
+  "01 — " prefix ✓ ✓, unlike the other three ✓ ✓. It was not found at
+  all ✓ ✓.
+- The style field ends with "no mastering." ✓ ✓ and the shared tag is
+  "no mastering" ✓ ✓ — the same instruction twice ✓ ✓. The de-dupe key
+  now ignores trailing punctuation ✓ ✓.
+
+**What the source has, and what it lost ✓ ✓:** the file carries the
+full Suno style field for **song 1** ✓ ✓, but the fields for songs
+2-4 were cut off ✓ ✓. So each song's tags are built from its own
+descriptor line ✓ ✓ (BPM ✓ ✓, genre ✓ ✓, instrumentation ✓ ✓), its
+instrumental production notes ✓ ✓, and the project's shared recording
+character ✓ ✓ — the vocal delivery and the "no effects, no mastering"
+rules, which the paste states once for the project ✓ ✓.
+
+**`bin/keep-it-up-songs.sh` ✓ ✓** — the generation run ✓ ✓, one song at
+a time ✓ ✓, with a **per-song length** ✓ ✓:
+
+| song | words | length |
+|---|---|---|
+| KEEP IT UP | 593 | 240 s |
+| NEEDLE DROP HEALER | 350 | 180 s |
+| SLIP BETWEEN THE BEATS | 333 | 175 s |
+| IT AIN'T WHAT IT IS | 371 | 180 s |
+
+The length is not a taste call ✓ ✓ — a half-spoken delivery runs about
+150 words a minute ✓ ✓, and the instrumental sections (32-64 bars at
+~100 BPM ✓ ✓) are time the word count cannot see ✓ ✓. The script
+**reports the length that came out** ✓ ✓, because a song shorter than
+its words need means the ending was cut ✓ ✓.
+
+**Sequencing ✓ ✓** — the render and the generator want the same
+memory ✓ ✓. Running them together made the render crawl (swap at
+22 GB ✓ ✓) and the browser could not answer CDP at all ✓ ✓. So the
+render was stopped at **41 frames** ✓ ✓ (safe on disk ✓ ✓, and
+`--skip-existing` resumes it ✓ ✓), the songs were generated on a free
+machine ✓ ✓, and the render goes back afterwards ✓ ✓.
+
+
+### 2026-11-09 — sprint 0.106 (the man was not in his own film)
+
+Frame 41 came out as an **old man** with a tambourine ✓ ✓ — in the
+protagonist's own flat ✓ ✓, under the same green window ✓ ✓ and the
+same fan ✓ ✓. The locked character ("a lean man in his thirties" ✓ ✓)
+was not in the prompt at all ✓ ✓.
+
+**The cause ✓ ✓.** The character clause was attached by scanning the
+action for a pronoun ✓ ✓: `/\bhe\b|\bhis\b|\bhim\b/` ✓ ✓. That is
+not the same question as "is the protagonist in this frame" ✓ ✓. In
+
+> an old man stands on a corner with a folded newspaper under his arm
+
+the "his" belongs to the **old man** ✓ ✓ — so the protagonist was being
+rendered into frames he is not in ✓ ✓. Frame 22 came out carrying
+**both** men ✓ ✓, and the picture the model chose was the old one ✓ ✓.
+
+**The fix ✓ ✓.** The **subject** decides ✓ ✓, and the subject is read
+from the **start** of the action ✓ ✓:
+
+1. starts with he/his/him → the protagonist ✓ ✓
+2. starts with somebody else → **not** the protagonist ✓ ✓
+3. otherwise, contains a pronoun → the protagonist ✓ ✓
+4. otherwise → nobody ✓ ✓; the frame is the object ✓ ✓
+
+Rule 2 covers the people the lyrics name ✓ ✓ — the man on the corner
+selling yesterday's news ✓ ✓, the doctor ✓ ✓, the old men playing ✓ ✓,
+the boy in the school corridor ✓ ✓. Rule 1 comes first ✓ ✓, because
+"he stops and listens to the old men" is a **protagonist** frame that
+mentions them ✓ ✓.
+
+**The verifier now checks both directions ✓ ✓.** His frames must carry
+him verbatim ✓ ✓, and the frames whose subject is somebody else must
+**not** carry him at all ✓ ✓ — or the model puts two men in one picture
+✓ ✓. The old check scanned for a pronoun ✓ ✓, so it enforced the same
+mistake ✓ ✓: it demanded the character string on the old man's frame ✓
+✓ and would never have noticed a protagonist wandering into one ✓ ✓.
+
+**The second fix — the places the lyrics take you ✓ ✓.** The man on the
+corner is on a **street** ✓ ✓, and the old men are **next door** ✓ ✓
+("I hear a little drummer coming through the wall" ✓ ✓). Rendered in
+the protagonist's own room ✓ ✓, the cut read as "the man suddenly
+aged" ✓ ✓. So three frames leave the song's room now ✓ ✓ — and a place
+of its own needs a **light** of its own ✓ ✓: "one amber worklight on a
+stand, the rest of the room in deep shadow" on a city corner is
+nonsense ✓ ✓ ("the rest of the room" ✓ ✓), and a next-door room with
+both "one low bulb" and "green-white light through a window" contradicts
+itself ✓ ✓.
+
+The **palette** stays ✓ ✓ — it is what ties the film together ✓ ✓, and
+a street corner in the same palette still belongs to the same night ✓ ✓.
+
+**Verified ✓ ✓:** all 100 prompts pass the stricter check ✓ ✓. Five
+prompts changed ✓ ✓; four rendered frames were stale and have been
+deleted ✓ ✓ so the render redoes them ✓ ✓.
+
+**A lesson worth keeping ✓ ✓** — the check has to ask the **same**
+question the code asks ✓ ✓. Both of them were scanning for a pronoun
+✓ ✓, so they agreed with each other ✓ ✓ and were both wrong ✓ ✓.
+
+
 > **Note on numbering (added at merge).** The sprints below were
 > numbered 0.17–0.25a on the branch that produced them. `main` had
 > independently published 0.17–0.21 (CLIP Interrogator, Refael MP4
