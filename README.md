@@ -72,6 +72,10 @@ For now, what's here:
   panel with TODAY / NOW PLAYING / CODE / PATTERNS that can be parked in
   the corner of any page. The component (`lib/floating-toolset.js`) is
   drop-in.
+- **`pages/tool-dashboards.html`** — family dashboards for every
+  `test:all` suite: eight floating panels (TESTS / RUN / DOCS / STATUS)
+  grouped by watcher / Midjourney / Suno / Treblo / social / media /
+  marketplace / platform. Component: `lib/tool-dashboard.js`.
 - **`pages/persona-social-pack.html`** — the Persona Social Pack: give it
   a URL that carries creative-persona descriptions and it returns, per
   persona, three hashtag tiers (primary / secondary / niche), YouTube
@@ -630,6 +634,28 @@ functional (close / collapse / widen), and the position is remembered.
 It renders in a shadow root, so it cannot fight the host page's CSS, and
 it picks up the skin tokens for free. Reference:
 [`docs/FLOATING-TOOLSET.md`](docs/FLOATING-TOOLSET.md).
+
+
+## Run the Tool Dashboards
+
+Eight floating family panels covering every suite in `npm run test:all`
+— TESTS / RUN / DOCS / STATUS, same chrome as the floating toolset:
+
+```bash
+node lib/serve.js --port 5173
+# → http://127.0.0.1:5173/pages/tool-dashboards.html
+npm run test:tool-dashboard
+npm run e2e:tool-dashboard
+```
+
+```html
+<script src="/lib/tool-dashboard.js"></script>
+<tool-dashboard
+  src="/data/twin/tool-dashboards.json"
+  family="watchers"></tool-dashboard>
+```
+
+Reference: [`docs/TOOL-DASHBOARDS.md`](docs/TOOL-DASHBOARDS.md).
 
 
 ## Run the social worker
