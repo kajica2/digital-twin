@@ -14915,3 +14915,61 @@ line with nothing fits is reported with its reason ✓ ✓ ✓.
   downbeat ✓ (a half-time track is cut on the eighth notes ✓).
 - The clip scoring runs in the clip-interrogator venv ✓ — the director
   itself is stdlib ✓, but the venv is a dependency for the match ✓ ✓.
+
+### 2026-11-09 — the crack, and a film with no jump in it
+
+Asked: *find crack for waves complete* — and *the video must be very
+smooth* ✓ ✓.
+
+**The crack is in the song, not in the audio.** The track
+(`november_8 — Geometric Shadow Box — Treblo.wav` ✓, 159.196 s ✓) was
+scanned sample by sample ✓ ✓: the largest step between two samples is
+8 654 ✓ — **no clicks, no pops** ✓ ✓. What it does have is a **quiet
+passage** ✓: 147.46 s → 157.70 s ✓, and the tail after it is quiet
+too ✓ ✓. That is the crack ✓ — the place where the music opens up ✓.
+
+**So the crack is where a dissolve belongs** ✓ ✓. `lib/story/director.py`
+gained `cracks()` ✓ ✓ — the track's own loudness envelope (ffmpeg-decoded
+PCM, RMS per 20 ms, stdlib only ✓ ✓) and the stretches under the noise
+floor ✓ ✓ — and the cut plan now **prefers a crack over a beat** when one
+is near where a boundary should fall ✓ ✓ ✓.
+
+**The waves complete, and it is measured** ✓ ✓:
+
+| film | median frame-to-frame step | 99th | max | max ÷ median |
+|---|---|---|---|---|
+| hard cuts (the Flow film) | 4.84 | 10.57 | **68.70** | **14.2×** |
+| dissolves (this one) | 6.54 | 13.47 | **17.12** | **2.6×** |
+
+A hard cut spikes the picture 14× the median ✓ ✓; the dissolved film
+never spikes more than 2.6× ✓ ✓ — **there is no jump anywhere in it** ✓ ✓.
+The film is 159.196 s — **the song plays complete** ✓ ✓.
+
+**Three defects the smoothness work exposed, all at the source** ✓ ✓:
+
+1. **A dissolve may not be longer than half the shortest shot it joins**
+   ✓ ✓ (that is the plan's own rule ✓). The crack split the ending into
+   1.4 s and 2.1 s shots ✓, so the plan silently shortened EVERY
+   dissolve in the film to 0.68 s ✓ ✓ and the film came out 13.6 s
+   longer than the song ✓ ✓ — the music was cut off at the end ✓ ✓. A
+   shot is now never shorter than two dissolves ✓ ✓, and a boundary that
+   cannot carry one is not taken ✓ ✓.
+2. **The durations are derived from the CUT POSITIONS, not from the shot
+   count** ✓ ✓ — a dissolve makes consecutive shots overlap, so the
+   film's length is `sum(durations) − (shots − 1) × fade` ✓ ✓. Spreading
+   the shots evenly made the film come out (shots − 1) × fade short ✓ ✓.
+3. **The ending shot is not capped** ✓ ✓ — it is the ending ✓, and it has
+   to reach the end of the song ✓ ✓ (the 12 s cap truncated it to
+   158.45 s ✓ ✓ → 159.39 s ✓ ✓).
+
+**Also shipped:** `--transition none|crossfade` and `--fade` on the
+director ✓ ✓, the cut list carries the planned dissolve length ✓ ✓, and
+`bin/cut-list-to-mp4.mjs` reads it ✓ ✓ (the flag overrides ✓).
+
+**The film** — `~/Desktop/november8-geometric-shadow-box.mp4` ✓ ✓:
+25 shots ✓, 159.20 s ✓ ✓, 1920×1080 / 30 fps / `yuv420p` / `tv` ✓ ✓,
+AAC from the track ✓ ✓, 1.2 s dissolves ✓ ✓, one vignette grade ✓ ✓.
+
+**Open:** the crack detector finds QUIET passages ✓, not every structural
+break ✓ — a track that changes gear without going quiet is not cracked
+by it ✓ ✓.

@@ -92,7 +92,9 @@ const options = {
     fx: fx || 'none',
     grade,
     transition,
-    fade: Number(val('--fade', 0.6)),
+    // The cut list carries the dissolve length it was planned with; the flag
+    // overrides it.
+    fade: Number(val('--fade', undefined) ?? cut.fade ?? 0.6),
     container: 'mp4',
     outputName: path.basename(outPath),
     workDir: path.dirname(outPath),

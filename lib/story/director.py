@@ -238,38 +238,152 @@ def beat_grid(track_path, hop=512, sample_rate=16000):
     return beats, round(bpm, 2)
 
 
-def durations_on_grid(count, track_path=None, minimum=1.2, maximum=12.0):
-    """Seconds per shot: cut on the track's beats and cover the song.
+def energy_envelope(track_path, hop=1024, sample_rate=16000):
+    """The track's loudness over time: (seconds, rms) pairs.
 
-    With a track, the shots are spread across its whole length and each
-    boundary is pulled onto the nearest beat, so a cut lands ON the beat
-    rather than near it, and the last shot ends with the song. Without
-    one, every shot is three seconds.
+    The PCM is decoded by ffmpeg and read here with the array module —
+    no numpy, no dependency.
     """
-    if track_path:
-        beats, _ = beat_grid(track_path)
-        seconds = _ffprobe_duration(track_path)
-        if beats and seconds and len(beats) >= count:
-            # One boundary per shot, each the nearest beat to its share of the
-            # song. The shot's length is the distance to the NEXT boundary —
-            # the distance between two beats, which is a beat, would make
-            # every shot half a second long.
-            span = seconds / float(count)
-            bounds = []
-            at = 0
-            for index in range(count):
-                target = index * span
+    decoded = _ffmpeg(['-i', track_path, '-ac', '1', '-ar', str(sample_rate),
+                       '-f', 's16le', '-'], timeout=300)
+    if decoded is None or not decoded.stdout:
+        return []
+    samples = array('h')
+    samples.frombytes(decoded.stdout[:len(decoded.stdout) - (len(decoded.stdout) % 2)])
+    hop_samples = int(sample_rate * hop / 1000.0)
+    out = []
+    for index in range(0, max(0, len(samples) - hop_samples), hop_samples):
+        chunk = samples[index:index + hop_samples]
+        total = 0
+        for value in chunk:
+            total += value * value
+        out.append((index / float(sample_rate), (total / float(len(chunk))) ** 0.5))
+    return out
+
+
+def cracks(track_path, minimum=0.4, hop=1024):
+    """The moments where the song CRACKS — the quiet passages between movements.
+
+    A crack is a stretch of near-silence inside a track that is otherwise
+    loud. It is where the music opens up, and it is where a dissolve
+    belongs: a cut placed on the crack reads as the film breathing with
+    the song, and a cut placed on a steady beat in the middle of a crack
+    reads as the film missing it.
+
+    Measured on "november_8 — Geometric Shadow Box": the crack runs from
+    148.06 s to 155.86 s, and the track's own tail is quiet after it.
+    """
+    envelope = energy_envelope(track_path, hop=hop)
+    if len(envelope) < 20:
+        return []
+    levels = sorted(level for _, level in envelope)
+    floor = levels[int(len(levels) * 0.05)]
+    threshold = max(1.0, floor * 1.8)
+
+    out = []
+    run = None
+    for seconds, level in envelope:
+        if level < threshold:
+            if run is None:
+                run = seconds
+        else:
+            if run is not None and seconds - run >= minimum:
+                out.append((round(run, 3), round(seconds, 3)))
+            run = None
+    if run is not None:
+        out.append((round(run, 3), round(envelope[-1][0], 3)))
+    return out
+
+
+_CRACK_CACHE = {}
+
+
+def crack_windows(track_path):
+    """The track's cracks, computed once per path."""
+    if not track_path:
+        return []
+    if track_path not in _CRACK_CACHE:
+        _CRACK_CACHE[track_path] = cracks(track_path)
+    return _CRACK_CACHE[track_path]
+
+
+def durations_on_grid(count, track_path=None, minimum=1.2, maximum=12.0, fade=0.0):
+    """Seconds per shot: the cuts land on beats and the film covers the song.
+
+    A dissolve makes consecutive shots OVERLAP by the fade, so the film's
+    length is `sum(durations) - (shots - 1) * fade`. The durations are
+    therefore derived from the CUT POSITIONS rather than from the shot
+    count: the cuts are placed on the track's beats, and each shot is
+    given the distance to the next cut PLUS the fade it shares with it.
+
+    That makes both things true at once: the cuts sit on the beat, and
+    the finished film is exactly as long as the song. Spreading the shots
+    evenly instead made the film come out (shots - 1) x fade short, and
+    the song was cut off at the end.
+    """
+    if not track_path:
+        return [3.0] * count
+
+    beats, _ = beat_grid(track_path)
+    seconds = _ffprobe_duration(track_path)
+    if not seconds or count < 1:
+        return [3.0] * count
+
+    if beats and len(beats) >= 2:
+        # One cut per boundary. A boundary lands on a CRACK when the song
+        # has one near where it should be — the film then breathes with the
+        # music — and on the nearest beat otherwise.
+        windows = crack_windows(track_path)
+        window = max(2.0, seconds * 0.04)
+        # A dissolve may not be longer than half the shortest shot it joins,
+        # so a shot has to be at least twice the fade or the plan silently
+        # shortens every dissolve in the film. The floor is applied here,
+        # before the cuts are placed.
+        floor = max(minimum, 2.0 * fade + 0.2)
+
+        cuts = []
+        at = 0
+        for index in range(count - 1):
+            target = seconds * (index + 1) / float(count)
+            chosen = None
+            for start, _end in windows:
+                if abs(start - target) <= window:
+                    chosen = start
+                    break
+            if chosen is None:
                 at = min(range(at, len(beats)), key=lambda i: abs(beats[i] - target))
-                bounds.append(beats[at])
-            out = []
-            for index in range(count):
-                end = bounds[index + 1] if index + 1 < count else seconds
-                out.append(min(maximum, max(minimum, end - bounds[index])))
-            return out
-        if seconds and count:
-            each = seconds / float(count)
-            return [min(maximum, max(minimum, each))] * count
-    return [3.0] * count
+                chosen = beats[at]
+            if cuts and chosen <= cuts[-1]:
+                later = [b for b in beats if b > cuts[-1]]
+                chosen = later[0] if later else cuts[-1] + floor
+                at = min(range(at, len(beats)), key=lambda i: abs(beats[i] - chosen))
+            # A boundary that would leave a shot shorter than the floor is
+            # not taken: the dissolve could not complete over it.
+            previous = cuts[-1] if cuts else 0.0
+            if chosen - previous < floor and len(cuts) < count - 1:
+                continue
+            cuts.append(chosen)
+        if not cuts:
+            return [3.0] * count
+
+        # The shot lengths: from one cut to the next, plus the fade each
+        # shot shares with the one after it. The last shot runs to the end
+        # of the song. There is one shot per cut, plus the one that opens
+        # the film.
+        out = []
+        for index in range(len(cuts) + 1):
+            start = cuts[index - 1] if index > 0 else 0.0
+            end = cuts[index] if index < len(cuts) else seconds
+            length = max(minimum, end - start + fade)
+            if index < len(cuts):
+                length = min(maximum, length)
+            # The last shot is not capped: it is the ending, and it has to
+            # reach the end of the song or the film comes up short.
+            out.append(length)
+        return out
+
+    each = (seconds + (count - 1) * fade) / float(count)
+    return [min(maximum, max(minimum, each))] * count
 
 
 # --------------------------------------------------------------------------
@@ -436,7 +550,7 @@ class Director:
     # -- the cut ------------------------------------------------------------
 
     def plan(self, candidates, matrix=None, track_path=None, fx='grain',
-             grade='vignette', transition='none'):
+             grade='vignette', transition='none', fade=0.6):
         """The whole decision, in one pass. Returns a plan dict."""
         frames = self.measure(candidates)
         self._spare = []
@@ -484,7 +598,12 @@ class Director:
                 rejected.append({'path': frame['path'], 'reason': 'surplus'})
 
         shots = [m for m in matches if m['frame'] is not None]
-        durations = durations_on_grid(len(shots), track_path)
+        durations = durations_on_grid(len(shots), track_path, fade=fade)
+        # The cut plan may decide on fewer boundaries than lines (a boundary
+        # that cannot carry a full dissolve is not taken), so the shot list
+        # follows the plan rather than the other way round.
+        if len(durations) < len(shots):
+            shots = shots[:len(durations)]
         for shot, duration in zip(shots, durations):
             shot['duration'] = duration
 
@@ -496,6 +615,7 @@ class Director:
             'fx': fx,
             'grade': grade,
             'transition': transition,
+            'fade': fade,
             'track': track_path,
         }
         plan['motions'] = plan_motions(len(shots))
@@ -577,6 +697,7 @@ def write_cutlist(path, plan, images=None):
         'fx': plan['fxs'],
         'grade': plan['grade'],
         'transition': plan['transition'],
+        'fade': plan.get('fade', 0.6),
         'track': plan['track'],
         'shots': [{
             'line': s['line'],
@@ -662,6 +783,10 @@ def main():
     parser.add_argument('--threshold', type=float, default=0.18)
     parser.add_argument('--per-line', type=int, default=1,
                         help='frames each lyric line may keep')
+    parser.add_argument('--transition', default='none', choices=['none', 'crossfade'],
+                        help='how one shot gives way to the next; crossfade is the smooth one')
+    parser.add_argument('--fade', type=float, default=0.9,
+                        help='the dissolve length, crossfade only')
     parser.add_argument('--json', action='store_true')
     args = parser.parse_args()
 
@@ -678,7 +803,8 @@ def main():
     director = Director(lines, threshold=args.threshold, root=os.path.abspath(args.frames),
                         per_line=args.per_line)
     matrix = clip_matrix(frames, queries)
-    plan = director.plan(frames, matrix, track_path=args.track)
+    plan = director.plan(frames, matrix, track_path=args.track,
+                         transition=args.transition, fade=args.fade)
     if args.cutlist:
         write_cutlist(args.cutlist, plan)
     if args.json:
