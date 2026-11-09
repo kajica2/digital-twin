@@ -208,6 +208,13 @@ green.
   layers for cross-project context and scheduled self-reminders. See
   `~/.minimax/agents/mavis/memory/MEMORY.md` for the agent memory
   pattern.
+- **Classify the first move before acting.** Seven agentic first-
+  behaviour classes (Verifier / Executor / Clarifier / Planner /
+  Investigator / Prototyper / Critic) — see
+  `docs/AGENTIC-FIRST-BEHAVIOUR.md`. Route once on first contact,
+  then dispatch; mix classes when the job needs it (e.g. Critic →
+  Planner → Executor). Model choice still lives in
+  `docs/AGENT-PLAN.md`.
 - **The user is Kajica.** See `~/.minimax/memory/user.md` (read-only
   for agents) for cross-project preferences. Local repo git config
   may override global — use the `Kajica Djuric <kai.djuric@gmail.com>`
@@ -15110,3 +15117,19 @@ Homebrew's download was intact ✓ ✓ ✓. REAPER matters here for its
 **ReaScript** API ✓ ✓ (Lua and EEL ✓ ✓): it can host the audio, drive
 the video window ✓ ✓ and export the result ✓ ✓ — a second path to the
 same films ✓ ✓.
+
+### 2026-11-09 — agentic first behaviour (seven classes)
+
+Encoded the seven first-contact modes as durable twin routing:
+
+- **`docs/AGENTIC-FIRST-BEHAVIOUR.md`** — Verifier / Executor /
+  Clarifier / Planner / Investigator / Prototyper / Critic: first
+  move, best-for, failure mode, cheat-sheet, and house chains that
+  map onto this repo (e2e fix, tool page, protected merge, secrets).
+- Linked from `docs/AGENT-PLAN.md` (model routing stays there; first-
+  move routing lives here), `AGENTS.md` § Things to remember, and
+  `docs/REPOSITORY-GUIDE.md` entry-point table.
+- **Decision:** classify once on first contact, then dispatch — do not
+  stay in the opening class for the whole job unless the job is one
+  class. Prefer Executor/Prototyper for clear reversible work; Critic
+  or Clarifier before irreversible/publish/credential work.

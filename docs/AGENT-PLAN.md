@@ -8,7 +8,10 @@
 > `copilot` is the **executor** in the twin's model. This plan is the routing
 > table — which model handles which kind of work — and the invocation
 > patterns to run it. `AGENTS.md` defines *what* the agent does; this
-> doc defines *which model* does it.
+> doc defines *which model* does it. For *how to start* on first contact
+> with a prompt (Verifier / Executor / Clarifier / Planner /
+> Investigator / Prototyper / Critic), see
+> [`docs/AGENTIC-FIRST-BEHAVIOUR.md`](./AGENTIC-FIRST-BEHAVIOUR.md).
 
 ## Roles and model routing
 
