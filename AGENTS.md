@@ -1780,6 +1780,81 @@ two films ✓ ✓, delete the stale drafts ✓ ✓, verify each video is public
 with its title, description and tags ✓ ✓.
 
 
+### 2026-11-09 — sprint 0.103.b (the Studio layout moved, and the session went stale)
+
+Two more sessions on the same upload. The layout findings are durable ✓ ✓
+— the UI moved under the tool ✓ ✓ — and the session blocker is now
+isolated ✓ ✓.
+
+**The Studio layout moved ✓ ✓ — three things, all found by looking at
+the page ✓ ✓:**
+
+1. **A DRAFT's edit page opens READ-ONLY ✓ ✓.** The title and
+   description fields exist and accept typed text ✓ ✓, but Save stays
+   disabled ✓ ✓ and the visibility control is not in the DOM ✓ ✓ — so
+   everything typed goes nowhere ✓ ✓. **"Edit draft" is the button
+   that enters the editable state** ✓ ✓, and the poster never clicked
+   it ✓ ✓ — which is why it reported `title set` for a video where
+   nothing was saved ✓ ✓.
+2. **The visibility control moved under "Audience"** ✓ ✓ and is a
+   dropdown whose trigger reads **"Select"** until a value is chosen ✓ ✓.
+   The old selector (`ytcp-video-metadata-visibility #container`)
+   matches nothing on it ✓ ✓ — so the visibility was never set ✓ ✓ and
+   the poster reported the control "reads unknown" ✓ ✓.
+3. **There are TWO save buttons ✓ ✓:** `#save` (page-level, disabled
+   unless something changed) and `#done-button` (the stepper's final
+   action, also labelled "Save") ✓ ✓. The old code clicked only
+   `#save` ✓ ✓, which is disabled forever on a draft ✓ ✓.
+
+All three are handled now ✓ ✓, and both layouts are supported ✓ ✓ — the
+read-back decides which one the page is on ✓ ✓.
+
+**The editable probe was reading only `#save` ✓ ✓**, so it called a
+perfectly editable form "not editable" ✓ ✓. It considers `#done-button`
+too ✓ ✓.
+
+**The `--resume` path never ensured the session ✓ ✓.** It failed with
+"title NOT set (no field)" ✓ ✓, "save button: none" ✓ ✓ — and every one
+of those readings was **correct** ✓ ✓: the browser was on the "Signed
+out" chooser ✓ ✓, so there were genuinely no fields ✓ ✓. Both paths
+now go through `ensureSession()` ✓ ✓ — probe ✓ ✓, and inject the jar
+ONLY when the browser is not signed in ✓ ✓ — so a live session is never
+overwritten ✓ ✓ and a dead one fails **loudly** instead of reporting
+"no field" ✓ ✓.
+
+**The session blocker, isolated ✓ ✓:**
+
+- The cookie jar is **structurally valid** ✓ ✓ — `SID` present ✓ ✓,
+  153 characters ✓ ✓, expiry 2027 ✓ ✓, `__Secure-3PSID` present ✓ ✓,
+  `ACCOUNT_CHOOSER` present ✓ ✓.
+- The extraction captures **184 cookies** ✓ ✓ — but only when it
+  launches **COMET** ✓ ✓. Launching **Chrome** with Comet's cookie
+  store decrypts **none** of them ✓ ✓ (Comet owns the key) ✓ ✓, which
+  is why the capture kept yielding the handful of unencrypted cookies
+  ✓ ✓. `tools/treblo-connect.mjs` already knew this ✓ ✓.
+- With the 184-cookie jar injected, the browser still lands on the
+  **account chooser** ✓ ✓. So the session is **stale** ✓ ✓, and
+  `ensureSession()` now says so in one line ✓ ✓ instead of blaming the
+  page ✓ ✓.
+
+**The state of the channel ✓ ✓:** five drafts ✓ ✓ — the four stale
+ones ✓ ✓ plus one fresh, complete upload ✓ ✓ (`SplnU112x4c` ✓ ✓,
+2:40 ✓ ✓, media transferred ✓ ✓). The fresh one has its **title** ✓ ✓,
+**description** ✓ ✓ and **11 tags** ✓ ✓ set and saved ✓ ✓ — only the
+**visibility** is still "Select" ✓ ✓.
+
+**Also shipped ✓ ✓:** `lib/flux2-renderer/render-many.py --skip-existing`
+✓ ✓ — a 100-frame batch takes hours ✓ ✓ and the model load alone is
+175 s ✓ ✓, so a batch that cannot resume loses everything when the
+render has to be stopped ✓ ✓. The seed is deterministic ✓ ✓, so a
+skipped frame is identical to a re-render ✓ ✓.
+
+**Next ✓ ✓:** re-establish the YouTube session ✓ ✓ (the user's live
+Comet is signed in — the copy route is what is stale) ✓ ✓, set the
+visibility on the five drafts ✓ ✓, publish the three films ✓ ✓, and
+delete the four stale ones ✓ ✓.
+
+
 > **Note on numbering (added at merge).** The sprints below were
 > numbered 0.17–0.25a on the branch that produced them. `main` had
 > independently published 0.17–0.21 (CLIP Interrogator, Refael MP4
