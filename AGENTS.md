@@ -15110,3 +15110,105 @@ Homebrew's download was intact ✓ ✓ ✓. REAPER matters here for its
 **ReaScript** API ✓ ✓ (Lua and EEL ✓ ✓): it can host the audio, drive
 the video window ✓ ✓ and export the result ✓ ✓ — a second path to the
 same films ✓ ✓.
+
+### 2026-11-09 — sprint 0.100 (the media library — a shelf of the clips the twin owns)
+
+The director cuts FRAMES into a music video. This is where the VIDEO comes
+from: a library of clips the twin has ingested, each one probed once and
+recorded by content hash, and a verb that pulls the frames back out so the
+director can eat them.
+
+**Shipped:**
+
+- **`lib/story/media.py`** — the media library. `ingest` adds clips (copied
+  or moved), `list` shows the shelf, `extract` pulls frames out of a clip
+  for the director. Pure stdlib + `ffprobe` ✓ ✓.
+- **`lib/story/media.test.py`** — **44 checks** ✓ ✓, pure stdlib, no network
+  and no model: the naming, the path redaction, the ffprobe parsing and the
+  index's round trip. Wired into `npm run test:all` ✓ ✓.
+- **`docs/MEDIA-LIBRARY.md`** — the reference ✓ ✓.
+- **npm** — `story:media`, `story:media:ingest`, `story:media:list`,
+  `test:media` ✓ ✓.
+- **`.gitignore`** — `lib/story/media/` ✓ ✓: the clips are the author's own
+  video and the index describes them. The library's CODE is tracked; what it
+  holds is not ✓ ✓ — the same rule as `data/songs/catalog.json` ✓ ✓.
+- **`lib/story/README.md`** — the new module in the table ✓ ✓.
+
+**The three decisions:**
+
+1. **`ffprobe`, not PyAV** ✓ ✓ — probing a container does not need a 476 MB
+   virtualenv ✓ ✓. The one that DOES ✓ ✓ — PyAV ✓ ✓ — stays where it earns
+   its keep ✓ ✓: frame-accurate decode in `waveform.py` ✓ ✓. `media.py`
+   runs on the system Python with no `uv sync` at all ✓ ✓.
+2. **The index records the source's BASENAME, not its path** ✓ ✓ — an
+   absolute path names the author's filesystem ✓ ✓ and the index travels ✓ ✓
+   (it is pasted, shared, read by other tools) ✓ ✓. `--keep-abspath` puts it
+   back for local debugging ✓ ✓ — the same contract `lib/songs-indexer.js`
+   already uses ✓ ✓.
+3. **The index is keyed by the clip's name, not appended to** ✓ ✓ — a
+   re-ingest REPLACES its record ✓ ✓. An index that grows a line per
+   re-ingest is an index nobody can read ✓ ✓, and `--force` would grow it on
+   every run ✓ ✓.
+
+**Two bugs found by running it, both fixed at the source:**
+
+1. **The index landed inside `clips/`** ✓ ✓ — `--dest` was pointing the
+   library at the clips directory ✓ ✓ so the index was written among the
+   videos ✓ ✓. The layout is now `media/clips/` + `media/index.jsonl` ✓ ✓,
+   and `extract` was given the clips directory instead of the media root ✓ ✓
+   (it was resolving against the wrong one ✓ ✓).
+2. **The list table's columns did not line up** ✓ ✓ — the filename field
+   was a fixed 28 characters ✓ ✓, so a longer name overflowed it ✓ ✓ and the
+   row drifted away from its header ✓ ✓. The columns now size to their own
+   content ✓ ✓.
+
+**Verified end-to-end, against the real clips** ✓ ✓:
+
+- **Ingest** — three real Kišna soba cuts ✓ ✓ → **3 ingested · 0 skipped ·
+  0 failed** ✓ ✓, 1920×1080 h264 @ 30 fps ✓ ✓, 60.0 s / 48.0 s / 48.0 s ✓
+  ✓ — every figure **cross-checked against `ffprobe`** ✓ ✓.
+- **The index** — 3 lines ✓ ✓, and **no absolute path in any of them** ✓ ✓
+  (`grep "/Users/"` → clean ✓ ✓).
+- **Dedupe** — the same three files re-ingested → **3 duplicates, 0
+  ingested** ✓ ✓ and the index **stayed at 3 lines** ✓ ✓ (the hash is the
+  identity ✓ ✓, not the name ✓ ✓).
+- **Extract** — `extract kisna-soba --fps 0.5 --start 10 --duration 20` →
+  **exactly 10 frames** ✓ ✓ (0.5 fps × 20 s ✓ ✓ — the arithmetic lands ✓
+  ✓), real 1920×1080 JPEGs ✓ ✓.
+- **The whole chain** — extracted frames → `director.py` → a cut list with a
+  real shot ✓ ✓ → `cut-list-to-mp4.mjs` → a **1920×1080 H.264 MP4, 3.000 s**
+  ✓ ✓, `ISO Media, MP4 Base Media v1` ✓ ✓. The library is a SOURCE ✓ ✓,
+  not a catalogue ✓ ✓.
+- `npm run test:media` → **44/44** ✓ ✓.
+
+**Decisions:**
+
+- **Rewrote the untracked `scripts/drop.sh`** ✓ ✓ rather than shipping it
+  ✓ ✓ — it needed the story venv to probe a container ✓ ✓, it wrote the
+  absolute home path into its index ✓ ✓, and it kept a SIDECAR per file
+  **and** the index ✓ ✓ — two records of the same fact ✓ ✓, free to drift
+  ✓ ✓. One index ✓ ✓.
+- **A clip's name is its stem plus the day it arrived** ✓ ✓ — the day keeps
+  two drops of differently-named-but-identical material apart ✓ ✓ and the
+  stem keeps the provenance ✓ ✓.
+- **`extract` takes a path, an exact library name, or a stem** ✓ ✓ — so
+  `kisna-soba` finds `kisna-soba-ep1-ep2-cut-20261109.mp4` ✓ ✓. A stem
+  matching several clips is an **error, not a guess** ✓ ✓.
+- **No watching** ✓ ✓ — ingest is explicit ✓ ✓. A file on the Desktop does
+  not appear on the shelf until it is handed over ✓ ✓.
+
+**Open:**
+
+- **No text layer anywhere in the story pipeline** ✓ ✓ — `drawtext` appears
+  in exactly two files in the whole repo ✓ ✓ and both are the Refael MP4
+  Maker page ✓ ✓. The words are only ever an INPUT to CLIP ✓ ✓, never an
+  OUTPUT to the screen ✓ ✓. For a music video that is the biggest missing
+  dimension ✓ ✓ — the next sprint ✓ ✓.
+- **No second picture layer** ✓ ✓ — the visualiser's curtain is composited
+  with `overlay` ✓ ✓, not blended ✓ ✓.
+- **The library holds no transcript** ✓ ✓ — a clip on the shelf says
+  nothing about what happens in it ✓ ✓.
+
+**Next:** the lyric layer ✓ ✓ — `drawtext` over the finished cut ✓ ✓, timed
+to the cut list ✓ ✓, so the words land on the picture ✓ ✓. Then the
+library's clips into the reel watcher ✓ ✓, so a cut becomes a reel ✓ ✓.
