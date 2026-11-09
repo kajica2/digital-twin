@@ -14754,3 +14754,47 @@ found by running it, not by reading it ✓✓:**
 question is whether it is the prompt at all** ✓ ✓ — and the cheapest control
 is a command that is **known to have worked** ✓ ✓, submitted verbatim ✓ ✓ ✓.
 A refusal costs nothing (no job is queued ✓ ✓), so the bisection is free ✓ ✓.
+
+### 2026-11-09 — the master prompt is a job, not a string
+
+The prompt settings of record are now **the command of a real Midjourney
+job**, read from the feed (`tools/mj-feed-probe.mjs` ✓ — the recorded
+command, not the page's `og:image` ✓): the master is
+**`d4c8ff53-5e7d-4082-8314-04e97d47859f`** ✓ ✓. Its look sentence
+(`handmade 2D bedtime animation still, linocut print texture, deep blue
+and warm red ink on cream paper, no text` ✓) and its flags (`--chaos 5
+--ar 16:9 --raw --profile a13mc1d --edit <the artist> --stylize 21 --hd
+--v 8.2` ✓) travel with every frame ✓ ✓; its scene does not ✓ — the
+scene is the frame's own ✓ ✓ ✓.
+
+**Three lessons, all measured ✓ ✓:**
+
+1. **A pack's bullet carries its scene and its ratio, nothing else** ✓ —
+   every other flag belongs to the master ✓ ✓. The first version of the
+   pack carried the whole suffix ✓ and the composed prompt had **two**
+   `--v 8.2` ✓ ✓ — the duplicated-flag class the repo has hit three
+   times ✓ ✓.
+2. **The style code `--sref 667921269` stopped resolving** ✓ — and the
+   proof was a control, not a guess ✓ ✓: a command that had **worked at
+   03:32** was **refused at 11:00** with identical text ✓ ✓, and
+   accepted the moment the code was dropped ✓ ✓. The look it carried
+   was in the prose anyway ✓ ✓.
+3. **The October `--edit` assets have expired** ✓ — every prompt naming
+   them is refused ✓ ✓ (MJ logs the text and never asks for a
+   submission ✓ ✓). The master's own `--edit` is today's ✓ ✓ and
+   works ✓ ✓ — and it is what keeps the artist in the frame ✓ ✓ ✓.
+
+**The frames** ✓ — twelve, `find-your-flow-12.md` ✓ → 12/12 edit jobs
+✓ ✓, all with the artist's own face ✓ ✓ and the linocut look ✓ ✓:
+the hum at dawn ✓, the cold cup on the sill ✓, the avenue ✓, the
+corridor ✓, the neighbours' guitar as a shadow on the plaster ✓, the
+ragged-and-sweet playing ✓, "I'm alone" on the empty street ✓, the
+flow ✓, the brother on the phone through a rain-speckled window ✓,
+the worn fingertips on the strings ✓, and the groove in the middle of
+the avenue ✓ ✓. Read off the contact sheet ✓ ✓ — every frame is the
+lyric's beat ✓ ✓ and the man is the same man in all twelve ✓ ✓ ✓.
+
+**The cuts** ✓ — `find-your-flow-cut.mp4` ✓ (48.0 s ✓, a different
+move per shot ✓ ✓), `find-your-flow-crossfade.mp4` ✓ (41.4 s ✓) and
+`find-your-flow-loop.mp4` ✓ (88.0 s ✓) — all 1920×1080 / 30 fps /
+`yuv420p` / `tv` ✓ ✓ ✓.
