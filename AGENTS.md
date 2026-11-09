@@ -15212,3 +15212,125 @@ director can eat them.
 **Next:** the lyric layer ✓ ✓ — `drawtext` over the finished cut ✓ ✓, timed
 to the cut list ✓ ✓, so the words land on the picture ✓ ✓. Then the
 library's clips into the reel watcher ✓ ✓, so a cut becomes a reel ✓ ✓.
+
+### 2026-11-09 — sprint 0.101 (the lyric layer — the words, on the picture)
+
+The director already knows which lyric line each shot carries — it matches
+the words to the pictures with CLIP and writes them into the cut list. Until
+now that knowledge stopped at the cut list: the words were an INPUT to CLIP,
+never an OUTPUT to the screen. This is that output.
+
+**Shipped:**
+
+- **`lib/story/lyrics.py`** — the lyric layer. A line fades in over its own
+  shot, holds, and fades out when the shot gives way. Pure stdlib + Pillow
+  + ffmpeg ✓ ✓.
+- **`lib/story/lyrics.test.py`** — **59 checks** ✓ ✓, pure stdlib, no network
+  and no model. Wired into `npm run test:all` ✓ ✓.
+- **`docs/LYRIC-LAYER.md`** — the reference ✓ ✓.
+- **npm** — `story:lyrics`, `test:lyrics` ✓ ✓.
+- **`lib/story/README.md`** — the new module in the table ✓ ✓.
+
+**The constraint that shaped it — `drawtext` is NOT available ✓ ✓.**
+
+`drawtext` is the obvious way to put text in a video ✓ ✓ and this machine's
+ffmpeg does not have it ✓ ✓: the PATH ffmpeg is a Homebrew build **without
+libfreetype** ✓ ✓, so `ffmpeg -filters | grep drawtext` returns **nothing**
+✓ ✓ (verified ✓ ✓: 0 matches ✓ ✓). A bundled ffmpeg elsewhere on the box
+DOES have it ✓ ✓ — but every tool in this repo invokes the PATH ffmpeg ✓ ✓,
+and a tool that only works when a different binary happens to be first on
+PATH is a tool that breaks quietly ✓ ✓.
+
+So the text is **drawn, not typeset** ✓ ✓: Pillow renders it to an RGBA
+overlay ✓ ✓ and the overlay is streamed into ffmpeg's `overlay` filter ✓ ✓ —
+the same shape `lib/story/waveform.py` already uses for the waveform lines
+✓ ✓, proven ✓ ✓ and needing no special ffmpeg build ✓ ✓.
+
+**The timing is the renderer's timing ✓ ✓ — and this was a real bug ✓ ✓.**
+
+The renderer JOINS the shots ✓ ✓ and a crossfade makes them overlap ✓ ✓. My
+first implementation timed the lyrics as if the shots were back to back ✓ ✓
+and it was wrong ✓ ✓ — measured against the real renderer ✓ ✓, the 4s+4s /
+fade-1 case puts the join at **3.000s** ✓ ✓, not 4.000s ✓ ✓, and my code
+had computed **1.0** ✓ ✓.
+
+The window is now the shot's **DOMINANT span** ✓ ✓ — from the moment it
+starts to take over to the moment the next one does ✓ ✓, which with a
+crossfade is the midpoint of the dissolve ✓ ✓, exactly where the picture
+crosses half-and-half ✓ ✓. The windows never overlap ✓ ✓, so two lyrics
+are never on the screen at once ✓ ✓. The arithmetic is the renderer's own
+✓ ✓ (`sum(segments before) - i * fade` ✓ ✓, `sum(durations) - (n-1) * fade`
+✓ ✓) and every case matches the renderer ✓ ✓:
+
+| case | renderer | the lyric layer |
+|---|---|---|
+| 4s + 4s, 1s dissolve | join 3.000s, film 7.000s | 0.00 → 3.50, 3.50 → 7.00 |
+| 4s + 2s, 5s dissolve asked | clamped to 1s, film 5.000s | 0.00 → 3.50, 3.50 → 5.00 |
+| 4s + 4s + 4s, 1s dissolve | film 10.000s | 0.00 → 3.50, 3.50 → 6.50, 6.50 → 10.00 |
+
+**Three bugs found by running it, all fixed at the source ✓ ✓:**
+
+1. **The ffmpeg inputs were swapped ✓ ✓ — and it failed SILENTLY ✓ ✓.**
+   The film was input 0 and the overlay input 1 ✓ ✓, so the opaque film was
+   painted *on top of* the text ✓ ✓. The first run wrote **180 frames** ✓ ✓,
+   **exited 0** ✓ ✓, and changed **ZERO pixels** ✓ ✓ — verified by
+   differencing the frames, not by the exit code ✓ ✓. The order is now a
+   pure function (`build_ffmpeg_command`) ✓ ✓ and it is ASSERTED ✓ ✓ — and
+   the assertion was checked against a deliberately broken build ✓ ✓, where
+   it fails ✓ ✓ (negative control ✓ ✓).
+2. **The audio was never mapped ✓ ✓** — the film's own track is the music
+   ✓ ✓, and a lyric video without the song is a silent video ✓ ✓. Now
+   `-map 1:a?` with `-c:a copy` ✓ ✓.
+3. **A lyric line that is ONE long word was never broken ✓ ✓** — the
+   character-break only ran inside the loop over the words AFTER the first
+   ✓ ✓, so a single long word ran off the edge of the picture ✓ ✓. The
+   check is now per word ✓ ✓.
+
+Plus two more found by running it ✓ ✓: `Image.draw()` does not exist ✓ ✓
+(it is `ImageDraw.Draw(image)` ✓ ✓), and the ffmpeg `-vsync` flag is not
+recognised by this build ✓ ✓ (it is `-fps_mode passthrough` ✓ ✓).
+
+**Verified end-to-end, on a real film ✓ ✓:**
+
+- **A real cut** — two shots rendered by the repo's own renderer ✓ ✓
+  (1920×1080 ✓ ✓), then the lyrics burned in ✓ ✓ → **180 frames** ✓ ✓.
+- **The pixels** — differencing the output against the source ✓ ✓:
+  **7,565 changed pixels** ✓ ✓ (0.365% of the frame ✓ ✓) and the text
+  bounding box lands at **x 794–1124, y 915–957** ✓ ✓ — the lower third,
+  exactly where the layout says ✓ ✓.
+- **Read by eye** ✓ ✓: "Ne može biti to" ✓ ✓ on the white shot ✓ ✓ and
+  "Nema me u meni" ✓ ✓ on the black one ✓ ✓ — **legible on both extremes**
+  ✓ ✓, and the Serbian diacritics (ž, ć) render correctly ✓ ✓.
+- **The fade is exact** ✓ ✓ — measured frame by frame across the cut ✓ ✓:
+  255 → 255 → 255 → 255 → **0** (the cut) → 23 → 45 → 68 → 90 → 112 → 133 →
+  154 → 175 → 196 → 218 ✓ ✓ — a clean linear ramp over 0.4 s ✓ ✓.
+- **The audio survives** ✓ ✓ — a film with a real AAC track comes out with
+  **aac, 44100 Hz, 6.000 s** ✓ ✓, matching the source exactly ✓ ✓.
+- `npm run test:lyrics` → **59/59** ✓ ✓.
+
+**Decisions:**
+
+- **Pillow draws the text, ffmpeg does not typeset it ✓ ✓** — because
+  `drawtext` is not in this ffmpeg build ✓ ✓, and the house pattern for an
+  overlay is already Pillow → raw RGBA → `overlay` ✓ ✓.
+- **A four-way dark halo behind the text ✓ ✓** — the picture behind a
+  lyric can be black or cream ✓ ✓, and cream text on a cream picture is
+  invisible ✓ ✓ (the same lesson the waveform lines learned ✓ ✓).
+- **Georgia first ✓ ✓** — of six system faces ✓ ✓, every one checked for
+  the Serbian Cyrillic and the Latin Extended-A the lyrics are written in
+  ✓ ✓. A font that cannot render "Ne može biti to" renders boxes ✓ ✓.
+- **The lyric is a separate pass over the finished film ✓ ✓**, not a
+  filter in the render ✓ ✓ — so the words can be re-laid without re-rendering
+  the cut ✓ ✓.
+
+**Open:**
+
+- **No word-by-word timing ✓ ✓** — a line fades in with its shot, not with
+  its syllables ✓ ✓. Karaoke timing needs a forced aligner ✓ ✓.
+- **No styling per line ✓ ✓** — one face, one colour, one position for the
+  whole film ✓ ✓.
+- **The library's clips are not yet in the reel watcher ✓ ✓** — so a cut
+  does not become a reel automatically ✓ ✓.
+
+**Next:** the library's clips into the reel watcher ✓ ✓, so a cut becomes a
+reel ✓ ✓. Then a second picture layer blended rather than composited ✓ ✓.
