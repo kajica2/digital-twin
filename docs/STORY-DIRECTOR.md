@@ -156,8 +156,8 @@ clip rendered from the page are the same video.
 
 When stills become a video, the cut list says what to show. The narration
 says what to say over it: one spoken beat per shot, timed to the shot's
-own duration, written in the house voice (short sentences; silence is a
-note — see `docs/PERSONALITY-TONE-GUIDE.md`).
+place on the **rendered** timeline, written in the house voice (short
+sentences; silence is a note — see `docs/PERSONALITY-TONE-GUIDE.md`).
 
 `write_cutlist` writes the companion files by default, beside the cut
 list:
@@ -172,6 +172,14 @@ pick up a grounding clause ("We see …"); a long one is trimmed to the
 word budget so it can be read inside the shot. Same cut → same story —
 no model call.
 
+**Timestamps follow the renderer.** For a hard cut that is just the
+running sum of durations. For a crossfade each join overlaps by the
+dissolve, so shot `i` starts at `sum(d[0..i-1]) − i × fade` — the same
+offset `lib/render/plan.mjs` feeds to `xfade`. The word budget still
+uses the full shot length (you speak across the dissolve); only the
+start/end markers move. `durationSec` is the film length
+(`sum(durations) − (n−1) × fade`), not the sum of the shot lengths.
+
 ```bash
 # skip narration when writing the cut
 python3 lib/story/director.py --frames <dir> --lines <song>.lines.tsv \
@@ -183,7 +191,8 @@ python3 lib/story/director.py --narrate-cutlist /tmp/song.v1.json
 
 `bin/cut-list-to-mp4.mjs` also ensures the narration siblings exist before
 it renders, so a cut list that arrived without them still gets a story.
-Pass `--no-narration` to leave them alone.
+Pass `--no-narration` to leave them alone. Narration status lines go to
+**stderr**, so `--json` keeps stdout as one parseable object.
 
 ## Tests
 

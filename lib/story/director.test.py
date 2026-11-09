@@ -315,6 +315,9 @@ def test_write_cutlist_emits_narration():
     eq(len(payload['segments']), 2, "one segment per shot")
     eq(payload['segments'][0]['start'], 0.0, "the first beat starts at zero")
     eq(payload['segments'][1]['start'], 4.0, "the second beat follows the first duration")
+    eq(payload['durationSec'], 9.0, "hard-cut duration is the sum of the shots")
+    eq(payload['transition'], 'none', "hard cut records transition=none")
+    eq(payload['fade'], 0.0, "hard cut carries no dissolve")
     check(payload['segments'][0]['narration'], "every segment carries spoken text")
     check(payload['track'] == 'song.mp3', "the narration remembers the track")
     check('Speak' in open(md_path).read(), "the markdown script is readable")
@@ -326,6 +329,55 @@ def test_write_cutlist_emits_narration():
     os.remove(path)
     os.remove(json_path)
     os.remove(md_path)
+
+
+def test_crossfade_narration_subtracts_dissolve():
+    print("narration — crossfade timestamps subtract the dissolve overlap")
+    # Three 4s shots with a 1.0s dissolve. The rendered film is
+    # 4+4+4 - 2*1 = 10s, and shot i starts at sum(d[0..i-1]) - i*fade —
+    # the same offset lib/render/plan.mjs feeds to xfade. Without the
+    # subtraction the last beat would start at 8s and the film would
+    # claim 12s while the video ends at 10s.
+    cut = {
+        'transition': 'crossfade',
+        'fade': 1.0,
+        'track': 'song.mp3',
+        'shots': [
+            {'line': 'one', 'query': 'a doorway', 'image': 'a.png', 'duration': 4.0},
+            {'line': 'two', 'query': 'a window', 'image': 'b.png', 'duration': 4.0},
+            {'line': 'three', 'query': 'a street', 'image': 'c.png', 'duration': 4.0},
+        ],
+    }
+    payload = build_narration(cut)
+    eq(payload['fade'], 1.0, "the dissolve length is recorded")
+    eq(payload['transition'], 'crossfade', "the transition is recorded")
+    eq(payload['segments'][0]['start'], 0.0, "shot 1 starts at 0")
+    eq(payload['segments'][1]['start'], 3.0, "shot 2 starts at d0 - fade")
+    eq(payload['segments'][2]['start'], 6.0, "shot 3 starts at d0+d1 - 2*fade")
+    eq(payload['durationSec'], 10.0,
+       "film length is sum(durations) - (n-1)*fade, not the sum alone")
+    # A dissolve longer than half the shortest shot is clamped the way
+    # plan.mjs clamps it — a 3.0s fade on 4.0s shots becomes 2.0s.
+    clamped = build_narration({
+        'transition': 'crossfade', 'fade': 3.0, 'track': None,
+        'shots': [
+            {'line': 'a', 'query': 'q', 'image': 'a.png', 'duration': 4.0},
+            {'line': 'b', 'query': 'q', 'image': 'b.png', 'duration': 4.0},
+        ],
+    })
+    eq(clamped['fade'], 2.0, "a dissolve longer than half the shortest shot is clamped")
+    eq(clamped['segments'][1]['start'], 2.0, "the second beat starts at d0 - clamped fade")
+    eq(clamped['durationSec'], 6.0, "clamped film length is sum - fade")
+    # Hard cuts ignore a fade value left on the cut.
+    hard = build_narration({
+        'transition': 'none', 'fade': 1.0, 'track': None,
+        'shots': [
+            {'line': 'a', 'query': 'q', 'image': 'a.png', 'duration': 4.0},
+            {'line': 'b', 'query': 'q', 'image': 'b.png', 'duration': 4.0},
+        ],
+    })
+    eq(hard['fade'], 0.0, "a hard cut carries no dissolve even when fade is set")
+    eq(hard['segments'][1]['start'], 4.0, "a hard cut advances by the full duration")
 
 
 def main():
@@ -340,7 +392,8 @@ def main():
                  test_fx_plan, test_lines_loader, test_cutlist_is_what_the_renderer_reads,
                  test_word_budget_and_fit, test_spoken_and_ground,
                  test_narrate_shot_sizes_to_duration, test_story_arc_names_the_ends,
-                 test_write_cutlist_emits_narration):
+                 test_write_cutlist_emits_narration,
+                 test_crossfade_narration_subtracts_dissolve):
         test()
     print()
     if _failures:

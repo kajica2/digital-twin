@@ -943,14 +943,46 @@ def story_arc(shots):
             % (first, last, len(shots)))
 
 
+def _dissolve_fade(cut, durations):
+    """Effective dissolve length for a cut, matching lib/render/plan.mjs.
+
+    Crossfade joins overlap by `fade`, and a dissolve cannot be longer than
+    half the shortest shot it joins. Hard cuts (`transition != crossfade`)
+    and single-shot cuts carry no dissolve.
+    """
+    if (cut.get('transition') or 'none') != 'crossfade':
+        return 0.0
+    if len(durations) < 2:
+        return 0.0
+    try:
+        fade = float(cut.get('fade') if cut.get('fade') is not None else 0.6)
+    except (TypeError, ValueError):
+        fade = 0.6
+    if fade <= 0:
+        return 0.0
+    positive = [d for d in durations if d > 0]
+    if not positive:
+        return 0.0
+    return min(fade, min(positive) * 0.5)
+
+
 def _shot_rows(cut):
-    """Normalise a plan or a cut-list payload into narration shot rows."""
+    """Normalise a plan or a cut-list payload into narration shot rows.
+
+    Timestamps follow the *rendered* timeline. For a hard cut that is just
+    the running sum of durations; for a crossfade each join overlaps by the
+    dissolve, so shot i starts at `sum(d[0..i-1]) - i * fade` — the same
+    offset lib/render/plan.mjs feeds to xfade. Without that subtraction the
+    later beats drift past their pictures and past the video's end.
+    """
     rows = []
     shots = cut.get('shots') or []
     if shots:
+        durations = [float(shot.get('duration') or 0) for shot in shots]
+        fade = _dissolve_fade(cut, durations)
         t = 0.0
-        for shot in shots:
-            duration = float(shot.get('duration') or 0)
+        for index, shot in enumerate(shots):
+            duration = durations[index]
             frame = shot.get('frame')
             image = shot.get('image')
             if image is None and isinstance(frame, dict):
@@ -964,14 +996,24 @@ def _shot_rows(cut):
                 'start': t,
                 'end': t + duration,
             })
-            t += duration
+            # Advance by the exclusive step: full duration minus the
+            # dissolve shared with the next shot (none for the last).
+            if index < len(shots) - 1:
+                t += max(0.0, duration - fade)
+            else:
+                t += duration
         return rows
     # Fallback: images + durations only (no lyric) — still write a timed script.
     images = cut.get('images') or []
-    durations = cut.get('durations') or []
+    raw = cut.get('durations') or []
+    durations = [
+        float(raw[index]) if index < len(raw) else 3.0
+        for index in range(len(images))
+    ]
+    fade = _dissolve_fade(cut, durations)
     t = 0.0
     for index, image in enumerate(images):
-        duration = float(durations[index]) if index < len(durations) else 3.0
+        duration = durations[index]
         rows.append({
             'line': '',
             'query': '',
@@ -981,7 +1023,10 @@ def _shot_rows(cut):
             'start': t,
             'end': t + duration,
         })
-        t += duration
+        if index < len(images) - 1:
+            t += max(0.0, duration - fade)
+        else:
+            t += duration
     return rows
 
 
@@ -1019,12 +1064,17 @@ def build_narration(cut):
             'wordBudget': word_budget(row['duration']),
         })
     total_duration = segments[-1]['end'] if segments else 0.0
+    fade = _dissolve_fade(cut, [r['duration'] for r in rows]) if rows else 0.0
     arc = story_arc(rows)
     script_lines = [seg['narration'] for seg in segments if seg['narration']]
     return {
         'track': cut.get('track'),
         'shotCount': total,
+        # durationSec is the rendered film length (sum of shot durations
+        # minus dissolve overlaps), not the sum of the shot lengths.
         'durationSec': round(total_duration, 3),
+        'transition': cut.get('transition') or 'none',
+        'fade': round(fade, 3),
         'arc': arc,
         'wordsPerSec': WORDS_PER_SEC,
         'fill': NARRATION_FILL,

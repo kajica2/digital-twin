@@ -74,11 +74,15 @@ if (missing.length) {
 }
 
 function ensureNarration(cutFile) {
+    // Status lines go to stderr so `--json` keeps stdout as a single
+    // parseable object. Errors already went to stderr; the narration
+    // status used to pollute stdout and break machine consumers.
+    const say = (line) => process.stderr.write(`${line}\n`);
     const stem = cutFile.replace(/\.json$/i, '');
     const jsonPath = `${stem}.narration.json`;
     const mdPath = `${stem}.narration.md`;
     if (fs.existsSync(jsonPath) && fs.existsSync(mdPath)) {
-        process.stdout.write(`[cut-list] narration: ${path.relative(REPO, jsonPath)}\n`);
+        say(`[cut-list] narration: ${path.relative(REPO, jsonPath)}`);
         return;
     }
     const director = path.join(REPO, 'lib', 'story', 'director.py');
@@ -88,17 +92,17 @@ function ensureNarration(cutFile) {
         { encoding: 'utf8' },
     );
     if (result.status !== 0) {
-        process.stderr.write(
+        say(
             `[cut-list] narration failed (exit ${result.status}): `
-            + `${(result.stderr || result.stdout || '').trim()}\n`,
+            + `${(result.stderr || result.stdout || '').trim()}`,
         );
         return;
     }
     if (fs.existsSync(jsonPath)) {
-        process.stdout.write(`[cut-list] narration: ${path.relative(REPO, jsonPath)}\n`);
+        say(`[cut-list] narration: ${path.relative(REPO, jsonPath)}`);
     }
     if (fs.existsSync(mdPath)) {
-        process.stdout.write(`[cut-list] script:    ${path.relative(REPO, mdPath)}\n`);
+        say(`[cut-list] script:    ${path.relative(REPO, mdPath)}`);
     }
 }
 
