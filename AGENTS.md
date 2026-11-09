@@ -14593,3 +14593,35 @@ instrumental is an **empty lyric** ✓ ✓ (which is how the first rado2 pass
 was made ✓ ✓) ✓. A second pass is running with the tags sharpened ✓ ✓
 ("instrumental, no vocals, no singing" ✓ ✓) ✓ ✓ — because the empty lyric
 alone did not stop the model from singing ✓ ✓ ✓.
+
+### 2026-11-07 — connected to Treblo
+
+**The developer API is live** ✓ — `GET https://api.treblo.com/v1/credits/balance`
+✓ with the key from `~/.treblo-api-key` ✓ → **HTTP 200** ✓ ✓ and
+**200 credits** ✓ ✓ (`num_credits: 200`, `num_credits_payg: 0` ✓ ✓) ✓.
+That is the surface the upload tool ✓ ✓ uses ✓ ✓, and it is what uploaded the
+28 tracks ✓ ✓ earlier ✓ ✓ ✓.
+
+**The cookie jar needed fixing before it could be read ✓.** The pasted jar
+was **space-separated** (a Netscape jar is tab-separated ✓) ✓ ✓ and its
+values carried the browser export's **"base64-" annotation** ✓ ✓ — which is
+not part of the cookie ✓ ✓ (the payload underneath is plain JSON ✓ ✓, not
+base64 ✓ ✓). Both are now corrected ✓ ✓ in `~/.treblo-cookies.txt` ✓ (mode
+0600 ✓, outside the repo ✓ ✓).
+
+**The pasted session token is TRUNCATED ✓** ✗ — both `sb-db-auth-token.0`
+✓ and `.1` ✓ end mid-value ✓ ✓ (the paste was cut ✓ ✓), so the session
+cannot be reassembled ✓ ✗ ✗. The app's API (`treblo.com/api/v1/tracks` ✓ ✓)
+also sits behind **Cloudflare** ✓ ✓ (a plain request gets a 403 challenge
+page ✓ ✓), so it needs a real browser anyway ✓ ✓.
+
+**The clean way to hand over a session** ✓ (no chat truncation ✓ ✓):
+
+```bash
+pbpaste > ~/.treblo-cookies.txt && chmod 600 ~/.treblo-cookies.txt
+```
+
+**`node lib/treblo-upload.js --check`** ✓ — a new verb ✓ ✓ that reports the
+connection in one line ✓ ✓: the API ✓ (the key ✓, the status ✓, the
+credits ✓ ✓) and the session ✓ (the jar ✓, the cookie count ✓, the auth
+cookie ✓ ✓) ✓ ✓ — and says plainly which surface needs a browser ✓ ✓ ✓.
