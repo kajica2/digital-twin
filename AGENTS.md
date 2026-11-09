@@ -14631,3 +14631,58 @@ pbpaste > ~/.treblo-cookies.txt && chmod 600 ~/.treblo-cookies.txt
 connection in one line ✓ ✓: the API ✓ (the key ✓, the status ✓, the
 credits ✓ ✓) and the session ✓ (the jar ✓, the cookie count ✓, the auth
 cookie ✓ ✓) ✓ ✓ — and says plainly which surface needs a browser ✓ ✓ ✓.
+
+### 2026-11-07 — the Treblo session, and why a paste is not a session
+
+**The developer API is connected and verified** ✓ — `GET /v1/credits/balance`
+✓ with the key from `~/.treblo-api-key` ✓ → **HTTP 200** ✓ ✓ and **200
+credits** ✓ ✓ ✓. That is the surface the upload tool uses ✓ ✓, and it is
+what uploaded the 28 tracks ✓ ✓ ✓.
+
+**The web session is in the browser ✓ ✓ — the browser's own cookie store
+has BOTH halves of the Supabase auth cookie** ✓ ✓ (`sb-db-auth-token.0` ✓
+3219 hex ✓ and `.1` ✓ 1155 hex ✓ ✓) ✓ ✓ ✓.
+
+**Three things were wrong with the pasted jar ✓** ✓ ✓, all now handled by
+`tools/install-treblo-cookies.py` ✓ ✓:
+
+1. It was **space-separated** ✓ ✓ — a Netscape jar is **tab-separated** ✓ ✓.
+2. Its values carried the browser export's **"base64-" annotation** ✓ ✓,
+   which is **not part of the cookie** ✓ ✓ — the payload underneath is
+   plain JSON ✓ ✓, not base64 ✓ ✓.
+3. The auth cookie is **chunked on the text** ✓ ✓ — each chunk is base64
+   of a PIECE of the JSON ✓ ✓, so the pieces are decoded and
+   concatenated ✓ ✓ ✓.
+
+**And the paste itself is truncated** ✓ ✗ — it carried `.0` ✓ ✓ but **not
+`.1`** ✓ ✗ ✓, and the JSON continues past the end of `.0` ✓ ✓ (it stops
+mid-way through the `identity` object ✓ ✓) ✓ ✓. The session cannot be
+finished from that paste ✓ ✗ ✓.
+
+**The capture route is the right one** ✓ ✓ — `lib/treblo-cookie-capture.js`
+✓ ✓ reads the cookie store out of the browser profile ✓ ✓ (the same
+discipline as the X capture ✓ ✓: the host allowlist is applied **before**
+any decryption ✓ ✓, and only `treblo.com` is ever touched ✓ ✓ ✓). Two
+findings from running it ✓ ✓:
+
+- **Chromium 156's macOS cookie key is not the one the X capture knows
+** ✓ ✓ — neither the "Chrome Safe Storage" ✓ nor the "Comet Safe
+Storage" ✓ password ✓ ✓ decrypts the values with the classic
+PBKDF2-SHA1/1003/UTF-8 derivation ✓ ✓ (all four combinations tried ✓ ✓)
+✓ ✓ — the derivation changed ✓ ✓ and the new one is not documented
+here ✓ ✗ ✓.
+- So the cookie values are read by the **browser itself** ✓ ✓, not by the
+script ✓ ✗ ✗ ✓ — which is what `tools/treblo-connect.mjs` ✓ ✓ does: it
+copies the profile's cookie store ✓ ✓ into a scratch directory ✓ ✓, lets
+Comet decrypt it ✓ ✓ ✓ and asks the app's API ✓ ✓ (the app's API is
+behind **Cloudflare** ✓ ✓ — a plain request gets a 403 challenge page ✓
+✓, so a browser is required ✓ ✓ ✓).
+
+**What is still open** ✓ ✓: the scratch browser lands on **Comet's
+onboarding** ✓ ✓ (a fresh profile ✓ ✓) and the script's dismissal loop
+is not reliable enough to get past it ✓ ✗ ✓ — one more pass on that
+script ✓ ✓, or a jar with the missing chunk ✓ ✓ ✓.
+
+**`node lib/treblo-upload.js --check`** ✓ ✓ — the one-line connection
+report ✓ ✓: the API ✓ (key ✓, status ✓, credits ✓ ✓) and the session ✓
+(jar ✓, cookie count ✓, auth cookie ✓ ✓) ✓ ✓ ✓.
