@@ -14839,3 +14839,79 @@ set to a track ✓ ✓:
 node bin/images-to-mp4.mjs mj-output/breath-forgets-the-count-12/frames \
   --audio <track> --mode cut --size 1920x1080 --each 4 --motions …
 ```
+
+### 2026-11-09 — the director: cutting frames into a music video
+
+Asked for a script that arranges a pile of frames into an animated story
+with pans, zooms and effects — and then for it to **cut the frames that
+don't fit**, acting as artistic director ✓ ✓.
+
+**Shipped:**
+
+- **`lib/story/director.py`** — the decision layer ✓ ✓. Measure every
+  frame with ffmpeg (blur, luma, tonal range, a 64-bit dhash) ✓, cut the
+  broken ones ✓, collapse the near-duplicates ✓, assign each surviving
+  frame to the lyric line it fits best (CLIP, locally ✓) ✓, keep up to
+  `--per-line` frames per line ✓ ✓, and plan the cut — the shot lengths
+  from the track's own beat grid ✓, a camera move per shot that never
+  repeats itself ✓, a look per shot and one grade over the joined cut ✓ ✓.
+  Pure stdlib; the CLIP scoring runs in the clip-interrogator venv over
+  stdin/stdout as JSON ✓ ✓.
+- **`lib/story/clip_score.py`** — the images × lines similarity matrix
+  ✓ ✓.
+- **`bin/cut-list-to-mp4.mjs`** — the renderer for a cut list ✓ ✓. It
+  owns **no** filter graph: it hands the plan to `lib/render/server.mjs`,
+  which uses `lib/render/plan.mjs` — the same plan the browser set uses
+  ✓ ✓ (the "one plan, three callers" rule ✓ ✓).
+- **`lib/story/director.test.py`** — 47 checks ✓ ✓, no model, no network
+  ✓ ✓. The decisions are the product, so they are pinned ✓ ✓.
+- **`docs/STORY-DIRECTOR.md`** — the reference ✓ ✓.
+- **`assets/music-video/*.lines.tsv`** — the lines files: `display <tab>
+  query` ✓ ✓, because a lyric line is not a caption and CLIP will not
+  match one to a picture on its own ✓ ✓.
+
+**The film** — the 70 frames from `~/Downloads/midjourney_session (47)`
+and `~/Desktop/flow.mp3` ✓ → **`~/Desktop/flow-music-video.mp4`** ✓ ✓:
+27 shots ✓, 193.10 s ✓ ✓, 1920×1080 / 30 fps / `yuv420p` / `tv` ✓ ✓, AAC
+audio muxed from the track ✓ ✓. The director cut 43 of the 70 ✓ ✓ — every
+cut named with its reason ✓ ✓.
+
+**Four things that had to be measured, not guessed:**
+
+1. **The duplicate threshold** ✓ — on the 60-frame Breath Forgets the
+   Count set, byte-identical copies sit at dhash distance 0 and the
+   nearest two DISTINCT frames (two cells of one Midjourney grid) sit at
+   6 ✓ ✓. The first guess (8) was collapsing real frames ✓ ✓ — the
+   threshold is 3 ✓ ✓ ✓.
+2. **CLIP's accuracy on real frames** ✓ — prompt-NN generated line NN, so
+   the ground truth is known ✓: CLIP's best cell for each of the twelve
+   lines came from the right prompt **12/12** ✓ ✓, and the director's own
+   assignment also **12/12** ✓ ✓. A ranking, not a verdict ✓ — which is
+   why every decision carries its score and its reason ✓ ✓.
+3. **The WebP XMP block** ✓ — ffmpeg copies a WebP's XMP into the
+   metadata stream, and a byte sequence inside it splits a stats line in
+   two ("...YAVG=" / "105.207") ✓ ✓ — one frame in sixty came back
+   "cannot decode" ✓ ✓. The stats now go to a file, never to stdout ✓ ✓
+   (`-f null -` and `metadata=print:file=-` both claim stdout, which made
+   the read intermittently empty ✓ ✓).
+4. **The shot length** ✓ — the first version measured the gap between two
+   BEATS, which made every shot half a second long ✓ ✓. A shot's length
+   is the distance between two BOUNDARIES ✓ ✓ — each boundary pulled onto
+   the nearest beat ✓, so a cut lands on the beat and the last shot ends
+   with the song ✓ ✓.
+
+**The rule the director learned the hard way** ✓ ✓: **a line with no
+frame is a GAP, not a wrong picture** ✓ ✓. The first matcher filled every
+line with its nearest neighbour ✓ — the cut looked finished while a
+coffee-cup lyric played over a man sitting on the floor ✓ ✓. Frames are
+now ASSIGNED to the line they fit best, one line per frame ✓ ✓, and a
+line with nothing fits is reported with its reason ✓ ✓ ✓.
+
+**Open:**
+
+- The clip scoring needs the clip-interrogator venv ✓ — without it the
+  director measures and cuts ✓ but the lyric match is skipped ✓ ✗.
+- The beat grid is an energy envelope ✓ — it finds the pulse ✓, not the
+  downbeat ✓ (a half-time track is cut on the eighth notes ✓).
+- The clip scoring runs in the clip-interrogator venv ✓ — the director
+  itself is stdlib ✓, but the venv is a dependency for the match ✓ ✓.
