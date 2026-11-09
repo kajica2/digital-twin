@@ -152,16 +152,50 @@ the cut list is a plain JSON file you can read and overrule.
 owns no filter graph of its own, so a clip rendered from a cut list and a
 clip rendered from the page are the same video.
 
+## Narration — the story that rides with the cut
+
+When stills become a video, the cut list says what to show. The narration
+says what to say over it: one spoken beat per shot, timed to the shot's
+own duration, written in the house voice (short sentences; silence is a
+note — see `docs/PERSONALITY-TONE-GUIDE.md`).
+
+`write_cutlist` writes the companion files by default, beside the cut
+list:
+
+| file | what it is |
+|---|---|
+| `<cut>.narration.json` | timed segments: start/end, lyric, picture query, spoken line, word budget |
+| `<cut>.narration.md` | a readable script a narrator can hold, plus the full arc |
+
+The lyric is the voice; the scene query is the ground. A short lyric may
+pick up a grounding clause ("We see …"); a long one is trimmed to the
+word budget so it can be read inside the shot. Same cut → same story —
+no model call.
+
+```bash
+# skip narration when writing the cut
+python3 lib/story/director.py --frames <dir> --lines <song>.lines.tsv \
+  --track <song>.wav --cutlist /tmp/song.json --no-narration
+
+# write (or rewrite) narration for an existing cut list
+python3 lib/story/director.py --narrate-cutlist /tmp/song.v1.json
+```
+
+`bin/cut-list-to-mp4.mjs` also ensures the narration siblings exist before
+it renders, so a cut list that arrived without them still gets a story.
+Pass `--no-narration` to leave them alone.
+
 ## Tests
 
 ```bash
-python3 lib/story/director.test.py     # 47 checks, no model, no network
+python3 lib/story/director.test.py     # no model, no network
 ```
 
 The decisions are the product, so they are pinned: a frame belongs to one
 line, a line with no frame is a gap, a runner-up is reported once and not
-twice, a duplicate group collapses to one frame, and no two shots repeat a
-camera move.
+twice, a duplicate group collapses to one frame, no two shots repeat a
+camera move, and the narration budgets words to the shot length and
+writes deterministic siblings beside the cut list.
 
 ## Limits
 
