@@ -1204,6 +1204,16 @@ pointed at (the `browser-use` landing) was the *craft* reference
 accessibility) — and that craft is preserved here, just wearing the
 kai-systems visual clothes.
 
+## Shift a track by semitones
+
+```bash
+npm run pitch:shift -- in.mp3 -2 out.mp3
+```
+
+The pitch moves and the tempo is put back, so the file keeps its length.
+`--change-length` lets the tempo follow the pitch instead. The two-semitone
+version of the rado2 song is in `assets/releases/rado2/`.
+
 ## Run the Rust DAW (Cadenza)
 
 [Cadenza](https://github.com/Pep3M/cadenza) is an open-source DAW written in Rust

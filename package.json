@@ -11,8 +11,9 @@
     "e2e:media": "cd e2e && node media-set.spec.mjs",
     "serve": "node lib/serve.js --port 5173",
     "cadenza:check": "node lib/cadenza.js check",
+    "pitch:shift": "node lib/render/pitch-shift.mjs",
     "audio:setup": "uv sync --project lib/audio-splitter",
-    "treblo:upload": "node lib/treblo-upload.js",
+    "treblo:upload": "node tools/treblo-upload.js",
     "test:treblo-upload": "node lib/treblo-upload.test.js",
     "heartmula:setup": "uv sync --project lib/heartmula",
     "heartmula:check": "uv run --project lib/heartmula heartmula check",
@@ -244,8 +245,7 @@
     "treblo:run": "node tools/treblo-run.js",
     "treblo:dry": "node tools/treblo-run.js --dry-run --prompt \"describe the song\"",
     "treblo:credits": "node tools/treblo-run.js --dry-run --prompt probe",
-    "treblo:web": "node tools/treblo-cookie-set.js",
-    "treblo:upload": "node tools/treblo-upload.js"
+    "treblo:web": "node tools/treblo-cookie-set.js"
   },
   "dependencies": {
     "puppeteer": "^25.15.0"

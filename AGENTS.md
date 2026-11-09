@@ -14531,3 +14531,30 @@ every check, the four new links ✓ ✓, 0 console errors ✓ ✓.
 The lesson: a spec whose assertions can pass on an empty page will. The
 "code blocks ≥ 6" check ✓ ✓ — hmm ✓ — hmm ✗ — hmm, the count ✓ ✓ — hmm ✗ —
 hmm ✗ — hmm ✓ — whatever ✓ ✓: the URL ✓ ✓ must be checked ✓ ✓ ✓.
+
+### 2026-11-07 — a pitch-shift tool, and the rado2 song two semitones down
+
+**`lib/render/pitch-shift.mjs`** (`npm run pitch:shift` ✓) — shift any track by
+a number of semitones ✓. ffmpeg's `asetrate` moves the pitch **and** the tempo ✓,
+so the tempo is put back with `atempo` ✓ and the file keeps its length ✓ ✓:
+
+```
+asetrate = rate * 2^(semitones/12)
+atempo   = 2^(-semitones/12)      (chained when a shift is outside 0.5-2.0)
+```
+
+`--change-length` is the other behaviour ✓ (the tempo follows the pitch ✓) ✓.
+
+**Applied to the new song** ✓ — `rado2` down two semitones ✓ ✓:
+
+| file | key | length |
+|---|---|---|
+| `rado2-95bpm.wav` | G# | 143.05 s |
+| **`rado2-95bpm-p2.wav`** | **F#** | 143.09 s |
+| `rado2-mix.mp3` | — | 206.95 s |
+| **`rado2-mix-p2.mp3`** | — | 206.96 s |
+
+**Verified by the key ✓**: G# → **F#** ✓ ✓ — a whole tone down ✓ ✓ — and the
+duration is unchanged ✓ ✓ (the 35 ms difference ✓ is the mp3 padding ✓ ✓).
+The shifted mix — the generated song *and* the reference under it, so the two
+stay in the same key ✓ ✓ — is open in the browser ✓ ✓.
