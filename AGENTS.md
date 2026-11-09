@@ -1855,6 +1855,93 @@ visibility on the five drafts ✓ ✓, publish the three films ✓ ✓, and
 delete the four stale ones ✓ ✓.
 
 
+### 2026-11-09 — sprint 0.104 (the assembly — and a film that ran on past its music)
+
+The 100 frames are rendering ✓ ✓ and the chain from the render to a
+playable film now exists ✓ ✓ — and running it turned up two real
+defects ✓ ✓.
+
+**`bin/keep-it-up-video.mjs` ✓ ✓** — one command from the frames and
+the four songs to the film ✓ ✓:
+
+```
+node bin/keep-it-up-video.mjs \
+  --frames assets/flux2/keep-it-up/frames \
+  --audio  assets/keep-it-up/audio \
+  --out    assets/keep-it-up/keep-it-up.mp4
+```
+
+The four songs are four movements of one night ✓ ✓, each with its own
+25 frames ✓ ✓, so the film is four sections cut to their own songs ✓ ✓
+and joined end to end ✓ ✓. A hard cut between sections is the POINT ✓ ✓
+— the room changes ✓ ✓, the light changes ✓ ✓, the drummer changes ✓ ✓.
+
+It takes whatever exists and says what is missing ✓ ✓, so it can be
+run while the render is still going ✓ ✓ (`--dry-run` prints the plan) ✓ ✓.
+
+**Defect 1 — the film ran on past its music ✓ ✓.** A section whose
+song had no audio yet (the render or the generation was still running)
+was rendered as a **video-only** clip and concatenated with clips that
+had audio ✓ ✓. The concat demuxer takes the sound from the first clip
+and the picture from all of them ✓ ✓ — so the film ran on past the
+sound for exactly the length of the silent section ✓ ✓.
+
+Measured ✓ ✓: **47.40 s of video against 35.62 s of audio** ✓ ✓, and
+the 11.8 s difference was precisely the second (silent) section ✓ ✓.
+
+Fixed ✓ ✓: a section without a song gets a **silent track** of the
+same length ✓ ✓, so every clip shares a stream layout ✓ ✓, and the
+assembled file is **checked** — the video and the audio must be the
+same length ✓ ✓.
+
+**Defect 2 — the silent track was not silent ✓ ✓.** The mux mapped no
+streams explicitly ✓ ✓, so ffmpeg took the best audio from the
+**first** input ✓ ✓ — the section's own music ✓ ✓ — and the film's
+tail played the first song a second time instead of falling silent ✓ ✓.
+The mapping is now explicit ✓ ✓ (video from input 0, audio from input
+1) ✓ ✓. Verified by **measuring** the tail ✓ ✓: RMS **-inf** ✓ ✓.
+
+**A correction worth recording ✓ ✓.** I wrote the commit message for
+the renderer fix BEFORE the evidence was in ✓ ✓, and it claimed the
+overrun was the renderer's ✓ ✓. It was not ✓ ✓ — the section renders
+were always correct ✓ ✓ (35.60 s / 1068 frames ✓ ✓, video and audio
+both ✓ ✓, with and without a track) ✓ ✓, and the defect was in the
+assembly ✓ ✓. The renderer still gained two guards ✓ ✓:
+
+- **The plan owns the length ✓ ✓** — explicitly ✓ ✓. The render relied
+  on `-shortest` ✓ ✓, and `-shortest` is unreliable with `-loop 1`
+  image inputs ✓ ✓ (infinite streams ✓ ✓), so the "shortest stream"
+  is not the filter graph's output ✓ ✓.
+- **The file is measured against the plan ✓ ✓.** ffmpeg exiting 0 is
+  not proof the render is the right length ✓ ✓ — so the rendered file
+  is probed ✓ ✓ and a mismatch **throws** ✓ ✓.
+
+**Also fixed ✓ ✓:** `collectImages` skipped **symlinks** ✓ ✓ —
+`readdirSync(withFileTypes)` reports a symlink as `isSymbolicLink()`,
+so `isFile()` is false for it ✓ ✓, and a renderer handed a directory
+of symlinked frames found **nothing** ✓ ✓. That bit this assembly, whose
+per-song frame directories are symlinks into the render output ✓ ✓.
+
+**Verified ✓ ✓:**
+
+- `lib/render/images-to-mp4.test.mjs` → **87/87** ✓ ✓ (1 new) ✓ ✓.
+- The assembly, end to end on the 32 frames that exist ✓ ✓: video and
+  audio **53.00 s / 53.02 s** ✓ ✓, the tail **silent** ✓ ✓ (RMS -inf) ✓ ✓.
+- The section renders: 1920×1080 ✓ ✓, 30 fps ✓ ✓, yuv420p ✓ ✓, AAC
+  48 kHz stereo ✓ ✓.
+
+**Open ✓ ✓:**
+
+- **The four songs have no audio yet ✓ ✓.** The lyrics are in ✓ ✓ and
+  HeartMuLa is installed ✓ ✓, but generating them competes with the
+  render for the same 24 GB ✓ ✓ — so the render goes first ✓ ✓.
+- **The render is at 32/100** ✓ ✓ — about 3 hours left ✓ ✓.
+- **The YouTube session is stale ✓ ✓** — the account chooser reads
+  "Kai Djuric — Signed out" ✓ ✓, and no cookie trick fixes that ✓ ✓.
+  `node tools/youtube-session.js` checks it in one command ✓ ✓ and
+  prints the fix ✓ ✓.
+
+
 > **Note on numbering (added at merge).** The sprints below were
 > numbered 0.17–0.25a on the branch that produced them. `main` had
 > independently published 0.17–0.21 (CLIP Interrogator, Refael MP4
