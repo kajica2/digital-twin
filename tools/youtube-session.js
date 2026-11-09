@@ -36,7 +36,13 @@ const path = require('node:path');
 const REPO = path.resolve(__dirname, '..');
 const COMET = '/Applications/Comet.app/Contents/MacOS/Comet';
 const PORT = 9447;
-const PROFILE = path.join(os.homedir(), '.hermes/cache/scratch/comet-profile');
+// A UNIQUE profile per run. The fixed path was a race: the browser
+// this tool launches was never killed, so the next run's `rm -rf`
+// deleted files out from under a LIVE browser, which recreated them,
+// and the directory removal failed with "Directory not empty".
+const PROFILE = path.join(
+  os.homedir(), '.hermes/cache/scratch',
+  `comet-profile-${process.pid}-${Date.now()}`);
 const COOKIE_SRC = path.join(os.homedir(), 'Library', 'Application Support', 'Comet');
 const JAR = path.join(os.homedir(), '.youtube-cookies.txt');
 const KEEP = process.argv.includes('--keep');
@@ -65,24 +71,40 @@ function copyProfile() {
   ], { stdio: 'ignore' });
 }
 
+async function portAlive() {
+  try {
+    await fetch(`http://127.0.0.1:${PORT}/json/version`);
+    return true;
+  } catch { return false; }
+}
+
 async function main() {
-  log('Copying the Comet profile (minus the caches)…');
-  copyProfile();
+  // A browser on the port already? Then it is the one with the user's
+  // session — use it. Launching a second Comet on a taken port cannot
+  // bind, so the launch would silently attach to nothing while the
+  // profile copy did all the work for nothing.
+  let child = null;
+  if (await portAlive()) {
+    log(`A browser is already on port ${PORT} — using it as it is.`);
+  } else {
+    log('Copying the Comet profile (minus the caches)…');
+    copyProfile();
 
-  log(`Launching Comet on port ${PORT}…`);
-  const child = spawn(COMET, [
-    `--remote-debugging-port=${PORT}`, `--user-data-dir=${PROFILE}`,
-    '--no-first-run', '--no-default-browser-check', 'about:blank',
-  ], { stdio: 'ignore', detached: true });
-  child.unref();
+    log(`Launching Comet on port ${PORT}…`);
+    child = spawn(COMET, [
+      `--remote-debugging-port=${PORT}`, `--user-data-dir=${PROFILE}`,
+      '--no-first-run', '--no-default-browser-check', 'about:blank',
+    ], { stdio: 'ignore', detached: true });
+    child.unref();
 
-  let up = false;
-  for (let i = 0; i < 40 && !up; i++) {
-    await sleep(1000);
-    try { await fetch(`http://127.0.0.1:${PORT}/json/version`); up = true; } catch { /* not yet */ }
+    let up = false;
+    for (let i = 0; i < 40 && !up; i++) {
+      await sleep(1000);
+      up = await portAlive();
+    }
+    if (!up) { log('Comet did not come up.'); process.exit(1); }
+    log('Comet is up.');
   }
-  if (!up) { log('Comet did not come up.'); process.exit(1); }
-  log('Comet is up.');
 
   const { cdpConnect, CDPClient } = require(path.join(REPO, 'lib/mj-submitter.js'));
   const client = new CDPClient(await cdpConnect(`http://127.0.0.1:${PORT}`));
