@@ -26,6 +26,10 @@ assets/flux2/FLUX.2-klein-4B/
 assets/flux2/*.png
 assets/flux2/*/
 lib/flux2-renderer/.venv/
+# The Python Audio Processing Toolkit (MIT, Matin-python) — a local
+# REFERENCE, cloned by bin/install-audio-toolkit.sh. Another project's
+# code with its own .git does not travel in this repo.
+lib/python-audio-toolkit/
 lib/flux2-renderer/__pycache__/
 
 # ad-hoc media-gen output (agent experiments)

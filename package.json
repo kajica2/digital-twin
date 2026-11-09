@@ -254,6 +254,7 @@
     "story:media:list": "python3 lib/story/media.py list",
     "story:lyrics": "uv run --project lib/story python lib/story/lyrics.py",
     "test:media": "python3 lib/story/media.test.py",
+    "test:audio-toolkit": "lib/python-audio-toolkit/.venv/bin/python tools/check-audio-toolkit.py",
     "test:lyrics": "python3 lib/story/lyrics.test.py",
     "test:descriptions": "node lib/descriptions.test.js",
     "descriptions": "node lib/descriptions.js"
