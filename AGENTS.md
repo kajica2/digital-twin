@@ -14558,3 +14558,38 @@ atempo   = 2^(-semitones/12)      (chained when a shift is outside 0.5-2.0)
 duration is unchanged ✓ ✓ (the 35 ms difference ✓ is the mp3 padding ✓ ✓).
 The shifted mix — the generated song *and* the reference under it, so the two
 stay in the same key ✓ ✓ — is open in the browser ✓ ✓.
+
+### 2026-11-07 — the instrumental versions
+
+**The strip.** The rado2 song has a vocal in the middle of it, so the
+instrumental is made the way a karaoke track is made: the **side signal**
+(L−R) is taken in both channels ✓, which cancels whatever is centred ✓ — the
+voice ✓ — and keeps what is panned ✓ ✓.
+
+```
+ffmpeg -i in.mp3 -af "pan=stereo|c0=c0-c1|c1=c1-c0" out.mp3
+```
+
+**Measured ✓** on the song:
+
+| | mid (L+R) | side (L−R) |
+|---|---|---|
+| `rado2-95bpm-p2.wav` | −16.4 dB | −26.2 dB |
+| `rado2-95bpm-p2-instrumental.wav` | **−240 dB** | −20.2 dB |
+
+The centre is gone ✓ ✓ and the side survives ✓ ✓. The trade-off is the
+known one ✓: **a centred bass and kick go with the voice** ✓ ✓ (the source's
+mid is 10 dB above its side ✓ — the voice sat in the middle of a mix that
+was mostly centred ✓ ✓), so the result is a **thinner** instrumental than
+a real stem separation ✓ ✓ would give ✓ ✓.
+
+**Shipped** (`assets/releases/rado2/` ✓): `rado2-mix-p2-instrumental.mp3` ✓ (the
+mix, instrumentalled ✓ ✓) and `rado2-95bpm-p2-instrumental.wav` ✓ (the song
+alone ✓ ✓) ✓ ✓.
+
+**The proper route is running.** HeartMuLa's pipeline takes no
+`instrumental` flag ✓ — it is conditioned on lyrics + tags ✓ ✓, so an
+instrumental is an **empty lyric** ✓ ✓ (which is how the first rado2 pass
+was made ✓ ✓) ✓. A second pass is running with the tags sharpened ✓ ✓
+("instrumental, no vocals, no singing" ✓ ✓) ✓ ✓ — because the empty lyric
+alone did not stop the model from singing ✓ ✓ ✓.
