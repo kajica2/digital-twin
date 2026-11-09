@@ -35,6 +35,23 @@ from array import array
 COPPER = (201, 123, 63)
 CREAM = (247, 245, 240)
 
+# The FREQUENCY RAMP: the colour of a line is trimmed to the band it
+# draws. The low bands are ember, the middle copper, the high bands
+# cream — the house palette run from the bottom of the spectrum to the
+# top, so the eye can read the pitch off the picture.
+RAMP = ((122, 46, 29), (201, 123, 63), (247, 245, 240))
+
+
+def ramp_colour(index, count):
+    """The colour of line `index` of `count`, along the frequency ramp."""
+    if count <= 1:
+        return RAMP[1]
+    position = index / float(count - 1) * (len(RAMP) - 1)
+    low = int(position)
+    high = min(len(RAMP) - 1, low + 1)
+    mix = position - low
+    return tuple(int(RAMP[low][c] + (RAMP[high][c] - RAMP[low][c]) * mix) for c in range(3))
+
 HOP_MS = 10
 DB_FLOOR = -60.0
 
@@ -169,6 +186,13 @@ def main():
                         help='the band analysis (lib/story/wave_bands.py); one line per band')
     parser.add_argument('--window', type=float, default=1.2,
                         help='seconds of music that flow across one line')
+    parser.add_argument('--position', default='band', choices=['band', 'full'],
+                        help='band: the lines sit in the lower band; full: they '
+                             'are spread over the whole picture')
+    parser.add_argument('--strength', type=float, default=1.0,
+                        help='how present the lines are; 1 is the measured look')
+    parser.add_argument('--ramp', action='store_true',
+                        help='colour each line by the frequency it draws')
     args = parser.parse_args()
 
     probe = subprocess.run(
@@ -187,8 +211,15 @@ def main():
     curve = pulse_curve(levels, args.fps)
     seconds = len(samples) / float(rate)
 
-    band = min(args.band, height)
-    top = height - band
+    if args.position == 'full':
+        # The lines are spread over the WHOLE picture, each at its own
+        # height — a spectrum curtain over the film, not a strip at the
+        # bottom of it.
+        band = height
+        top = 0
+    else:
+        band = min(args.band, height)
+        top = height - band
 
     bands = None
     waveforms = None
@@ -267,16 +298,18 @@ def main():
                             row.append(bands[at][band_index])
                     per_line.append(row)
                     level = bands[min(number, len(bands) - 1)][band_index]
-                    alphas.append(int(max(0, min(255, fade * (150 + 105 * level * args.pulse)))))
+                    alphas.append(int(max(0, min(255,
+                        fade * args.strength * (150 + 105 * level * args.pulse)))))
+                    base = ramp_colour(band_index, args.lines) if args.ramp else COPPER
                     colours.append((
-                        int(COPPER[0] + (CREAM[0] - COPPER[0]) * level * args.pulse),
-                        int(COPPER[1] + (CREAM[1] - COPPER[1]) * level * args.pulse),
-                        int(COPPER[2] + (CREAM[2] - COPPER[2]) * level * args.pulse),
+                        int(base[0] + (CREAM[0] - base[0]) * level * args.pulse),
+                        int(base[1] + (CREAM[1] - base[1]) * level * args.pulse),
+                        int(base[2] + (CREAM[2] - base[2]) * level * args.pulse),
                     ))
                 yield draw_frame(width, band, args.lines, per_line, alphas, colours, reach)
                 continue
 
-            alpha = int(max(0, min(255, fade * (150 + 105 * beat * args.pulse))))
+            alpha = int(max(0, min(255, fade * args.strength * (150 + 105 * beat * args.pulse))))
             colour = (
                 int(COPPER[0] + (CREAM[0] - COPPER[0]) * beat * args.pulse),
                 int(COPPER[1] + (CREAM[1] - COPPER[1]) * beat * args.pulse),

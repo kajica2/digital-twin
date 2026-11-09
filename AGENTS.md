@@ -15077,3 +15077,36 @@ one pulsing on its own band's hits ✓ ✓.
 **Open:** the lines are drawn with numpy in the story venv ✓ ✓ — the
 stdlib fallback is correct but slow ✓ ✓ (it fills the strokes pixel by
 pixel ✓ ✓).
+
+### 2026-11-09 — the lines on top of the picture, coloured by frequency
+
+Asked for a **slight** waveform **on top of** the animated video, with the
+colour **trimmed to the frequency** ✓ ✓.
+
+**`--position full`** ✓ ✓ — the seven lines are spread over the WHOLE
+picture, each at its own height ✓ ✓ — a spectrum curtain over the film,
+not a strip at the bottom of it ✓ ✓. The band position stays ✓ (`--position
+band` ✓ ✓).
+
+**`--ramp`** ✓ ✓ — each line's colour is its band's place on the
+frequency ramp ✓ ✓: the low bands ember (122, 46, 29 ✓), the middle
+copper (201, 123, 63 ✓), the high bands cream (247, 245, 240 ✓) ✓ ✓ —
+the house palette run from the bottom of the spectrum to the top ✓ ✓, so
+the eye can read the pitch off the picture ✓ ✓. The beat still flashes a
+line toward cream ✓ ✓.
+
+**`--strength`** ✓ ✓ — how present the lines are ✓ ✓; 1.0 is the measured
+look ✓ ✓, 0.5 is the slight one ✓ ✓.
+
+**The film** — `~/Desktop/nov8-v1-curtain.mp4` ✓ ✓: 1920×1080 ✓ ✓,
+159.15 s ✓ ✓, the seven lines over the whole picture ✓ ✓ — ember at the
+bottom, cream at the top ✓ ✓, each pulsing on its own band's hits ✓ ✓.
+
+**REAPER** ✓ ✓ — installed (7.85.0 ✓ ✓, 167 MB ✓ ✓) through the Homebrew
+cask ✓ ✓. The manual download from reaper.fm was **truncated** ✓ ✓ — 179
+bz2 streams that decompress to 180,197,376 bytes ✓ ✓ while the partition
+table asks for 213,833,728 ✓ ✓, so the image would not mount ✓ ✓;
+Homebrew's download was intact ✓ ✓ ✓. REAPER matters here for its
+**ReaScript** API ✓ ✓ (Lua and EEL ✓ ✓): it can host the audio, drive
+the video window ✓ ✓ and export the result ✓ ✓ — a second path to the
+same films ✓ ✓.
