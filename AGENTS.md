@@ -1651,6 +1651,135 @@ boot auto-update docs):
   dashboard (highest value; plumbing exists); (b) `data/clip/samples.json`;
   (c) clip CLI `--out <file>`; (d) chart variants backlog.
 
+### 2026-11-09 — sprint 0.103 (the YouTube upload that never was — four
+drafts, and three bugs in the tool that made them)
+
+Asked to publish three films to YouTube. What actually happened is the
+sprint ✓ ✓ — and it is worth recording because the tool reported
+success while nothing was published ✓ ✓.
+
+**The state on the channel ✓ ✓:** four **drafts** ✓ ✓, not videos ✓ ✓ —
+`nov8 v1 lines` ✓ ✓, `nov8 v1 curtain` ✓ ✓, `nov8 v2 lines mp4` ✓ ✓,
+`nov8 v3 lines` ✓ ✓. Each 2:40 ✓ ✓ with a thumbnail ✓ ✓, titled by its
+**filename stem** ✓ ✓, "Add description" ✓ ✓, and a **disabled Save
+button** ✓ ✓.
+
+**Why they are drafts ✓ ✓ — measured, not guessed ✓ ✓:**
+
+- The edit page says **"Uploading…"** ✓ ✓ and the content list offers
+  **"Resume upload"** ✓ ✓ — the transfers were **interrupted** ✓ ✓, not
+  completed ✓ ✓. The media arrived ✓ ✓; the upload never finished ✓ ✓.
+- A draft whose upload never finished has **no visibility control** and a
+  **disabled Save** ✓ ✓ — so no title, no description, no tags and no
+  visibility could ever be set on them ✓ ✓. They are not publishable in
+  place ✓ ✓.
+- Clicking **"Edit draft"** with a synthetic `el.click()` does nothing ✓ ✓;
+  a real dispatched mouse event at its coordinates also does nothing ✓ ✓
+  (the page is read-only while the upload is unfinished ✓ ✓).
+
+**Three bugs in `lib/youtube-poster.js`, all found by looking at what
+YouTube actually holds rather than at what the tool reported ✓ ✓:**
+
+**Bug 1 — the cookie jar destroyed a working session ✓ ✓.**
+`Network.setCookies` **replaces** the browser's live cookie set ✓ ✓, and
+the jar's `__Host-` cookies belong to `accounts.google.com` while the
+base URL says `studio.youtube.com` ✓ ✓ — so they lose their host
+binding ✓ ✓, Google drops them ✓ ✓, and Studio answers with the
+**"Signed out"** chooser ✓ ✓.
+
+Measured ✓ ✓: on a browser whose session was already valid, **every**
+re-injection broke it ✓ ✓; the same browser with **no** injection stayed
+signed in ✓ ✓. The tool's own "am I logged in" check passed anyway ✓ ✓,
+because the chooser page is still on `studio.youtube.com` ✓ ✓.
+
+Fixed ✓ ✓: the upload path now asks the browser whether it is signed in
+(`isSignedIn()`) ✓ ✓ and only injects the jar when it is not ✓ ✓.
+
+**Bug 2 — "details saved" was reported for videos that were never saved ✓ ✓.**
+The old check accepted **"the Save button is idle"** ✓ ✓. On a draft
+whose upload never finished the Save button is disabled **from the
+start** ✓ ✓ — so "idle" is exactly what a page where nothing was saved
+also looks like ✓ ✓. The tool printed `details saved` while the title
+and description sat in the form, **unsaved** ✓ ✓.
+
+Fixed ✓ ✓:
+- The page's **editability** is measured up front (Save enabled +
+  visibility control present) ✓ ✓.
+- Editability **gates** the save result ✓ ✓ — a page that is not editable
+  cannot have saved anything ✓ ✓, so no toast and no idle button can
+  make it true ✓ ✓.
+- The upload path **verifies** the video it resolved is editable and
+  **throws** if it is not ✓ ✓, instead of reporting success on a draft ✓ ✓.
+
+**Bug 3 — the upload poll died on a healthy upload ✓ ✓.** The poll
+timed out with "CDP Runtime.evaluate timed out after 30000ms" at **7%**
+✓ ✓ — while 187 MB was transferring, the page could not answer a
+Runtime.evaluate inside the client's budget ✓ ✓. A timeout there means
+**"still working"**, not "failed" ✓ ✓, and treating it as fatal killed a
+healthy upload ✓ ✓.
+
+Fixed ✓ ✓: the poll treats a CDP timeout as "still working" and lets the
+upload's own budget decide ✓ ✓.
+
+**The completion signal was a text match that fired early ✓ ✓.** The
+dialog's markup carries the phrase "Upload complete" **from the start**
+✓ ✓, so the match fired at 7% ✓ ✓. The progress must reach **100%** as
+well ✓ ✓.
+
+**And the gate had to move OUT of the page expression ✓ ✓.** The
+expression runs in the **BROWSER** ✓ ✓, so a test's mock never executes
+it ✓ ✓ — the mock returns a canned object instead ✓ ✓. A gate written
+inside the expression was therefore **untestable** ✓ ✓, and was
+untested ✓ ✓: the mock's canned `complete: true` walked straight past
+it ✓ ✓. The expression now reports the **raw facts** (the text match,
+the progress) and the gate runs in **Node** ✓ ✓, where a test can
+exercise it ✓ ✓.
+
+**The session had to be extracted with COMET, not Chrome ✓ ✓.** The
+cookie values in the user's browser are encrypted with a key only that
+browser holds ✓ ✓. Launching **Chrome** with **Comet's** cookie store
+decrypts **none** of them ✓ ✓ — which is why the capture kept yielding
+the handful of **unencrypted** cookies (GPS, YSC, VISITOR_INFO1_LIVE…)
+and never the auth ones (SID, HSID, SSID) ✓ ✓. Launching **Comet**
+with its own store captured **184 cookies**, including `SID` ✓ ✓,
+`__Secure-1PSID` ✓ ✓, `__Secure-3PSID` ✓ ✓ and `ACCOUNT_CHOOSER` ✓ ✓.
+
+`tools/treblo-connect.mjs` already knew this ✓ ✓ — same four files
+copied, then Comet launched ✓ ✓, because Comet owns the key ✓ ✓.
+
+**Verified ✓ ✓:** `npm run test:youtube-poster` → **30/30** ✓ ✓ (6 new)
+✓ ✓. **Every negative control was run ✓ ✓** — reverting the cookie fix
+fails **2** ✓ ✓, the save gate fails **1** ✓ ✓, the completion gate
+fails **1** ✓ ✓, the poll's catch fails **1** ✓ ✓ — and all pass again
+once restored ✓ ✓.
+
+**Two lessons worth keeping ✓ ✓, both learned the hard way ✓ ✓:**
+
+1. **The mock must not decide the outcome ✓ ✓.** It reports the raw
+   facts the page would report ✓ ✓; the production code does the
+   reasoning ✓ ✓. The first version of the save-gate test made the
+   mock suppress the toast for a broken draft ✓ ✓, so the **mock**
+   enforced the rule and the production gate was never exercised ✓ ✓ —
+   the negative control passed against the buggy code ✓ ✓.
+2. **A loose assertion hides the bug ✓ ✓.** The busy-page test matched
+   `/timed out/i` ✓ ✓, and the CDP error message **also** says "timed
+   out" ✓ ✓ — so the test passed against the broken code ✓ ✓. The
+   discriminator is **which** timeout ✓ ✓: the upload's own budget, not
+   the CDP client's ✓ ✓.
+
+**Open ✓ ✓:**
+
+- **The three films are still not published ✓ ✓.** The upload now
+  survives a busy page ✓ ✓ and its session is valid ✓ ✓, but the run
+  has not been watched to completion ✓ ✓.
+- **The four stale drafts should be deleted** ✓ ✓ once the real uploads
+  land ✓ ✓ — they cannot be published, and they clutter the channel ✓ ✓.
+
+**Next ✓ ✓:** watch the upload to completion ✓ ✓, publish the remaining
+two films ✓ ✓, delete the stale drafts ✓ ✓, verify each video is public
+with its title, description and tags ✓ ✓.
+
+
 > **Note on numbering (added at merge).** The sprints below were
 > numbered 0.17–0.25a on the branch that produced them. `main` had
 > independently published 0.17–0.21 (CLIP Interrogator, Refael MP4
