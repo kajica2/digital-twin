@@ -34,6 +34,12 @@ def main():
     ap.add_argument("--guidance", type=float, default=3.5)
     ap.add_argument("--seed-base", type=int, default=9000)
     ap.add_argument("--model", default=os.environ.get("FLUX2_MODEL_PATH") or DEFAULT_MODEL)
+    ap.add_argument(
+        "--skip-existing",
+        action="store_true",
+        help="skip entries whose PNG already exists (the seed is deterministic, "
+             "so a skipped frame is byte-identical to a re-render)",
+    )
     args = ap.parse_args()
 
     if not os.path.isdir(args.model):
@@ -59,9 +65,15 @@ def main():
 
     os.makedirs(args.out_dir, exist_ok=True)
     ok = 0
+    skipped = 0
     for idx, e in enumerate(entries):
         slug = e.get("slug") or f"render-{idx+1:02d}"
         prompt = e["prompt"]
+        out = os.path.join(args.out_dir, f"{idx+1:02d}-{slug}.png")
+        if args.skip_existing and os.path.exists(out):
+            skipped += 1
+            print(f"[flux2-many] {idx+1}/{len(entries)} {slug} -> skipped (exists)", flush=True)
+            continue
         # Per-entry dimensions let one manifest carry mixed aspect ratios
         # (e.g. a 16:9, a 21:9, and a 1:1 tuned-still in the same batch).
         w = int(e.get("width") or args.width)
@@ -76,12 +88,14 @@ def main():
             num_images_per_prompt=1,
             generator=gen,
         ).images[0]
-        out = os.path.join(args.out_dir, f"{idx+1:02d}-{slug}.png")
         img.save(out)
         ok += 1
         print(f"[flux2-many] {idx+1}/{len(entries)} {slug} -> {out}", flush=True)
 
-    print(f"[flux2-many] DONE {ok}/{len(entries)} in {time.time()-t0:.1f}s")
+    print(
+        f"[flux2-many] DONE {ok} rendered, {skipped} skipped, "
+        f"{len(entries)} total in {time.time()-t0:.1f}s"
+    )
     return 0 if ok else 1
 
 if __name__ == "__main__":
