@@ -280,24 +280,43 @@
         });
     }
 
+    // Listen BEFORE the poll starts. The catalog fetch often finishes
+    // during the first few ticks; registering after waitCatalog() can
+    // miss dashboard:catalog and leave #familyGrid empty even when
+    // el.catalog.families.length === 8.
+    function refreshFromCatalog() {
+        if (dash.catalog && dash.catalog.families && dash.catalog.families.length > 1) {
+            renderCards(dash.catalog);
+        }
+    }
+
+    dash.addEventListener('dashboard:catalog', function () {
+        refreshFromCatalog();
+    });
+
+    dash.addEventListener('dashboard:family', function (ev) {
+        refreshFromCatalog();
+        setActive(ev.detail && ev.detail.id);
+    });
+
     // Catalog may already be loaded by the component; poll briefly.
+    // A slow fetch must not freeze the page on the demo forever —
+    // the listeners above re-render the grid when the real families
+    // arrive after the poll gives up.
     function waitCatalog(n) {
         if (dash.catalog && dash.catalog.families && dash.catalog.families.length > 1) {
             renderCards(dash.catalog);
             return;
         }
         if (n <= 0) {
-            // Fall back to whatever the component has (demo).
+            // Fall back to whatever the component has (demo), but keep
+            // listening above for the late catalog.
             renderCards(dash.catalog || { families: [], suiteCount: 0 });
             return;
         }
         setTimeout(function () { waitCatalog(n - 1); }, 50);
     }
     waitCatalog(40);
-
-    dash.addEventListener('dashboard:family', function (ev) {
-        setActive(ev.detail && ev.detail.id);
-    });
 
     document.querySelector('[data-action="open"]').addEventListener('click', function () {
         dash.open();

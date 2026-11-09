@@ -208,6 +208,116 @@ function check(name, ok, detail = '') {
     return items.length >= 1 && items.every(i => typeof i.href === 'string' && i.href.length > 0);
   }));
 
+  // Pending-family race: a non-default family= must survive a showFamily
+  // call against an empty/demo catalog, then land once the real catalog
+  // arrives via setData. This is the review comment that forced the
+  // _pendingFamily path — without it, family="suno" was rewritten to
+  // "watchers" before the fetch completed.
+  check('component: non-default family attr survives a missing-catalog showFamily', await page.evaluate(() => {
+    const host = document.querySelector('tool-dashboard');
+    const real = host.catalog;
+    const el = document.createElement('tool-dashboard');
+    el.setAttribute('closed', '');
+    document.body.appendChild(el);
+    el.setAttribute('family', 'suno');
+    // Empty the in-memory catalog so showFamily cannot find "suno".
+    el.setData({ families: [] });
+    el.showFamily('suno');
+    const attrKept = el.getAttribute('family') === 'suno';
+    const pendingKept = el._pendingFamily === 'suno';
+    // Now feed the real catalog — the pending request must win.
+    el.setData(real);
+    const afterId = el.familyId === 'suno';
+    const afterAttr = el.getAttribute('family') === 'suno';
+    const afterPendingCleared = el._pendingFamily === null;
+    const suites = el.data?.panels?.tests?.items?.length || 0;
+    el.remove();
+    return attrKept && pendingKept && afterId && afterAttr &&
+      afterPendingCleared && suites >= 1;
+  }));
+
+  // Mobile width: the panel must fit a phone viewport. Fixed 490px
+  // overflowed; min(490px, calc(100vw - 32px)) is the contract.
+  const mobileFit = await page.evaluate(async () => {
+    const el = document.querySelector('tool-dashboard');
+    el.open();
+    el.removeAttribute('collapsed');
+    // Force a phone-sized layout viewport via the panel's own CSS.
+    // We measure the computed width of .win against the current
+    // window.innerWidth — the e2e page is desktop-sized, so shrink
+    // the CSS viewport by temporarily setting a style on :host and
+    // reading the min() result via getComputedStyle.
+    const win = el.shadowRoot.querySelector('.win');
+    if (!win) return { ok: false, reason: 'no .win' };
+    const before = win.getBoundingClientRect().width;
+    // Inject a narrow host width so min(490px, 100vw - 32px) collapses.
+    const style = document.createElement('style');
+    style.textContent = 'tool-dashboard { display: block; width: 360px; max-width: 360px; }';
+    document.head.appendChild(style);
+    // Also set the html/body width so 100vw tracks the phone.
+    const prevHtml = document.documentElement.style.width;
+    const prevBody = document.body.style.width;
+    document.documentElement.style.width = '360px';
+    document.body.style.width = '360px';
+    // Force a reflow then read.
+    void win.offsetWidth;
+    // 100vw is the layout viewport, which puppeteer keeps at the
+    // launch size — so assert the CSS declaration itself instead:
+    const decl = getComputedStyle(win).getPropertyValue('width');
+    // Fallback: check the stylesheet rule contains the min() form.
+    const sheet = el.shadowRoot.querySelector('style')?.textContent || '';
+    const hasMin = /width:\s*min\(\s*490px\s*,\s*calc\(\s*100vw\s*-\s*32px\s*\)\s*\)/.test(sheet);
+    const hasBorderBox = /box-sizing:\s*border-box/.test(sheet);
+    document.documentElement.style.width = prevHtml;
+    document.body.style.width = prevBody;
+    style.remove();
+    return {
+      ok: hasMin && hasBorderBox && before > 0,
+      hasMin,
+      hasBorderBox,
+      before,
+      decl
+    };
+  });
+  check('component: .win width uses min(490px, 100vw - 32px)',
+    !!(mobileFit && mobileFit.ok),
+    mobileFit ? JSON.stringify(mobileFit) : 'no result');
+
+  // Real phone viewport — the panel must not exceed the screen.
+  await page.setViewport({ width: 375, height: 812, deviceScaleFactor: 2 });
+  check('component: panel fits a 375px phone viewport', await page.evaluate(() => {
+    const el = document.querySelector('tool-dashboard');
+    el.open();
+    el.removeAttribute('collapsed');
+    const win = el.shadowRoot.querySelector('.win');
+    if (!win) return false;
+    // Force layout against the new viewport.
+    void win.offsetWidth;
+    const box = win.getBoundingClientRect();
+    // 32px gutters on a 375px phone → max 343px. border-box keeps the
+    // 1px border inside that width so the measured box matches.
+    return box.width > 0 && box.width <= 375 - 32 + 1;
+  }));
+  await page.setViewport({ width: 1280, height: 800, deviceScaleFactor: 1 });
+
+  // Late catalog: after the host's ~2s poll gives up, a dashboard:catalog
+  // event must still refresh the family grid. The grid is marked with
+  // [data-family-grid] (there is no #familyGrid id). Clear to a single
+  // demo card first so the refresh is observable, not a no-op on 8/8.
+  check('page: late dashboard:catalog refreshes the family grid', await page.evaluate(() => {
+    const grid = document.querySelector('[data-family-grid]');
+    if (!grid) return false;
+    grid.innerHTML = '<button type="button" class="family-card" data-family="watchers">demo</button>';
+    const before = grid.querySelectorAll('[data-family]').length;
+    const el = document.querySelector('tool-dashboard');
+    el.dispatchEvent(new CustomEvent('dashboard:catalog', {
+      detail: { catalog: el.catalog },
+      bubbles: true
+    }));
+    const after = grid.querySelectorAll('[data-family]').length;
+    return before === 1 && after >= 8;
+  }));
+
   // Collapse via yellow light.
   await page.evaluate(() => {
     const el = document.querySelector('tool-dashboard');

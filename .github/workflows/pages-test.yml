@@ -51,7 +51,10 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          # Node ≥22.5 — doctor.mjs MIN_NODE_MAJOR and node:sqlite
+          # (DatabaseSync) both require it. Node 20 fails serve.js
+          # health checks with "No such built-in module: node:sqlite".
+          node-version: '22'
 
       - name: Guard tracked files, ignore rules, cookie-jar paths and history
         run: node lib/secrets-guard.test.js
@@ -76,7 +79,8 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          # Node ≥22.5 — same reason as the secrets job above.
+          node-version: '22'
 
       - name: Install e2e dependencies
         run: cd e2e && npm install
