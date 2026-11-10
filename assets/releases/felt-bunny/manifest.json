@@ -1,0 +1,50 @@
+{
+  "title": "Felt Bunny — a two-frame story",
+  "source": {
+    "jobId": "aeebaf75-ceb3-47d9-8249-87ede8f2ea30",
+    "index": 2,
+    "cell": "0_2"
+  },
+  "frames": [
+    {
+      "frame": 1,
+      "title": "ALONE — nothing in its paws",
+      "cell": "0_3",
+      "cellNote": "front-facing, both ears up, its paws visibly EMPTY at its sides",
+      "taskId": "0de5a829-2df9-4e8b-ab82-8417c5a9a3ac",
+      "jobType": "v8-2_edit_diffusion",
+      "aspect": "2:3",
+      "file": "frames/01.jpg"
+    },
+    {
+      "frame": 2,
+      "title": "THE BOAT — the paper boat, and warmer light",
+      "cell": "0_2",
+      "cellNote": "the boat clearly folded at chest height, both paws around it, the light warmer",
+      "taskId": "b13216c7-e779-4a40-9be9-e2dcc8805216",
+      "jobType": "v8-2_edit_diffusion",
+      "aspect": "2:3",
+      "file": "frames/02.jpg"
+    }
+  ],
+  "cut": {
+    "file": "felt-bunny-cut.mp4",
+    "note": "mp4 is gitignored; the frames, the contact sheet and this manifest are the tracked release",
+    "mode": "cut",
+    "size": "896x1344",
+    "fps": 30,
+    "durationSec": 6.0,
+    "shots": [
+      {
+        "frame": 1,
+        "fromSec": 0.0,
+        "toSec": 3.0
+      },
+      {
+        "frame": 2,
+        "fromSec": 3.0,
+        "toSec": 6.0
+      }
+    ]
+  }
+}

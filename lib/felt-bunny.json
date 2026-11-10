@@ -1,0 +1,69 @@
+{
+    "_note": "FELT BUNNY — a two-frame story. ONE registry: the pack, the doc and the test are generated from it, never hand-copied.",
+
+    "id": "felt-bunny",
+    "title": "Felt Bunny",
+    "subtitle": "2 frames · a needle-felted wool rabbit · the plain light backdrop of a toy studio",
+    "concept": "A story in two frames. The bunny stands alone on the pale floor with nothing in its paws, and then the small folded paper boat is in its paws and the light has warmed. Nothing happens between the frames that is not on screen: the boat arrives and the rabbit looks at it.",
+
+    "source": {
+        "jobId": "aeebaf75-ceb3-47d9-8249-87ede8f2ea30",
+        "index": 2,
+        "cell": "0_2",
+        "cellUrl": "https://cdn.midjourney.com/aeebaf75-ceb3-47d9-8249-87ede8f2ea30/0_2.webp",
+        "previewUrl": "https://cdn.midjourney.com/aeebaf75-ceb3-47d9-8249-87ede8f2ea30/0_2_640_N.webp?method=shortest",
+        "_note_source": "The artist's chosen frame: job aeebaf75 index 2, cell 0_2 — 896x1344 native. It is the CHARACTER ANCHOR for both frames, carried as --edit (the account REFUSES --cref; --edit is measured as accepted, sprint 0.93).",
+        "sourcePrompt": "An adorable chibi rabbit protagonist handcrafted from needle-felted wool. An oversized round head, plump cheeks, a very short muzzle, a tiny button nose, widely spaced round dark eyes and a gentle little smile. A compact, chubby body with short arms and legs, tiny rounded paws and soft ears with rounded tips. Sweet, innocent and huggable. Dense fine wool fibres, velvety fuzzy edges and a soft matte surface. An original, imaginative outfit and accessories that express the character's personality. A cozy children's storybook toy aesthetic. Full-body view, ears and feet fully visible, natural standing pose, simple light background, soft diffused lighting, clearly visible wool texture.",
+        "_note_sourcePrompt": "The source job's OWN prompt, read off its studio page (the job is not in this account's feed, so the feed cannot supply it). The character description in it is the anchor; the frames below are its story.",
+        "sourceFlags": "--ar 2:3",
+        "_note_sourceFlags": "The source job's only flag, read off its studio page. Its parameters panel reads: aspect 2:3, stylization 100, weirdness 0, variety 0, model 8.2 — the account's own plain jobs of the same morning carry no --stylize either, so the panel's 100 IS the default and needs no flag.",
+        "measuredDims": "896x1344 native (0_2.webp) — 2:3, standard resolution, not --hd"
+    },
+
+    "dnaProse": "cozy children's storybook toy aesthetic, soft matte felt surface, plain pale cream backdrop, gentle even light",
+    "_note_dna": "The DNA is PALETTE and TEXTURE: the felt matte surface and the plain pale backdrop of the source cell. It goes in the prose, not a --profile — the source job carries no profile code, and the account's ambient personalization would grade a clean studio frame.",
+
+    "character": "dense fine wool fibres with velvety fuzzy edges and a soft matte surface, an oversized round head, plump cheeks, a very short muzzle, a tiny button nose, widely spaced round dark eyes and a gentle little smile, a compact chubby body with short arms and legs, tiny rounded paws and soft ears with rounded tips",
+    "_note_character": "The character clause, CONSTANT on both frames. It is lifted from the source job's own prompt — read off its studio page — so the two frames are the same rabbit rather than two similar ones.",
+
+    "_note_openings": "EACH FRAME OPENS WITH ITS OWN PHRASE. The character clause is shared by both frames, so a fixed clause order would open every prompt with the same words — and a shared prefix collapses the acceptance matcher's excerpt, which is how N prompts get attributed to a few task ids (measured 2026-09-24 → 2026-11-05). Each opening names a DIFFERENT element of the scene, so the frames stay comparable while their openings stay distinct.",
+
+    "identity": "no clothing and no accessories and no scarf and no hat and no clothes of any kind, bare cream wool",
+    "_note_identity": "The house identity clause (docs/VIDEO-FRAMING.md §Step 4), rebuilt against the ACTUAL reference: the source PROMPT asks for 'an original, imaginative outfit and accessories', and the source RENDER has none — four bare felt bunnies, nothing on them. So the clause denies the outfit the prompt asked for and the reference does not have. That denial is what keeps a frame from growing a scarf the source never wore.",
+
+    "suffix": "no text, no lettering, no watermark",
+    "_note_suffix": "The house negation, so signage and lettering stay out of a storybook frame.",
+
+    "flags": "--edit https://cdn.midjourney.com/aeebaf75-ceb3-47d9-8249-87ede8f2ea30/0_2.webp --v 8.2 --ar 2:3",
+    "_note_flags": "The anchor first, then the engine, then the ratio LAST (Midjourney honours the LAST of a duplicated flag, and the ratio is the one this story must not lose). --ar 2:3 is the SOURCE job's own ratio, read off its page. --v 8.2 is this account's proven engine (--v 7 was MEASURED soft-banned, sprint 0.61). No --stylize and no --profile: the source's panel reads stylization 100 / weirdness 0, which are the defaults, and the account's plain jobs of the same morning carry neither — so naming them would pin an accident (sprint 0.98).",
+
+    "frames": [
+        {
+            "n": 1,
+            "slug": "alone",
+            "title": "ALONE — nothing in its paws",
+            "opening": "On a pale cream paper floor, a small chibi rabbit handcrafted from needle-felted wool stands alone",
+            "detail": "with its tiny rounded paws resting empty at its sides and its soft ears standing upright",
+            "camera": "seen from the rabbit's own height, straight on, the pale floor filling the lower third of the picture, plain light backdrop behind",
+            "light": "one cool soft daylight from the left",
+            "change": "the setup — the bunny is on its own, and its paws are empty",
+            "cell": "0_3",
+            "cellNote": "front-facing, both ears up, its paws visibly EMPTY at its sides"
+        },
+        {
+            "n": 2,
+            "slug": "the-boat",
+            "title": "THE BOAT — the paper boat, and warmer light",
+            "opening": "Holding a small folded paper boat at chest height, a small chibi rabbit handcrafted from needle-felted wool stands",
+            "detail": "with both tiny rounded paws around the boat and its soft ears tipped forward toward it",
+            "camera": "seen from the rabbit's own height, straight on, the pale floor filling the lower third of the picture, plain light backdrop behind",
+            "light": "one warm daylight from the left",
+            "change": "the turn — the boat has arrived in its paws and the light has warmed",
+            "cell": "0_2",
+            "cellNote": "the boat clearly folded at chest height, both paws around it, the light warmer"
+        }
+    ],
+
+    "_note_order": "The order is the STORY's: the setup, then the turn. Two frames, one change, and the change is on screen.",
+    "_note_cells": "THE PICKED CELL per frame — the 4-up grid is four different takes. Measurement screens (median luma, nothing blown); the eye decides on content."
+}
