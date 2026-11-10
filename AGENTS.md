@@ -16022,3 +16022,112 @@ captions now carry the two distinct prompt openings ✓ ✓.
   variants, the Vercel custom domain, the MJ cookie jar expiry, the
   hub board's completion misattribution, a reel's slug still derived
   from its mutable POST-sheet title.
+
+### 2026-11-10 — sprint 0.104 (the subject extractor — the twin's missing half)
+
+Asked: *"look for python scripts that will recognize object in picture and
+extract it"* ✓ ✓.
+
+**THE SEARCH, AND WHAT IT FOUND.** The twin had **recognition** ✓ ✓ —
+`lib/clip-interrogator/` (CLIP ViT-L/H + BLIP; `analyze` mode returns the
+medium / artist / movement / trending / flavor label tables ✓ ✓) and
+`lib/story/clip_score.py` (the images × lines similarity matrix ✓ ✓) — and
+**no extraction** ✓ ✓. Measured across every environment on the machine ✓ ✓:
+no `rembg`, no `segment_anything`, no `sam2`, no `ultralytics`, no
+`onnxruntime` anywhere ✓ ✓, and **no segmentation weights in the HF
+cache** ✓ ✓ (it holds CLIP, BLIP, timm, whisper, musicgen, FLUX.2,
+HeartMuLa, HTDemucs, MuScriptor and MuLaCover — nothing that masks ✓ ✓).
+The one near-miss is `lib/watermark-extractor.py` ✓ ✓: the right SHAPE (a
+brightness-key alpha extractor writing a transparent PNG ✓ ✓) for the wrong
+JOB (a logo, not an object ✓ ✓).
+
+So the missing half was built ✓ ✓.
+
+**Shipped — `lib/subject/` ✓ ✓:**
+
+- **`extract.py`** — the tool ✓ ✓. **EXTRACT → MEASURE → RECOGNIZE**, in
+  that order ✓ ✓. u2net finds the salient subject ✓ ✓; the box, the
+  coverage and the crop are computed from the pixels ✓ ✓; and with
+  `--prompt`, CLIP scores the **EXTRACTED SUBJECT** ✓ ✓ — the crop, not
+  the whole picture ✓ ✓, because the crop is tight and the score is then
+  about the thing that was actually cut out ✓ ✓.
+- **`extract.test.py`** — **26 checks**, no model, no network, no weights ✓ ✓.
+- **`pyproject.toml` + `uv.lock`** — the house uv project ✓ ✓; `rembg[cpu]`
+  because **`pip install rembg` alone installs no inference backend** ✓ ✓
+  and says so ✓ ✓.
+- **`docs/SUBJECT-EXTRACT.md`** — the reference ✓ ✓.
+- npm: `subject:extract`, `test:subject` ✓ ✓ (in `test:all` ✓ ✓).
+
+**THE ORDER IS THE DESIGN.** The recognition scores the CROP ✓ ✓ — a
+prompt-guided crop locator was spiked first (CLIP over a sliding window of
+crops ✓ ✓) and it took **79 s** and put the box on the bunny's HEAD
+rather than the whole subject ✓ ✓. The saliency matte is better at
+finding the object, and CLIP is better at saying whether the result is
+what you named ✓ ✓ — so each does the half it is good at ✓ ✓.
+
+**THREE THINGS FIXED AT THE SOURCE, all found by RUNNING it ✓ ✓.**
+
+**1. `U2NET_HOME` IS THE PARENT OF A `models/` DIR ✓ ✓.** The first
+version pointed it at `lib/subject/models/` ✓ ✓; rembg's convention is
+`<U2NET_HOME>/models/<name>/<file>` ✓ ✓, so it created
+`lib/subject/models/models/u2net/u2net.onnx` ✓ ✓ and **downloaded the
+whole 176 MB again** ✓ ✓ — on a link averaging 300–500 kB/s that cost
+**eight and a half minutes** ✓ ✓. With the path right, the same run takes
+**2.2 s** ✓ ✓.
+
+**2. THE MARGIN WAS ALWAYS 0.0 ✓ ✓.** The report compared the winner
+against the prompt ✓ ✓ — which IS the winner, whenever the prompt wins ✓ ✓.
+The margin is now against the **runner-up** ✓ ✓, and it is a pure function
+(`rank_phrases`) with four checks ✓ ✓. A margin that is always zero is not
+a measurement ✓ ✓.
+
+**3. THE DECISION LAYER IS PILLOW-ONLY ✓ ✓.** `subject_bbox` and
+`coverage` use PIL's own `getbbox()` and `histogram()` ✓ ✓ instead of
+numpy ✓ ✓ — so the tests need nothing but Pillow ✓ ✓ (no 300 MB venv ✓ ✓)
+and the measurement runs at C speed ✓ ✓.
+
+**ALSO FIXED — a hardcoded absolute path in a tracked file ✓ ✓.**
+`lib/story/clip_score.py` carried
+`cache_dir='/Users/kaidejuricmasscmbook/.cache/clip-interrogator'` ✓ ✓ —
+one person's username in a public repository ✓ ✓, in a file the subject
+extractor now depends on ✓ ✓. It is `CLIP_CACHE_DIR` with a
+`~`-expanded default ✓ ✓.
+
+**VERIFIED END TO END, ON THE REPO'S OWN FRAMES ✓ ✓:**
+
+- Both Felt Bunny frames extracted ✓ ✓ — `u2net`, **2.2 s** per frame with
+  the weights cached ✓ ✓. Frame 01: box `[187, 71, 689, 1192]`, 34.27% of
+  the frame ✓ ✓. Frame 02: box `[204, 101, 680, 1220]`, 32.05% ✓ ✓.
+- The mattes were **looked at**, composited on a dark ground ✓ ✓: the
+  ear interiors, the arm edges, the feet and **the paper boat's folds**
+  all survive ✓ ✓.
+- **The recognition, measured ✓ ✓:** "a needle-felted wool rabbit toy"
+  **0.2907** against "an empty plain studio backdrop" **0.0586** — a
+  margin of **0.2321** ✓ ✓; frame 02's "a needle-felted wool rabbit
+  holding a paper boat" **0.3232** against **0.0400** — a margin of
+  **0.2832** ✓ ✓. The named thing wins by ~5× on both ✓ ✓, and the report
+  says so as a **ranking**, never a verdict ✓ ✓.
+- `npm run test:subject` — **26 checks, 0 failures** ✓ ✓.
+- The cut-outs are **tracked** in `assets/releases/felt-bunny/subject/` ✓ ✓
+  (1.4 MB of lossless RGBA ✓ ✓ — the releases already carry 92 MB of
+  tracked media ✓ ✓) with the measurements in the release manifest ✓ ✓.
+- A palette-quantized version was tried and **rejected**: 156 KB instead
+  of 749 KB ✓ ✓, but the alpha moved by up to **31** levels across 12.5k
+  pixels ✓ ✓ — the soft edge is the whole point of the matte ✓ ✓.
+
+**Open:**
+
+- **It is not promptable ✓ ✓.** u2net is a SALIENCY segmenter ✓ ✓: it
+  answers "what stands out", not "what did you name" ✓ ✓. The prompt is a
+  CHECK ✓ ✓, not an instruction ✓ ✓. A picture with two salient objects
+  gives the more salient one ✓ ✓, and the CLIP ranking is how you find
+  out ✓ ✓. A promptable segmenter (SAM 2 ✓ ✓) is the next step and needs
+  a different weight set ✓ ✓.
+- **No inpainting ✓ ✓** — the removed background is transparent, not
+  filled ✓ ✓.
+- The venv is **363 MB** and the weights **176 MB** ✓ ✓ — both gitignored
+  ✓ ✓, both inside the project ✓ ✓.
+- Unchanged: the `.kai/` durability call, the woody-shaw chart variants,
+  the Vercel custom domain, the MJ cookie jar expiry, the hub board's
+  completion misattribution, a reel's slug still derived from its mutable
+  POST-sheet title.

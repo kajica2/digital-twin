@@ -505,6 +505,39 @@ node bin/images-to-mp4.mjs assets/releases/felt-bunny/frames/01.jpg \
 Two shots, three seconds each, one hard cut. The reference is
 [`docs/FELT-BUNNY.md`](docs/FELT-BUNNY.md).
 
+## Cut the subject out of a picture
+
+The twin had recognition (CLIP) and no extraction. `lib/subject/` is the
+extraction half: a saliency matte, a transparent PNG, and — when you name
+the object — a CLIP check that what came out is the thing you asked for.
+
+```bash
+# the setup (uv project; the weights are 176 MB more, into the project)
+uv sync --project lib/subject
+
+# cut the subject out
+npm run subject:extract -- frame.jpg --out bunny.png
+
+# name it, and see whether the cut-out is the thing you named
+npm run subject:extract -- frame.jpg --out bunny.png \
+    --prompt "a needle-felted wool rabbit toy" \
+    --contrast "an empty plain studio backdrop"
+```
+
+Three things worth knowing:
+
+- **The order is extract → measure → recognize.** The CLIP score is
+  computed on the **extracted subject**, not on the whole picture, so it
+  is about the thing that was actually cut out.
+- **CLIP ranks; it does not measure.** The report is a ranking and a
+  margin over the runner-up, never a verdict.
+- **Every run writes a sidecar** with the engine, the box, the coverage
+  and the scores — the measurements are the evidence.
+
+The bunny cut out of the Felt Bunny release frames is in
+`assets/releases/felt-bunny/subject/`. The reference is
+[`docs/SUBJECT-EXTRACT.md`](docs/SUBJECT-EXTRACT.md).
+
 ## Run the Suno mutator
 
 Send a Suno link, get custom variants of the song behind it — the same

@@ -1,0 +1,51 @@
+{
+  "tool": "subject-extract",
+  "prompt": "a needle-felted wool rabbit holding a paper boat",
+  "pad": 12,
+  "noCrop": false,
+  "contrasts": [
+    "an empty plain studio backdrop"
+  ],
+  "source": "assets/releases/felt-bunny/frames/02.jpg",
+  "sourceSize": [
+    896,
+    1344
+  ],
+  "engine": "u2net",
+  "matteSeconds": 1.89,
+  "coveragePct": 32.05,
+  "subjectBox": [
+    204,
+    101,
+    680,
+    1220
+  ],
+  "crop": [
+    192,
+    89,
+    692,
+    1232
+  ],
+  "outputSize": [
+    500,
+    1143
+  ],
+  "output": "assets/releases/felt-bunny/subject/02.png",
+  "preview": "assets/releases/felt-bunny/subject/02.preview.jpg",
+  "clip": {
+    "model": "ViT-H-14",
+    "phrases": [
+      "a needle-felted wool rabbit holding a paper boat",
+      "an empty plain studio backdrop"
+    ],
+    "scores": [
+      0.3232,
+      0.04
+    ],
+    "seconds": 12.58,
+    "best": "a needle-felted wool rabbit holding a paper boat",
+    "bestScore": 0.3232,
+    "runnerUp": "an empty plain studio backdrop",
+    "margin": 0.2832
+  }
+}

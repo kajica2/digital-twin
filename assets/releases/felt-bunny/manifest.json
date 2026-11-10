@@ -46,5 +46,93 @@
         "toSec": 6.0
       }
     ]
+  },
+  "subject": {
+    "what": "the bunny cut out of each frame as a transparent PNG",
+    "tool": "lib/subject/extract.py",
+    "engine": "u2net",
+    "command": "lib/subject/.venv/bin/python lib/subject/extract.py <frame> --out <out>.png --pad 12 --prompt '<phrase>' --contrast 'an empty plain studio backdrop' --composite '#1c2842'",
+    "frames": [
+      {
+        "frame": 1,
+        "file": "subject/01.png",
+        "preview": "subject/01.preview.jpg",
+        "sidecar": "subject/01.json",
+        "box": [
+          187,
+          71,
+          689,
+          1192
+        ],
+        "crop": [
+          175,
+          59,
+          701,
+          1204
+        ],
+        "size": [
+          526,
+          1145
+        ],
+        "coveragePct": 34.27,
+        "prompt": "a needle-felted wool rabbit toy",
+        "clip": {
+          "model": "ViT-H-14",
+          "phrases": [
+            "a needle-felted wool rabbit toy",
+            "an empty plain studio backdrop"
+          ],
+          "scores": [
+            0.2907,
+            0.0586
+          ],
+          "seconds": 14.74,
+          "best": "a needle-felted wool rabbit toy",
+          "bestScore": 0.2907,
+          "runnerUp": "an empty plain studio backdrop",
+          "margin": 0.2321
+        }
+      },
+      {
+        "frame": 2,
+        "file": "subject/02.png",
+        "preview": "subject/02.preview.jpg",
+        "sidecar": "subject/02.json",
+        "box": [
+          204,
+          101,
+          680,
+          1220
+        ],
+        "crop": [
+          192,
+          89,
+          692,
+          1232
+        ],
+        "size": [
+          500,
+          1143
+        ],
+        "coveragePct": 32.05,
+        "prompt": "a needle-felted wool rabbit holding a paper boat",
+        "clip": {
+          "model": "ViT-H-14",
+          "phrases": [
+            "a needle-felted wool rabbit holding a paper boat",
+            "an empty plain studio backdrop"
+          ],
+          "scores": [
+            0.3232,
+            0.04
+          ],
+          "seconds": 12.58,
+          "best": "a needle-felted wool rabbit holding a paper boat",
+          "bestScore": 0.3232,
+          "runnerUp": "an empty plain studio backdrop",
+          "margin": 0.2832
+        }
+      }
+    ]
   }
 }

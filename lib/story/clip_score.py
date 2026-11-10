@@ -26,10 +26,16 @@ import time
 def load_model(name):
     import open_clip
     import torch
+    import os
+
+    # The weights are cached under the user's home by default. The path
+    # used to be a literal absolute path, which put one person's
+    # username into a tracked file.
+    cache_dir = os.environ.get(
+        'CLIP_CACHE_DIR', os.path.expanduser('~/.cache/clip-interrogator'))
 
     model, _, preprocess = open_clip.create_model_and_transforms(
-        name, pretrained='laion2b_s32b_b79k',
-        cache_dir='/Users/kaidejuricmasscmbook/.cache/clip-interrogator',
+        name, pretrained='laion2b_s32b_b79k', cache_dir=cache_dir,
     )
     model.eval()
     return model, preprocess, torch, open_clip

@@ -243,3 +243,9 @@ lib/heartmula/.venv/
 
 # HeartMuLa generations (the released copies live in assets/releases/)
 data/heartmula/
+
+# The subject extractor's saliency weights (u2net, 176 MB — downloaded
+# once into the project, not the user's home directory)
+lib/subject/models/
+lib/subject/.venv/
+lib/subject/dist/

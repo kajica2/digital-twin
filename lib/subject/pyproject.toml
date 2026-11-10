@@ -1,0 +1,22 @@
+[project]
+name = "subject-extract"
+version = "0.1.0"
+description = "Cut the subject out of a picture — a saliency matte, an alpha PNG, and a CLIP check that it is the thing you named."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = { text = "MIT" }
+dependencies = [
+    # rembg is the purpose-built tool: u2net is a saliency segmenter that
+    # returns an alpha matte. The [cpu] extra is REQUIRED on macOS —
+    # `pip install rembg` alone installs no inference backend and says so.
+    "rembg[cpu]>=2.0.67",
+    "numpy>=2.3",
+    "pillow>=12.3",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/subject_extract"]
