@@ -824,12 +824,336 @@ def plan_fx(count, base='grain'):
     return [base] * count
 
 
-def write_cutlist(path, plan, images=None):
+# --------------------------------------------------------------------------
+# narration — a timed story that rides with the cut
+# --------------------------------------------------------------------------
+#
+# When stills become a video, the cut list says WHAT to show. The narration
+# says WHAT to say over it: one spoken beat per shot, timed to the shot's
+# own duration, written in the house voice (short sentences, silence as a
+# note — docs/PERSONALITY-TONE-GUIDE.md). Pure and deterministic: same cut
+# → same story. No model call.
+
+# Calm voiceover pace. Leave headroom so the line can breathe inside the
+# shot rather than racing the dissolve.
+WORDS_PER_SEC = 2.3
+NARRATION_FILL = 0.65
+
+
+def word_budget(duration_sec):
+    """How many spoken words a shot of this length can carry."""
+    try:
+        seconds = float(duration_sec)
+    except (TypeError, ValueError):
+        seconds = 0.0
+    return max(3, int(seconds * WORDS_PER_SEC * NARRATION_FILL))
+
+
+def fit_words(text, budget):
+    """Keep the first `budget` words, preferring a clause break."""
+    words = (text or '').split()
+    if not words:
+        return ''
+    if len(words) <= budget:
+        return ' '.join(words)
+    head = words[:budget]
+    # Prefer cutting after the last soft break in the kept window.
+    for index in range(len(head) - 1, 0, -1):
+        token = head[index]
+        if token[-1] in ',.;:—–-':
+            head = head[:index + 1]
+            break
+    out = ' '.join(head).rstrip(',;:—–-')
+    if out and out[-1] not in '.!?…':
+        out = out + '.'
+    return out
+
+
+def spoken_from_lyric(line):
+    """Turn a lyric display line into a spoken beat."""
+    text = re.sub(r'\s+', ' ', (line or '').strip())
+    text = text.strip('\'"“”‘’')
+    if not text:
+        return ''
+    if text[-1] not in '.!?…':
+        text = text + '.'
+    return text
+
+
+def visual_ground(query, max_words=8):
+    """The first clause of the scene query — what the eye is looking at."""
+    text = re.sub(r'\s+', ' ', (query or '').strip())
+    if not text:
+        return ''
+    clause = text.split(',')[0].strip()
+    words = clause.split()
+    if len(words) > max_words:
+        clause = ' '.join(words[:max_words])
+    return clause.rstrip('.')
+
+
+def narrate_shot(line, query, duration, index=0, total=1):
+    """One spoken beat for one shot, sized to the shot's duration.
+
+    The lyric is the voice; the scene query is the ground. A short lyric
+    may pick up a grounding clause ("We see …"); a long one is trimmed to
+    the word budget so it can be read inside the shot.
+    """
+    budget = word_budget(duration)
+    lyric = spoken_from_lyric(line)
+    ground = visual_ground(query)
+
+    if lyric:
+        body = lyric
+        if ground and len(body.split()) < max(4, budget // 2):
+            candidate = '%s We see %s.' % (body.rstrip('.'), ground)
+            if len(candidate.split()) <= budget:
+                body = candidate
+        body = fit_words(body, budget)
+    elif ground:
+        grounded = ground[0].upper() + ground[1:] if ground else 'Hold'
+        body = fit_words(grounded + '.', budget)
+    else:
+        body = 'Hold.'
+
+    if total > 1 and index == 0 and not body.lower().startswith(('here', 'open')):
+        opener = 'Here — %s' % body
+        if len(opener.split()) <= budget + 2:
+            body = opener
+    if total > 1 and index == total - 1 and body[-1] in '.':
+        # Leave the last beat alone; the silence after it is the ending.
+        pass
+    return body
+
+
+def story_arc(shots):
+    """One sentence that names the arc the cut walks."""
+    lines = []
+    for shot in shots or []:
+        line = (shot.get('line') or '').strip()
+        if line:
+            lines.append(line)
+    if not lines:
+        return 'A sequence of stills, held in time.'
+    if len(lines) == 1:
+        return 'One beat: %s' % spoken_from_lyric(lines[0]).rstrip('.')
+    first = lines[0].strip().rstrip('.')
+    last = lines[-1].strip().rstrip('.')
+    return ('The cut moves from "%s" to "%s" — %d beats, timed to the picture.'
+            % (first, last, len(shots)))
+
+
+def _dissolve_fade(cut, durations):
+    """Effective dissolve length for a cut, matching lib/render/plan.mjs.
+
+    Crossfade joins overlap by `fade`, and a dissolve cannot be longer than
+    half the shortest shot it joins. Hard cuts (`transition != crossfade`)
+    and single-shot cuts carry no dissolve.
+    """
+    if (cut.get('transition') or 'none') != 'crossfade':
+        return 0.0
+    if len(durations) < 2:
+        return 0.0
+    try:
+        fade = float(cut.get('fade') if cut.get('fade') is not None else 0.6)
+    except (TypeError, ValueError):
+        fade = 0.6
+    if fade <= 0:
+        return 0.0
+    positive = [d for d in durations if d > 0]
+    if not positive:
+        return 0.0
+    return min(fade, min(positive) * 0.5)
+
+
+def _shot_rows(cut):
+    """Normalise a plan or a cut-list payload into narration shot rows.
+
+    Timestamps follow the *rendered* timeline. For a hard cut that is just
+    the running sum of durations; for a crossfade each join overlaps by the
+    dissolve, so shot i starts at `sum(d[0..i-1]) - i * fade` — the same
+    offset lib/render/plan.mjs feeds to xfade. Without that subtraction the
+    later beats drift past their pictures and past the video's end.
+    """
+    rows = []
+    shots = cut.get('shots') or []
+    if shots:
+        durations = [float(shot.get('duration') or 0) for shot in shots]
+        fade = _dissolve_fade(cut, durations)
+        t = 0.0
+        for index, shot in enumerate(shots):
+            duration = durations[index]
+            frame = shot.get('frame')
+            image = shot.get('image')
+            if image is None and isinstance(frame, dict):
+                image = frame.get('path')
+            rows.append({
+                'line': shot.get('line') or '',
+                'query': shot.get('query') or '',
+                'image': image,
+                'duration': duration,
+                'score': shot.get('score'),
+                'start': t,
+                'end': t + duration,
+            })
+            # Advance by the exclusive step: full duration minus the
+            # dissolve shared with the next shot (none for the last).
+            if index < len(shots) - 1:
+                t += max(0.0, duration - fade)
+            else:
+                t += duration
+        return rows
+    # Fallback: images + durations only (no lyric) — still write a timed script.
+    images = cut.get('images') or []
+    raw = cut.get('durations') or []
+    durations = [
+        float(raw[index]) if index < len(raw) else 3.0
+        for index in range(len(images))
+    ]
+    fade = _dissolve_fade(cut, durations)
+    t = 0.0
+    for index, image in enumerate(images):
+        duration = durations[index]
+        rows.append({
+            'line': '',
+            'query': '',
+            'image': image,
+            'duration': duration,
+            'score': None,
+            'start': t,
+            'end': t + duration,
+        })
+        if index < len(images) - 1:
+            t += max(0.0, duration - fade)
+        else:
+            t += duration
+    return rows
+
+
+def format_timecode(seconds):
+    """mm:ss.d from a floating second count."""
+    try:
+        total = max(0.0, float(seconds))
+    except (TypeError, ValueError):
+        total = 0.0
+    minutes = int(total) // 60
+    secs = total - minutes * 60
+    return '%02d:%04.1f' % (minutes, secs)
+
+
+def build_narration(cut):
+    """Build the timed narration payload from a plan or cut-list dict."""
+    rows = _shot_rows(cut)
+    total = len(rows)
+    segments = []
+    for index, row in enumerate(rows):
+        speak = narrate_shot(row['line'], row['query'], row['duration'],
+                             index=index, total=total)
+        segments.append({
+            'index': index + 1,
+            'start': round(row['start'], 3),
+            'end': round(row['end'], 3),
+            'duration': round(row['duration'], 3),
+            'timecode': '%s – %s' % (format_timecode(row['start']),
+                                     format_timecode(row['end'])),
+            'line': row['line'],
+            'query': row['query'],
+            'image': row['image'],
+            'narration': speak,
+            'wordCount': len(speak.split()),
+            'wordBudget': word_budget(row['duration']),
+        })
+    total_duration = segments[-1]['end'] if segments else 0.0
+    fade = _dissolve_fade(cut, [r['duration'] for r in rows]) if rows else 0.0
+    arc = story_arc(rows)
+    script_lines = [seg['narration'] for seg in segments if seg['narration']]
+    return {
+        'track': cut.get('track'),
+        'shotCount': total,
+        # durationSec is the rendered film length (sum of shot durations
+        # minus dissolve overlaps), not the sum of the shot lengths.
+        'durationSec': round(total_duration, 3),
+        'transition': cut.get('transition') or 'none',
+        'fade': round(fade, 3),
+        'arc': arc,
+        'wordsPerSec': WORDS_PER_SEC,
+        'fill': NARRATION_FILL,
+        'segments': segments,
+        'script': '\n\n'.join(script_lines),
+    }
+
+
+def narration_paths(cutlist_path):
+    """Sibling paths for the narration JSON and the readable script."""
+    stem, _ext = os.path.splitext(cutlist_path)
+    return stem + '.narration.json', stem + '.narration.md'
+
+
+def render_narration_markdown(payload, title=None):
+    """A readable script a narrator can hold."""
+    name = title or 'Narration'
+    lines = ['# %s' % name, '']
+    track = payload.get('track')
+    if track:
+        lines.append('Track: `%s`' % track)
+    lines.append('Total: %.1fs · %d shot(s)' % (
+        payload.get('durationSec') or 0, payload.get('shotCount') or 0))
+    lines.append('')
+    lines.append('> %s' % (payload.get('arc') or ''))
+    lines.append('')
+    for seg in payload.get('segments') or []:
+        lines.append('## %s · shot %d' % (seg['timecode'], seg['index']))
+        if seg.get('line'):
+            lines.append('**Lyric:** %s' % seg['line'])
+        if seg.get('query'):
+            lines.append('**Picture:** %s' % seg['query'])
+        lines.append('**Speak (%d/%d words):** %s' % (
+            seg.get('wordCount') or 0,
+            seg.get('wordBudget') or 0,
+            seg.get('narration') or '',
+        ))
+        lines.append('')
+    lines.append('---')
+    lines.append('')
+    lines.append('## Full script')
+    lines.append('')
+    lines.append(payload.get('script') or '')
+    lines.append('')
+    return '\n'.join(lines)
+
+
+def write_narration(cutlist_path, cut=None):
+    """Write `<cut>.narration.json` and `<cut>.narration.md` beside the cut list.
+
+    `cut` may be a plan, a cut-list payload, or None (read the cut list from
+    disk). Returns `(payload, json_path, md_path)`.
+    """
+    if cut is None:
+        with open(cutlist_path) as handle:
+            cut = json.load(handle)
+    # Accept a director plan (shots carry `frame`) or a cut-list payload.
+    payload = build_narration(cut)
+    json_path, md_path = narration_paths(cutlist_path)
+    parent = os.path.dirname(os.path.abspath(json_path))
+    if parent:
+        os.makedirs(parent, exist_ok=True)
+    with open(json_path, 'w') as handle:
+        json.dump(payload, handle, indent=2)
+        handle.write('\n')
+    title = os.path.splitext(os.path.basename(cutlist_path))[0]
+    with open(md_path, 'w') as handle:
+        handle.write(render_narration_markdown(payload, title=title))
+    return payload, json_path, md_path
+
+
+def write_cutlist(path, plan, images=None, narration=True):
     """Write the cut list the renderer reads.
 
     The renderer (bin/cut-list-to-mp4.mjs) owns the ffmpeg graph; this file
     only says WHAT to render — which file, in which order, for how long,
-    with which move and look.
+    with which move and look. By default it also writes the companion
+    narration story (`*.narration.json` + `*.narration.md`) so a voiceover
+    can ride the same cut.
     """
     payload = {
         'images': images if images is not None else [s['frame']['path'] for s in plan['shots']],
@@ -850,8 +1174,14 @@ def write_cutlist(path, plan, images=None):
             'score': s.get('score'),
         } for s in plan['shots']],
     }
+    parent = os.path.dirname(os.path.abspath(path))
+    if parent:
+        os.makedirs(parent, exist_ok=True)
     with open(path, 'w') as handle:
         json.dump(payload, handle, indent=2)
+        handle.write('\n')
+    if narration:
+        write_narration(path, payload)
     return payload
 
 
@@ -926,8 +1256,8 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[0])
-    parser.add_argument('--frames', required=True, help='a directory of candidate frames')
-    parser.add_argument('--lines', required=True, help='one lyric line per line, or a .tsv')
+    parser.add_argument('--frames', help='a directory of candidate frames')
+    parser.add_argument('--lines', help='one lyric line per line, or a .tsv')
     parser.add_argument('--cutlist', help='write the cut list here')
     parser.add_argument('--track', help='an audio track (durations follow its beats)')
     parser.add_argument('--threshold', type=float, default=0.18)
@@ -940,8 +1270,30 @@ def main():
                         help='how one shot gives way to the next; crossfade is the smooth one')
     parser.add_argument('--fade', type=float, default=0.9,
                         help='the dissolve length, crossfade only')
+    parser.add_argument('--no-narration', action='store_true',
+                        help='skip the companion narration story beside the cut list')
+    parser.add_argument('--narrate-cutlist', metavar='PATH',
+                        help='write narration for an existing cut list and exit')
     parser.add_argument('--json', action='store_true')
     args = parser.parse_args()
+
+    if args.narrate_cutlist:
+        if not os.path.exists(args.narrate_cutlist):
+            print('cut list not found: %s' % args.narrate_cutlist, file=sys.stderr)
+            return 2
+        payload, json_path, md_path = write_narration(args.narrate_cutlist)
+        if args.json:
+            print(json.dumps(payload, indent=2))
+        else:
+            print('narration: %s' % json_path)
+            print('script:    %s' % md_path)
+            print('shots:     %d' % (payload.get('shotCount') or 0))
+            print('duration:  %.1fs' % (payload.get('durationSec') or 0))
+            print('arc:       %s' % (payload.get('arc') or ''))
+        return 0
+
+    if not args.frames or not args.lines:
+        parser.error('--frames and --lines are required (or pass --narrate-cutlist)')
 
     lines = load_lines(args.lines)
     queries = [line['query'] if isinstance(line, dict) else line for line in lines]
@@ -966,14 +1318,17 @@ def main():
                                transition=args.transition, fade=args.fade)]
 
     written = []
+    narrations = []
     for index, plan in enumerate(plans, start=1):
         if args.cutlist:
             path = args.cutlist
             if args.versions > 1:
                 stem, ext = os.path.splitext(args.cutlist)
                 path = '%s.v%d%s' % (stem, index, ext or '.json')
-            write_cutlist(path, plan)
+            write_cutlist(path, plan, narration=not args.no_narration)
             written.append(path)
+            if not args.no_narration:
+                narrations.extend(narration_paths(path))
         if args.json:
             print(json.dumps({'version': index, 'shots': plan['shots'],
                               'rejected': plan['rejected'], 'gaps': plan['gaps'],
@@ -986,6 +1341,10 @@ def main():
     if written:
         print('\ncut lists:')
         for path in written:
+            print('  %s' % path)
+    if narrations:
+        print('\nnarration:')
+        for path in narrations:
             print('  %s' % path)
     return 0
 

@@ -21,8 +21,14 @@
  *     "transition": "none",                     // none | crossfade
  *     "track":    "song.mp3"                    // optional audio
  *   }
+ *
+ * By default the renderer also ensures the companion narration story
+ * (`<cut>.narration.json` + `<cut>.narration.md`) sits beside the cut
+ * list — the same files `lib/story/director.py` writes when it plans.
+ * Pass `--no-narration` to leave them alone.
  */
 
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -49,11 +55,13 @@ options
   --out <file>     output path (default data/mp4/<name>-<stamp>.mp4)
   --dry-run        print the ffmpeg command, run nothing
   --json           machine-readable plan
+  --no-narration   do not write/ensure the companion narration story
 `);
     process.exit(cutPath ? 0 : 2);
 }
 
-const cut = JSON.parse(fs.readFileSync(path.resolve(REPO, cutPath), 'utf8'));
+const resolvedCut = path.resolve(REPO, cutPath);
+const cut = JSON.parse(fs.readFileSync(resolvedCut, 'utf8'));
 const images = (cut.images || []).map((p) => path.resolve(REPO, p));
 if (!images.length) {
     process.stderr.write('[cut-list] the cut list holds no images\n');
@@ -63,6 +71,43 @@ const missing = images.filter((p) => !fs.existsSync(p));
 if (missing.length) {
     process.stderr.write(`[cut-list] not found: ${missing.join(', ')}\n`);
     process.exit(2);
+}
+
+function ensureNarration(cutFile) {
+    // Status lines go to stderr so `--json` keeps stdout as a single
+    // parseable object. Errors already went to stderr; the narration
+    // status used to pollute stdout and break machine consumers.
+    const say = (line) => process.stderr.write(`${line}\n`);
+    const stem = cutFile.replace(/\.json$/i, '');
+    const jsonPath = `${stem}.narration.json`;
+    const mdPath = `${stem}.narration.md`;
+    if (fs.existsSync(jsonPath) && fs.existsSync(mdPath)) {
+        say(`[cut-list] narration: ${path.relative(REPO, jsonPath)}`);
+        return;
+    }
+    const director = path.join(REPO, 'lib', 'story', 'director.py');
+    const result = spawnSync(
+        process.env.PYTHON || 'python3',
+        [director, '--narrate-cutlist', cutFile],
+        { encoding: 'utf8' },
+    );
+    if (result.status !== 0) {
+        say(
+            `[cut-list] narration failed (exit ${result.status}): `
+            + `${(result.stderr || result.stdout || '').trim()}`,
+        );
+        return;
+    }
+    if (fs.existsSync(jsonPath)) {
+        say(`[cut-list] narration: ${path.relative(REPO, jsonPath)}`);
+    }
+    if (fs.existsSync(mdPath)) {
+        say(`[cut-list] script:    ${path.relative(REPO, mdPath)}`);
+    }
+}
+
+if (!has('--no-narration')) {
+    ensureNarration(resolvedCut);
 }
 
 const durations = cut.durations && cut.durations.length === images.length ? cut.durations : undefined;
