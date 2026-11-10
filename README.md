@@ -454,6 +454,57 @@ Two rules the registry follows, both measured:
   to be ignored; the camera clause names the camera's *place* and the
   objects that must be in the picture.
 
+## Run the Felt Bunny story
+
+A two-frame story registry — `lib/felt-bunny.json` — built from the
+artist's own Midjourney job (`aeebaf75`, index 2): a chibi
+needle-felted wool rabbit on a pale studio floor. The source cell is
+the **character anchor**, carried as `--edit`, because this account
+refuses `--cref` (measured — the flag itself is refused, not the
+pairing).
+
+```bash
+# the registry
+npm run felt-bunny:list
+
+# one frame's exact composed prompt
+npm run felt-bunny:frame -- 2
+
+# the generated pack and reference
+npm run felt-bunny:pack
+npm run felt-bunny:doc
+
+# render both frames (see below for why the defaults are emptied)
+node lib/mj-web.js --prompt-file assets/mural-prompts/felt-bunny.md \
+    --all-prompts --defaults '' --output mj-output/felt-bunny
+```
+
+The story is two beats: the bunny **alone** with nothing in its paws,
+and then the **paper boat** in its paws with the light warmed. Both
+frames come back as `v8-2_edit_diffusion` jobs at 2:3, four cells each;
+the cell in each release is chosen by eye and recorded in the
+registry.
+
+`--defaults ''` is empty on purpose. The config's master suffix ends
+with `--edit https://s.mj.run/3Hv2HR2n3Zs` — the artist's own identity
+anchor — and Midjourney honours the **last** of a duplicated flag, so
+without the override the master's anchor replaces the story's. The
+`--edit` slot is now resolved exactly once, like `--ar` and `--s`.
+
+The release lives in `assets/releases/felt-bunny/` — the two frames as
+JPG at native 896×1344, the contact sheet and the manifest. The MP4 is
+gitignored and built on demand:
+
+```bash
+node bin/images-to-mp4.mjs assets/releases/felt-bunny/frames/01.jpg \
+    assets/releases/felt-bunny/frames/02.jpg \
+    --out assets/releases/felt-bunny/felt-bunny-cut.mp4 \
+    --mode cut --size 896x1344 --each 3
+```
+
+Two shots, three seconds each, one hard cut. The reference is
+[`docs/FELT-BUNNY.md`](docs/FELT-BUNNY.md).
+
 ## Run the Suno mutator
 
 Send a Suno link, get custom variants of the song behind it — the same

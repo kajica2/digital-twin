@@ -15904,3 +15904,121 @@ checks ✓ ✓ and passes again once restored ✓ ✓.
 
 **Next:** the YouTube upload ✓ ✓ — the session is refreshed ✓ ✓ and the
 poster tool is proven ✓ ✓, but the cookie injection has to be fixed ✓ ✓.
+
+### 2026-11-10 — sprint 0.103 (the Felt Bunny — a two-frame story, and the --edit collision it exposed)
+
+Asked: *"treat 2 frame story from
+`https://www.midjourney.com/jobs/aeebaf75-ceb3-47d9-8249-87ede8f2ea30?index=2`"* ✓ ✓ —
+a **story** in **two** frames, from one of the artist's own Midjourney
+jobs ✓ ✓.
+
+**THE SOURCE IS THE CHARACTER ANCHOR.** Job `aeebaf75` index 2 is a
+chibi needle-felted wool rabbit on a pale studio floor — a chunky round
+head, a button nose, black eyes, dense wool fibres ✓ ✓. The source
+cell `0_2` became the story's `--edit` anchor ✓ ✓, because **this
+account refuses `--cref`** ✓ ✓ — measured, not assumed: the flag
+itself is refused, not the pairing ✓ ✓ (sprint 0.93's bisection ✓ ✓).
+
+**THE STORY IS TWO BEATS AND NOTHING HAPPENS BETWEEN THEM.** 01
+**ALONE** — the bunny stands on the pale floor with nothing in its
+paws; 02 **THE BOAT** — the folded paper boat is at chest height in
+both paws and the light has warmed ✓ ✓. The boat arrives; the rabbit
+looks at it ✓ ✓. No invented action, no third beat ✓ ✓.
+
+**Shipped:**
+
+- **`lib/felt-bunny.json`** — the registry: 2 frames, the DNA, the
+  identity clause (no clothing, no accessories, bare cream wool ✓ ✓),
+  the flags, the anchor, and the **picked cell per frame** ✓ ✓.
+- **`lib/felt-bunny.js`** — loader, composer, pack builder, doc
+  builder, CLI ✓ ✓.
+- **`lib/felt-bunny.test.js`** — **82 assertions** ✓ ✓.
+- **`assets/mural-prompts/felt-bunny.md`** + **`docs/FELT-BUNNY.md`** —
+  generated, never hand-copied ✓ ✓.
+- **`assets/releases/felt-bunny/`** — the two frames as JPG at native
+  **896×1344** ✓ ✓, the contact sheet, the manifest ✓ ✓. The MP4 is
+  gitignored and built on demand ✓ ✓.
+- npm: `felt-bunny:pack|doc|list|frame`, `test:felt-bunny` ✓ ✓.
+
+**THREE FIXES IN SHARED CODE — all found by RUNNING this, none
+visible from reading it ✓ ✓.**
+
+**1. The master's `--edit` SILENTLY REPLACED THE STORY'S ANCHOR.** The
+config's master suffix ends with
+`--edit https://s.mj.run/3Hv2HR2n3Zs` — the artist's own identity
+anchor ✓ ✓ — and `lib/mj-flags.js` did **not** drop the defaults'
+`--edit` when the prompt named its own ✓ ✓. So a pack carrying its own
+anchor got BOTH, and **Midjourney honours the LAST of a duplicated
+flag** ✓ ✓ — the master's anchor won and the felt bunny was replaced
+by the artist's face ✓ ✓. **The same failure class as the duplicated
+`--ar`** ✓ ✓ (PM-2026-09-24-dup-flags ✓ ✓) — and the fourth
+instance of it in this repo ✓ ✓. `--edit` is now resolved exactly
+once, like `--ar`, `--s`, `--profile` and `--sref` ✓ ✓. **Proved to
+bite:** reverting the fix fails **2** assertions ✓ ✓.
+
+**2. `--defaults <string>` — a per-run override for the master suffix.**
+A pack with its own complete look needs the master's prose GONE — "the
+linocut print texture, deep blue and warm red ink on cream paper"
+would otherwise ride along on every pack and fight the look ✓ ✓. The
+API route already took a `defaults` body field and the console store
+already took `list({defaults})` ✓ ✓; the CLI took neither ✓ ✓. Now
+`--defaults ''` composes with nothing ✓ ✓, and the dry run proves it:
+**zero** occurrences of the master's prose or anchor in the composed
+command ✓ ✓.
+
+**3. THE BLOWN-CELL SCREEN WAS CALIBRATED ON ONE DARK SET.** The old
+rule was `mean luma > 90` — an ABSOLUTE threshold ✓ ✓. Measured
+across **76 cells** on disk ✓ ✓: it produced **NO pick at all on 14 of
+19 prompts** ✓ ✓, and it called every cell of a bright set blown ✓ ✓
+— including the repo's own reference sheets ✓ ✓. The cells it called
+blown had **~0.1% clipped pixels** ✓ ✓; they were well-exposed frames
+that happened to be BRIGHT ✓ ✓. **A blown cell is one whose HIGHLIGHTS
+ARE CLIPPED** ✓ ✓, so the test is now the fraction of pixels at/above
+250 (threshold 2%, read from the distribution's gap between the 1.6%
+tail and the 12–80% group) ✓ ✓. Also fixed a latent indexing bug that
+reported the pick as `"0"` instead of `"0_0"` ✓ ✓.
+
+**4. The contact sheet CROWNED THE PORTRAIT FRAMES.** The tile aspect
+was hardcoded 16:9 ✓ ✓, which cuts the ears off a 2:3 frame ✓ ✓.
+`--aspect` now sets it ✓ ✓.
+
+**THE RELEASE WAS VERIFIED AGAINST THE SOURCE, NOT ASSUMED.** Each
+shipped frame **is** its picked cell — mean pixel delta **0.07**
+against the picked cell and **15.82** against the other frame's cell
+✓ ✓ (a 16×16 grayscale signature) ✓ ✓. The cut: **896×1344, 30 fps,
+180 frames, 6.00 s, yuv420p / tv** ✓ ✓; the two beats were extracted
+and **looked at** ✓ ✓ — the bunny alone with empty paws, then the boat
+in its paws ✓ ✓.
+
+**One mistake of my own, caught by comparing rather than assuming:**
+the first contact sheet was built with `--slots 1=0,2=1` — the SLOT
+indices — so it showed cells `0_0`/`0_1` while the release ships
+`0_3`/`0_2` ✓ ✓. Rebuilt with `--slots 1=3,2=2` ✓ ✓, and the sheet's
+captions now carry the two distinct prompt openings ✓ ✓.
+
+**Verified:**
+
+- `npm run test:all` → **exit 0** ✓ ✓ (43 suites, `test:felt-bunny`
+  82/82 ✓ ✓).
+- `npm run prompt:check` → **118 packs, 1204 prompts, 0 violations** ✓ ✓.
+- `npm run test:secrets` → **9/9** ✓ ✓ (the suno jar finding is the
+  pre-existing baselined one, untouched ✓ ✓).
+- The composed command for both frames: one `--edit` (the felt
+  anchor), `--v 8.2`, `--ar 2:3` **last** ✓ ✓, zero master prose ✓ ✓.
+- No absolute filesystem path in any tracked file ✓ ✓.
+
+**Open:**
+
+- The MP4 is gitignored ✓ ✓, so the release is the two frames, the
+  sheet and the manifest ✓ ✓ — the cut is rebuilt on demand ✓ ✓.
+- The release is **not on a page** ✓ ✓ — `assets/releases/` is not
+  referenced by any page, so nothing serves it on the deploy ✓ ✓. The
+  previous releases are the same ✓ ✓; a page for them is the artist's
+  call ✓ ✓.
+- The two frames carry **one warm daylight from the left** — the same
+  light direction, so the story reads as one room ✓ ✓, but the warmer
+  key in frame 2 is MJ's own choice ✓ ✓, not a directed change ✓ ✓.
+- Unchanged: the `.kai/` durability call, the woody-shaw chart
+  variants, the Vercel custom domain, the MJ cookie jar expiry, the
+  hub board's completion misattribution, a reel's slug still derived
+  from its mutable POST-sheet title.
