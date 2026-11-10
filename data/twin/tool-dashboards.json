@@ -1,6 +1,6 @@
 {
   "generatedFor": "npm run test:all",
-  "suiteCount": 84,
+  "suiteCount": 86,
   "familyCount": 8,
   "families": [
     {
@@ -376,7 +376,9 @@
         "test:auto-check-updates",
         "test:ingest",
         "test:deepseek",
-        "test:tool-dashboard"
+        "test:tool-dashboard",
+        "test:process-graph",
+        "test:process-graph-ui"
       ],
       "run": [
         {
@@ -394,6 +396,10 @@
         {
           "cmd": "npm run test:tool-dashboard",
           "note": "family dashboards"
+        },
+        {
+          "cmd": "npm run test:process-graph",
+          "note": "process packages"
         }
       ],
       "docs": [
@@ -416,11 +422,15 @@
         {
           "href": "../docs/TOOL-DASHBOARDS.md",
           "label": "Tool dashboards"
+        },
+        {
+          "href": "../docs/PROCESS-GRAPHS.md",
+          "label": "Process graphs"
         }
       ],
       "status": {
         "state": "green",
-        "detail": "15 suites \u00b7 skin + hub + secrets"
+        "detail": "17 suites \u00b7 skin + hub + secrets"
       }
     }
   ]

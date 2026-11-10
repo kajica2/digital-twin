@@ -30,7 +30,7 @@
         {
           "id": "frames",
           "label": "Pull chosen cells into a frame set",
-          "cmd": "npm run mj:frames -- --pack mj-output/<slug> --out data/mp4/frames/<slug>",
+          "cmd": "npm run mj:frames -- mj-output/<slug> --out data/mp4/frames/<slug>",
           "optional": false
         },
         {
