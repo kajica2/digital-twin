@@ -1243,6 +1243,12 @@ the twin's "auto split to parts". Every verb takes `--plan` (print the command, 
 nothing) and `--json`, and an unknown flag is refused with exit 2 rather than
 ignored. Full reference: `docs/CADENZA.md`.
 
+On Linux the free mastering chain is **TDR Nova** + **LSP Plugins** (EQ → Comp →
+Limiter). Loudness Compensator and Spectrum Analyzer are for monitoring / A-B
+listening only — keep them off the export bus. The Win/Mac shortlist
+(Kotelnikov, Limiter 6 GE, Youlean) has no Linux builds, so those are not
+installed here — see `docs/CADENZA.md` § Plugins.
+
 ## Split a long recording into its tracks
 
 An album that arrives as one 57-minute mp3 — no tags, and the "silence"

@@ -15110,3 +15110,9 @@ Homebrew's download was intact ✓ ✓ ✓. REAPER matters here for its
 **ReaScript** API ✓ ✓ (Lua and EEL ✓ ✓): it can host the audio, drive
 the video window ✓ ✓ and export the result ✓ ✓ — a second path to the
 same films ✓ ✓.
+
+### 2026-11-09 — Cadenza free mastering chain (Linux)
+
+- Installed TDR Nova (VST3) + LSP Plugins 1.2.37 (CLAP+VST3) under ~/.vst3 / ~/.clap; `cadenza scan-plugins` → 397 catalog entries.
+- Documented in docs/CADENZA.md: Win/Mac-only shortlist cannot run here; Nova → EQ → Comp → Limiter is the Linux export bus (Loudness Compensator + Spectrum Analyzer are monitoring-only, not post-limiter on the render path).
+- Kotelnikov / Limiter 6 GE / Youlean / TBProAudio successors have no Linux builds — not installed.
