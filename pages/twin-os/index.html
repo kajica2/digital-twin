@@ -1122,6 +1122,24 @@
               <p class="tool-desc">Split a long MP4 into N mirror-loopable clips aligned to musical beats (librosa) — forward + reverse, no visible seam. Local gradio app + CLI under <code>lib/loopable-video-segmenter/</code>; run it with <code>npm run lvs:ui</code>.</p>
               <span class="tool-cta">open the Loopable Video Segmenter →</span>
             </a>
+            <a class="tool-card" href="../tool-dashboards.html" data-tool-dashboards>
+              <div class="tool-head">
+                <span class="tool-mark" aria-hidden="true">⚙</span>
+                <span class="tool-name">Tool Dashboards</span>
+                <span class="tool-tag">local</span>
+              </div>
+              <p class="tool-desc">Eight family floating panels covering every <code>test:all</code> suite — TESTS / RUN / DOCS / STATUS. Drop-in via <code>lib/tool-dashboard.js</code>; the RUN cell copies the command.</p>
+              <span class="tool-cta">open the tool dashboards →</span>
+            </a>
+            <a class="tool-card" href="../process-graphs.html" data-tool-process-graphs>
+              <div class="tool-head">
+                <span class="tool-mark" aria-hidden="true">⇢</span>
+                <span class="tool-name">Process Graphs</span>
+                <span class="tool-tag">local</span>
+              </div>
+              <p class="tool-desc">Allowlisted pipelines — lyrics→frames, next-in-order, evolution, mutation, chart export, index-songs. Dry-run by default; apply only when every command is concrete.</p>
+              <span class="tool-cta">open the process graphs →</span>
+            </a>
           </div>
         </div>
 
@@ -1265,6 +1283,16 @@
             <a class="storefront-link" href="../marketplace.html" data-store-marketplace>
               <span class="storefront-name">Mood Frames</span>
               <span class="storefront-url">the catalogue in this repo</span>
+              <span class="storefront-cta">open →</span>
+            </a>
+            <a class="storefront-link" href="../tool-dashboards.html" data-store-dashboards>
+              <span class="storefront-name">Tool Dashboards</span>
+              <span class="storefront-url">eight family panels</span>
+              <span class="storefront-cta">open →</span>
+            </a>
+            <a class="storefront-link" href="../process-graphs.html" data-store-process-graphs>
+              <span class="storefront-name">Process Graphs</span>
+              <span class="storefront-url">lyrics → frames · evolution · mutation</span>
               <span class="storefront-cta">open →</span>
             </a>
           </div>
@@ -1965,6 +1993,24 @@
       input.value = '';
       input.focus();
     });
+  })();
+</script>
+
+<script src="../../lib/floating-toolset.js"></script>
+<script src="../../lib/tool-dashboard.js"></script>
+<floating-toolset src="../../data/twin/toolset.json" poll="30000" data-twin-toolset></floating-toolset>
+<tool-dashboard src="../../data/twin/tool-dashboards.json" family="watchers" data-twin-dashboard></tool-dashboard>
+<script>
+  (function () {
+    var toolset = document.querySelector('floating-toolset[data-twin-toolset]');
+    var dash = document.querySelector('tool-dashboard[data-twin-dashboard]');
+    if (toolset && typeof toolset.open === 'function') {
+      // Live payload on open; poll keeps it fresh while the panel stays up.
+      toolset.open();
+    }
+    // Dashboard stays closed until the operator asks for a family —
+    // the Songs tool-grid and Twin storefront both link the full page.
+    if (dash && typeof dash.close === 'function') dash.close();
   })();
 </script>
 </body>

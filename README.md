@@ -76,6 +76,12 @@ For now, what's here:
   `test:all` suite: eight floating panels (TESTS / RUN / DOCS / STATUS)
   grouped by watcher / Midjourney / Suno / Treblo / social / media /
   marketplace / platform. Component: `lib/tool-dashboard.js`.
+- **`pages/process-graphs.html`** — allowlisted process packages
+  (lyrics → frames, next in order, evolution, mutation, plus chart
+  export and index-songs). Browse + dry-run in the browser via
+  `<process-graph>`; apply stays on the CLI / admin API.
+  Catalog: `data/twin/process-graphs.json`. Reference:
+  `docs/PROCESS-GRAPHS.md`.
 - **`pages/persona-social-pack.html`** — the Persona Social Pack: give it
   a URL that carries creative-persona descriptions and it returns, per
   persona, three hashtag tiers (primary / secondary / niche), YouTube
@@ -656,6 +662,32 @@ npm run e2e:tool-dashboard
 ```
 
 Reference: [`docs/TOOL-DASHBOARDS.md`](docs/TOOL-DASHBOARDS.md).
+
+
+## Run the Process Graphs
+
+Allowlisted multi-step pipelines — four Midjourney pack flows
+(lyrics → frames, next in order, evolution, mutation) plus chart-export
+and index-songs. The page dry-runs through `/api/process`; apply is
+CLI-only (placeholders and `browserOk: false` packages refuse apply in
+the browser):
+
+```bash
+node lib/serve.js --port 5173
+# → http://127.0.0.1:5173/pages/process-graphs.html
+npm run process:list
+npm run process:dry -- lyrics-to-frames
+npm run test:process-graph
+npm run test:process-graph-ui
+npm run e2e:process-graphs
+```
+
+```html
+<script src="/lib/process-graph-ui.js"></script>
+<process-graph src="/data/twin/process-graphs.json"></process-graph>
+```
+
+Reference: [`docs/PROCESS-GRAPHS.md`](docs/PROCESS-GRAPHS.md).
 
 
 ## Run the social worker

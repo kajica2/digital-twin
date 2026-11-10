@@ -157,6 +157,22 @@ entry below.
   `lib/tool-dashboard.test.js`, `e2e/tool-dashboards.spec.mjs`,
   `pages/tool-dashboards.html`, `docs/TOOL-DASHBOARDS.md`.
 
+## `<process-graph>`
+
+Allowlisted pipeline browser. Loads
+`data/twin/process-graphs.json`, lists packages, dry-runs through
+`POST /api/process/<id>`. Apply stays on the CLI (and behind the
+admin key for `browserOk` packages).
+
+- **Home:** `lib/process-graph-ui.js` (Shadow DOM, skin tokens).
+- **Attributes:** `src` (catalog URL), `selected` (package id).
+- **Events:** `process:select`.
+- **Companion files:** `data/twin/process-graphs.json`,
+  `lib/process-graph.js` (CLI + apply runner),
+  `lib/process-graph.test.js`, `lib/process-graph-ui.test.js`,
+  `e2e/process-graphs.spec.mjs`, `pages/process-graphs.html`,
+  `docs/PROCESS-GRAPHS.md`.
+
 ## Reusable SVG icon library
 
 The `ICONS` object (in the inline script) holds 14 inline SVG paths

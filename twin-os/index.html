@@ -798,6 +798,52 @@
       letter-spacing: 0.04em;
     }
 
+    /* Storefront — one front door for finished work. */
+    .storefront {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+      max-width: 640px;
+    }
+    .storefront-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      padding: 13px 18px;
+      color: var(--ink);
+      text-decoration: none;
+      transition: border-color 0.18s ease, background 0.18s ease;
+    }
+    .storefront-link:hover {
+      border-color: var(--primary-mid);
+      background: var(--primary-soft);
+    }
+    .storefront-link:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+    .storefront-name { font-size: 15px; font-weight: 600; }
+    .storefront-url {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      color: var(--ink-muted);
+    }
+    .storefront-cta {
+      margin-left: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    @media (max-width: 520px) {
+      .storefront-link { flex-wrap: wrap; gap: 6px 12px; }
+      .storefront-cta { margin-left: 0; }
+    }
+
     @media (max-width: 720px) {
       .song-row {
         grid-template-columns: 56px 1fr;
@@ -1070,6 +1116,24 @@
               <p class="tool-desc">Split a long MP4 into N mirror-loopable clips aligned to musical beats (librosa) — forward + reverse, no visible seam. Local gradio app + CLI under <code>lib/loopable-video-segmenter/</code>; run it with <code>npm run lvs:ui</code>.</p>
               <span class="tool-cta">open the Loopable Video Segmenter →</span>
             </a>
+            <a class="tool-card" href="../pages/tool-dashboards.html" data-tool-dashboards>
+              <div class="tool-head">
+                <span class="tool-mark" aria-hidden="true">⚙</span>
+                <span class="tool-name">Tool Dashboards</span>
+                <span class="tool-tag">local</span>
+              </div>
+              <p class="tool-desc">Eight family floating panels covering every <code>test:all</code> suite — TESTS / RUN / DOCS / STATUS. Drop-in via <code>lib/tool-dashboard.js</code>; the RUN cell copies the command.</p>
+              <span class="tool-cta">open the tool dashboards →</span>
+            </a>
+            <a class="tool-card" href="../pages/process-graphs.html" data-tool-process-graphs>
+              <div class="tool-head">
+                <span class="tool-mark" aria-hidden="true">⇢</span>
+                <span class="tool-name">Process Graphs</span>
+                <span class="tool-tag">local</span>
+              </div>
+              <p class="tool-desc">Allowlisted pipelines — lyrics→frames, next-in-order, evolution, mutation, chart export, index-songs. Dry-run by default; apply only when every command is concrete.</p>
+              <span class="tool-cta">open the process graphs →</span>
+            </a>
           </div>
         </div>
 
@@ -1194,6 +1258,36 @@
             <div class="stat-label">spent (so far)</div>
             <div class="stat-value">$0.04</div>
             <div class="stat-sub">3 subagent runs, all under $0.02</div>
+          </div>
+        </div>
+
+        <div class="panel-section" style="margin-top:28px" data-storefront>
+          <h2>Storefront</h2>
+          <p class="lede">One front door. The mood-frame catalogue that ships with this
+            repo is the shelf; the Gumroad store is the checkout. Everything the twin
+            finishes that is for sale goes through one link, so there is one place to
+            change when the catalogue moves.</p>
+          <div class="storefront">
+            <a class="storefront-link" href="https://kaidjuric.gumroad.com/" target="_blank" rel="noopener" data-store-gumroad>
+              <span class="storefront-name">Gumroad</span>
+              <span class="storefront-url">kaidjuric.gumroad.com</span>
+              <span class="storefront-cta">open ↗</span>
+            </a>
+            <a class="storefront-link" href="../pages/marketplace.html" data-store-marketplace>
+              <span class="storefront-name">Mood Frames</span>
+              <span class="storefront-url">the catalogue in this repo</span>
+              <span class="storefront-cta">open →</span>
+            </a>
+            <a class="storefront-link" href="../pages/tool-dashboards.html" data-store-dashboards>
+              <span class="storefront-name">Tool Dashboards</span>
+              <span class="storefront-url">eight family panels</span>
+              <span class="storefront-cta">open →</span>
+            </a>
+            <a class="storefront-link" href="../pages/process-graphs.html" data-store-process-graphs>
+              <span class="storefront-name">Process Graphs</span>
+              <span class="storefront-url">lyrics → frames · evolution · mutation</span>
+              <span class="storefront-cta">open →</span>
+            </a>
           </div>
         </div>
       </section>
@@ -1892,6 +1986,19 @@
       input.value = '';
       input.focus();
     });
+  })();
+</script>
+
+<script src="../lib/floating-toolset.js"></script>
+<script src="../lib/tool-dashboard.js"></script>
+<floating-toolset src="../data/twin/toolset.json" poll="30000" data-twin-toolset></floating-toolset>
+<tool-dashboard src="../data/twin/tool-dashboards.json" family="watchers" data-twin-dashboard></tool-dashboard>
+<script>
+  (function () {
+    var toolset = document.querySelector('floating-toolset[data-twin-toolset]');
+    var dash = document.querySelector('tool-dashboard[data-twin-dashboard]');
+    if (toolset && typeof toolset.open === 'function') toolset.open();
+    if (dash && typeof dash.close === 'function') dash.close();
   })();
 </script>
 </body>

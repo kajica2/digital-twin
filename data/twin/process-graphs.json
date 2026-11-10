@@ -1,0 +1,190 @@
+{
+  "version": 1,
+  "updatedAt": "2026-11-10",
+  "packages": [
+    {
+      "id": "lyrics-to-frames",
+      "title": "Lyrics → frames",
+      "summary": "Turn a lyric or idea into a Midjourney prompt pack, pull the chosen cells, and cut them into a video.",
+      "browserOk": true,
+      "dryRunFlag": "--dry-run",
+      "docs": [
+        "docs/MJ-WATCHER.md",
+        "docs/IMAGES-TO-MP4.md",
+        "assets/mural-prompts/PROMPT-EXPANSION-FORMAT.md"
+      ],
+      "nodes": [
+        {
+          "id": "pack",
+          "label": "Write the prompt pack",
+          "cmd": "node lib/mj-prompt-generator.js --idea \"<lyric or vibe>\" --out prompts-inbox/<slug>.md",
+          "optional": false
+        },
+        {
+          "id": "submit",
+          "label": "Submit the pack (watcher or web)",
+          "cmd": "node lib/mj-web.js --prompt-file prompts-inbox/<slug>.md --all-prompts --output mj-output/<slug>",
+          "optional": true,
+          "note": "Or drop the .md into prompts-inbox/ and let the MJ watcher pick it up."
+        },
+        {
+          "id": "frames",
+          "label": "Pull chosen cells into a frame set",
+          "cmd": "npm run mj:frames -- --pack mj-output/<slug> --out data/mp4/frames/<slug>",
+          "optional": false
+        },
+        {
+          "id": "cut",
+          "label": "Cut the frames into a video",
+          "cmd": "npm run images:mp4 -- data/mp4/frames/<slug> --mode kenburns --size 1920x1080 --each 3.5 --out data/mp4/<slug>.mp4",
+          "optional": false
+        }
+      ],
+      "edges": [
+        ["pack", "submit"],
+        ["submit", "frames"],
+        ["frames", "cut"]
+      ]
+    },
+    {
+      "id": "next-in-order",
+      "title": "Next in order",
+      "summary": "Lyric-order cut: the director assigns frames to lines in song order and renders version 1 (best match per line).",
+      "browserOk": false,
+      "dryRunFlag": "--json",
+      "docs": [
+        "docs/STORY-DIRECTOR.md",
+        "docs/IMAGES-TO-MP4.md"
+      ],
+      "nodes": [
+        {
+          "id": "direct",
+          "label": "Plan the lyric-order cut",
+          "cmd": "npm run story:direct -- --frames <frames-dir> --lines <lines.tsv> --versions 1 --per-line 1 --cutlist data/mp4/<slug>.v1.json --json",
+          "optional": false,
+          "note": "Version 1 keeps the best CLIP match per lyric line, in song order."
+        },
+        {
+          "id": "render",
+          "label": "Render the cut list",
+          "cmd": "npm run story:render -- data/mp4/<slug>.v1.json --out data/mp4/<slug>-ordered.mp4",
+          "optional": false
+        }
+      ],
+      "edges": [
+        ["direct", "render"]
+      ]
+    },
+    {
+      "id": "evolution",
+      "title": "Evolution",
+      "summary": "Character-evolution cut: three alternate frame sets, with version 3 re-ordered as a nearest-neighbour walk through CLIP space so the character changes one small step at a time.",
+      "browserOk": false,
+      "dryRunFlag": "--json",
+      "docs": [
+        "docs/STORY-DIRECTOR.md"
+      ],
+      "nodes": [
+        {
+          "id": "direct",
+          "label": "Plan three versions (v3 = evolution)",
+          "cmd": "npm run story:direct -- --frames <frames-dir> --lines <lines.tsv> --versions 3 --per-line 3 --cutlist data/mp4/<slug>.json --json",
+          "optional": false,
+          "note": "Writes <slug>.v1.json / .v2.json / .v3.json. v3 is the evolution walk."
+        },
+        {
+          "id": "render",
+          "label": "Render the evolution cut",
+          "cmd": "npm run story:render -- data/mp4/<slug>.v3.json --out data/mp4/<slug>-evolution.mp4",
+          "optional": false
+        }
+      ],
+      "edges": [
+        ["direct", "render"]
+      ]
+    },
+    {
+      "id": "mutation",
+      "title": "Mutation",
+      "summary": "Re-evolve an edit job with new prose while keeping the source attachments; drop or replace flags deliberately so a prompt's own --style cannot be shadowed.",
+      "browserOk": false,
+      "dryRunFlag": "--dry-run",
+      "docs": [
+        "docs/MJ-WATCHER.md",
+        "docs/MJ-CONTACT-SHEET.md"
+      ],
+      "nodes": [
+        {
+          "id": "inspect",
+          "label": "Inspect the source job (spends nothing)",
+          "cmd": "npm run mj:revise -- --source <job-id> --inspect",
+          "optional": true
+        },
+        {
+          "id": "dry",
+          "label": "Compose the mutated prompts (dry-run)",
+          "cmd": "npm run mj:revise -- --source <job-id> --prompt-file <pack.md> --dry-run",
+          "optional": false,
+          "note": "Prints the exact command Midjourney would receive; exits before any submission."
+        },
+        {
+          "id": "apply",
+          "label": "Submit the mutated pack",
+          "cmd": "npm run mj:revise -- --source <job-id> --prompt-file <pack.md> --output mj-output/<slug>",
+          "optional": false
+        },
+        {
+          "id": "guard",
+          "label": "Mutation guard (flag ownership)",
+          "cmd": "npm run test:watched-man-mutations",
+          "optional": true,
+          "note": "Pins that a prompt's own --style / --s win over the source's."
+        }
+      ],
+      "edges": [
+        ["inspect", "dry"],
+        ["dry", "apply"],
+        ["apply", "guard"]
+      ]
+    },
+    {
+      "id": "chart-export",
+      "title": "Chart export",
+      "summary": "MusicXML → per-part MusicXML + PDFs + Demo MP3 + muted backing tracks + multi-track MIDI.",
+      "browserOk": false,
+      "dryRunFlag": "--dry-run",
+      "docs": [
+        "docs/CHART-EXPORT-WORKFLOW.md",
+        "docs/CHART-WATCHER.md"
+      ],
+      "nodes": [
+        {
+          "id": "export",
+          "label": "Run the full export pipeline",
+          "cmd": "npm run export-all -- <score.musicxml>",
+          "optional": false
+        }
+      ],
+      "edges": []
+    },
+    {
+      "id": "index-songs",
+      "title": "Index songs",
+      "summary": "Rebuild the audio catalog from the configured roots (and any --add files).",
+      "browserOk": true,
+      "dryRunFlag": "--help",
+      "docs": [
+        "docs/SONGS-WATCHER.md"
+      ],
+      "nodes": [
+        {
+          "id": "index",
+          "label": "Rebuild data/songs/catalog.json",
+          "cmd": "npm run index-songs",
+          "optional": false
+        }
+      ],
+      "edges": []
+    }
+  ]
+}

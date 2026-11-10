@@ -215,6 +215,7 @@ jobs:
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node temple-of-control.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node floating-toolset.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node tool-dashboards.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node process-graphs.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node integrations.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node mj-dashboard.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node mj-sheets.spec.mjs
@@ -246,6 +247,7 @@ jobs:
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node temple-of-control.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node floating-toolset.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node tool-dashboards.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node process-graphs.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node integrations.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node mj-dashboard.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node mj-sheets.spec.mjs
