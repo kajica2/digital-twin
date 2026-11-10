@@ -307,8 +307,30 @@ async function main() {
     await page.screenshot({ path: join(ART, 'twin-light.png'), fullPage: true });
     dim(`saved twin-light.png`);
 
+    // Twin OS opens <floating-toolset> on load. On a narrow viewport the
+    // panel sits over the bottom-tab rail, so a page.click on Today hits
+    // the toolset instead. Puppeteer's setViewport({ isMobile }) also
+    // RELOADS the page, which re-runs the page's toolset.open() — so the
+    // close has to happen AFTER each viewport hop, not before. The
+    // toolset's own contract is covered by floating-toolset.spec.mjs.
+    const closeToolset = async () => {
+      await page.evaluate(() => {
+        const el = document.querySelector('floating-toolset');
+        if (el && typeof el.close === 'function' && !el.closed) el.close();
+      });
+      await page.waitForFunction(
+        () => {
+          const el = document.querySelector('floating-toolset');
+          return !el || el.closed === true;
+        },
+        { timeout: 2000 }
+      );
+    };
+
     // mobile snapshot
     await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true });
+    await page.waitForSelector('floating-toolset, .rail-item[data-panel="today"]');
+    await closeToolset();
     await page.click('.rail-item[data-panel="today"]');
     await new Promise(r => setTimeout(r, 200));
     await page.screenshot({ path: join(ART, 'today-mobile.png'), fullPage: true });
@@ -316,8 +338,19 @@ async function main() {
 
     // --- 11. task list interaction (mutates the session; runs last) ---
     log(`--- task list interaction ---`);
-    await page.setViewport({ width: 1280, height: 900 });
-    await new Promise(r => setTimeout(r, 150));
+    // Desktop restore also reloads (isMobile flip). Wait for the shell,
+    // close the re-opened toolset, then land on Today before mutating.
+    await page.setViewport({ width: 1280, height: 900, deviceScaleFactor: 1, isMobile: false });
+    await page.waitForSelector('.agenda-item[data-id="seed-0"]', { timeout: 5000 });
+    await closeToolset();
+    await page.click('.rail-item[data-panel="today"]');
+    await page.waitForFunction(
+      () => {
+        const panel = document.querySelector('.panel[data-panel="today"]');
+        return panel && !panel.hidden;
+      },
+      { timeout: 3000 }
+    );
 
     await page.click('.agenda-item[data-id="seed-0"] [data-check]');
     await new Promise(r => setTimeout(r, 120));
@@ -326,8 +359,11 @@ async function main() {
     const countAfterToggle = await page.$eval('[data-agenda-count]', el => el.textContent.trim());
     assert(countAfterToggle === '1 of 4 done', `counter tracks the toggle (got "${countAfterToggle}")`);
 
+    // Submit via the form, not page.click on the button: even a closed
+    // toolset leaves a restore tab at bottom-right, and the Add button
+    // sits in that corner on desktop. requestSubmit() bypasses hit-testing.
     await page.type('[data-agenda-input]', 'alpha task; beta task; gamma task');
-    await page.click('.agenda-add-btn');
+    await page.$eval('form[data-agenda-add]', (form) => form.requestSubmit());
     await new Promise(r => setTimeout(r, 120));
     const afterAdd = await page.$$eval('.agenda-item', els => els.length);
     assert(afterAdd === 7, `';'-separated input adds 3 tasks at once (got ${afterAdd} rows)`);
