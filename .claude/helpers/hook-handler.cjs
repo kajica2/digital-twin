@@ -464,11 +464,18 @@ const handlers = {
     const dangerous = ['rm -rf /', 'format c:', 'del /s /q c:\\', ':(){:|:&};:'];
     for (const d of dangerous) {
       if (cmd.includes(d)) {
-        console.error(`[BLOCKED] Dangerous command detected: ${d}`);
-        process.exit(1);
+        // Cursor PreToolUse hooks require JSON on stdout — plain text or a
+        // non-zero exit alone is treated as a block with no usable reason.
+        console.log(JSON.stringify({ permissionDecision: 'deny', permissionDecisionReason: 'Dangerous command detected: ' + d }));
+        return;
       }
     }
-    console.log('[OK] Command validated');
+    console.log(JSON.stringify({ permissionDecision: 'allow' }));
+  },
+
+  // PreToolUse for Write|Edit|MultiEdit — Cursor requires allow/deny JSON.
+  'pre-edit': () => {
+    console.log(JSON.stringify({ permissionDecision: 'allow' }));
   },
 
   'post-edit': () => {
