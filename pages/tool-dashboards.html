@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Design tokens live in the skin, not this page. See DESIGN.md. -->
+    <link rel="stylesheet" href="../assets/skins/house.css" data-skin-stylesheet>
+    <script src="../lib/skin.js"></script>
+    <script src="../lib/theme.js" data-theme-key="td-theme"></script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tool Dashboards — Tools</title>
+    <meta name="description" content="Family floating panels for every suite in npm run test:all — watchers, Midjourney, Suno, Treblo, social, media, marketplace, platform. One panel per family, not per suite.">
+    <meta property="og:title" content="Tool Dashboards — Tools">
+    <meta property="og:description" content="Eight family dashboards covering every suite in npm run test:all. Drop a floating panel on any page.">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%E2%9A%99%3C/text%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg); color: var(--text-primary);
+            font-family: var(--font-body); line-height: 1.65;
+            -webkit-font-smoothing: antialiased;
+        }
+        .wrap { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+        header { padding: 30px 0 8px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        .back { font-family: var(--mono); font-size: 12px; color: var(--text-secondary); text-decoration: none; }
+        .back:hover { color: var(--accent-text); }
+        #themeToggle {
+            font-family: var(--mono); font-size: 12px; padding: 6px 12px; cursor: pointer;
+            background: var(--bg-card); color: var(--text-secondary);
+            border: 1px solid var(--line); border-radius: var(--radius-md);
+        }
+        .hero { padding: 26px 0 30px; border-bottom: 1px solid var(--line); }
+        .kicker { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent-text); }
+        h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.12; letter-spacing: -0.02em; margin: 10px 0 12px; font-weight: 700; }
+        .lede { font-size: 17px; color: var(--text-secondary); max-width: 64ch; }
+        h2 { font-size: 21px; letter-spacing: -0.01em; margin: 42px 0 12px; font-weight: 650; }
+        p { color: var(--text-secondary); max-width: 70ch; }
+        section { padding-bottom: 14px; }
+
+        .meta-line {
+            font-family: var(--mono); font-size: 12px; color: var(--text-tertiary);
+            margin-top: 14px;
+        }
+        .meta-line strong { color: var(--text-secondary); font-weight: 500; }
+
+        .family-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+            margin-top: 18px;
+        }
+        .family-card {
+            text-align: left;
+            background: var(--bg-card); border: 1px solid var(--line);
+            border-radius: var(--radius-lg); padding: 16px 16px 14px;
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            color: inherit;
+            font: inherit;
+            transition: border-color .15s ease, box-shadow .15s ease;
+        }
+        .family-card:hover,
+        .family-card[aria-pressed="true"] {
+            border-color: var(--accent);
+            box-shadow: var(--shadow-md);
+        }
+        .family-card:focus-visible {
+            outline: 2px solid var(--accent); outline-offset: 2px;
+        }
+        .family-card .name {
+            font-weight: 600; font-size: 15px; color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        .family-card .count {
+            font-family: var(--mono); font-size: 11px; letter-spacing: .04em;
+            color: var(--accent-text); margin-bottom: 8px;
+        }
+        .family-card .blurb {
+            font-size: 13px; color: var(--text-secondary); line-height: 1.45;
+        }
+
+        .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 16px; }
+        button.act {
+            font-family: var(--mono); font-size: 12px; padding: 8px 14px; cursor: pointer;
+            background: var(--bg-card); color: var(--text-primary);
+            border: 1px solid var(--line); border-radius: var(--radius-md);
+        }
+        button.act:hover { color: var(--accent-text); border-color: var(--accent); }
+        button.act.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        button.act.primary:hover { filter: brightness(1.07); color: #fff; }
+
+        .status { font-family: var(--mono); font-size: 12px; color: var(--text-tertiary); }
+
+        pre {
+            background: var(--code-bg); color: var(--code-text); border: 1px solid var(--line);
+            border-radius: var(--radius-md); padding: 16px; overflow-x: auto;
+            font-family: var(--mono); font-size: 12.5px; line-height: 1.7;
+        }
+        .code-wrap { position: relative; }
+        .copy-btn {
+            position: absolute; top: 10px; right: 10px; font-family: var(--mono); font-size: 11px;
+            padding: 5px 11px; cursor: pointer; background: var(--bg-card); color: var(--text-secondary);
+            border: 1px solid var(--line); border-radius: 7px;
+        }
+        .copy-btn:hover { color: var(--accent-text); border-color: var(--accent); }
+        .inline-code { font-family: var(--mono); font-size: 12px; background: var(--code-bg);
+                                padding: 2px 6px; border-radius: 5px; color: var(--code-text); }
+        footer { border-top: 1px solid var(--line); margin-top: 48px; padding: 26px 0 56px;
+                 color: var(--text-tertiary); font-size: 13px; }
+        footer a { color: var(--accent-text); text-decoration: none; }
+        @media (max-width: 700px) { h1 { font-size: 30px; } }
+    </style>
+</head>
+<body>
+<header>
+    <div class="wrap" style="width:100%; display:flex; align-items:center; justify-content:space-between; gap:16px;">
+        <a class="back" href="how-to.html">← how-to</a>
+        <button id="themeToggle" type="button">theme: auto</button>
+    </div>
+</header>
+
+<div class="wrap">
+    <div class="hero">
+        <div class="kicker">tool · family dashboards</div>
+        <h1>One panel per family, not per suite.</h1>
+        <p class="lede">
+            Every suite in <code class="inline-code">npm run test:all</code> lands in one of
+            eight floating panels — watchers, Midjourney, Suno, Treblo, social,
+            media, marketplace, platform. Open a family, read its tests, run
+            commands and docs without leaving the page.
+        </p>
+        <p class="meta-line" data-catalog-meta>loading catalog…</p>
+    </div>
+
+    <section>
+        <h2>Families</h2>
+        <p>
+            Pick a family to open its floating panel. The panel uses the same
+            chrome as the floating toolset — traffic lights, drag, collapse —
+            with a 2×2 grid of <strong>Tests / Run / Docs / Status</strong>.
+        </p>
+        <div class="family-grid" data-family-grid></div>
+        <div class="row">
+            <button type="button" class="act primary" data-action="open">open panel</button>
+            <button type="button" class="act" data-action="close">close</button>
+            <button type="button" class="act" data-action="collapse">collapse</button>
+            <span class="status" data-active-family></span>
+        </div>
+    </section>
+
+    <section>
+        <h2>Drop-in</h2>
+        <p>
+            The component is one script tag. Point <code class="inline-code">src</code>
+            at the catalog and <code class="inline-code">family</code> at an id.
+        </p>
+        <div class="code-wrap">
+            <button type="button" class="copy-btn" data-copy>copy</button>
+            <pre><code>&lt;script src="/lib/tool-dashboard.js"&gt;&lt;/script&gt;
+&lt;tool-dashboard
+  src="/data/twin/tool-dashboards.json"
+  family="watchers"&gt;&lt;/tool-dashboard&gt;</code></pre>
+        </div>
+    </section>
+
+    <footer>
+        Reference: <a href="../docs/TOOL-DASHBOARDS.md">docs/TOOL-DASHBOARDS.md</a>
+        · sibling: <a href="./floating-toolset.html">floating toolset</a>
+        · catalog: <a href="../data/twin/tool-dashboards.json">data/twin/tool-dashboards.json</a>
+    </footer>
+</div>
+
+<script src="../lib/tool-dashboard.js"></script>
+<tool-dashboard
+    id="dashboard"
+    src="../data/twin/tool-dashboards.json"
+    family="watchers"
+    closed></tool-dashboard>
+
+<script>
+(function () {
+    'use strict';
+
+    // Theme toggle — same three-state cycle as the floating-toolset host.
+    var KEY = 'td-theme';
+    var btn = document.getElementById('themeToggle');
+    function label() {
+        var pref = (window.DTTheme && DTTheme.pref) || localStorage.getItem(KEY) || 'system';
+        btn.textContent = 'theme: ' + (pref === 'system' ? 'auto' : pref);
+    }
+    label();
+    btn.addEventListener('click', function () {
+        var order = ['system', 'light', 'dark'];
+        var cur = (window.DTTheme && DTTheme.pref) || localStorage.getItem(KEY) || 'system';
+        var next = order[(order.indexOf(cur) + 1) % order.length];
+        if (window.DTTheme) DTTheme.set(next);
+        else {
+            localStorage.setItem(KEY, next);
+            document.documentElement.setAttribute('data-theme',
+                next === 'system'
+                    ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+                    : next);
+        }
+        label();
+    });
+
+    // Copy buttons — sync feedback, execCommand fallback.
+    document.querySelectorAll('[data-copy]').forEach(function (b) {
+        b.addEventListener('click', function () {
+            var pre = b.parentElement.querySelector('pre code') || b.parentElement.querySelector('pre');
+            var text = pre ? pre.textContent : '';
+            function done() {
+                b.textContent = 'copied';
+                setTimeout(function () { b.textContent = 'copy'; }, 1400);
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(done).catch(function () {
+                    var ta = document.createElement('textarea');
+                    ta.value = text; document.body.appendChild(ta); ta.select();
+                    try { document.execCommand('copy'); } catch (e) {}
+                    document.body.removeChild(ta);
+                    done();
+                });
+            } else {
+                var ta = document.createElement('textarea');
+                ta.value = text; document.body.appendChild(ta); ta.select();
+                try { document.execCommand('copy'); } catch (e) {}
+                document.body.removeChild(ta);
+                done();
+            }
+        });
+    });
+
+    var dash = document.getElementById('dashboard');
+    var grid = document.querySelector('[data-family-grid]');
+    var meta = document.querySelector('[data-catalog-meta]');
+    var active = document.querySelector('[data-active-family]');
+
+    function setActive(id) {
+        grid.querySelectorAll('.family-card').forEach(function (c) {
+            c.setAttribute('aria-pressed', c.getAttribute('data-family') === id ? 'true' : 'false');
+        });
+        if (active) active.textContent = id ? ('active · ' + id) : '';
+    }
+
+    function renderCards(catalog) {
+        var families = (catalog && catalog.families) || [];
+        grid.innerHTML = '';
+        families.forEach(function (f) {
+            var card = document.createElement('button');
+            card.type = 'button';
+            card.className = 'family-card';
+            card.setAttribute('data-family', f.id);
+            card.setAttribute('aria-pressed', 'false');
+            card.innerHTML =
+                '<div class="name">' + escape(f.label || f.id) + '</div>' +
+                '<div class="count">' + (f.suites ? f.suites.length : 0) + ' suites</div>' +
+                '<div class="blurb">' + escape(f.blurb || '') + '</div>';
+            card.addEventListener('click', function () {
+                dash.showFamily(f.id);
+                dash.open();
+                setActive(f.id);
+            });
+            grid.appendChild(card);
+        });
+        if (meta) {
+            meta.innerHTML = '<strong>' + families.length + '</strong> families · <strong>' +
+                (catalog.suiteCount || 0) + '</strong> suites · generated for <code class="inline-code">' +
+                escape(catalog.generatedFor || 'test:all') + '</code>';
+        }
+        setActive(dash.familyId);
+    }
+
+    function escape(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+
+    // Listen BEFORE the poll starts. The catalog fetch often finishes
+    // during the first few ticks; registering after waitCatalog() can
+    // miss dashboard:catalog and leave #familyGrid empty even when
+    // el.catalog.families.length === 8.
+    function refreshFromCatalog() {
+        if (dash.catalog && dash.catalog.families && dash.catalog.families.length > 1) {
+            renderCards(dash.catalog);
+        }
+    }
+
+    dash.addEventListener('dashboard:catalog', function () {
+        refreshFromCatalog();
+    });
+
+    dash.addEventListener('dashboard:family', function (ev) {
+        refreshFromCatalog();
+        setActive(ev.detail && ev.detail.id);
+    });
+
+    // Catalog may already be loaded by the component; poll briefly.
+    // A slow fetch must not freeze the page on the demo forever —
+    // the listeners above re-render the grid when the real families
+    // arrive after the poll gives up.
+    function waitCatalog(n) {
+        if (dash.catalog && dash.catalog.families && dash.catalog.families.length > 1) {
+            renderCards(dash.catalog);
+            return;
+        }
+        if (n <= 0) {
+            // Fall back to whatever the component has (demo), but keep
+            // listening above for the late catalog.
+            renderCards(dash.catalog || { families: [], suiteCount: 0 });
+            return;
+        }
+        setTimeout(function () { waitCatalog(n - 1); }, 50);
+    }
+    waitCatalog(40);
+
+    document.querySelector('[data-action="open"]').addEventListener('click', function () {
+        dash.open();
+    });
+    document.querySelector('[data-action="close"]').addEventListener('click', function () {
+        dash.close();
+    });
+    document.querySelector('[data-action="collapse"]').addEventListener('click', function () {
+        dash.open();
+        dash.toggleCollapse();
+    });
+})();
+</script>
+</body>
+</html>

@@ -216,6 +216,29 @@ async function main() {
     const resp = await page.goto(pageUrl, { waitUntil: 'networkidle0' });
     assert(resp.status() === 200, `shell returns HTTP 200 (got ${resp.status()})`);
 
+    // Twin OS auto-opens <floating-toolset> on load. The panel sits
+    // over the Songs corpus filters (and the Reset button in
+    // particular), so a page.click on Reset can "succeed" while the
+    // toolset absorbs the event — filters stay set and every later
+    // assertion cascades. Same class of defect as twin-os.spec.mjs's
+    // agenda/rail failures; the toolset's own contract is covered by
+    // floating-toolset.spec.mjs.
+    const closeToolset = async () => {
+      await page.evaluate(() => {
+        const el = document.querySelector('floating-toolset');
+        if (el && typeof el.close === 'function' && !el.closed) el.close();
+      });
+      await page.waitForFunction(
+        () => {
+          const el = document.querySelector('floating-toolset');
+          return !el || el.closed === true;
+        },
+        { timeout: 2000 }
+      );
+    };
+    await page.waitForSelector('floating-toolset, .rail-item[data-panel="songs"]');
+    await closeToolset();
+
     // Switch to Songs panel
     await page.click('.rail-item[data-panel="songs"]');
     await new Promise(r => setTimeout(r, 800));
@@ -382,6 +405,13 @@ async function main() {
       await page.type(sel, text);
       await wait(200);
     };
+    // Drive Reset through the DOM click handler, not Input.dispatchMouseEvent.
+    // A covered Reset button is the exact failure mode that left filters sticky
+    // in CI (Postbop + tenor + 145–175 surviving a "reset", so "ada" returned 2).
+    const clickReset = async () => {
+      await page.$eval('[data-jz-filters-reset]', el => el.click());
+      await wait(200);
+    };
 
     if (!jzCatalogHidden) {
       log(`--- corpus catalog mode (${fixture.items.length} fixture solos) ---`);
@@ -511,8 +541,7 @@ async function main() {
         `every surviving row is inside the tempo window (got ${windowRows.map(r => r.tempo).join(', ')})`);
 
       // Reset clears every control.
-      await page.click('[data-jz-filters-reset]');
-      await wait(200);
+      await clickReset();
       assert(await corpusRowCount() === jzRows, 'reset restores the full corpus');
       assert(await page.$eval('[data-jz-style]', el => el.value) === '', 'reset clears the style filter');
       assert(await page.$eval('[data-jz-instrument]', el => el.value) === '', 'reset clears the instrument filter');
@@ -575,8 +604,7 @@ async function main() {
       }
 
       // Reset from the empty state restores everything.
-      await page.click('[data-jz-filters-reset]');
-      await wait(200);
+      await clickReset();
       assert(await corpusRowCount() === jzRows, 'reset from the empty state restores the full corpus');
       assert(await noMatchHidden(), '"no matches" state hides again after reset');
 

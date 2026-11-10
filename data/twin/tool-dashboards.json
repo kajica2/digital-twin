@@ -1,0 +1,437 @@
+{
+  "generatedFor": "npm run test:all",
+  "suiteCount": 86,
+  "familyCount": 8,
+  "families": [
+    {
+      "id": "watchers",
+      "label": "Watchers",
+      "title": "~/twin \u2014 watchers",
+      "blurb": "Chart, songs and reel inboxes \u2014 the calm drop-zone fleet.",
+      "suites": [
+        "test:watcher",
+        "test:songs-watcher",
+        "test:reel-watcher"
+      ],
+      "run": [
+        {
+          "cmd": "npm run test:watcher",
+          "note": "chart inbox"
+        },
+        {
+          "cmd": "npm run test:songs-watcher",
+          "note": "audio inbox"
+        },
+        {
+          "cmd": "npm run test:reel-watcher",
+          "note": "reel inbox"
+        }
+      ],
+      "docs": [
+        {
+          "href": "../docs/CHART-WATCHER.md",
+          "label": "Chart watcher"
+        },
+        {
+          "href": "../docs/SONGS-WATCHER.md",
+          "label": "Songs watcher"
+        },
+        {
+          "href": "../docs/REEL-WATCHER.md",
+          "label": "Reel watcher"
+        }
+      ],
+      "status": {
+        "state": "green",
+        "detail": "3 suites \u00b7 LaunchAgents live"
+      }
+    },
+    {
+      "id": "midjourney",
+      "label": "Midjourney",
+      "title": "~/twin \u2014 midjourney",
+      "blurb": "Web submitter, feed gate, packs, revise, sheets and look presets.",
+      "suites": [
+        "test:mj",
+        "test:mj-cookies",
+        "test:mj-token-refresh",
+        "test:mj-look-presets",
+        "test:look-presets",
+        "test:nema",
+        "test:nema-grid",
+        "test:srce",
+        "test:watched-man",
+        "test:watched-man-mutations",
+        "test:mj-web",
+        "test:mj-feed",
+        "test:mj-feed-reconcile",
+        "test:mj-revise",
+        "test:mj-download",
+        "test:mj-fetch-fullres",
+        "test:mj-contact-sheet",
+        "test:mj-submitter",
+        "test:mj-prompt-generator",
+        "test:mj-scene-presets",
+        "test:mj-console"
+      ],
+      "run": [
+        {
+          "cmd": "npm run test:mj-web",
+          "note": "web backend"
+        },
+        {
+          "cmd": "npm run test:mj-submitter",
+          "note": "prompt composition"
+        },
+        {
+          "cmd": "npm run prompt:check",
+          "note": "identity lint"
+        }
+      ],
+      "docs": [
+        {
+          "href": "../docs/MJ-WATCHER.md",
+          "label": "MJ watcher"
+        },
+        {
+          "href": "../docs/MJ-CONTACT-SHEET.md",
+          "label": "Contact sheet"
+        },
+        {
+          "href": "../docs/MJ-LOOK-PRESETS.md",
+          "label": "Look presets"
+        },
+        {
+          "href": "../assets/mural-prompts/PROMPT-EXPANSION-FORMAT.md",
+          "label": "Prompt format"
+        }
+      ],
+      "status": {
+        "state": "green",
+        "detail": "21 suites \u00b7 headed Chrome"
+      }
+    },
+    {
+      "id": "suno",
+      "label": "Suno",
+      "title": "~/twin \u2014 suno",
+      "blurb": "Styles, covers, mango decrypt, humanize, upload and the KAI DNA.",
+      "suites": [
+        "test:suno-styles",
+        "test:suno-run",
+        "test:suno-web",
+        "test:suno-create",
+        "test:suno-mutator",
+        "test:suno-fetch",
+        "test:suno-mango",
+        "test:suno-style-library",
+        "test:suno-meter-roll",
+        "test:suno-kai-dna",
+        "test:suno-humanize",
+        "test:suno-post-humanize",
+        "test:suno-upload",
+        "test:suno-backing-bands",
+        "test:suno-playlist"
+      ],
+      "run": [
+        {
+          "cmd": "npm run test:suno-mutator",
+          "note": "variants"
+        },
+        {
+          "cmd": "npm run test:suno-fetch",
+          "note": "playable audio"
+        },
+        {
+          "cmd": "npm run suno:login",
+          "note": "refresh jar"
+        }
+      ],
+      "docs": [
+        {
+          "href": "../docs/SUNO-MUTATOR.md",
+          "label": "Mutator"
+        },
+        {
+          "href": "../docs/SUNO-FETCH.md",
+          "label": "Fetch / mango"
+        },
+        {
+          "href": "../docs/SUNO-KAI-SOUND-DNA.md",
+          "label": "KAI DNA"
+        },
+        {
+          "href": "../docs/SUNO-HUMANIZE.md",
+          "label": "Humanize"
+        }
+      ],
+      "status": {
+        "state": "green",
+        "detail": "15 suites \u00b7 cookie jar outside repo"
+      }
+    },
+    {
+      "id": "treblo",
+      "label": "Treblo",
+      "title": "~/twin \u2014 treblo",
+      "blurb": "API client, browser session install, and the upload path.",
+      "suites": [
+        "test:treblo",
+        "test:treblo-web",
+        "test:treblo-upload"
+      ],
+      "run": [
+        {
+          "cmd": "npm run test:treblo",
+          "note": "API client"
+        },
+        {
+          "cmd": "npm run test:treblo-web",
+          "note": "session install"
+        },
+        {
+          "cmd": "npm run treblo:credits",
+          "note": "balance check"
+        }
+      ],
+      "docs": [
+        {
+          "href": "../docs/TREBLO.md",
+          "label": "Treblo reference"
+        }
+      ],
+      "status": {
+        "state": "green",
+        "detail": "3 suites \u00b7 jar outside repo"
+      }
+    },
+    {
+      "id": "social",
+      "label": "Social",
+      "title": "~/twin \u2014 social",
+      "blurb": "Engine, persona pack, Gumroad sync, and the IG / X / YouTube posters.",
+      "suites": [
+        "test:social",
+        "test:social-shared",
+        "test:persona-social-pack",
+        "test:gumroad",
+        "test:x-cookies",
+        "test:x-text",
+        "test:x-poster",
+        "test:ig-poster",
+        "test:ig-cookies",
+        "test:youtube-poster"
+      ],
+      "run": [
+        {
+          "cmd": "npm run test:social",
+          "note": "engine"
+        },
+        {
+          "cmd": "npm run gumroad:plan",
+          "note": "storefront plan"
+        },
+        {
+          "cmd": "npm run test:ig-poster",
+          "note": "IG poster"
+        }
+      ],
+      "docs": [
+        {
+          "href": "../docs/SOCIAL-ENGINE.md",
+          "label": "Social engine"
+        },
+        {
+          "href": "../docs/GUMROAD.md",
+          "label": "Gumroad"
+        },
+        {
+          "href": "../docs/X-COOKIES.md",
+          "label": "X cookies"
+        },
+        {
+          "href": "../docs/PERSONA-SOCIAL-PACK.md",
+          "label": "Persona pack"
+        }
+      ],
+      "status": {
+        "state": "green",
+        "detail": "10 suites \u00b7 publish gated"
+      }
+    },
+    {
+      "id": "media",
+      "label": "Media",
+      "title": "~/twin \u2014 media",
+      "blurb": "Charts, catalogs, renderers, CLIP samples and the story director.",
+      "suites": [
+        "test:jazz-solos",
+        "test:musicxml-pdf",
+        "test:range",
+        "test:flux2",
+        "test:lettering",
+        "test:clip-samples",
+        "test:images-mp4",
+        "test:cadenza",
+        "test:audio-splitter",
+        "test:songs-indexer",
+        "test:heartmula",
+        "test:director"
+      ],
+      "run": [
+        {
+          "cmd": "npm run test:images-mp4",
+          "note": "stills \u2192 mp4"
+        },
+        {
+          "cmd": "npm run test:director",
+          "note": "story cut"
+        },
+        {
+          "cmd": "npm run test:clip-samples",
+          "note": "CLIP catalog"
+        }
+      ],
+      "docs": [
+        {
+          "href": "../docs/IMAGES-TO-MP4.md",
+          "label": "Images \u2192 MP4"
+        },
+        {
+          "href": "../docs/STORY-DIRECTOR.md",
+          "label": "Story director"
+        },
+        {
+          "href": "../docs/CLIP-INTERROGATOR.md",
+          "label": "CLIP"
+        },
+        {
+          "href": "../docs/CADENZA.md",
+          "label": "Cadenza"
+        }
+      ],
+      "status": {
+        "state": "green",
+        "detail": "12 suites \u00b7 local-first"
+      }
+    },
+    {
+      "id": "marketplace",
+      "label": "Marketplace",
+      "title": "~/twin \u2014 marketplace",
+      "blurb": "Daily plates, reel hand-off, the hourly burst and the taxonomy.",
+      "suites": [
+        "test:daily-pipeline",
+        "test:daily-content",
+        "test:daily-reels",
+        "test:marketplace-hourly",
+        "test:marketplace-taxonomy"
+      ],
+      "run": [
+        {
+          "cmd": "npm run daily:content:dry",
+          "note": "dry daily"
+        },
+        {
+          "cmd": "npm run marketplace:hourly:plan",
+          "note": "hourly plan"
+        },
+        {
+          "cmd": "npm run test:daily-reels",
+          "note": "reel hand-off"
+        }
+      ],
+      "docs": [
+        {
+          "href": "../docs/DAILY-CONTENT.md",
+          "label": "Daily content"
+        },
+        {
+          "href": "../pages/marketplace.html",
+          "label": "Marketplace page"
+        }
+      ],
+      "status": {
+        "state": "green",
+        "detail": "5 suites \u00b7 MJ quota aware"
+      }
+    },
+    {
+      "id": "platform",
+      "label": "Platform",
+      "title": "~/twin \u2014 platform",
+      "blurb": "Skin, hub, boot, secrets, improve-loop and the floating chrome.",
+      "suites": [
+        "test:skin",
+        "skin:check",
+        "test:floating-toolset",
+        "test:prompt-lint",
+        "prompt:check",
+        "test:agent-loop",
+        "test:agent-hub",
+        "test:improve-loop",
+        "test:secrets",
+        "test:boot",
+        "test:log-rotate",
+        "test:auto-check-updates",
+        "test:ingest",
+        "test:deepseek",
+        "test:tool-dashboard",
+        "test:process-graph",
+        "test:process-graph-ui"
+      ],
+      "run": [
+        {
+          "cmd": "npm run skin:check",
+          "note": "skin contract"
+        },
+        {
+          "cmd": "npm run test:secrets",
+          "note": "secrets guard"
+        },
+        {
+          "cmd": "npm run test:agent-hub",
+          "note": "SWR hub"
+        },
+        {
+          "cmd": "npm run test:tool-dashboard",
+          "note": "family dashboards"
+        },
+        {
+          "cmd": "npm run test:process-graph",
+          "note": "process packages"
+        }
+      ],
+      "docs": [
+        {
+          "href": "../DESIGN.md",
+          "label": "Skin contract"
+        },
+        {
+          "href": "../docs/FLOATING-TOOLSET.md",
+          "label": "Floating toolset"
+        },
+        {
+          "href": "../docs/IMPROVE-LOOP.md",
+          "label": "Improve loop"
+        },
+        {
+          "href": "../docs/SWR-HARNESS.md",
+          "label": "SWR harness"
+        },
+        {
+          "href": "../docs/TOOL-DASHBOARDS.md",
+          "label": "Tool dashboards"
+        },
+        {
+          "href": "../docs/PROCESS-GRAPHS.md",
+          "label": "Process graphs"
+        }
+      ],
+      "status": {
+        "state": "green",
+        "detail": "17 suites \u00b7 skin + hub + secrets"
+      }
+    }
+  ]
+}

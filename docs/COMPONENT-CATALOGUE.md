@@ -132,6 +132,47 @@ entry below.
   `pages/floating-toolset.html` (the host page),
   `docs/FLOATING-TOOLSET.md` (the reference).
 
+## `<tool-dashboard>`
+
+- **Purpose:** floating family dashboards for every suite in
+  `npm run test:all` — eight calm windows (watchers / midjourney /
+  suno / treblo / social / media / marketplace / platform), each a
+  2×2 of **TESTS / RUN / DOCS / STATUS**.
+- **Home:** `lib/tool-dashboard.js` (shared component; reuses the
+  floating-toolset chrome pattern — Shadow DOM, skin tokens, traffic
+  lights, drag — without importing that module at runtime).
+- **Props / attrs:** `src` (catalog URL), `family` (which family to
+  show). Also `showFamily(id)` / `setData(catalogOrFamily)` /
+  `open()` / `close()` / `toggleCollapse()` / `toggleZoom()`.
+- **Payload:** shaped by `familyToPayload(family)` from
+  `data/twin/tool-dashboards.json`. Status is `{ state, detail }`
+  (not a list). Pure helpers (`mergeCatalog`, `findFamily`,
+  `listSuites`, `clampPosition`, `escapeHtml`, render helpers) are
+  exported for Node tests via `module.exports` / `window.ToolDashboardLib`.
+- **Transport:** events `dashboard:open`, `dashboard:close`,
+  `dashboard:collapse`, `dashboard:move`, `dashboard:family`.
+- **Persistence:** position under
+  `localStorage["dt-tool-dashboard-pos"]`.
+- **Companion files:** `data/twin/tool-dashboards.json`,
+  `lib/tool-dashboard.test.js`, `e2e/tool-dashboards.spec.mjs`,
+  `pages/tool-dashboards.html`, `docs/TOOL-DASHBOARDS.md`.
+
+## `<process-graph>`
+
+Allowlisted pipeline browser. Loads
+`data/twin/process-graphs.json`, lists packages, dry-runs through
+`POST /api/process/<id>`. Apply stays on the CLI (and behind the
+admin key for `browserOk` packages).
+
+- **Home:** `lib/process-graph-ui.js` (Shadow DOM, skin tokens).
+- **Attributes:** `src` (catalog URL), `selected` (package id).
+- **Events:** `process:select`.
+- **Companion files:** `data/twin/process-graphs.json`,
+  `lib/process-graph.js` (CLI + apply runner),
+  `lib/process-graph.test.js`, `lib/process-graph-ui.test.js`,
+  `e2e/process-graphs.spec.mjs`, `pages/process-graphs.html`,
+  `docs/PROCESS-GRAPHS.md`.
+
 ## Reusable SVG icon library
 
 The `ICONS` object (in the inline script) holds 14 inline SVG paths
