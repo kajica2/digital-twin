@@ -136,7 +136,7 @@ function check(name, ok, detail = '') {
   check('catalog: resolves 200 with 8 families', catalogRes.ok && catalogRes.familyCount === 8,
     catalogRes.ok ? `${catalogRes.suiteCount} suites` : JSON.stringify(catalogRes));
 
-  check('catalog: suiteCount is 84', catalogRes.ok && catalogRes.suiteCount === 84);
+  check('catalog: suiteCount is 86', catalogRes.ok && catalogRes.suiteCount === 86);
 
   // ---- component behaviour -----------------------------------------------
 

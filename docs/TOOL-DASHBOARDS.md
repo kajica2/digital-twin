@@ -1,7 +1,7 @@
 # Tool Dashboards
 
 Floating family panels for every suite in `npm run test:all`. One panel per
-*family* of tools — not one panel per suite — so eighty-four scripts sit
+*family* of tools — not one panel per suite — so eighty-six scripts sit
 behind eight calm windows.
 
 ## What it is
@@ -19,7 +19,7 @@ restore tab on close. The 2×2 grid is remapped to:
 | **STATUS** | a calm one-line state (`green` / `quiet` / `unknown`) |
 
 The catalog that feeds it is [`data/twin/tool-dashboards.json`](../data/twin/tool-dashboards.json).
-Eight families cover every entry of `test:all` (84 scripts):
+Eight families cover every entry of `test:all` (86 scripts):
 
 | Family | Suites (approx.) | What it covers |
 |---|---|---|
@@ -30,7 +30,7 @@ Eight families cover every entry of `test:all` (84 scripts):
 | social | 10 | social engine, persona pack, Gumroad, X / IG / YouTube posters |
 | media | 12 | musicxml→pdf, images→mp4, Cadenza, audio splitter, HeartMuLa, director, FLUX.2, lettering, CLIP samples, jazz-solos |
 | marketplace | 5 | daily content / reels / pipeline, hourly burst, taxonomy |
-| platform | 15 | skin, floating-toolset, tool-dashboard, prompt lint, agent loop / hub, improve-loop, secrets, boot, log-rotate, auto-check, ingest, deepseek |
+| platform | 17 | skin, floating-toolset, tool-dashboard, process-graph, prompt lint, agent loop / hub, improve-loop, secrets, boot, log-rotate, auto-check, ingest, deepseek |
 
 ## Drop-in
 
@@ -89,7 +89,7 @@ npm run e2e:tool-dashboard    # Puppeteer against :5180
 The unit suite pins:
 
 - every `test:all` entry appears in exactly one family (no missing, no
-  duplicates, suiteCount === 84);
+  duplicates, suiteCount === 86);
 - `familyToPayload` / `mergeCatalog` / `findFamily` / `listSuites` /
   `clampPosition` / `escapeHtml` behave;
 - the demo family is present so a failed fetch still leaves a panel.
