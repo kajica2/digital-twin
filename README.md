@@ -26,6 +26,14 @@ themselves.
 > from a single stylesheet, re-themed with `?skin=`. See
 > [`DESIGN.md`](DESIGN.md).
 
+## Local memory upgrade
+
+Twin OS now includes quick capture in Today, searchable/tagged memory and saved searches in Twin, a Cmd/Ctrl K palette for tools/tasks/memory, and JSON memory backup/restore. The overview shows observed local counts; sample routines are labelled. The shell and shared assets work offline after a first online visit.
+
+[Memory and search guide](docs/TWIN-WORKSPACE.md) · [Comparison and upgrade roadmap](docs/UPGRADE-ROADMAP.md)
+
+Checks: `npm run test:twin-memory` and `npm run e2e:twin-workspace` (install `e2e` dependencies first; optional `CHROME_PATH` selects Chromium).
+
 ## What this is
 
 A long-running project. The landing page is the public face; the Twin

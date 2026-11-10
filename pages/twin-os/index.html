@@ -10,9 +10,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="light dark" />
   <title>Twin OS — digital_twin</title>
-  <meta name="description" content="The Twin OS shell. One calm surface for today, songs, and the twin itself. Local-first, no cloud roundtrip." />
+  <meta name="description" content="A local-first creative workspace. Capture memories, find your tools, and organise music in one calm surface." />
+  <link rel="stylesheet" href="../../assets/twin-workspace.css" />
 
-  <!-- PWA: installable on macOS, iPadOS, iOS. Sprint 1 stub. -->
+  <!-- PWA: local shell and shared assets are available offline after first visit. -->
   <!-- Relative, not root-absolute: a project Pages site serves the repo
        under /<repo>/, so "/pages/twin-os/manifest.webmanifest" resolves
        to the domain root and 404s. Relative resolves identically on
@@ -945,6 +946,10 @@
       </svg>
       <span>digital_twin · <strong>Twin OS</strong></span>
     </a>
+    <div class="workspace-actions">
+      <button class="workspace-button" type="button" data-command-open aria-keyshortcuts="Control+k Meta+k">Search <kbd>⌘ / Ctrl K</kbd></button>
+      <button class="workspace-button" type="button" data-capture-open>+ Capture</button>
+    </div>
     <theme-toggle>
       <button data-value="light" aria-label="Light theme">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -988,7 +993,7 @@
         </svg>
         Twin
       </button>
-      <div class="rail-foot">v0.2.0 · sprint 2</div>
+      <div class="rail-foot">local workspace · v0.3</div>
     </nav>
 
     <main class="canvas" id="canvas">
@@ -999,10 +1004,22 @@
           <div>
             <div class="panel-kicker">panel 01 · today</div>
             <h1 class="panel-h1">One calm surface for the day.</h1>
-            <p class="panel-sub">Agenda, patterns, and the things that should already be in motion. The twin's first read of where you are right now.</p>
+            <p class="panel-sub">Keep a thought, find your next task, and return to the work. Everything you save here stays in this browser.</p>
           </div>
         </div>
 
+        <form class="memory-box" data-memory-capture aria-label="Capture a memory">
+          <label for="memory-text">Keep a thought.</label>
+          <p class="memory-help">A phrase, a reference, a decision. Add #tags to find it later.</p>
+          <textarea id="memory-text" data-memory-text maxlength="5000" required placeholder="What would you like to remember?" aria-describedby="capture-status"></textarea>
+          <div class="memory-actions">
+            <button class="workspace-button" type="submit" data-memory-save>Save memory</button>
+            <button class="workspace-button" type="button" data-memory-cancel hidden>Cancel edit</button>
+            <span class="memory-help" data-memory-count>0 saved on this browser</span>
+          </div>
+          <p class="workspace-status" id="capture-status" data-memory-status role="status"></p>
+        </form>
+        <p class="memory-help">Your agenda · the four starting items below are examples you can complete.</p>
         <div class="agenda" aria-label="Today's agenda">
           <div class="agenda-item" data-id="seed-0">
             <input type="checkbox" class="agenda-check" data-check aria-label="Mark Morning warm-up done" />
@@ -1049,23 +1066,23 @@
         </div>
 
         <div class="panel-section">
-          <h2>Patterns the twin has noticed</h2>
-          <p class="lede">Three signals from the last 30 days. Each is a quiet observation, not a rule — the twin proposes, you decide.</p>
+          <h2>Example rhythms</h2>
+          <p class="lede">Three sample routines to shape a day. These are examples, not observations from your activity.</p>
           <div class="patterns">
             <div class="pattern-card">
               <div class="when">9am</div>
               <div class="what">Warm-up is always jazz</div>
-              <div class="conf">28 / 30 days</div>
+              <div class="conf">example routine</div>
             </div>
             <div class="pattern-card">
               <div class="when">2pm</div>
               <div class="what">Focus blocks land at 73 min</div>
-              <div class="conf">19 / 30 days</div>
+              <div class="conf">example routine</div>
             </div>
             <div class="pattern-card">
               <div class="when">8pm</div>
               <div class="what">Evening explores new repos</div>
-              <div class="conf">22 / 30 days</div>
+              <div class="conf">example routine</div>
             </div>
           </div>
         </div>
@@ -1226,28 +1243,52 @@
         <div class="panel-head">
           <div>
             <div class="panel-kicker">panel 03 · twin</div>
-            <h1 class="panel-h1">The runtime, at a glance.</h1>
-            <p class="panel-sub">Three live counters — agents running, events today, spend — surfaced from the orchestrator. Sprint 1 is the shell; the live numbers arrive when the indexer + scheduler land.</p>
+            <h1 class="panel-h1">A memory you can return to.</h1>
+            <p class="panel-sub">Your saved thoughts and open tasks, counted on this device. Search by words or #tags, pin what matters, and keep a backup.</p>
           </div>
         </div>
 
         <div class="twin-grid">
           <div class="twin-stat">
-            <div class="stat-label">agents running</div>
-            <div class="stat-value">3</div>
-            <div class="stat-sub">scanner · indexer · notifier</div>
+            <div class="stat-label">memories saved</div>
+            <div class="stat-value" data-memory-total>0</div>
+            <div class="stat-sub">notes, references, decisions</div>
           </div>
           <div class="twin-stat">
-            <div class="stat-label">events today</div>
-            <div class="stat-value">8</div>
-            <div class="stat-sub">commits · deploys · alerts</div>
+            <div class="stat-label">tasks open</div>
+            <div class="stat-value" data-agenda-pending>0</div>
+            <div class="stat-sub">unfinished items in Today</div>
           </div>
           <div class="twin-stat">
-            <div class="stat-label">spent (so far)</div>
-            <div class="stat-value">$0.04</div>
-            <div class="stat-sub">3 subagent runs, all under $0.02</div>
+            <div class="stat-label">memory storage</div>
+            <div class="stat-value">Local</div>
+            <div class="stat-sub">this browser · export to keep a copy</div>
           </div>
         </div>
+
+        <twin-memory class="panel-section" style="display:block">
+          <h2>Your memory</h2>
+          <p class="lede">Search the words you saved. A saved search gathers new matching memories automatically.</p>
+          <div class="memory-toolbar">
+            <input type="search" data-memory-search aria-label="Search memories" placeholder="Search words or #tags…" maxlength="200" />
+            <button class="workspace-button" type="button" data-memory-save-search>Save search</button>
+          </div>
+          <div class="memory-spaces" data-memory-spaces aria-label="Saved searches"></div>
+          <p class="memory-help" data-memory-results aria-live="polite"></p>
+          <div class="memory-list" data-memory-list></div>
+          <div class="memory-backup">
+            <h2>Keep a copy.</h2>
+            <p class="memory-help">Memory lives in this browser, on this site. Clearing browser data removes it. Export notes and saved searches as JSON; importing merges them and keeps existing memories. Agenda items and media files are not included.</p>
+            <div class="memory-actions">
+              <button class="workspace-button" type="button" data-memory-export>Export memory</button>
+              <button class="workspace-button" type="button" data-memory-import-open>Import memory</button>
+              <input id="memory-import" type="file" accept=".json,application/json" data-memory-import hidden aria-label="Import memory backup" />
+              <button class="workspace-button" type="button" data-memory-undo hidden>Undo delete</button>
+            </div>
+            <p class="workspace-status" data-memory-status role="status"></p>
+            <a href="../../docs/TWIN-WORKSPACE.md">Memory and search guide →</a>
+          </div>
+        </twin-memory>
 
         <!-- STOREFRONT — where the twin's finished work goes -->
         <div class="panel-section" style="margin-top:28px" data-storefront>
@@ -1275,17 +1316,25 @@
   </div>
 
   <footer class="statusbar">
-    <span><strong>twin</strong> online</span>
+    <span><strong>twin</strong> workspace</span>
     <span class="sep">·</span>
-    <span class="live">local</span>
+    <span class="live">local memory</span>
     <span class="spacer"></span>
-    <span><strong>0.4¢</strong> spent</span>
-    <span class="sep">·</span>
-    <span>8 events today</span>
+    <span data-workspace-summary>0 memories · 0 tasks open</span>
   </footer>
 
 </div>
 
+<dialog class="command-dialog" data-command-dialog aria-labelledby="command-title">
+  <div class="command-head">
+    <h2 id="command-title">Find your way.</h2>
+    <button class="workspace-button" type="button" data-command-close aria-label="Close search">Close</button>
+  </div>
+  <input class="command-search" type="search" data-command-search aria-describedby="command-help" aria-label="Search tools, tasks and memories" placeholder="Tools, tasks, memories…" autocomplete="off" />
+  <p class="memory-help" id="command-help">Search stays on this device. Esc closes.</p>
+  <p class="memory-help" data-command-count aria-live="polite"></p>
+  <div class="command-results" data-command-results></div>
+</dialog>
 <script>
   /* ===========================================================
      Panel switcher — single-page app shell, no framework
@@ -1967,5 +2016,7 @@
     });
   })();
 </script>
+<script src="../../lib/twin-memory.js"></script>
+<script src="../../lib/twin-workspace.js"></script>
 </body>
 </html>

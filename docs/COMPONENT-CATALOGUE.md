@@ -208,3 +208,8 @@ any element still hidden if the IO never fires (e.g. element was
 already in view but the threshold wasn't met during headless
 screenshot capture). Reduced motion collapses the transition to
 0.01ms.
+
+
+## `<twin-memory>` — local capture and recall
+
+Implemented in `lib/twin-workspace.js`, with its versioned model in `lib/twin-memory.js` and layout in `assets/twin-workspace.css`. The Twin panel lists, searches, pins, edits, deletes and restores local memories; saved searches gather matching notes. It coordinates the Today capture form, observed workspace counts, native command dialog, and JSON backup controls. User text is rendered with `textContent`. Writes validate and commit a single storage record, and errors keep drafts visible. See [operator guide](TWIN-WORKSPACE.md) and `e2e/twin-workspace.spec.mjs`.

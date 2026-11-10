@@ -16131,3 +16131,12 @@ extractor now depends on ✓ ✓. It is `CLIP_CACHE_DIR` with a
   the Vercel custom domain, the MJ cookie jar expiry, the hub board's
   completion misattribution, a reel's slug still derived from its mutable
   POST-sheet title.
+
+
+### 2026-11-10 — local memory, capture and recall
+
+- Shipped a Today capture form and `<twin-memory>` in Twin: keyword/tag search, saved searches, pin/edit/delete/undo, and validated JSON export/import. Existing agenda and catalogue formats are preserved. Cmd/Ctrl K opens a keyboard-accessible palette over tools, tasks and saved memory.
+- Replaced sample runtime/spend counters with observed memory and unfinished-task counts; marked seeded tasks and rhythms as examples. Cached both skins and shared shell assets, with network-first navigation and scope-specific cache cleanup. Kept both Twin OS entry points aligned.
+- Product decisions and phased acceptance criteria are in `docs/UPGRADE-ROADMAP.md`, based on primary documentation for Mem, mymind, Raycast and Reclaim. Operator reference: `docs/TWIN-WORKSPACE.md`. Memory is deterministic and local; models, runtime adapters, calendar integration and coordinated multi-writer sync remain roadmap work.
+- Verification: `npm run test:twin-memory` (8 tests), `npm run skin:check` and `npm run skin:validate` pass. Existing `e2e/twin-os.spec.mjs` and `e2e/twin-os-songs.spec.mjs` pass in Chromium. New `e2e/twin-workspace.spec.mjs` verifies capture, edit, recall, saved searches, navigation, real backup download/restore, invalid import, tab refresh, both skins offline, themes, mobile, quota errors and corrupt-state preservation. Browser runs use a local wrapper trusting only this managed environment’s installed proxy CA public key; this wrapper is not shipped.
+- Added the model tests to `test:all` and the browser story to local/deployed CI. Full media/ML and macOS automation suites were outside this UI/memory change and were not run.

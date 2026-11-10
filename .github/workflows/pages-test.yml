@@ -195,6 +195,7 @@ jobs:
             cd e2e && E2E_URL=https://digitaltwin-ebon.vercel.app node landing.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node twin-os.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node twin-os-songs.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node twin-workspace.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node ct-default.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node ct-icon.mjs
             cd "$GITHUB_WORKSPACE/e2e" && E2E_URL=https://digitaltwin-ebon.vercel.app node ct-nav.mjs
@@ -225,6 +226,7 @@ jobs:
             cd e2e && node landing.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && node twin-os.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && node twin-os-songs.spec.mjs
+            cd "$GITHUB_WORKSPACE/e2e" && node twin-workspace.spec.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node ct-default.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node ct-icon.mjs
             cd "$GITHUB_WORKSPACE/e2e" && PORT=5180 node ct-nav.mjs

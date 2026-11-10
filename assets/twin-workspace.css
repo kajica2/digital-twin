@@ -1,0 +1,60 @@
+/* Layout only: colours and type remain governed by the family skin. */
+.workspace-actions, .memory-actions, .memory-toolbar, .memory-spaces, .memory-meta {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.workspace-actions { margin-left: auto; margin-right: 16px; }
+.workspace-button, .memory-actions button, .memory-spaces button, .command-result {
+  font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius-sm, 8px); padding: 8px 12px; cursor: pointer;
+}
+.workspace-button:hover, .memory-actions button:hover, .memory-spaces button:hover { border-color: var(--primary); }
+.workspace-button:focus-visible, .memory-actions button:focus-visible, .memory-spaces button:focus-visible,
+.command-result:focus-visible, .memory-card:focus-visible {
+  outline: 2px solid var(--primary); outline-offset: 3px;
+}
+.memory-box { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md, 12px); padding: 22px; margin-bottom: 28px; }
+.memory-box h2 { margin-top: 0; }
+.memory-box label { display: block; font-weight: 500; margin-bottom: 8px; }
+.memory-box textarea, .memory-toolbar input, .command-search {
+  display: block; width: 100%; font: inherit; color: var(--ink); background: var(--bg);
+  border: 1px solid var(--line); border-radius: var(--radius-sm, 8px); padding: 12px;
+}
+.memory-box textarea { resize: vertical; min-height: 100px; margin-bottom: 12px; }
+.memory-box textarea:focus, .memory-toolbar input:focus, .command-search:focus {
+  outline: 2px solid var(--primary); outline-offset: 2px;
+}
+.memory-help, .memory-meta, .workspace-status { color: var(--ink-muted); font-size: 13px; }
+.workspace-status { min-height: 1.6em; margin: 10px 0; overflow-wrap: anywhere; }
+.workspace-status[data-error="true"] { color: var(--ink); font-weight: 600; }
+.memory-toolbar { margin-bottom: 16px; }
+.memory-toolbar input { flex: 1 1 220px; min-width: 0; }
+.memory-spaces { margin: 12px 0; }
+.memory-spaces .memory-space { display: inline-flex; }
+.memory-spaces button[aria-pressed="true"] { background: var(--primary-soft); border-color: var(--primary); }
+.memory-list { display: grid; gap: 12px; }
+.memory-card { border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius-md, 12px); padding: 18px; min-width: 0; }
+.memory-card[data-pinned="true"] { border-left: 3px solid var(--primary); }
+.memory-text { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0 0 12px; }
+.memory-meta { justify-content: space-between; margin-bottom: 12px; }
+.memory-empty { padding: 24px; border: 1px dashed var(--line); border-radius: var(--radius-md, 12px); color: var(--ink-muted); }
+.memory-backup { margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--line); }
+.command-dialog {
+  width: min(640px, calc(100% - 32px)); max-height: 80dvh; padding: 22px; margin: 10dvh auto auto;
+  color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius-md, 12px);
+  box-shadow: var(--shadow-lg);
+}
+.command-dialog::backdrop { background: color-mix(in srgb, var(--ink) 35%, transparent); }
+.command-dialog h2 { font-family: var(--font-display); font-weight: 400; margin: 0; }
+.command-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+.command-results { display: grid; gap: 6px; margin-top: 12px; }
+.command-result { width: 100%; text-align: left; overflow-wrap: anywhere; }
+.command-result small { display: block; color: var(--ink-muted); margin-top: 3px; }
+.command-result:hover, .command-result:focus { background: var(--primary-soft); }
+@media (max-width: 700px) {
+  .topbar { flex-wrap: wrap; gap: 12px; }
+  .workspace-actions { order: 3; flex-basis: 100%; margin: 0; }
+  .workspace-actions .workspace-button { flex: 1; }
+  .memory-box { padding: 16px; }
+  .statusbar { flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) { .statusbar .live::before { animation: none; } }
