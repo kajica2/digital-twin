@@ -1,0 +1,81 @@
+@github FLUX (stills) → image-to-video model (motion) → ffmpeg loop assembly
+
+FLUX Model Options (Free/Local)
+Model	License	Best For
+FLUX.1 Dev	Non-commercial	Highest quality, requires ComfyUI
+FLUX.1 Schnell	Apache 2.0	Fast, commercially usable, lower VRAM
+FLUX.2 Klein (4B/9B)	Open	Distilled, efficient for iteration
+Recommended Free I2V (Image-to-Video) Motion Engines
+Based on the research, these are the free/local options that pair with FLUX:
+
+1. WanVideo 2.1 (via ComfyUI) — Best Overall for Low VRAM
+
+The Flux.1 + WanVideo workflow is explicitly designed for low VRAM (≤8GB) and integrates FLUX image generation directly with WanVideo I2V conversion. The workflow: Flux.1 generates a high-quality still from a text prompt → WanVideo animates it into a short video → output MP4.
+
+Required models:
+
+flux1-dev.sft (FLUX image generation)
+
+wan2.1_i2v_480p_14B_bf16_Comfy-Org.safetensors (motion)
+
+WanVideo T5 encoder, CLIP, and VAE
+
+2. FLUX 3 Video I2V (via BFL API) — For Keyframe-Controlled Loops
+
+Black Forest Labs' own FLUX 3 Video API supports Image-to-Video with three modes:
+
+Mode	Input	Best For Looping
+Startframe	1 image	Animating forward from a still
+Start + End	2 images	Perfect for loops — use the same image as both start and end, prompt for cyclical motion (steam, rain, orbit, ambient drift)
+Keyframes	3+ images	Choreographing through specific poses/compositions
+For a 3–5 second seamless loop: feed the same image as both first and last frame, set duration to 3–5s, and prompt for cyclical motion (e.g., "steam rising and dissipating, camera slowly orbiting, ambient light pulsing").
+
+The bfl-api Node.js wrapper gives you CLI access: bfl --flux-3-video --video-mode i2v --prompt "..." --duration 5.
+
+3. dgenerate (CLI + Library)
+
+Scriptable command-line tool for generating images and animation sequences using stable diffusion techniques, with a GUI scripting environment. Good if you want programmatic batch animation generation.
+
+The Seamless Loop Technique
+For a 3–5 second looping animation (as opposed to a one-shot clip):
+
+Generate the still with FLUX (text-to-image or img2img).
+
+Use Start + End frame mode with the same image for both — this forces the model to return to the starting composition.
+
+Prompt for cyclical motion: "seamless loop, returning to the starting composition, cyclical ambient motion, no cuts".
+
+Duration: set to 3–5 seconds. FLUX 3 video supports up to 20s, but 3–5s is the sweet spot for social loops.
+
+Post-process with ffmpeg: use the loopable-video-segmenter already in your repo (lib/loopable-video-segmenter/) to beat-align and mirror-loop the output if needed.
+
+Integration Path for Your Digital Twin
+The repo already has the Loopable Video Segmenter organ. The pipeline becomes:
+
+text
+FLUX (generate still)
+    ↓
+WanVideo / FLUX 3 Video (animate, 3-5s)
+    ↓
+lib/loopable-video-segmenter/ (beat-align, mirror-loop)
+    ↓
+Twin OS Songs panel (surface final loops)
+Low-VRAM Setup (8GB GPU)
+The ComfyUI + FLUX + WanVideo workflow is explicitly tested for low VRAM (≤8GB). For an even lighter option, FLUX.2 Klein 4B distilled model reduces the image generation overhead significantly.
+
+Quick Start: Minimal Free Stack
+Install ComfyUI with WanVideo plugin (via ComfyUI Manager)
+
+Download: FLUX.1 Schnell (fast, Apache 2.0) + Wan 2.1 I2V 480p + Wan T5/CLIP/VAE
+
+Load the Flux.1 + WanVideo workflow template
+
+Generate still from your prompt (or load an existing image)
+
+Set loop parameters: start frame = end frame = your image, duration = 4s
+
+Export → run through lib/loopable-video-segmenter/ for beat-aligned looping
+
+Surface in Twin OS Songs panel
+
+This gives you a fully offline, zero-subscription Midjourney loop replacement that integrates directly with the existing digital-twin architecture.
